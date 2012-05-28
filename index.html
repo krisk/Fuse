@@ -11,9 +11,26 @@
       $.getJSON('../books/books.json', function(data) {
         console.log('length', data.length);
         var f = new Fuse(data, {
-          keys: ['author']
+          keys: ['title']
         });
-        var r = f.search('Brown');
+        var r = f.search('Falen');
+        console.log(r);
+      });
+
+      $.getJSON('../books/books.json', function(data) {
+
+        var flattenedTitles = $.map(data, function(item, index) {
+          return item.title;
+        })
+
+      console.log(flattenedTitles);
+        var f = new Fuse(flattenedTitles);
+        var r = f.search('Falen');
+
+        $.each(r, function(item, index) {
+          console.log(flattenedTitles[index]);
+        })
+
         console.log(r);
       });
 

@@ -77,7 +77,6 @@
           mask[pattern.charAt(i)] |= 1 << (patternLen - i - 1);
       }
 
-      console.log(mask);
       return mask;
     })();
 
@@ -224,9 +223,10 @@
     options = options || {};
     var keys = options.keys;
 
+
     /**
     * Searches for all the items whose keys (fuzzy) match the pattern.
-    * @param {String} pattern The pattern string to fuzzy search on
+    * @param {String} pattern The pattern string to fuzzy search on.
     * @return {Array} A list of all serch matches.
     * @public
     */
@@ -234,6 +234,7 @@
       console.time('total');
 
       var searcher = new Searcher(pattern, options),
+          isArray = false,
           i, j,
           item, text,
           dataLen = list.length,
@@ -242,43 +243,68 @@
           rawResultsMap = {},
           existingResult,
           rawResultsLen;
-          results = [];
+          results = [],
+          compute = null;
 
       console.time('search');
 
-      // Iterate over every item
-      for (i = 0; i < dataLen; i++) {
-        item = list[i];
+      /**
+      * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
+      * @param {String} text The pattern string to fuzzy search on.
+      * @return {Object|Int} entity If the <data> is an Array, then entity will be an index,
+      *                             otherwise it's the item object.
+      * @private
+      */
+      function analyzeText(text, entity) {
+        // Check if the text can be searched
+        if (text !== undefined && text !== null && typeof text === 'string') {
 
-        // Iterate over every key
-        for (j = 0; j < keys.length; j++) {
-          text = item[keys[j]];
+          // Get the result
+          bitapResult = searcher.search(text);
 
-          // Check if the text can be searched
-          if (text !== undefined && text !== null && typeof text === 'string') {
+          // If a match is found, add the item to <rawResults>, including its score
+          if (bitapResult.isMatch) {
 
-            // Get the result
-            bitapResult = searcher.search(text);
+            console.log(bitapResult.score);
 
-            // If a match is found, add the item to <rawResults>, including its score
-            if (bitapResult.isMatch) {
-
-              console.log(bitapResult.score);
-
-              // Check of the item already exists in our results
-              existingResult = rawResultsMap[i];
-              if (existingResult) {
-                // Use the lowest score
-                existingResult.score = Math.min(existingResult.score, bitapResult.score);
-              } else {
-                // Added to the raw result list
-                rawResults.push({item: item, score: bitapResult.score});
-                rawResultsMap[i] = rawResults.length - 1;
-              }
+            // Check of the item already exists in our results
+            existingResult = rawResultsMap[i];
+            if (existingResult) {
+              // Use the lowest score
+              existingResult.score = Math.min(existingResult.score, bitapResult.score);
+            } else {
+              // Added to the raw result list
+              rawResults.push({item: entity, score: bitapResult.score});
+              rawResultsMap[i] = rawResults.length - 1;
             }
           }
         }
       }
+
+      // Check the first item in the list, if it's a string, then we assume
+      // that every item in the list is also a string, and thus it's a flattened array.
+      if (typeof list[0] === 'string') {
+        (function() {
+          // Iterate over every item
+          for (i = 0; i < dataLen; i++) {
+            analyzeText(list[i], i);
+          }
+        })();
+      } else {
+        // Otherwise, the first item is an Object (hopefully), and thus the searching
+        // is done on the values of the keys of each item
+        (function() {
+          // Iterate over every item
+          for (i = 0; i < dataLen; i++) {
+            item = list[i];
+            // Iterate over every key
+            for (j = 0; j < keys.length; j++) {
+              analyzeText(item[keys[j]], item);
+            }
+          }
+        })();
+      }
+
       console.timeEnd('search');
 
       console.time('sort');
@@ -293,6 +319,7 @@
       for (i = 0, rawResultsLen = rawResults.length; i < rawResultsLen; i++) {
         results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
       }
+
       console.timeEnd('sort');
 
       console.timeEnd('total');
