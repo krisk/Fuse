@@ -1,5 +1,5 @@
 /**
- * Fuse - Fuzzy search on models
+ * Fuse - Lightweight fuzzy-search
  *
  * Copyright (c) 2012 Kirollos Risk <kirollos@gmail.com>.
  * All Rights Reserved. Apache Software License 2.0
@@ -216,11 +216,11 @@
   }
 
   /**
-  * @param {Array} data
+  * @param {Array} list
   * @param {Object} options
   * @public
   */
-  function Fuse(data, options) {
+  function Fuse(list, options) {
     options = options || {};
     var keys = options.keys;
 
@@ -236,7 +236,7 @@
       var searcher = new Searcher(pattern, options),
           i, j,
           item, text,
-          dataLen = data.length,
+          dataLen = list.length,
           bitapResult,
           rawResults = [],
           rawResultsMap = {},
@@ -248,7 +248,7 @@
 
       // Iterate over every item
       for (i = 0; i < dataLen; i++) {
-        item = data[i];
+        item = list[i];
 
         // Iterate over every key
         for (j = 0; j < keys.length; j++) {
