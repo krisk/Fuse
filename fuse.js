@@ -34,10 +34,10 @@
   * you may not use this file except in compliance with the License.
   */
   function Searcher(pattern, options) {
-      options = options || {};
+    options = options || {};
 
-      // Aproximately where in the text is the pattern expected to be found?
-      var MATCH_LOCATION = options.location || 0,
+    // Aproximately where in the text is the pattern expected to be found?
+    var MATCH_LOCATION = options.location || 0,
 
       // Determines how close the match must be to the fuzzy location (specified above).
       // An exact letter match which is 'distance' characters away from the fuzzy location
@@ -50,7 +50,6 @@
       // (of both letters and location), a threshold of '1.0' would match anything.
       MATCH_THRESHOLD = options.threshold || 0.6,
 
-      // Set starting location at beginning text
       loc = MATCH_LOCATION,
       patternLen = pattern.length;
 
@@ -77,6 +76,8 @@
       for (i = 0; i < patternLen; i++) {
           mask[pattern.charAt(i)] |= 1 << (patternLen - i - 1);
       }
+
+      console.log(mask);
       return mask;
     })();
 
@@ -157,8 +158,6 @@
             } else {
                 bin_max = bin_mid;
             }
-            var bb = (bin_max - bin_min) / 2 + bin_min;
-
             bin_mid =  Math.floor((bin_max - bin_min) / 2 + bin_min);
         }
 
@@ -176,30 +175,29 @@
             // The alphabet <pattern_alphabet> is a sparse hash, so the following line generates warnings.
             charMatch = pattern_alphabet[text.charAt(j - 1)];
             if (d === 0) {
-                // First pass: exact match.
-                rd[j] = ((rd[j + 1] << 1) | 1) & charMatch;
+              // First pass: exact match.
+              rd[j] = ((rd[j + 1] << 1) | 1) & charMatch;
             } else {
-                // Subsequent passes: fuzzy match.
-                rd[j] = (((rd[j + 1] << 1) | 1) & charMatch) |
-                                (((last_rd[j + 1] | last_rd[j]) << 1) | 1) |
-                                last_rd[j + 1];
+              // Subsequent passes: fuzzy match.
+              rd[j] = ((rd[j + 1] << 1) | 1) & charMatch
+                  | (((last_rd[j + 1] | last_rd[j]) << 1) | 1) | last_rd[j + 1];
             }
             if (rd[j] & matchmask) {
-                score = match_bitapScore(d, j - 1);
-                // This match will almost certainly be better than any existing match.
-                // But check anyway.
-                if (score <= score_threshold) {
-                    // Told you so.
-                    score_threshold = score;
-                    best_loc = j - 1;
-                    if (best_loc > loc) {
-                        // When passing loc, don't exceed our current distance from loc.
-                        start = Math.max(1, 2 * loc - best_loc);
-                    } else {
-                        // Already passed loc, downhill from here on in.
-                        break;
-                    }
+              score = match_bitapScore(d, j - 1);
+              // This match will almost certainly be better than any existing match.
+              // But check anyway.
+              if (score <= score_threshold) {
+                // Told you so.
+                score_threshold = score;
+                best_loc = j - 1;
+                if (best_loc > loc) {
+                    // When passing loc, don't exceed our current distance from loc.
+                    start = Math.max(1, 2 * loc - best_loc);
+                } else {
+                    // Already passed loc, downhill from here on in.
+                    break;
                 }
+              }
             }
         }
         // No hope for a (better) match at greater error levels.
