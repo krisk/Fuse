@@ -10,7 +10,7 @@
 
       $.getJSON('../books/books.json', function(data) {
           console.log(data.length);
-         var f = new Fuse(data, {values: ['author'] });
+         var f = new Fuse(data, {keys: ['author'] });
          var r = f.search('drown');
          console.log(r);
       });

@@ -224,10 +224,10 @@
   */
   function Fuse(data, options) {
     options = options || {};
-    var values = options.values;
+    var keys = options.keys;
 
     /**
-    * Searches for all the items whose values (fuzzy) match the pattern.
+    * Searches for all the items whose keys (fuzzy) match the pattern.
     * @param {String} pattern The pattern string to fuzzy search on
     * @return {Array} A list of all serch matches.
     * @public
@@ -251,8 +251,8 @@
         item = data[i];
 
         // Iterate over every key
-        for (j = 0; j < values.length; j++) {
-          text = item[values[j]];
+        for (j = 0; j < keys.length; j++) {
+          text = item[keys[j]];
 
           // Check if the text can be searched
           if (text !== undefined && text !== null && typeof text === 'string') {
