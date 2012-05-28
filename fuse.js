@@ -114,7 +114,7 @@
         return {
           isMatch: true,
           score: 0
-        }
+        };
       }
 
       // Set starting location at beginning text and initialise the alphabet.
@@ -211,8 +211,8 @@
 
       return {
         isMatch: best_loc >= 0,
-        score: score,
-      }
+        score: score
+      };
 
     }
   }
