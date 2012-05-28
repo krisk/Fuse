@@ -77,4 +77,4 @@ The pattern string cannot exceed 32 characters.
 
 #### How does it do it?
 
-Currently, it uses a full Bitap algorithm <http://en.wikipedia.org/wiki/Bitap_algorithm>, leveraging a modified version of the "Diff, Match & Patch" tool by Google <http://code.google.com/p/google-diff-match-patch/>.
+Currently, it uses a full Bitap algorithm [<http://en.wikipedia.org/wiki/Bitap_algorithm>], leveraging a modified version of the "Diff, Match & Patch" tool by Google [<http://code.google.com/p/google-diff-match-patch/>].
