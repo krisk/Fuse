@@ -113,7 +113,7 @@
         // Exact match
         return {
           isMatch: true,
-          score: 0,
+          score: 0
         }
       }
 
@@ -131,7 +131,7 @@
           finish,
           rd,
           charMatch,
-          score;
+          score = 1;
 
       if (best_loc != -1) {
           score_threshold = Math.min(match_bitapScore(0, best_loc), score_threshold);
@@ -235,12 +235,14 @@
     this.search = function(pattern) {
       console.time('total');
 
-      var searcher = new Searcher(pattern),
+      var searcher = new Searcher(pattern, options),
           i, j,
           item, text,
           dataLen = data.length,
           bitapResult,
           rawResults = [],
+          rawResultsMap = {},
+          existingResult,
           rawResultsLen;
           results = [];
 
@@ -262,7 +264,19 @@
 
             // If a match is found, add the item to <rawResults>, including its score
             if (bitapResult.isMatch) {
-              rawResults.push({item: item, score: bitapResult.score});
+
+              console.log(bitapResult.score);
+
+              // Check of the item already exists in our results
+              existingResult = rawResultsMap[i];
+              if (existingResult) {
+                // Use the lowest score
+                existingResult.score = Math.min(existingResult.score, bitapResult.score);
+              } else {
+                // Added to the raw result list
+                rawResults.push({item: item, score: bitapResult.score});
+                rawResultsMap[i] = rawResults.length - 1;
+              }
             }
           }
         }

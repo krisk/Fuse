@@ -9,10 +9,12 @@
     $(function() {
 
       $.getJSON('../books/books.json', function(data) {
-          console.log(data.length);
-         var f = new Fuse(data, {keys: ['author'] });
-         var r = f.search('drown');
-         console.log(r);
+        console.log('length', data.length);
+        var f = new Fuse(data, {
+          keys: ['author']
+        });
+        var r = f.search('brwn');
+        console.log(r);
       });
 
     });
