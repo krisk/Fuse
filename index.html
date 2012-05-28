@@ -1,0 +1,20 @@
+<!DOCTYPE>
+<html>
+  <body>
+  </body>
+  <script src="../books/javascript/lib/jquery-1.7.2.min.js"></script>
+  <script src="fuse.js"></script>
+  <script>
+
+    $(function() {
+
+      $.getJSON('../books/books.json', function(data) {
+          console.log(data.length);
+         var f = new Fuse(data, {values: ['author'] });
+         var r = f.search('drown');
+         console.log(r);
+      });
+
+    });
+  </script>
+</html>
