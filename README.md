@@ -64,7 +64,7 @@ var result = f.search('brwn');  // Fuzzy-search for 'brwn'
 ##### Options
 
 `keys`
-List of keys (properties) that will be searched
+List of keys (properties) that will be searched.
 
 `id`
 The name of identifier key.  If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items.
@@ -77,4 +77,4 @@ The pattern string cannot exceed 32 characters.
 
 #### How does it do it?
 
-Currently, it uses a full Bitap algorithm,leveraging a modified version of the "Diff, Match & Patch" tool by Google <http://code.google.com/p/google-diff-match-patch/>.
+Currently, it uses a full Bitap algorithm <http://en.wikipedia.org/wiki/Bitap_algorithm>, leveraging a modified version of the "Diff, Match & Patch" tool by Google <http://code.google.com/p/google-diff-match-patch/>.
