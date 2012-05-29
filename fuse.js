@@ -284,25 +284,22 @@
       // Check the first item in the list, if it's a string, then we assume
       // that every item in the list is also a string, and thus it's a flattened array.
       if (typeof list[0] === 'string') {
-        (function() {
-          // Iterate over every item
-          for (i = 0; i < dataLen; i++) {
-            analyzeText(list[i], i);
-          }
-        })();
+        // Iterate over every item
+        for (i = 0; i < dataLen; i++) {
+          analyzeText(list[i], i);
+        }
       } else {
         // Otherwise, the first item is an Object (hopefully), and thus the searching
-        // is done on the values of the keys of each item
-        (function() {
-          // Iterate over every item
-          for (i = 0; i < dataLen; i++) {
-            item = list[i];
-            // Iterate over every key
-            for (j = 0; j < keys.length; j++) {
-              analyzeText(item[keys[j]], item);
-            }
+        // is done on the values of the keys of each item.
+
+        // Iterate over every item
+        for (i = 0; i < dataLen; i++) {
+          item = list[i];
+          // Iterate over every key
+          for (j = 0; j < keys.length; j++) {
+            analyzeText(item[keys[j]], item);
           }
-        })();
+        }
       }
 
       console.timeEnd('search');
