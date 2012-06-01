@@ -1,5 +1,3 @@
-[![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
-
 Fuse
 ====
 
