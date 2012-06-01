@@ -231,7 +231,7 @@
     * @public
     */
     this.search = function(pattern) {
-      console.time('total');
+      //console.time('total');
 
       var searcher = new Searcher(pattern, options),
           isArray = false,
@@ -246,7 +246,7 @@
           results = [],
           compute = null;
 
-      console.time('search');
+      //console.time('search');
 
       /**
       * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
@@ -265,7 +265,7 @@
           // If a match is found, add the item to <rawResults>, including its score
           if (bitapResult.isMatch) {
 
-            console.log(bitapResult.score);
+            //console.log(bitapResult.score);
 
             // Check of the item already exists in our results
             existingResult = rawResultsMap[i];
@@ -302,9 +302,9 @@
         }
       }
 
-      console.timeEnd('search');
+      //console.timeEnd('search');
+      //console.time('sort');
 
-      console.time('sort');
       // Sort the results, form lowest to highest score
       rawResults.sort(function(a, b) {
         return a.score > b.score ? 1: -1;
@@ -317,9 +317,8 @@
         results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
       }
 
-      console.timeEnd('sort');
-
-      console.timeEnd('total');
+      //console.timeEnd('sort');
+      //console.timeEnd('total');
 
       return results;
     }
