@@ -1,7 +1,7 @@
+[![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
+
 Fuse
 ====
-
-(info on Fuzzy-search: <http://en.wikipedia.org/wiki/Approximate_string_matching>)
 
 Fuse is a full JavaScript fuzzy-search implementation that searches accross the keys of every record in a list.
 
@@ -81,7 +81,7 @@ The pattern string cannot exceed 32 characters.
 
 #### How does it do it?
 
-Currently, it uses a full Bitap algorithm [<http://en.wikipedia.org/wiki/Bitap_algorithm>], leveraging a modified version of the "Diff, Match & Patch" tool by Google [<http://code.google.com/p/google-diff-match-patch/>].
+Currently, it uses a full [Bitap algorithm](http://en.wikipedia.org/wiki/Bitap_algorithm "Bitap algorithm - wiki"), leveraging a modified version of the [Diff, Match & Patch](http://code.google.com/p/google-diff-match-patch/ "Diff, Match & Patch") tool by Google.
 
 #### To do
 
