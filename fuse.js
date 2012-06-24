@@ -50,10 +50,10 @@
          // (of both letters and location), a threshold of '1.0' would match anything.
          MATCH_THRESHOLD = options.threshold || 0.6;
 
+      // Setup pattern
       this.setup = function(pattern) {
 
-         var loc = MATCH_LOCATION,
-            patternLen = pattern.length,
+         var patternLen = pattern.length,
             pattern = pattern.toLowerCase();
 
          if (patternLen > 32) {
@@ -69,8 +69,7 @@
           * @private
           */
          pattern_alphabet = (function () {
-            var mask = {},
-               i;
+            var mask = {}, i;
 
             for (i = 0; i < patternLen; i++) {
                mask[pattern.charAt(i)] = 0 | (1 << (patternLen - i - 1));
@@ -81,7 +80,6 @@
 
          /**
           * Compute and return the score for a match with <e> errors and <x? location.
-          * Accesses loc and pattern through being a closure.
           * @param {number} e Number of errors in match.
           * @param {number} x Location of match.
           * @return {number} Overall score for match (0.0 = good, 1.0 = bad).
@@ -89,7 +87,7 @@
           */
          function match_bitapScore(e, x) {
             var accuracy = e / patternLen,
-               proximity = Math.abs(loc - x);
+               proximity = Math.abs(MATCH_LOCATION - x);
 
             if (!MATCH_DISTANCE) {
                // Dodge divide by zero error.
@@ -100,7 +98,6 @@
 
          /**
           * Compute and return the score for a match with <e> errors and <x? location.
-          * Accesses loc and pattern through being a closure.
           * @param {String} text The text to search in
           * @return {Object} Literal containing:
           *     {Boolean} isMatch Whether the text is a match or not
@@ -120,17 +117,18 @@
 
             // Set starting location at beginning text and initialise the alphabet.
             var textLen = text.length,
-               score_threshold = MATCH_THRESHOLD,
                // Highest score beyond which we give up.
-               best_loc = text.indexOf(pattern, loc),
+               score_threshold = MATCH_THRESHOLD,
                // Is there a nearby exact match? (speedup)
-               d, j, bin_min, bin_mid, bin_max = patternLen + textLen,
+               best_loc = text.indexOf(pattern, MATCH_LOCATION),
+               d, j,
+               bin_min, bin_mid, bin_max = patternLen + textLen,
                last_rd, start, finish, rd, charMatch, score = 1;
 
             if (best_loc != -1) {
                score_threshold = Math.min(match_bitapScore(0, best_loc), score_threshold);
                // What about in the other direction? (speedup)
-               best_loc = text.lastIndexOf(pattern, loc + patternLen);
+               best_loc = text.lastIndexOf(pattern, MATCH_LOCATION + patternLen);
 
                if (best_loc != -1) {
                   score_threshold = Math.min(match_bitapScore(0, best_loc), score_threshold);
@@ -146,7 +144,7 @@
                bin_min = 0;
                bin_mid = bin_max;
                while (bin_min < bin_mid) {
-                  if (match_bitapScore(d, loc + bin_mid) <= score_threshold) {
+                  if (match_bitapScore(d, MATCH_LOCATION + bin_mid) <= score_threshold) {
                      bin_min = bin_mid;
                   } else {
                      bin_max = bin_mid;
@@ -156,8 +154,8 @@
 
                // Use the result from this iteration as the maximum for the next.
                bin_max = bin_mid;
-               start = Math.max(1, loc - bin_mid + 1);
-               finish = Math.min(loc + bin_mid, textLen) + patternLen;
+               start = Math.max(1, MATCH_LOCATION - bin_mid + 1);
+               finish = Math.min(MATCH_LOCATION + bin_mid, textLen) + patternLen;
 
                // Initialize the bit array
                rd = Array(finish + 2);
@@ -182,18 +180,18 @@
                         // Told you so.
                         score_threshold = score;
                         best_loc = j - 1;
-                        if (best_loc > loc) {
-                           // When passing loc, don't exceed our current distance from loc.
-                           start = Math.max(1, 2 * loc - best_loc);
+                        if (best_loc > MATCH_LOCATION) {
+                           // When passing MATCH_LOCATION, don't exceed our current distance from MATCH_LOCATION.
+                           start = Math.max(1, 2 * MATCH_LOCATION - best_loc);
                         } else {
-                           // Already passed loc, downhill from here on in.
+                           // Already passed MATCH_LOCATION, downhill from here on in.
                            break;
                         }
                      }
                   }
                }
                // No hope for a (better) match at greater error levels.
-               if (match_bitapScore(d + 1, loc) > score_threshold) {
+               if (match_bitapScore(d + 1, MATCH_LOCATION) > score_threshold) {
                   break;
                }
                last_rd = rd;
@@ -217,6 +215,7 @@
       options = options || {};
 
       var keys = options.keys,
+         keysLen = keys ? keys.length : 0,
          searcher = new Searcher(options);
 
       /**
@@ -228,8 +227,7 @@
       this.search = function (pattern) {
          //console.time('total');
 
-         var isArray = false,
-            i, j, item, text, dataLen = list.length,
+         var i, j, item, text, dataLen = list.length,
             bitapResult, rawResults = [],
             rawResultsMap = {},
             existingResult, rawResultsLen;
@@ -290,7 +288,7 @@
             for (i = 0; i < dataLen; i++) {
                item = list[i];
                // Iterate over every key
-               for (j = 0; j < keys.length; j++) {
+               for (j = 0; j < keysLen; j++) {
                   analyzeText(item[keys[j]], item);
                }
             }
