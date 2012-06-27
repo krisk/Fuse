@@ -221,9 +221,9 @@
 
             var searcher = new Searcher(pattern, options),
                 i, j, item, text, dataLen = list.length,
-                bitapResult, rawResults = [],
+                bitapResult, rawResults = [], rawResultsLen = 0,
                 rawResultsMap = {},
-                existingResult, rawResultsLen, results = [],
+                existingResult, results = [],
                 compute = null;
 
             //console.time('search');
@@ -231,11 +231,13 @@
             /**
              * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
              * @param {String} text The pattern string to fuzzy search on.
-             * @return {Object|Int} entity If the <data> is an Array, then entity will be an index,
-             *                             otherwise it's the item object.
+             * @param {String|Int} entity If the <data> is an Array, then entity will be an index,
+             *                            otherwise it's the item object.
+             * @param {Int} index
+             * @return {Object|Int}
              * @private
              */
-            function analyzeText(text, entity) {
+            function analyzeText(text, entity, index) {
                 // Check if the text can be searched
                 if (text !== undefined && text !== null && typeof text === 'string') {
 
@@ -247,8 +249,8 @@
 
                         //console.log(bitapResult.score);
 
-                        // Check of the item already exists in our results
-                        existingResult = rawResultsMap[i];
+                        // Check if the item already exists in our results
+                        existingResult = rawResultsMap[index];
                         if (existingResult) {
                             // Use the lowest score
                             existingResult.score = Math.min(existingResult.score, bitapResult.score);
@@ -258,7 +260,8 @@
                                 item: entity,
                                 score: bitapResult.score
                             });
-                            rawResultsMap[i] = rawResults.length - 1;
+                            rawResultsLen++;
+                            rawResultsMap[index] = rawResultsLen;
                         }
                     }
                 }
@@ -269,7 +272,7 @@
             if (typeof list[0] === 'string') {
                 // Iterate over every item
                 for (i = 0; i < dataLen; i++) {
-                    analyzeText(list[i], i);
+                    analyzeText(list[i], i, i);
                 }
             } else {
                 // Otherwise, the first item is an Object (hopefully), and thus the searching
@@ -280,7 +283,7 @@
                     item = list[i];
                     // Iterate over every key
                     for (j = 0; j < keys.length; j++) {
-                        analyzeText(item[keys[j]], item);
+                        analyzeText(item[keys[j]], item, i);
                     }
                 }
             }
@@ -299,7 +302,7 @@
             // of the entire item.  This is because we don't want to return the <rawResults>,
             // since it contains other metadata;
             //console.time('build');
-            for (i = 0, rawResultsLen = rawResults.length; i < rawResultsLen; i++) {
+            for (i = 0; i < rawResultsLen; i++) {
                 results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
             }
 
