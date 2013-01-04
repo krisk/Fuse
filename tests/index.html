@@ -1,0 +1,71 @@
+<!doctype html>
+<head>
+<script src="http://code.jquery.com/jquery.min.js"></script>
+<script src="../fuse.js"></script>
+</head>
+
+<body>
+	<input type="text" id="search" />
+<script>
+
+/*
+$(function(){
+
+	$.getJSON('users.json',function(data){
+		 var users = data;
+		 var names = [];
+		 $.each(users, function(index, user) {
+		 	names.push(user.name);
+		 });
+
+		 var options = {
+				keys : ['name'],
+				index : 'registrationNumber'
+			};
+
+		var f = new Fuse(names);
+
+		$('#search').on('keyup',function(){
+
+				var text = $(this).val();
+				console.log('Searched for '+ text);
+				console.log(f.search(text));
+
+			});
+	});
+
+});
+*/
+
+$(function(){
+
+	$.getJSON('books.json',function(data){
+		 var books = data;
+		 var authors = [];
+
+		 $.each(books, function(index, book) {
+		 	authors.push(book.author);
+		 });
+
+		 var options = {
+				keys: ['author', 'title'],
+				caseSensitive: false
+			};
+
+		var f = new Fuse(books, options);
+
+		$('#search').on('keyup',function(){
+
+				var text = $(this).val();
+				console.log('Searched for '+ text);
+				console.log(f.search(text));
+
+			});
+	});
+
+});
+
+</script>
+
+
+</body>

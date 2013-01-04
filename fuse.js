@@ -50,7 +50,8 @@
             // (of both letters and location), a threshold of '1.0' would match anything.
             MATCH_THRESHOLD = options.threshold || 0.6,
 
-            pattern = pattern.toLowerCase(),
+
+            pattern = options.caseSensitive ? pattern : pattern.toLowerCase(),
             patternLen = pattern.length;
 
         if (patternLen > 32) {
@@ -102,7 +103,7 @@
          * @public
          */
         this.search = function (text) {
-            text = text.toLowerCase();
+            text = options.caseSensitive ? text : text.toLowerCase();
 
             if (pattern === text) {
                 // Exact match
