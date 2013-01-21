@@ -67,10 +67,14 @@
          */
         var pattern_alphabet = (function () {
             var mask = {},
-                i;
+                i = 0;
 
             for (i = 0; i < patternLen; i++) {
-                mask[pattern.charAt(i)] = 0 | 1 << (patternLen - i - 1);
+                mask[pattern.charAt(i)] = 0;
+            }
+
+            for (i = 0; i < patternLen; i++) {
+                mask[pattern.charAt(i)] |= 1 << (pattern.length - i - 1);
             }
 
             return mask;
