@@ -255,7 +255,7 @@
                         //console.log(bitapResult.score);
 
                         // Check if the item already exists in our results
-                        existingResult = rawResultsMap[index];
+                        existingResult = rawResults[index];
                         if (existingResult) {
                             // Use the lowest score
                             existingResult.score = Math.min(existingResult.score, bitapResult.score);
