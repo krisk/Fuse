@@ -226,8 +226,7 @@
 
             var searcher = new Searcher(pattern, options),
                 i, j, item, text, dataLen = list.length,
-                bitapResult, rawResults = [], rawResultsLen = 0,
-                rawResultsMap = {},
+                bitapResult, rawResults = [], rawResultsLen,
                 existingResult, results = [],
                 compute = null;
 
@@ -255,18 +254,16 @@
                         //console.log(bitapResult.score);
 
                         // Check if the item already exists in our results
-                        existingResult = rawResultsMap[index];
+                        existingResult = rawResults[index];
                         if (existingResult) {
                             // Use the lowest score
                             existingResult.score = Math.min(existingResult.score, bitapResult.score);
                         } else {
-                            // Added to the raw result list
+                            // Add it to the raw result list
                             rawResults.push({
                                 item: entity,
                                 score: bitapResult.score
                             });
-                            rawResultsLen++;
-                            rawResultsMap[index] = rawResultsLen;
                         }
                     }
                 }
@@ -307,6 +304,7 @@
             // of the entire item.  This is because we don't want to return the <rawResults>,
             // since it contains other metadata;
             //console.time('build');
+            rawResultsLen = rawResults.length;
             for (i = 0; i < rawResultsLen; i++) {
                 results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
             }
