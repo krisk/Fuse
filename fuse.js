@@ -101,7 +101,8 @@
         /**
          * Compute and return the result of the search
          * @param {String} text The text to search in
-         * @return {Object} Literal containing:
+         * @return
+         *     {Object} Literal containing:
          *     {Boolean} isMatch Whether the text is a match or not
          *     {Decimal} score Overal score for the match
          * @public
@@ -117,73 +118,83 @@
                 };
             }
 
-            // Set starting location at beginning text and initialise the alphabet.
-            var textLen = text.length,
+            var i, j,
+                // Set starting location at beginning text and initialise the alphabet.
+                textLen = text.length,
                 // Highest score beyond which we give up.
-                score_threshold = MATCH_THRESHOLD,
+                scoreThreshold = MATCH_THRESHOLD,
                 // Is there a nearby exact match? (speedup)
-                best_loc = text.indexOf(pattern, MATCH_LOCATION),
-                d, j, bin_min, bin_mid, bin_max = patternLen + textLen,
-                last_rd, start, finish, rd, charMatch, score = 1;
+                bestLoc = text.indexOf(pattern, MATCH_LOCATION),
 
-            if (best_loc != -1) {
-                score_threshold = Math.min(match_bitapScore(0, best_loc), score_threshold);
+                binMin, binMid,
+                binMax = patternLen + textLen,
+
+                lastRd, start, finish, rd, charMatch,
+
+                score = 1,
+
+                locations = [];
+
+            if (bestLoc != -1) {
+                scoreThreshold = Math.min(match_bitapScore(0, bestLoc), scoreThreshold);
                 // What about in the other direction? (speedup)
-                best_loc = text.lastIndexOf(pattern, MATCH_LOCATION + patternLen);
+                bestLoc = text.lastIndexOf(pattern, MATCH_LOCATION + patternLen);
 
-                if (best_loc != -1) {
-                    score_threshold = Math.min(match_bitapScore(0, best_loc), score_threshold);
+                if (bestLoc != -1) {
+                    scoreThreshold = Math.min(match_bitapScore(0, bestLoc), scoreThreshold);
                 }
             }
 
-            best_loc = -1;
+            bestLoc = -1;
 
-            for (d = 0; d < patternLen; d++) {
+            for (i = 0; i < patternLen; i++) {
                 // Scan for the best match; each iteration allows for one more error.
-                // Run a binary search to determine how far from 'loc' we can stray at this
+                // Run a binary search to determine how far from 'MATCH_LOCATION' we can stray at this
                 // error level.
-                bin_min = 0;
-                bin_mid = bin_max;
-                while (bin_min < bin_mid) {
-                    if (match_bitapScore(d, MATCH_LOCATION + bin_mid) <= score_threshold) {
-                        bin_min = bin_mid;
+                binMin = 0;
+                binMid = binMax;
+                while (binMin < binMid) {
+                    if (match_bitapScore(i, MATCH_LOCATION + binMid) <= scoreThreshold) {
+                        binMin = binMid;
                     } else {
-                        bin_max = bin_mid;
+                        binMax = binMid;
                     }
-                    bin_mid = Math.floor((bin_max - bin_min) / 2 + bin_min);
+                    binMid = Math.floor((binMax - binMin) / 2 + binMin);
                 }
 
                 // Use the result from this iteration as the maximum for the next.
-                bin_max = bin_mid;
-                start = Math.max(1, MATCH_LOCATION - bin_mid + 1);
-                finish = Math.min(MATCH_LOCATION + bin_mid, textLen) + patternLen;
+                binMax = binMid;
+                start = Math.max(1, MATCH_LOCATION - binMid + 1);
+                finish = Math.min(MATCH_LOCATION + binMid, textLen) + patternLen;
 
                 // Initialize the bit array
                 rd = Array(finish + 2);
 
-                rd[finish + 1] = (1 << d) - 1;
+                rd[finish + 1] = (1 << i) - 1;
 
                 for (j = finish; j >= start; j--) {
                     // The alphabet <pattern_alphabet> is a sparse hash, so the following line generates warnings.
                     charMatch = pattern_alphabet[text.charAt(j - 1)];
-                    if (d === 0) {
+                    if (i === 0) {
                         // First pass: exact match.
                         rd[j] = ((rd[j + 1] << 1) | 1) & charMatch;
                     } else {
                         // Subsequent passes: fuzzy match.
-                        rd[j] = ((rd[j + 1] << 1) | 1) & charMatch | (((last_rd[j + 1] | last_rd[j]) << 1) | 1) | last_rd[j + 1];
+                        rd[j] = ((rd[j + 1] << 1) | 1) & charMatch | (((lastRd[j + 1] | lastRd[j]) << 1) | 1) | lastRd[j + 1];
                     }
                     if (rd[j] & matchmask) {
-                        score = match_bitapScore(d, j - 1);
+                        score = match_bitapScore(i, j - 1);
                         // This match will almost certainly be better than any existing match.
                         // But check anyway.
-                        if (score <= score_threshold) {
+                        if (score <= scoreThreshold) {
                             // Told you so.
-                            score_threshold = score;
-                            best_loc = j - 1;
-                            if (best_loc > MATCH_LOCATION) {
+                            scoreThreshold = score;
+                            bestLoc = j - 1;
+                            locations.push(bestLoc);
+
+                            if (bestLoc > MATCH_LOCATION) {
                                 // When passing loc, don't exceed our current distance from loc.
-                                start = Math.max(1, 2 * MATCH_LOCATION - best_loc);
+                                start = Math.max(1, 2 * MATCH_LOCATION - bestLoc);
                             } else {
                                 // Already passed loc, downhill from here on in.
                                 break;
@@ -192,14 +203,14 @@
                     }
                 }
                 // No hope for a (better) match at greater error levels.
-                if (match_bitapScore(d + 1, MATCH_LOCATION) > score_threshold) {
+                if (match_bitapScore(i + 1, MATCH_LOCATION) > scoreThreshold) {
                     break;
                 }
-                last_rd = rd;
+                lastRd = rd;
             }
 
             return {
-                isMatch: best_loc >= 0,
+                isMatch: bestLoc >= 0,
                 score: score
             };
 
@@ -226,8 +237,8 @@
 
             var searcher = new Searcher(pattern, options),
                 i, j, item, text, dataLen = list.length,
-                bitapResult, rawResults = [], rawResultsLen,
-                existingResult, results = [],
+                bitapResult, rawResults = [], resultMap = {},
+                rawResultsLen, existingResult, results = [],
                 compute = null;
 
             //console.time('search');
@@ -254,16 +265,17 @@
                         //console.log(bitapResult.score);
 
                         // Check if the item already exists in our results
-                        existingResult = rawResults[index];
+                        existingResult = resultMap[index];
                         if (existingResult) {
                             // Use the lowest score
                             existingResult.score = Math.min(existingResult.score, bitapResult.score);
                         } else {
                             // Add it to the raw result list
-                            rawResults.push({
+                            resultMap[index] = {
                                 item: entity,
                                 score: bitapResult.score
-                            });
+                            };
+                            rawResults.push(resultMap[index]);
                         }
                     }
                 }
@@ -291,7 +303,6 @@
             }
 
             //console.timeEnd('search');
-
 
             // Sort the results, form lowest to highest score
             //console.time('sort');

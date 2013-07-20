@@ -8,6 +8,23 @@
 	<input type="text" id="search" />
 <script>
 
+$(function() {
+
+var pages = [
+  { title: "Apple", subtitle: "Red and crunchy", url: "/apple" }
+, { title: "Banana", subtitle: "Yellow and soft", url: "/banana" }
+, { title: "Orange", subtitle: "Orange and juicy", url: "/orange" }
+]
+
+var options = {
+  keys: ["title", "subtitle"]
+, id: 'url'
+}
+
+var fuse = new Fuse(pages, options)
+fuse.search("ora")
+
+});
 /*
 $(function(){
 
@@ -66,6 +83,5 @@ $(function(){
 });
 
 </script>
-
 
 </body>
