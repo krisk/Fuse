@@ -329,10 +329,10 @@
     }
 
     //Export to Common JS Loader
-    if (typeof module !== 'undefined') {
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         if (typeof module.setExports === 'function') {
             module.setExports(Fuse);
-        } else if (module.exports) {
+        } else {
             module.exports = Fuse;
         }
     } else {
