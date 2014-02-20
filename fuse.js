@@ -39,15 +39,15 @@
         // Aproximately where in the text is the pattern expected to be found?
         var MATCH_LOCATION = options.location || 0,
 
-            // Determines how close the match must be to the fuzzy location (specified above).
-            // An exact letter match which is 'distance' characters away from the fuzzy location
-            // would score as a complete mismatch. A distance of '0' requires the match be at
-            // the exact location specified, a threshold of '1000' would require a perfect match
-            // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+        // Determines how close the match must be to the fuzzy location (specified above).
+        // An exact letter match which is 'distance' characters away from the fuzzy location
+        // would score as a complete mismatch. A distance of '0' requires the match be at
+        // the exact location specified, a threshold of '1000' would require a perfect match
+        // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
             MATCH_DISTANCE = options.distance || 100,
 
-            // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-            // (of both letters and location), a threshold of '1.0' would match anything.
+        // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+        // (of both letters and location), a threshold of '1.0' would match anything.
             MATCH_THRESHOLD = options.threshold || 0.6,
 
 
@@ -119,11 +119,11 @@
             }
 
             var i, j,
-                // Set starting location at beginning text and initialise the alphabet.
+            // Set starting location at beginning text and initialise the alphabet.
                 textLen = text.length,
-                // Highest score beyond which we give up.
+            // Highest score beyond which we give up.
                 scoreThreshold = MATCH_THRESHOLD,
-                // Is there a nearby exact match? (speedup)
+            // Is there a nearby exact match? (speedup)
                 bestLoc = text.indexOf(pattern, MATCH_LOCATION),
 
                 binMin, binMid,
@@ -218,13 +218,59 @@
     }
 
     /**
+     * Object.keys  | polyfill from mdn
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+     * @type {Function}
+     */
+    var keys = Object.keys || (function () {
+        'use strict';
+        var hasOwnProperty = Object.prototype.hasOwnProperty,
+            hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+            dontEnums = [
+                'toString',
+                'toLocaleString',
+                'valueOf',
+                'hasOwnProperty',
+                'isPrototypeOf',
+                'propertyIsEnumerable',
+                'constructor'
+            ],
+            dontEnumsLength = dontEnums.length;
+
+        return function (obj) {
+            if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+                throw new TypeError('Object.keys called on non-object');
+            }
+
+            var result = [], prop, i;
+
+            for (prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    result.push(prop);
+                }
+            }
+
+            if (hasDontEnumBug) {
+                for (i = 0; i < dontEnumsLength; i++) {
+                    if (hasOwnProperty.call(obj, dontEnums[i])) {
+                        result.push(dontEnums[i]);
+                    }
+                }
+            }
+            return result;
+        };
+    }());
+
+
+    /**
      * @param {Array} list
      * @param {Object} options
      * @public
      */
     function Fuse(list, options) {
+        this.data = list;
         options = options || {};
-        var keys = options.keys;
+        var searchKeys = options.keys || [];
 
         /**
          * Searches for all the items whose keys (fuzzy) match the pattern.
@@ -236,8 +282,10 @@
             //console.time('total');
 
             var searcher = new Searcher(pattern, options),
-                i, j, item, text, dataLen = list.length,
-                bitapResult, rawResults = [], resultMap = {},
+                props = keys(list),
+                length = props.length,
+                index = -1, jj,
+                i, j, item, bitapResult, rawResults = [], resultMap = {},
                 rawResultsLen, existingResult, results = [],
                 compute = null;
 
@@ -282,22 +330,21 @@
             }
 
             // Check the first item in the list, if it's a string, then we assume
-            // that every item in the list is also a string, and thus it's a flattened array.
-            if (typeof list[0] === 'string') {
+            // that every item in the list is also a string, and thus it's a flattened array | hash of strings.
+            if (typeof list[props[0]] === 'string') {
                 // Iterate over every item
-                for (i = 0; i < dataLen; i++) {
-                    analyzeText(list[i], i, i);
+                while (++index < length) {
+                    analyzeText(list[props[index]],index, index);
                 }
             } else {
                 // Otherwise, the first item is an Object (hopefully), and thus the searching
                 // is done on the values of the keys of each item.
-
                 // Iterate over every item
-                for (i = 0; i < dataLen; i++) {
-                    item = list[i];
+                while (++index < length) {
+                    item = list[props[index]];
                     // Iterate over every key
-                    for (j = 0; j < keys.length; j++) {
-                        analyzeText(item[keys[j]], item, i);
+                    for (j = 0, jj = searchKeys.length; j < jj; j++) {
+                        analyzeText(item[searchKeys[j]], item, index);
                     }
                 }
             }
@@ -312,8 +359,7 @@
             //console.timeEnd('sort');
 
             // From the results, push into a new array only the item identifier (if specified)
-            // of the entire item.  This is because we don't want to return the <rawResults>,
-            // since it contains other metadata;
+            // of the entire item.  This is because we don't want to return the <rawResults>,            // since it contains other metadata;
             //console.time('build');
             rawResultsLen = rawResults.length;
             for (i = 0; i < rawResultsLen; i++) {
