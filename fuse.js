@@ -284,7 +284,7 @@
             var searcher = new Searcher(pattern, options),
                 props = keys(list),
                 length = props.length,
-                index = -1, jj,
+                index = -1, jj = searchKeys.length,
                 i, j, item, bitapResult, rawResults = [], resultMap = {},
                 rawResultsLen, existingResult, results = [],
                 compute = null;
@@ -343,7 +343,8 @@
                 while (++index < length) {
                     item = list[props[index]];
                     // Iterate over every key
-                    for (j = 0, jj = searchKeys.length; j < jj; j++) {
+                    j = -1;
+                    while(++j < jj){
                         analyzeText(item[searchKeys[j]], item, index);
                     }
                 }
