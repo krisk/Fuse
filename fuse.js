@@ -218,14 +218,26 @@
     }
 
     /**
-     * @param {Array} list
+     * @param {Array|Object} list
      * @param {Object} options
      * @public
      */
     function Fuse(list, options) {
         options = options || {};
         var keys = options.keys;
-
+        
+        /**
+         * If list is {Object} convert to array.
+         * This is bad for performance. So if you have a long list it is better to do this before you construct the Fuse object
+         */
+        if(typeof list === 'object'){
+        	var arr = [];
+			for (aid in list) {
+				arr.push(list[aid]);
+			}
+			list = arr;
+    	}
+        
         /**
          * Searches for all the items whose keys (fuzzy) match the pattern.
          * @param {String} pattern The pattern string to fuzzy search on.
@@ -242,6 +254,19 @@
                 compute = null;
 
             //console.time('search');
+            
+            /**
+             * Traverse an object
+             * @param {Object} The object to traverse
+             * @param {String} A . separated path to a key in the object. Example 'Data.Object.Somevalue'
+             * @return {Mixed}
+             */
+            function deepValue(obj, path) {
+            	for (var i=0, path=path.split('.'), len=path.length; i<len; i++){
+            		obj = obj[path[i]];
+            	};
+            	return obj;
+            };
 
             /**
              * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
@@ -297,7 +322,9 @@
                     item = list[i];
                     // Iterate over every key
                     for (j = 0; j < keys.length; j++) {
-                        analyzeText(item[keys[j]], item, i);
+                    	//Get list object values to match
+                    	var obj = deepValue(item,keys[j]);
+                        analyzeText(obj, item, i);
                     }
                 }
             }
@@ -317,7 +344,9 @@
             //console.time('build');
             rawResultsLen = rawResults.length;
             for (i = 0; i < rawResultsLen; i++) {
-                results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
+            	//Get id value
+            	var obj = deepValue(rawResults[i].item,options.id);
+                results.push(options.id ? obj : rawResults[i].item);
             }
 
             //console.timeEnd('build');
