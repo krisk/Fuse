@@ -1,12 +1,12 @@
 {
   "name": "fuse.js",
-  "version": "0.0.0",
-  "description": "Lightweight fuzzy-search, in JavaScript",
+  "author": "Kirollos Risk",
+  "version": "1.0.0",
+  "description": "Lightweight fuzzy-search",
   "license": "Apache",
-  "author": "krisk",
   "contributors": ["CatTail"],
   "main": "fuse.js",
-  "repository": "https://github.com/CatTail/Fuse.git",
+  "repository": "https://github.com/krisk/Fuse.git",
   "dependencies": {
     "grunt-bump": "0.0.11"
   }

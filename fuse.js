@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-(function () {
+(function() {
     /**
      * Adapted from "Diff, Match and Patch", by Google
      *
@@ -33,28 +33,38 @@
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
      */
+
+    var defaultOptions = {
+        // Aproximately where in the text is the pattern expected to be found?
+        location: 0,
+
+        // Determines how close the match must be to the fuzzy location (specified above).
+        // An exact letter match which is 'distance' characters away from the fuzzy location
+        // would score as a complete mismatch. A distance of '0' requires the match be at
+        // the exact location specified, a threshold of '1000' would require a perfect match
+        // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+        distance: 100,
+
+        // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+        // (of both letters and location), a threshold of '1.0' would match anything.
+        threshold: 0.6,
+
+        // Machine word size
+        maxPetternLength: 32
+    };
+
     function Searcher(pattern, options) {
         options = options || {};
 
-        // Aproximately where in the text is the pattern expected to be found?
-        var MATCH_LOCATION = options.location || 0,
-
-            // Determines how close the match must be to the fuzzy location (specified above).
-            // An exact letter match which is 'distance' characters away from the fuzzy location
-            // would score as a complete mismatch. A distance of '0' requires the match be at
-            // the exact location specified, a threshold of '1000' would require a perfect match
-            // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-            MATCH_DISTANCE = options.distance || 100,
-
-            // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-            // (of both letters and location), a threshold of '1.0' would match anything.
-            MATCH_THRESHOLD = options.threshold || 0.6,
-
+        var MATCH_LOCATION = options.location || defaultOptions.location,
+            MATCH_DISTANCE = options.distance || defaultOptions.distance,
+            MATCH_THRESHOLD = options.threshold || defaultOptions.threshold,
+            MAX_PATTERN_LEN = options.maxPetternLength || defaultOptions.maxPetternLength,
 
             pattern = options.caseSensitive ? pattern : pattern.toLowerCase(),
             patternLen = pattern.length;
 
-        if (patternLen > 32) {
+        if (patternLen > MAX_PATTERN_LEN) {
             throw new Error('Pattern length is too long');
         }
 
@@ -65,7 +75,7 @@
          * @return {Object} Hash of character locations.
          * @private
          */
-        var pattern_alphabet = (function () {
+        var pattern_alphabet = (function() {
             var mask = {},
                 i = 0;
 
@@ -81,7 +91,7 @@
         })();
 
         /**
-         * Compute and return the score for a match with <e> errors and <x? location.
+         * Compute and return the score for a match with `e` errors and `x` location.
          * @param {number} e Number of errors in match.
          * @param {number} x Location of match.
          * @return {number} Overall score for match (0.0 = good, 1.0 = bad).
@@ -107,7 +117,7 @@
          *     {Decimal} score Overal score for the match
          * @public
          */
-        this.search = function (text) {
+        this.search = function(text) {
             text = options.caseSensitive ? text : text.toLowerCase();
 
             if (pattern === text) {
@@ -175,6 +185,7 @@
                 for (j = finish; j >= start; j--) {
                     // The alphabet <pattern_alphabet> is a sparse hash, so the following line generates warnings.
                     charMatch = pattern_alphabet[text.charAt(j - 1)];
+
                     if (i === 0) {
                         // First pass: exact match.
                         rd[j] = ((rd[j + 1] << 1) | 1) & charMatch;
@@ -202,6 +213,7 @@
                         }
                     }
                 }
+
                 // No hope for a (better) match at greater error levels.
                 if (match_bitapScore(i + 1, MATCH_LOCATION) > scoreThreshold) {
                     break;
@@ -213,7 +225,6 @@
                 isMatch: bestLoc >= 0,
                 score: score
             };
-
         }
     }
 
@@ -232,16 +243,13 @@
          * @return {Array} A list of all serch matches.
          * @public
          */
-        this.search = function (pattern) {
-            //console.time('total');
-
+        this.search = function(pattern) {
             var searcher = new Searcher(pattern, options),
                 i, j, item, text, dataLen = list.length,
-                bitapResult, rawResults = [], resultMap = {},
+                bitapResult, rawResults = [],
+                resultMap = {},
                 rawResultsLen, existingResult, results = [],
                 compute = null;
-
-            //console.time('search');
 
             /**
              * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
@@ -261,8 +269,6 @@
 
                     // If a match is found, add the item to <rawResults>, including its score
                     if (bitapResult.isMatch) {
-
-                        //console.log(bitapResult.score);
 
                         // Check if the item already exists in our results
                         existingResult = resultMap[index];
@@ -302,27 +308,18 @@
                 }
             }
 
-            //console.timeEnd('search');
-
             // Sort the results, form lowest to highest score
-            //console.time('sort');
-            rawResults.sort(function (a, b) {
+            rawResults.sort(function(a, b) {
                 return a.score - b.score;
             });
-            //console.timeEnd('sort');
 
             // From the results, push into a new array only the item identifier (if specified)
             // of the entire item.  This is because we don't want to return the <rawResults>,
             // since it contains other metadata;
-            //console.time('build');
             rawResultsLen = rawResults.length;
             for (i = 0; i < rawResultsLen; i++) {
                 results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
             }
-
-            //console.timeEnd('build');
-
-            //console.timeEnd('total');
 
             return results;
         }
