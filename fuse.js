@@ -344,9 +344,13 @@
             //console.time('build');
             rawResultsLen = rawResults.length;
             for (i = 0; i < rawResultsLen; i++) {
-            	//Get id value
-            	var obj = deepValue(rawResults[i].item,options.id);
-                results.push(options.id ? obj : rawResults[i].item);
+				if(options.id){
+					//Get id value
+					var obj = deepValue(rawResults[i].item,options.id);
+					results.push(obj);
+				} else {
+					results.push(rawResults[i].item);
+				}
             }
 
             //console.timeEnd('build');
