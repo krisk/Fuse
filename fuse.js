@@ -35,7 +35,7 @@
      */
 
     var defaultOptions = {
-        // Aproximately where in the text is the pattern expected to be found?
+        // Approximately where in the text is the pattern expected to be found?
         location: 0,
 
         // Determines how close the match must be to the fuzzy location (specified above).
@@ -50,7 +50,7 @@
         threshold: 0.6,
 
         // Machine word size
-        maxPetternLength: 32
+        maxPatternLength: 32
     };
 
     function Searcher(pattern, options) {
@@ -59,7 +59,7 @@
         var MATCH_LOCATION = options.location || defaultOptions.location,
             MATCH_DISTANCE = options.distance || defaultOptions.distance,
             MATCH_THRESHOLD = options.threshold || defaultOptions.threshold,
-            MAX_PATTERN_LEN = options.maxPetternLength || defaultOptions.maxPetternLength,
+            MAX_PATTERN_LEN = options.maxPatternLength || defaultOptions.maxPatternLength,
 
             pattern = options.caseSensitive ? pattern : pattern.toLowerCase(),
             patternLen = pattern.length;
@@ -71,7 +71,7 @@
         var matchmask = 1 << (patternLen - 1);
 
         /**
-         * Initialise the alphabet for the Bitap algorithm.
+         * Initialize the alphabet for the Bitap algorithm.
          * @return {Object} Hash of character locations.
          * @private
          */
@@ -114,7 +114,7 @@
          * @return
          *     {Object} Literal containing:
          *     {Boolean} isMatch Whether the text is a match or not
-         *     {Decimal} score Overal score for the match
+         *     {Decimal} score Overall score for the match
          * @public
          */
         this.search = function(text) {
@@ -129,7 +129,7 @@
             }
 
             var i, j,
-                // Set starting location at beginning text and initialise the alphabet.
+                // Set starting location at beginning text and initialize the alphabet.
                 textLen = text.length,
                 // Highest score beyond which we give up.
                 scoreThreshold = MATCH_THRESHOLD,
