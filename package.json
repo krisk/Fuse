@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
-  "main": "fuse.js",
+  "main": "./src/fuse.js",
   "repository": "https://github.com/krisk/Fuse.git",
   "dependencies": {
     "grunt-bump": "0.0.11"
@@ -13,6 +13,6 @@
     "test": "vows --spec"
   },
   "devDependencies": {
-    "vows": "0.6.x"
+    "vows": "*"
   }
 }

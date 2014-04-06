@@ -1,6 +1,6 @@
 var assert = require('assert'),
   vows = require('vows'),
-  Fuse = require('../fuse'),
+  Fuse = require('../src/fuse'),
   books = require('./books.json');
 
 var pages = ["Apple", "Orange", "Banana"];
