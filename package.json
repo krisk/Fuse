@@ -4,10 +4,15 @@
   "version": "1.0.0",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
-  "contributors": ["CatTail"],
   "main": "fuse.js",
   "repository": "https://github.com/krisk/Fuse.git",
   "dependencies": {
     "grunt-bump": "0.0.11"
+  },
+  "scripts": {
+    "test": "vows --spec"
+  },
+  "devDependencies": {
+    "vows": "0.6.x"
   }
 }
