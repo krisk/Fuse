@@ -3,9 +3,6 @@ var assert = require('assert'),
   Fuse = require('../src/fuse'),
   books = require('./books.json');
 
-var fruits = ["Apple", "Orange", "Banana"];
-var fuse = new Fuse(fruits)
-
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
     topic: function() {
@@ -14,19 +11,19 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
       return fuse;
     },
     'When searching for the term "Apple"': {
-      topic: function() {
+      topic: function(fuse) {
         var result = fuse.search("Apple");
         return result;
       },
       'we get a list of containing 1 item, which is an exact match': function(result) {
         assert.equal(result.length, 1);
       },
-      'whose value is the index 0 of ["Apple"]': function(result) {
+      'whose value is the index 0, representing ["Apple"]': function(result) {
         assert.equal(result[0], 0);
       },
     },
     'When performing a fuzzy search for the term "ran"': {
-      topic: function() {
+      topic: function(fuse) {
         var result = fuse.search("ran");
         return result;
       },
