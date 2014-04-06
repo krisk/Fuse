@@ -13,6 +13,6 @@
     "test": "vows --spec"
   },
   "devDependencies": {
-    "vows": "*"
+    "vows": "0.5.x"
   }
 }
