@@ -6,3 +6,9 @@ Fuse
 Fuse is a full JavaScript fuzzy-search implementation that searches accross the keys of every record in a list.
 
 Visit here for usage, demo, and more: [Fuse](http://kiro.me/projects/fuse.html)
+
+## Contributing to Fuse
+
+Before submitting a pull request, please add relevant tests in `test/fuse-test.js`, and execute them via `npm test`.
+
+Note that **ALL TESTS MUST PASS**, otherwise the pull request will be automatically rejected.
