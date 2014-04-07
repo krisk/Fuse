@@ -58,8 +58,8 @@
     options = options || {};
 
     var MATCH_LOCATION = options.location || defaultOptions.location,
-      MATCH_DISTANCE = options.distance || defaultOptions.distance,
-      MATCH_THRESHOLD = options.threshold || defaultOptions.threshold,
+      MATCH_DISTANCE = 'distance' in options ? options.distance : defaultOptions.distance,
+      MATCH_THRESHOLD = 'threshold' in options ? options.threshold : defaultOptions.threshold,
       MAX_PATTERN_LEN = options.maxPatternLength || defaultOptions.maxPatternLength,
 
       pattern = options.caseSensitive ? pattern : pattern.toLowerCase(),
