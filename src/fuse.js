@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-(function() {
+(function(global) {
   /**
    * Adapted from "Diff, Match and Patch", by Google
    *
@@ -229,6 +229,25 @@
     }
   }
 
+
+  var Utils = {
+    /**
+     * Traverse an object
+     * @param {Object} The object to traverse
+     * @param {String} A . separated path to a key in the object. Example 'Data.Object.Somevalue'
+     * @return {Mixed}
+     */
+    deepValue: function(obj, path) {
+      for (var i = 0, path = path.split('.'), len = path.length; i < len; i++) {
+        if (!obj) {
+          return null;
+        }
+        obj = obj[path[i]];
+      };
+      return obj;
+    }
+  };
+
   /**
    * @param {Array} list
    * @param {Object} options
@@ -295,11 +314,8 @@
       // that every item in the list is also a string, and thus it's a flattened array.
       if (typeof list[0] === 'string') {
         // Iterate over every item
-        for (i = 0; i < dataLen; i++) {
-          analyzeText(list[i], i, i);
-        }
         for (; index < dataLen; index++) {
-          analyzeText(list[i], index, index);
+          analyzeText(list[index], index, index);
         }
       } else {
         // Otherwise, the first item is an Object (hopefully), and thus the searching
@@ -310,7 +326,7 @@
           item = list[index];
           // Iterate over every key
           for (j = 0; j < searchKeysLen; j++) {
-            analyzeText(item[searchKeys[j]], item, index);
+            analyzeText(Utils.deepValue(item, searchKeys[j]), item, index);
           }
         }
       }
@@ -325,21 +341,27 @@
       // since it contains other metadata;
       rawResultsLen = rawResults.length;
       for (i = 0; i < rawResultsLen; i++) {
-        results.push(options.id ? rawResults[i].item[options.id] : rawResults[i].item);
+        results.push(options.id ? Utils.deepValue(rawResults[i].item, options.id) : rawResults[i].item);
       }
 
       return results;
     }
   }
 
-  //Export to Common JS Loader
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    if (typeof module.setExports === 'function') {
-      module.setExports(Fuse);
-    } else {
-      module.exports = Fuse;
-    }
+  // Export to Common JS Loader
+  if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = Fuse;
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(function() {
+      return Fuse;
+    });
   } else {
-    window.Fuse = Fuse;
+    // Browser globals (root is window)
+    global.Fuse = Fuse;
   }
-})();
+
+})(this);

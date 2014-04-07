@@ -110,3 +110,48 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
+  'Deep:': {
+    topic: function() {
+      var books = [{
+        "title": "Old Man's War",
+        "author": {
+          "firstName": "John",
+          "lastName": "Scalzi"
+        }
+      }, {
+        "title": "The Lock Artist",
+        "author": {
+          "firstName": "Steve",
+          "lastName": "Hamilton"
+        }
+      }, {
+        "title": "HTML5",
+      }];
+      var options = {
+        keys: ["title", "author.firstName"]
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("Stve");
+        return result;
+      },
+      'we get a list of containing at least 1 item': function(result) {
+        assert.isTrue(result.length > 0);
+      },
+      'whose first value is found': function(result) {
+        assert.deepEqual(result[0], {
+          "title": "The Lock Artist",
+          "author": {
+            "firstName": "Steve",
+            "lastName": "Hamilton"
+          }
+        });
+      },
+    }
+  }
+}).export(module);
