@@ -136,14 +136,12 @@
         scoreThreshold = MATCH_THRESHOLD,
         // Is there a nearby exact match? (speedup)
         bestLoc = text.indexOf(pattern, MATCH_LOCATION),
-
         binMin, binMid,
         binMax = patternLen + textLen,
-
-        lastRd, start, finish, rd, charMatch,
-
+        start, finish,
+        bitArr, lastBitArr,
+        charMatch,
         score = 1,
-
         locations = [];
 
       if (bestLoc != -1) {
@@ -179,9 +177,9 @@
         finish = Math.min(MATCH_LOCATION + binMid, textLen) + patternLen;
 
         // Initialize the bit array
-        rd = Array(finish + 2);
+        bitArr = Array(finish + 2);
 
-        rd[finish + 1] = (1 << i) - 1;
+        bitArr[finish + 1] = (1 << i) - 1;
 
         for (j = finish; j >= start; j--) {
           // The alphabet <pattern_alphabet> is a sparse hash, so the following line generates warnings.
@@ -189,12 +187,12 @@
 
           if (i === 0) {
             // First pass: exact match.
-            rd[j] = ((rd[j + 1] << 1) | 1) & charMatch;
+            bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch;
           } else {
             // Subsequent passes: fuzzy match.
-            rd[j] = ((rd[j + 1] << 1) | 1) & charMatch | (((lastRd[j + 1] | lastRd[j]) << 1) | 1) | lastRd[j + 1];
+            bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch | (((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1) | lastBitArr[j + 1];
           }
-          if (rd[j] & matchmask) {
+          if (bitArr[j] & matchmask) {
             score = match_bitapScore(i, j - 1);
             // This match will almost certainly be better than any existing match.
             // But check anyway.
@@ -219,7 +217,7 @@
         if (match_bitapScore(i + 1, MATCH_LOCATION) > scoreThreshold) {
           break;
         }
-        lastRd = rd;
+        lastBitArr = bitArr;
       }
 
       return {
@@ -271,8 +269,7 @@
         bitapResult, rawResults = [],
         index = 0,
         resultMap = {},
-        rawResultsLen, existingResult, results = [],
-        compute = null;
+        rawResultsLen, existingResult, results = [];
 
       /**
        * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
