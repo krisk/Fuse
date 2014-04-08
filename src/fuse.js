@@ -263,6 +263,8 @@
   Fuse.defaultOptions = {
     id: null,
 
+    caseSensitive: false,
+
     // Whether the score should be included in the result set.
     // When <true>, each result in the list will be of the form: `{ item: ..., score: ... }`
     includeScore: false,
