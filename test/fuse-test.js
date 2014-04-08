@@ -155,3 +155,43 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').addBatch({
+  'Options:': {
+    topic: function() {
+      var fruits = ["Apple", "Orange", "Banana"];
+      var fuse = new Fuse(fruits, {
+        includeScore: true
+      });
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Apple");
+        return result;
+      },
+      'we get a list of containing 1 item, which is an exact match': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value and score exist': function(result) {
+        assert.equal(result[0].item, 0);
+        assert.equal(result[0].score, 0);
+      },
+    },
+    'When performing a fuzzy search for the term "ran"': {
+      topic: function(fuse) {
+        var result = fuse.search("ran");
+        return result;
+      },
+      'we get a list of containing 2 items': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'whose items represent the indices, and have non-zero scores': function(result) {
+        assert.equal(result[0].item, 1);
+        assert.equal(result[1].item, 2);
+        assert.isNotZero(result[0].score);
+        assert.isNotZero(result[1].score);
+      },
+    }
+  }
+}).export(module);
