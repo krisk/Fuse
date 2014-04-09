@@ -36,7 +36,8 @@
    * you may not use this file except in compliance with the License.
    */
   var BitapSearcher = function(pattern, options) {
-    this.options = options || {};
+    options = options || {};
+    this.options = options;
     this.options.location = options.location || BitapSearcher.defaultOptions.location;
     this.options.distance = 'distance' in options ? options.distance : BitapSearcher.defaultOptions.distance;
     this.options.threshold = 'threshold' in options ? options.threshold : BitapSearcher.defaultOptions.threshold;
