@@ -28,7 +28,7 @@ var fuse = new Fuse(boos, { keys: ["title", "author.firstName"] });
 
 **id** (*type*: `String`)
 
-The string name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items.
+The name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items.
 
 ---
 
