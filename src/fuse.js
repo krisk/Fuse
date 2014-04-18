@@ -386,8 +386,9 @@
 
     // Helper function, here for speed-up, which returns the idenfifer (via deepValue),
     // if the options specifies it,
-    var getValue = this.options.id ? function(i) {
-        return Utils.deepValue(getItem(i), options.id);
+    var idPath = this.options.id;
+    var getValue = idPath ? function(i) {
+        return Utils.deepValue(getItem(i), idPath);
       } : function(i) {
         return getItem(i);
       };
