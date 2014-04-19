@@ -306,6 +306,7 @@
       i, j, item, text,
       list = this.list,
       dataLen = list.length,
+      options = this.options,
       searchKeys = this.options.keys,
       searchKeysLen = searchKeys.length,
       bitapResult,
@@ -371,14 +372,14 @@
       }
     }
 
-    if (this.options.shouldSort) {
-      rawResults.sort(this.options.sortFn);
+    if (options.shouldSort) {
+      rawResults.sort(options.sortFn);
     }
 
     // Helper function, here for speed-up, which returns the
     // the raw item, including the score, or simply the item itself, depending
     // on the specified option
-    var getItem = this.options.includeScore ? function(i) {
+    var getItem = options.includeScore ? function(i) {
         return rawResults[i];
       } : function(i) {
         return rawResults[i].item;
@@ -386,7 +387,7 @@
 
     // Helper function, here for speed-up, which returns the idenfifer (via deepValue),
     // if the options specifies it,
-    var getValue = this.options.id ? function(i) {
+    var getValue = options.id ? function(i) {
         return Utils.deepValue(getItem(i), options.id);
       } : function(i) {
         return getItem(i);
