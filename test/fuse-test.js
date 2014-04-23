@@ -195,3 +195,37 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
     }
   }
 }).export(module);
+
+vows.describe('Only include ID in results list, with "ISBN"').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "ISBN": "0765348276",
+        "title": "Old Man's War",
+        "author": "John Scalzi"
+      }, {
+        "ISBN": "0312696957",
+        "title": "The Lock Artist",
+        "author": "Steve Hamilton"
+      }];
+      var options = {
+        keys: ["title", "author"],
+        id: "ISBN"
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("Stve");
+        return result;
+      },
+      'we get a list containing 1 item': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the ISBN of the book': function(result) {
+        assert.equal(result, '0312696957');
+      },
+    }
+  }
+}).export(module);
