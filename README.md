@@ -22,7 +22,7 @@ var books = [{
     lastName: "Scalzi"
   }
 }];
-var fuse = new Fuse(boos, { keys: ["title", "author.firstName"] });
+var fuse = new Fuse(books, { keys: ["title", "author.firstName"] });
 ```
 
 ---
