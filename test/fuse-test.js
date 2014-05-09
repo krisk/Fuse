@@ -156,6 +156,194 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
   }
 }).export(module);
 
+vows.describe('Deep key search, with ["tags", "t.[]x.y"]').addBatch({
+  'Deep:': {
+    topic: function() {
+      var complextObject = [
+        {
+            "t": [
+                {
+                    "x": {
+                        "y": "a1"
+                    }
+                },
+                {
+                    "x": {
+                        "y": "c"
+                    }
+                }
+            ]
+        },
+        {
+            "t": [
+                {
+                    "x": {
+                        "y": "d"
+                    }
+                },
+                {
+                    "x": {
+                        "y": "a1"
+                    }
+                }
+            ]
+        },
+        {
+            "t": [
+                {
+                    "x": {
+                        "y": "b"
+                    }
+                }
+            ]
+        },
+        {
+            "j": [
+                {
+                    "k": [
+                        {
+                            "f": [
+                                {
+                                    "l": "x"
+                                }
+                            ],
+                            "m": [
+                                "n"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "tags": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        {
+            "a": [
+                {
+                    "b": [
+                        {
+                            "c": {
+                                "f": [
+                                    {
+                                        "j": "hello"
+                                    },
+                                    {
+                                        "j": "world"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+      ];
+      var options = {
+        keys: ["t.[]x.y", "j.[]k.[]f.l", "tags", "a.[]b.[]c.f.[]j"]
+      }
+      var fuse = new Fuse(complextObject, options)
+      return fuse;
+    },
+    'When searching for the term "a1"': {
+      topic: function(fuse) {
+        var result = fuse.search("a1");
+        return result;
+      },
+      'we get a list of containing 3 item': function(result) {
+        assert.isTrue(result.length == 3);
+      },
+      'whose first value is found': function(result) {
+        assert.deepEqual(result[0], {
+            "t": [
+                {
+                    "x": {
+                        "y": "a1"
+                    }
+                },
+                {
+                    "x": {
+                        "y": "c"
+                    }
+                }
+            ]
+        });
+      },
+      'whose last value is found': function(result) {
+        assert.deepEqual(result[2], {
+            'tags': ['a', 'b', 'c']
+        });
+      },
+    },
+    'When searching for the term "x"': {
+      topic: function(fuse) {
+        var result = fuse.search("x");
+        return result;
+      },
+      'we get a list of containing 1 item': function(result) {
+        assert.isTrue(result.length == 1);
+      },
+      'whose first value is found': function(result) {
+        assert.deepEqual(result[0], {
+            "j": [
+                {
+                    "k": [
+                        {
+                            "f": [
+                                {
+                                    "l": "x"
+                                }
+                            ],
+                            "m": [
+                                "n"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+      },
+    },
+    'When searching for the term "hello"': {
+      topic: function(fuse) {
+        var result = fuse.search("hello");
+        return result;
+      },
+      'we get a list of containing 1 item': function(result) {
+        assert.isTrue(result.length == 1);
+      },
+      'whose first value is found': function(result) {
+        assert.deepEqual(result[0], {
+            "a": [
+                {
+                    "b": [
+                        {
+                            "c": {
+                                "f": [
+                                    {
+                                        "j": "hello"
+                                    },
+                                    {
+                                        "j": "world"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+      },
+    }
+  }
+}).export(module);
+
+
+
 vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').addBatch({
   'Options:': {
     topic: function() {
