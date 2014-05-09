@@ -27,6 +27,26 @@ var fuse = new Fuse(books, { keys: ["title", "author.firstName"] });
 
 ---
 
+List of properties that will be searched.  This also supports nested array and properties:
+
+```javascript
+var clazz = [{
+  name: "ClassOne"
+  members: [
+    {
+        name: 'jack',
+        age: 13
+    },
+    {
+        name: 'rose',
+        age: 12
+    }
+  ]
+}];
+var fuse = new Fuse(clazz, { keys: ["name", "members.[]name", "memebers.[]age"] });
+```
+
+
 **id** (*type*: `String`)
 
 The name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items.
