@@ -325,6 +325,8 @@
                     newObj.push(obj[j][p]);
                 }
                 obj = flattenIt(newObj);
+            } else {
+                obj = obj[p];
             }
         } else {
             if (_isArray(obj)) {
