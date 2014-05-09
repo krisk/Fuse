@@ -35,6 +35,83 @@
    * Licensed under the Apache License, Version 2.0 (the "License");
    * you may not use this file except in compliance with the License.
    */
+
+  var _isArray = function(obj) {
+    return toString.call(obj) == '[object Array]';
+  }
+
+  var _identity = function(value) {
+    return value;
+  };
+
+  var _has = function(obj, key) {
+      return obj != null && hasOwnProperty.call(obj, key);
+  };
+
+  var _every = function(obj, predicate, context) {
+    predicate || (predicate = _identity);
+    var result = true;
+    if (obj == null) return result;
+    _each(obj, function(value, index, list) {
+      if (!(result = result && predicate.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  var _keys = function(obj) {
+    if (!_isObject(obj)) return [];
+    if (nativeKeys) return nativeKeys(obj);
+    var keys = [];
+    for (var key in obj) if (_has(obj, key)) keys.push(key);
+    return keys;
+  };
+
+  var isObject = function(obj) {
+    return obj === Object(obj);
+  };
+
+  var _each = function(obj, iterator, context) {
+    if (obj == null) return obj;
+    if (obj.length === +obj.length) {
+      for (var i = 0, length = obj.length; i < length; i++) {
+        if (iterator.call(context, obj[i], i, obj) === breaker) return;
+      }
+    } else {
+      var keys = _keys(obj);
+      for (var i = 0, length = keys.length; i < length; i++) {
+        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
+      }
+    }
+    return obj;
+  };
+
+
+  var _isArguments = function(obj) {
+    return _has(obj, 'callee');
+  };
+
+  var flatten = function(input, shallow, strict, output) {
+    if (shallow && _every(input, _isArray)) {
+      return concat.apply(output, input);
+    }
+    for (var i = 0, length = input.length; i < length; i++) {
+      var value = input[i];
+      if (!_isArray(value) && !_isArguments(value)) {
+        if (!strict) output.push(value);
+      } else if (shallow) {
+        push.apply(output, value);
+      } else {
+        flatten(value, shallow, strict, output);
+      }
+    }
+    return output;
+  };
+
+  // Flatten out an array, either recursively (by default), or just one level.
+  var flattenIt = function(array, shallow) {
+    return flatten(array, shallow, false, []);
+  };
+
   var BitapSearcher = function(pattern, options) {
     options = options || {};
     this.options = options;
@@ -240,7 +317,28 @@
         if (!obj) {
           return null;
         }
-        obj = obj[path[i]];
+        if (path[i].slice(0,2) === '[]') {
+            p = path[i].slice(2);
+            if (_isArray(obj)) {
+                newObj = [];
+                for (var j = 0; j < obj.length; j++) {
+                    newObj.push(obj[j][p]);
+                }
+                obj = flattenIt(newObj);
+            } else {
+                obj = obj[p];
+            }
+        } else {
+            if (_isArray(obj)) {
+                newObj = [];
+                for (var j = 0; j < obj.length; j++) {
+                    newObj.push(obj[j][path[i]]);
+                }
+                obj = flattenIt(newObj);
+            } else {
+                obj = obj[path[i]];
+            }
+        }
       };
       return obj;
     }
@@ -324,9 +422,20 @@
      * @return {Object|Int}
      * @private
      */
-    var analyzeText = function(text, entity, index) {
+    var analyzeText = function(texts, entity, index) {
       // Check if the text can be searched
-      if (text !== undefined && text !== null && typeof text === 'string') {
+      if (texts == undefined || texts == null) {
+          return;
+      }
+      if (!_isArray(texts)) {
+          texts = [texts];
+      }
+      for (var i = 0; i < texts.length; i++) {
+        var text = texts[i];
+
+        if (!(typeof text === 'string')) {
+            continue;
+        }
 
         // Get the result
         bitapResult = searcher.search(text);
@@ -334,19 +443,19 @@
         // If a match is found, add the item to <rawResults>, including its score
         if (bitapResult.isMatch) {
 
-          // Check if the item already exists in our results
-          existingResult = resultMap[index];
-          if (existingResult) {
-            // Use the lowest score
-            existingResult.score = Math.min(existingResult.score, bitapResult.score);
-          } else {
-            // Add it to the raw result list
-            resultMap[index] = {
-              item: entity,
-              score: bitapResult.score
+            // Check if the item already exists in our results
+            existingResult = resultMap[index];
+            if (existingResult) {
+                // Use the lowest score
+                existingResult.score = Math.min(existingResult.score, bitapResult.score);
+            } else {
+                // Add it to the raw result list
+                resultMap[index] = {
+                item: entity,
+                score: bitapResult.score
             };
             rawResults.push(resultMap[index]);
-          }
+            }
         }
       }
     };
