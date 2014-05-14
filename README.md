@@ -73,6 +73,23 @@ The search function to use.  Note that the search function (`[[Function]]`) must
 
 ---
 
+**getFn** (*type*: `Function`, *default*: `Utils.deepValue`)
+
+The get function to use when fetching an objects properties.  The default will search nested paths *ie foo.bar.baz*
+
+```javascript
+/*
+@param obj The object being searched
+@param path The path to the target property
+*/
+
+// example using an object with a `getter` method
+getFn: function (obj, path) {
+  return obj.get(path);
+}
+```
+---
+
 **sortFn** (*type*: `Function`, *default*: `Array.prototype.sort`)
 
 The function that is used for sorting the result list.

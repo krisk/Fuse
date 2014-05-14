@@ -259,6 +259,7 @@
     this.options.searchFn = options.searchFn || Fuse.defaultOptions.searchFn,
     this.options.sortFn = options.sortFn || Fuse.defaultOptions.sortFn,
     this.options.keys = options.keys || Fuse.defaultOptions.keys;
+    this.options.getFn = options.getFn || Fuse.defaultOptions.getFn;
   };
 
   Fuse.defaultOptions = {
@@ -291,6 +292,9 @@
     sortFn: function(a, b) {
       return a.score - b.score;
     },
+
+    // Default get function
+    getFn: Utils.deepValue,
 
     keys: []
   };
@@ -367,7 +371,7 @@
         item = list[i];
         // Iterate over every key
         for (j = 0; j < searchKeysLen; j++) {
-          analyzeText(Utils.deepValue(item, searchKeys[j]), item, i);
+          analyzeText(this.options.getFn(item, searchKeys[j]), item, i);
         }
       }
     }
