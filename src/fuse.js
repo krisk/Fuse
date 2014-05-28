@@ -36,9 +36,14 @@
    * you may not use this file except in compliance with the License.
    */
 
+  /*
+   * belows functions copy from underscore
+   */
+  var nativeKeys = Object.keys;
+
   var _isArray = function(obj) {
     return toString.call(obj) == '[object Array]';
-  }
+  };
 
   var _identity = function(value) {
     return value;
@@ -46,6 +51,10 @@
 
   var _has = function(obj, key) {
       return obj != null && hasOwnProperty.call(obj, key);
+  };
+
+  var _isObject = function(obj) {
+    return obj === Object(obj);
   };
 
   var _every = function(obj, predicate, context) {
