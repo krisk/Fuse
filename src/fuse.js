@@ -254,13 +254,16 @@
   function Fuse(list, options) {
     this.list = list;
     this.options = options = options || {};
-    this.options.sort = 'sort' in options ? options.sort : Fuse.defaultOptions.sort,
-    this.options.includeScore = 'includeScore' in options ? options.includeScore : Fuse.defaultOptions.includeScore,
-    this.options.searchFn = options.searchFn || Fuse.defaultOptions.searchFn,
-    this.options.sortFn = options.sortFn || Fuse.defaultOptions.sortFn,
-    this.options.keys = options.keys || Fuse.defaultOptions.keys;
-    this.options.getFn = options.getFn || Fuse.defaultOptions.getFn;
-    this.options.shouldSort = options.shouldSort || Fuse.defaultOptions.shouldSort;
+
+    var i, len, key;
+    for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
+      key = keys[i];
+      this.options[key] = key in options ? options : Fuse.defaultOptions[key];
+    }
+    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn'], len = keys.length; i < len; i++) {
+      key = keys[i];
+      this.options[key] = options[key] || Fuse.defaultOptions[key];
+    }
   };
 
   Fuse.defaultOptions = {
