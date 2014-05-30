@@ -260,6 +260,7 @@
     this.options.sortFn = options.sortFn || Fuse.defaultOptions.sortFn,
     this.options.keys = options.keys || Fuse.defaultOptions.keys;
     this.options.getFn = options.getFn || Fuse.defaultOptions.getFn;
+    this.options.shouldSort = options.shouldSort || Fuse.defaultOptions.shouldSort;
   };
 
   Fuse.defaultOptions = {
@@ -307,7 +308,7 @@
    */
   Fuse.prototype.search = function(pattern) {
     var searcher = new(this.options.searchFn)(pattern, this.options),
-      i, j, item, text,
+      i, j, item,
       list = this.list,
       dataLen = list.length,
       options = this.options,
@@ -384,18 +385,18 @@
     // the raw item, including the score, or simply the item itself, depending
     // on the specified option
     var getItem = options.includeScore ? function(i) {
-        return rawResults[i];
-      } : function(i) {
-        return rawResults[i].item;
-      };
+      return rawResults[i];
+    } : function(i) {
+      return rawResults[i].item;
+    };
 
     // Helper function, here for speed-up, which returns the idenfifer (via deepValue),
     // if the options specifies it,
     var getValue = options.id ? function(i) {
-        return Utils.deepValue(getItem(i), options.id);
-      } : function(i) {
-        return getItem(i);
-      };
+      return Utils.deepValue(getItem(i), options.id);
+    } : function(i) {
+      return getItem(i);
+    };
 
     // From the results, push into a new array only the item identifier (if specified)
     // of the entire item.  This is because we don't want to return the <rawResults>,
