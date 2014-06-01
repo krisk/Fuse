@@ -258,7 +258,7 @@
     var i, len, key;
     for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
       key = keys[i];
-      this.options[key] = key in options ? options : Fuse.defaultOptions[key];
+      this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key];
     }
     for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn'], len = keys.length; i < len; i++) {
       key = keys[i];

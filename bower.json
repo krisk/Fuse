@@ -1,6 +1,6 @@
 {
   "name": "fuse.js",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "main": "./src/fuse.js",
   "ignore": [
     "test/"
