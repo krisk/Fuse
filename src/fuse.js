@@ -375,7 +375,19 @@
         item = list[i];
         // Iterate over every key
         for (j = 0; j < searchKeysLen; j++) {
-          analyzeText(this.options.getFn(item, searchKeys[j]), item, i);
+          var value = this.options.getFn(item, searchKeys[j]);
+
+          // Check if they key is a single string
+          if (typeof value === 'string') {
+            analyzeText(value, item, i);
+          } else {
+            // Otherwise, it's either an Object or an Array: loop through each child
+            for (var child in value) {
+              if (value.hasOwnProperty(child)) {
+                analyzeText(value[child], item, i);
+              }
+            }
+          }
         }
       }
     }

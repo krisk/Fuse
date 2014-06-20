@@ -302,3 +302,61 @@ vows.describe('Only include ID in results list, with "ISBN"').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Alternative search texts: keys are Arrays or Objects').addBatch({
+  'Alternative:': {
+    topic: function() {
+      var pages = [{
+        url: '/',
+        tags: ['homepage', 'index']
+      },
+      {
+        url: '/messages',
+        tags: ['messages', 'inbox', 'messages index']
+      },
+      {
+        url: '/settings',
+        tags: ['settings', 'preferences', 'options', 'configuration']
+      }];
+      var options = {
+        keys: ['tags']
+      };
+      var fuse = new Fuse(pages, options)
+      return fuse;
+    },
+    'When searching for the term "Options"': {
+      topic: function(fuse) {
+        var result = fuse.search("Options");
+        return result;
+      },
+      'we get a list of containing 1 item, which is an exact match': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is { url: "/settings", names: ["settings", "preferences", "options", "configuration"] }': function(result) {
+        assert.deepEqual(result[0], {
+          url: '/settings',
+          tags: ['settings', 'preferences', 'options', 'configuration']
+        });
+      },
+    },
+    'When searching for the term "Index"': {
+      topic: function(fuse) {
+        var result = fuse.search("Index");
+        return result;
+      },
+      'we get a list of containing 2 items': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'which are all the pages with tags containing "Index"': function(result) {
+        assert.deepEqual(result[0], {
+          url: '/',
+          tags: ['homepage', 'index']
+        });
+        assert.deepEqual(result[1], {
+          url: '/messages',
+          tags: ['messages', 'inbox', 'messages index']
+        });
+      },
+    }
+  }
+}).export(module);
