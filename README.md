@@ -53,7 +53,7 @@ Whether to sort the result list, by score.
 
 **searchFn** (*type*: `Function`, *default*: `BitapSearcher`)
 
-The search function to use.  Note that the search function (`[[Function]]`) must conform the following API:
+The search function to use.  Note that the search function (`[[Function]]`) must conform to the following API:
 
 ```javascript
 /*
@@ -75,7 +75,7 @@ The search function to use.  Note that the search function (`[[Function]]`) must
 
 **getFn** (*type*: `Function`, *default*: `Utils.deepValue`)
 
-The get function to use when fetching an objects properties.  The default will search nested paths *ie foo.bar.baz*
+The get function to use when fetching an object's properties.  The default will search nested paths *ie foo.bar.baz*
 
 ```javascript
 /*
