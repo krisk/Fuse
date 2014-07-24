@@ -39,7 +39,7 @@ Indicates whether comparisons should be case sensitive.
 
 ---
 
-**includeScore** (*type*: `Boolean`, *default*: `true`)
+**includeScore** (*type*: `Boolean`, *default*: `false`)
 
 Whether the score should be included in the result set. When `true`, each result in the list will be of the form `{ item: ..., score: ... }`
 
