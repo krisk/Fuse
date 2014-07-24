@@ -393,19 +393,21 @@
       return rawResults[i].item;
     };
 
-    // Helper function, here for speed-up, which returns the idenfifer (via deepValue),
+    // Helper function, here for speed-up, which replaces the item with its value (via deepValue),
     // if the options specifies it,
-    var getValue = options.id ? function(i) {
-      return Utils.deepValue(getItem(i), options.id);
+    var replaceValue = options.id ? function(i) {
+      rawResults[i].item = Utils.deepValue(rawResults[i].item, options.id);
     } : function(i) {
-      return getItem(i);
+      return
     };
 
     // From the results, push into a new array only the item identifier (if specified)
     // of the entire item.  This is because we don't want to return the <rawResults>,
     // since it contains other metadata;
     for (var i = 0, len = rawResults.length; i < len; i++) {
-      results.push(getValue(i));
+      // replace the item with its value, which can be its id if the options specifies it
+      replaceValue(i);
+      results.push(getItem(i));
     }
 
     return results;
