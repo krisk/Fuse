@@ -279,7 +279,7 @@
     shouldSort: true,
 
     // The search function to use
-    // Note that the default search function ([[Function]]) must conform the following API:
+    // Note that the default search function ([[Function]]) must conform to the following API:
     //
     //  @param pattern The pattern string to search
     //  @param options The search option
@@ -398,7 +398,7 @@
     var replaceValue = options.id ? function(i) {
       rawResults[i].item = Utils.deepValue(rawResults[i].item, options.id);
     } : function(i) {
-      return
+      return;
     };
 
     // From the results, push into a new array only the item identifier (if specified)
