@@ -256,10 +256,12 @@
     this.options = options = options || {};
 
     var i, len, key;
+    // Add boolean type options
     for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key];
     }
+    // Add all other options
     for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = options[key] || Fuse.defaultOptions[key];
@@ -375,7 +377,7 @@
         item = list[i];
         // Iterate over every key
         for (j = 0; j < searchKeysLen; j++) {
-          analyzeText(this.options.getFn(item, searchKeys[j]), item, i);
+          analyzeText(options.getFn(item, searchKeys[j]), item, i);
         }
       }
     }
@@ -393,12 +395,12 @@
       return rawResults[i].item;
     };
 
-    // Helper function, here for speed-up, which replaces the item with its value (via deepValue),
+    // Helper function, here for speed-up, which replaces the item with its value,
     // if the options specifies it,
     var replaceValue = options.id ? function(i) {
-      rawResults[i].item = Utils.deepValue(rawResults[i].item, options.id);
+      rawResults[i].item = options.getFn(rawResults[i].item, options.id);
     } : function(i) {
-      return;
+      return; // no-op
     };
 
     // From the results, push into a new array only the item identifier (if specified)
