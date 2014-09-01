@@ -52,7 +52,7 @@
 
     this.matchmask = 1 << (this.patternLen - 1);
     this.patternAlphabet = this._calculatePatternAlphabet();
-  }
+  };
 
   BitapSearcher.defaultOptions = {
     // Approximately where in the text is the pattern expected to be found?
