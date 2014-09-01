@@ -331,7 +331,6 @@
      * @param {String|Number} entity If the <data> is an Array, then entity will be an index,
      *                            otherwise it's the item object.
      * @param {Number} index
-     * @return {Object|Number}
      * @private
      */
     var analyzeText = function(text, entity, index) {
