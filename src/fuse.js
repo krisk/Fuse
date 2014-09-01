@@ -52,7 +52,7 @@
 
     this.matchmask = 1 << (this.patternLen - 1);
     this.patternAlphabet = this._calculatePatternAlphabet();
-  }
+  };
 
   BitapSearcher.defaultOptions = {
     // Approximately where in the text is the pattern expected to be found?
@@ -70,7 +70,7 @@
     threshold: 0.6,
 
     // Machine word size
-    maxPatternLength: 32,
+    maxPatternLength: 32
   };
 
   /**
@@ -95,8 +95,8 @@
 
   /**
    * Compute and return the score for a match with `e` errors and `x` location.
-   * @param {number} e Number of errors in match.
-   * @param {number} x Location of match.
+   * @param {number} errors Number of errors in match.
+   * @param {number} location Location of match.
    * @return {number} Overall score for match (0.0 = good, 1.0 = bad).
    * @private
    */
@@ -144,7 +144,7 @@
       bitArr, lastBitArr,
       charMatch,
       score = 1,
-      locations = []
+      locations = [];
 
     if (bestLoc != -1) {
       THRESHOLD = Math.min(this._bitapScore(0, bestLoc), THRESHOLD);
@@ -226,13 +226,13 @@
       isMatch: bestLoc >= 0,
       score: score
     };
-  }
+  };
 
   var Utils = {
     /**
      * Traverse an object
-     * @param {Object} The object to traverse
-     * @param {String} A . separated path to a key in the object. Example 'Data.Object.Somevalue'
+     * @param {Object} obj The object to traverse
+     * @param {String} path A . separated path to a key in the object. Example 'Data.Object.Somevalue'
      * @return {Mixed}
      */
     deepValue: function(obj, path) {
@@ -255,7 +255,7 @@
     this.list = list;
     this.options = options = options || {};
 
-    var i, len, key;
+    var i, len, key, keys;
     // Add boolean type options
     for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
       key = keys[i];
@@ -313,7 +313,7 @@
    */
   Fuse.prototype.search = function(pattern) {
     var searcher = new(this.options.searchFn)(pattern, this.options),
-      i, j, item,
+      j, item,
       list = this.list,
       dataLen = list.length,
       options = this.options,
