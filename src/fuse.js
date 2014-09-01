@@ -233,14 +233,16 @@
      * Traverse an object
      * @param {Object} obj The object to traverse
      * @param {String} path A . separated path to a key in the object. Example 'Data.Object.Somevalue'
-     * @return {Mixed}
+     * @return {Object}
      */
     deepValue: function(obj, path) {
-      for (var i = 0, path = path.split('.'), len = path.length; i < len; i++) {
+      var path_parts=path.split('.');
+      
+      for (var i = 0, len = path_parts.length; i < len; i++) {
         if (!obj) {
           return null;
         }
-        obj = obj[path[i]];
+        obj = obj[path_parts[i]];
       };
       return obj;
     }
