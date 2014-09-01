@@ -255,7 +255,7 @@
     this.list = list;
     this.options = options = options || {};
 
-    var i, len, key;
+    var i, len, key, keys;
     // Add boolean type options
     for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
       key = keys[i];
