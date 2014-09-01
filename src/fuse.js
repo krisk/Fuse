@@ -328,10 +328,10 @@
     /**
      * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
      * @param {String} text The pattern string to fuzzy search on.
-     * @param {String|Int} entity If the <data> is an Array, then entity will be an index,
+     * @param {String|Number} entity If the <data> is an Array, then entity will be an index,
      *                            otherwise it's the item object.
-     * @param {Int} index
-     * @return {Object|Int}
+     * @param {Number} index
+     * @return {Object|Number}
      * @private
      */
     var analyzeText = function(text, entity, index) {
