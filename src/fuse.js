@@ -95,8 +95,8 @@
 
   /**
    * Compute and return the score for a match with `e` errors and `x` location.
-   * @param {number} e Number of errors in match.
-   * @param {number} x Location of match.
+   * @param {number} errors Number of errors in match.
+   * @param {number} location Location of match.
    * @return {number} Overall score for match (0.0 = good, 1.0 = bad).
    * @private
    */
@@ -231,8 +231,8 @@
   var Utils = {
     /**
      * Traverse an object
-     * @param {Object} The object to traverse
-     * @param {String} A . separated path to a key in the object. Example 'Data.Object.Somevalue'
+     * @param {Object} obj The object to traverse
+     * @param {String} path A . separated path to a key in the object. Example 'Data.Object.Somevalue'
      * @return {Mixed}
      */
     deepValue: function(obj, path) {
