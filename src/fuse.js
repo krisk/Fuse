@@ -144,7 +144,7 @@
       bitArr, lastBitArr,
       charMatch,
       score = 1,
-      locations = []
+      locations = [];
 
     if (bestLoc != -1) {
       THRESHOLD = Math.min(this._bitapScore(0, bestLoc), THRESHOLD);
@@ -226,7 +226,7 @@
       isMatch: bestLoc >= 0,
       score: score
     };
-  }
+  };
 
   var Utils = {
     /**
