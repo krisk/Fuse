@@ -313,7 +313,7 @@
    */
   Fuse.prototype.search = function(pattern) {
     var searcher = new(this.options.searchFn)(pattern, this.options),
-      i, j, item,
+      j, item,
       list = this.list,
       dataLen = list.length,
       options = this.options,
