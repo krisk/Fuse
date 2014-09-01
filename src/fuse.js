@@ -70,7 +70,7 @@
     threshold: 0.6,
 
     // Machine word size
-    maxPatternLength: 32,
+    maxPatternLength: 32
   };
 
   /**
