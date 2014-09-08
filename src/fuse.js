@@ -243,6 +243,9 @@
         obj = obj[path[i]];
       };
       return obj;
+    },
+    isArray: function(obj) {
+      return Object.prototype.toString.call(obj) === '[object Array]';
     }
   };
 
@@ -336,7 +339,11 @@
      */
     var analyzeText = function(text, entity, index) {
       // Check if the text can be searched
-      if (text !== undefined && text !== null && typeof text === 'string') {
+      if (text === undefined || text === null) {
+        return;
+      }
+
+      if (typeof text === 'string') {
 
         // Get the result
         bitapResult = searcher.search(text);
@@ -357,6 +364,10 @@
             };
             rawResults.push(resultMap[index]);
           }
+        }
+      } else if (Utils.isArray(text)) {
+        for (var i = 0; i < text.length; i++) {
+          analyzeText(text[i], entity, index);
         }
       }
     };
