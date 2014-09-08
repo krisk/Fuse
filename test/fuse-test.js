@@ -382,3 +382,51 @@ vows.describe('Recurse into arrays').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Recurse into objects in arrays').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "ISBN": "0765348276",
+        "title": "Old Man's War",
+        "author": {
+          "name": "John Scalzi",
+          "tags": [{value: "American"}]
+        }
+      }, {
+        "ISBN": "0312696957",
+        "title": "The Lock Artist",
+        "author": {
+          "name": "Steve Hamilton",
+          "tags": [{value: "American"}]
+        }
+      }, {
+        "ISBN": "0321784421",
+        "title": "HTML5",
+        "author": {
+          "name": "Remy Sharp",
+          "tags": [{value: "British"}]
+        }
+      }];
+      var options = {
+        keys: ["author.tags.value"],
+        id: "ISBN",
+        threshold: 0
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the author tag "British"': {
+      topic: function(fuse) {
+        var result = fuse.search("British");
+        return result;
+      },
+      'we get a list containing 1 item': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the ISBN of the book': function(result) {
+        assert.equal(result[0], '0321784421');
+      }
+    }
+  }
+}).export(module);
