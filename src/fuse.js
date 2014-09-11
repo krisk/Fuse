@@ -228,6 +228,40 @@
     };
   }
 
+  var deepValueHelper = function(obj, path, list) {
+    var firstSegment, remaining, dotIndex;
+
+    if (!path) {
+      // If there's no path left, we've gotten to the object we care about.
+      list.push(obj);
+    } else {
+      dotIndex = path.indexOf('.');
+      if (dotIndex !== -1) {
+        firstSegment = path.slice(0, dotIndex);
+        remaining = path.slice(dotIndex + 1);
+      } else {
+        firstSegment = path;
+      }
+
+      var value = obj[firstSegment];
+      if (value) {
+        if (!remaining && typeof value === 'string') {
+          list.push(value);
+        } else if (Utils.isArray(value)) {
+          // Search each item in the array.
+          for (var i = 0, len = value.length; i < len; i++) {
+            deepValueHelper(value[i], remaining, list);
+          }
+        } else if (remaining) {
+          // An object. Recurse further.
+          deepValueHelper(value, remaining, list);
+        }
+      }
+    }
+
+    return list;
+  };
+
   var Utils = {
     /**
      * Traverse an object
@@ -236,13 +270,10 @@
      * @return {Mixed}
      */
     deepValue: function(obj, path) {
-      for (var i = 0, path = path.split('.'), len = path.length; i < len; i++) {
-        if (!obj) {
-          return null;
-        }
-        obj = obj[path[i]];
-      };
-      return obj;
+      return deepValueHelper(obj, path, []);
+    },
+    isArray: function(obj) {
+      return Object.prototype.toString.call(obj) === '[object Array]';
     }
   };
 
@@ -336,7 +367,11 @@
      */
     var analyzeText = function(text, entity, index) {
       // Check if the text can be searched
-      if (text !== undefined && text !== null && typeof text === 'string') {
+      if (text === undefined || text === null) {
+        return;
+      }
+
+      if (typeof text === 'string') {
 
         // Get the result
         bitapResult = searcher.search(text);
@@ -357,6 +392,10 @@
             };
             rawResults.push(resultMap[index]);
           }
+        }
+      } else if (Utils.isArray(text)) {
+        for (var i = 0; i < text.length; i++) {
+          analyzeText(text[i], entity, index);
         }
       }
     };
