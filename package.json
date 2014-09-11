@@ -1,13 +1,12 @@
 {
   "name": "fuse.js",
   "author": "Kirollos Risk",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "main": "./src/fuse.js",
   "repository": "https://github.com/krisk/Fuse.git",
-  "dependencies": {
-  },
+  "dependencies": {},
   "scripts": {
     "test": "vows --spec"
   },
