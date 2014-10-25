@@ -318,7 +318,7 @@ vows.describe('Include both ID and score in results list').addBatch({
       var options = {
         keys: ["title", "author"],
         id: "ISBN",
-        includeScore:true
+        includeScore: true
       }
       var fuse = new Fuse(books, options)
       return fuse;
@@ -333,6 +333,44 @@ vows.describe('Include both ID and score in results list').addBatch({
       },
       'whose value is the ISBN of the book': function(result) {
         assert.equal(result[0].item, '0312696957');
+      },
+      'and has a score different than zero': function(result) {
+        assert.isNotZero(result[0].score);
+      }
+    }
+  }
+}).export(module);
+
+vows.describe('Search when IDs are numbers').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "ISBN": 1111,
+        "title": "Old Man's War",
+        "author": "John Scalzi"
+      }, {
+        "ISBN": 2222,
+        "title": "The Lock Artist",
+        "author": "Steve Hamilton"
+      }];
+      var options = {
+        keys: ["title", "author"],
+        id: "ISBN",
+        includeScore: true
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("Stve");
+        return result;
+      },
+      'we get a list containing 1 item': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the ISBN of the book': function(result) {
+        assert.equal(result[0].item, 2222);
       },
       'and has a score different than zero': function(result) {
         assert.isNotZero(result[0].score);
@@ -391,21 +429,27 @@ vows.describe('Recurse into objects in arrays').addBatch({
         "title": "Old Man's War",
         "author": {
           "name": "John Scalzi",
-          "tags": [{value: "American"}]
+          "tags": [{
+            value: "American"
+          }]
         }
       }, {
         "ISBN": "0312696957",
         "title": "The Lock Artist",
         "author": {
           "name": "Steve Hamilton",
-          "tags": [{value: "American"}]
+          "tags": [{
+            value: "American"
+          }]
         }
       }, {
         "ISBN": "0321784421",
         "title": "HTML5",
         "author": {
           "name": "Remy Sharp",
-          "tags": [{value: "British"}]
+          "tags": [{
+            value: "British"
+          }]
         }
       }];
       var options = {

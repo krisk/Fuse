@@ -245,7 +245,7 @@
 
       var value = obj[firstSegment];
       if (value) {
-        if (!remaining && typeof value === 'string') {
+        if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
           list.push(value);
         } else if (Utils.isArray(value)) {
           // Search each item in the array.
@@ -437,7 +437,7 @@
     // if the options specifies it,
     var replaceValue = options.id ? function(i) {
       rawResults[i].item = options.getFn(rawResults[i].item, options.id);
-    } : function(i) {
+    } : function() {
       return; // no-op
     };
 
