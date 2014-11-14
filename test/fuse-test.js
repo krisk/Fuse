@@ -474,3 +474,79 @@ vows.describe('Recurse into objects in arrays').addBatch({
     }
   }
 }).export(module);
+
+
+
+vows.describe('Searching by ID').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "ISBN": "A",
+        "title": "Old Man's War",
+        "author": "John Scalzi"
+      }, {
+        "ISBN": "B",
+        "title": "The Lock Artist",
+        "author": "Steve Hamilton"
+      }];
+      var options = {
+        keys: ["title", "author"],
+        id: "ISBN"
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("Stve");
+        return result;
+      },
+      'we get a list containing 1 item': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the ISBN of the book': function(result) {
+        assert.isString(result[0])
+        assert.equal(result[0], "B");
+      },
+    }
+  }
+}).export(module);
+
+vows.describe('Searching by nested ID').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "ISBN": {
+          "name": "A"
+        },
+        "title": "Old Man's War",
+        "author": "John Scalzi"
+      }, {
+        "ISBN": {
+          "name": "B"
+        },
+        "title": "The Lock Artist",
+        "author": "Steve Hamilton"
+      }];
+      var options = {
+        keys: ["title", "author"],
+        id: "ISBN.name"
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("Stve");
+        return result;
+      },
+      'we get a list containing 1 item': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the ISBN of the book': function(result) {
+        assert.isString(result[0])
+        assert.equal(result[0], "B");
+      },
+    }
+  }
+}).export(module);

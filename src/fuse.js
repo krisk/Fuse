@@ -436,7 +436,7 @@
     // Helper function, here for speed-up, which replaces the item with its value,
     // if the options specifies it,
     var replaceValue = options.id ? function(i) {
-      rawResults[i].item = options.getFn(rawResults[i].item, options.id);
+      rawResults[i].item = options.getFn(rawResults[i].item, options.id)[0];
     } : function() {
       return; // no-op
     };

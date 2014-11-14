@@ -1,7 +1,7 @@
 {
   "name": "fuse.js",
   "author": "Kirollos Risk",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "main": "./src/fuse.js",
@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "vows": "0.5.x",
-    "grunt-bump": "0.0.11"
+    "grunt-bump": "0.0.11",
+    "uglify-js": "*"
   }
 }
