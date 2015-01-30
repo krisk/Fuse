@@ -295,7 +295,7 @@
       this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key];
     }
     // Add all other options
-    for (i = 0, keys = ['searchFn', 'sortFn', 'scoreStrategy', 'keys', 'getFn'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['searchFn', 'sortFn', 'scoreStrategy', 'privilegeExactMatch', 'keys', 'getFn'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = options[key] || Fuse.defaultOptions[key];
     }
@@ -337,10 +337,16 @@
 
     keys: [],
 
-    scoreStrategy: 'min'
+    scoreStrategy: 'min',
+
+    privilegeExactMatch: false
   };
 
-  function calculateScore(scoreList, scoreStrategy) {
+  function calculateScore(scoreList, scoreStrategy, privilegeExactMatch) {
+    if(!privilegeExactMatch) {
+      scoreList = downgradePerfectScore(scoreList);
+    }
+
     if(scoreStrategy === 'min') {
       return Math.min.apply(null, scoreList);
     } else if(scoreStrategy === 'weighted') {
@@ -348,6 +354,15 @@
     }
 
     return 0;
+  }
+
+  function downgradePerfectScore(scoreList) {
+    for(var i = 0, len = scoreList.length; i < len; i++) {
+      if (scoreList[i] === PERFECT_SCORE) {
+        scoreList[i] = 0;
+      }
+    }
+    return scoreList;
   }
 
   /**
@@ -471,7 +486,7 @@
     }
 
     for(var i = 0, len = rawResults.length; i < len; i++) {
-        rawResults[i].score = calculateScore(rawResults[i].scoreList, options.scoreStrategy);
+        rawResults[i].score = calculateScore(rawResults[i].scoreList, options.scoreStrategy, options.privilegeExactMatch);
     }
 
     if (options.shouldSort) {

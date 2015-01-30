@@ -248,7 +248,7 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
       },
       'whose value and score exist': function(result) {
         assert.equal(result[0].item, 0);
-        assert.equal(result[0].score, -10);
+        assert.equal(result[0].score, 0);
       },
     },
     'When performing a fuzzy search for the term "ran"': {
@@ -266,6 +266,28 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
         assert.isNotZero(result[1].score);
       },
     }
+  }
+}).export(module);
+
+vows.describe('Best score is -10').addBatch({
+  'Options:': {
+    topic: function() {
+      var fruits = ["Apple", "Orange", "Banana"];
+      var fuse = new Fuse(fruits, {
+        includeScore: true,
+        privilegeExactMatch: true
+      });
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Apple");
+        return result;
+      },
+      'whose value and score exist': function(result) {
+        assert.equal(result[0].score, -10);
+      },
+    },
   }
 }).export(module);
 
