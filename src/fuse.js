@@ -283,7 +283,7 @@
    * @public
    */
   function Fuse(list, options) {
-    this.list = list;
+    this.list = list || [];
     this.options = options = options || {};
 
     var i, len, key, keys;
@@ -335,6 +335,71 @@
     getFn: Utils.deepValue,
 
     keys: []
+  };
+
+  /**
+   * Dynamically add an item or a list of items to the list
+   * @param {String|Object} to_add The item or list of items to added
+   * @public
+   */
+  Fuse.prototype.add = function(to_add) {
+    Array.prototype.push.apply(this.list, Utils.isArray(to_add) ? to_add : [to_add]);
+  };
+
+  /**
+   * Dynamically remove an item or a list of items to the list, and return the number of removed elements.
+   * If the list contains strings, items can be removed by value or by index;
+   * If the list contains objects, items can only be removed by id.
+   * @param {String|Number|Array} to_remove The item or list of items to be removed
+   * @public
+   */
+  Fuse.prototype.remove = function(to_remove) {
+    var removed=0;
+    to_remove = Utils.isArray(to_remove) ? to_remove : [to_remove];
+    for (var i = 0, len = to_remove.length; i < len; i++) {
+      removed += removeFromFuseList.apply(this, [to_remove[i]]);
+    }
+    return removed;
+  };
+
+  /**
+   * Dynamically remove a single item from the list, return the number of removed elements.
+   * @private
+   */
+  var removeFromFuseList = function(to_remove) {
+    var options = this.options;
+
+    if (this.list.length === 0)
+      return 0;
+
+    // List of strings
+    if (typeof this.list[0] === 'string') {
+      // ...remove by index
+      if (typeof to_remove === 'number') {
+        return this.list.splice(to_remove, 1).length;
+      }
+      // ...remove the first matched value
+      else if (typeof to_remove === 'string') {
+        var idx = this.list.indexOf(to_remove);
+        if (idx > -1) {
+          return this.list.splice(idx, 1).length;
+        }
+      }
+    }
+
+    // List of objects
+    else {
+      //... remove by id, as long as an id key was specified
+      if ((typeof to_remove === 'string' || typeof to_remove === 'number') && options.id) {
+        for (var i = 0, len = this.list.length; i < len; i++) {
+          if (options.getFn(this.list[i], options.id)[0] === to_remove) {
+            return this.list.splice(i, 1).length;
+          }
+        }
+      }
+    }
+
+    return 0;
   };
 
   /**

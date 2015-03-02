@@ -575,3 +575,96 @@ vows.describe('Searching by nested ID').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Dynamic add/remove: ["Apple", "Orange", "Banana"]').addBatch({
+  'Flat:': {
+    topic: function() {
+      var fuse = new Fuse();
+      fuse.add(["Apple", "Orange", "Banana"]);
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Apple");
+        return result;
+      },
+      'we get a list of containing 1 item, which is an exact match': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the index 0, representing ["Apple"]': function(result) {
+        assert.equal(result[0], 0);
+      },
+    },
+    'Remove Apple by index and Orange by string, search for both and for Banana': {
+      topic: function(fuse) {
+        var removed = 0;
+        removed += fuse.remove(0); // remove Apple
+        removed += fuse.remove(["Orange"]);
+        var resultApple = fuse.search("Apple");
+        var resultOrange = fuse.search("Orange");
+        var resultBanana = fuse.search("Banana");
+        return [resultApple, resultOrange, resultBanana, removed];
+      },
+      'we get a list containing no items for Apple and Orange, one item for Banana': function(result) {
+        assert.equal(result[0].length, 0);
+        assert.equal(result[1].length, 0);
+        assert.equal(result[2].length, 1);
+      },
+      'we ensure two items were removed': function(result) {
+        assert.equal(result[3], 2);
+      }
+    }
+  }
+}).export(module);
+
+vows.describe('Remove by nested ID').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "ISBN": {
+          "name": "A"
+        },
+        "title": "Old Man's War",
+        "author": "John Scalzi"
+      }, {
+        "ISBN": {
+          "name": "B"
+        },
+        "title": "The Lock Artist",
+        "author": "Steve Hamilton"
+      }];
+      var options = {
+        keys: ["title", "author"],
+        id: "ISBN.name"
+      };
+      var fuse = new Fuse(books, options);
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("Stve");
+        return result;
+      },
+      'we get a list containing 1 item': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the ISBN of the book': function(result) {
+        assert.isString(result[0]);
+        assert.equal(result[0], "B");
+      },
+    },
+    'When searching for the term "Stve", after removing the item and trying to remove an inexistent item': {
+      topic: function(fuse) {
+        var removed = fuse.remove(['B', 'C']);
+        var result = fuse.search("Stve");
+        return [result, removed];
+      },
+      'we ensure only one item was removed': function(result) {
+        assert.equal(result[1], 1);
+      },
+      'we get a list containing 0 items, since the item has been removed': function(result) {
+        assert.equal(result[0].length, 0);
+      }
+    }
+  }
+}).export(module);
