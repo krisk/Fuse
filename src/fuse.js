@@ -336,6 +336,19 @@
     keys: []
   };
 
+  Fuse.prototype.add = function(to_add) {
+    if (!Utils.isArray(to_add)) {
+      to_add = [to_add];
+    }
+    this.list = this.list.concat(to_add);
+  };
+
+  Fuse.prototype.remove = function(to_remove) {
+    if (typeof to_remove == 'string') {
+      this.list.splice(this.list.indexOf(to_remove), 1);
+    }
+  };
+
   /**
    * Searches for all the items whose keys (fuzzy) match the pattern.
    * @param {String} pattern The pattern string to fuzzy search on.
