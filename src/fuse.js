@@ -336,16 +336,64 @@
     keys: []
   };
 
+  /**
+   * Dynamically add an item or a list of items to the list
+   * @param {String|Object} to_add The item or list of items to added
+   * @public
+   */
   Fuse.prototype.add = function(to_add) {
-    if (!Utils.isArray(to_add)) {
-      to_add = [to_add];
-    }
-    this.list = this.list.concat(to_add);
+    Array.prototype.push.apply(this.list, Utils.isArray(to_add) ? to_add : [to_add]);
   };
 
+  /**
+   * Dynamically remove an item or a list of items to the list
+   * If the list contains strings, items can be removed by value or by index;
+   * If the list contains objects, items can only be removed by id.
+   * @param {String|Number|Array} to_remove The item or list of items to be removed
+   * @public
+   */
   Fuse.prototype.remove = function(to_remove) {
-    if (typeof to_remove == 'string') {
-      this.list.splice(this.list.indexOf(to_remove), 1);
+    to_remove = Utils.isArray(to_remove) ? to_remove : [to_remove];
+    for (var i = 0, len = to_remove.length; i < len; i++) {
+      Fuse.prototype.remove.apply(to_remove[i]);
+    }
+  };
+
+  /**
+   * Dynamically remove a single item from the list
+   * @private
+   */
+  Fuse.prototype._remove = function(to_remove) {
+    var options = this.options;
+
+    if (this.list.length === 0)
+      return;
+
+    // List of strings
+    if (typeof this.list[0] === 'string') {
+      // ...remove by index
+      if (typeof to_remove === 'number') {
+        this.list.splice(to_remove, 1);
+      }
+      // ...remove the first matched value
+      else if (typeof to_remove === 'string') {
+        var idx = this.list.indexOf(to_remove);
+        if (idx > -1)
+          this.list.splice(idx, 1);
+      }
+    }
+
+    // List of objects
+    else {
+      //... remove by id, as long as an id key was specified
+      if ((typeof to_remove === 'string' || typeof to_remove === 'number') && options.id) {
+        for (var i = 0, len = this.list.length; i < len; i++) {
+          if (options.getFn(this.list[i], options.id)[0] === to_remove) {
+            this.list.splice(i, 1);
+            break;
+          }
+        }
+      }
     }
   };
 
