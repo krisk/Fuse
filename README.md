@@ -1,3 +1,5 @@
+*Update: There are plenty of enhancements that need to be done to this library. There's more work than available time for me; so if you're interested in being one of the core contributors and helping out, let's talk!*
+
 Fuse
 ====
 
