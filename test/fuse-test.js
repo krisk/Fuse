@@ -505,8 +505,33 @@ vows.describe('Searching by ID').addBatch({
         assert.equal(result.length, 1);
       },
       'whose value is the ISBN of the book': function(result) {
-        assert.isString(result[0])
+        assert.isString(result[0]);
         assert.equal(result[0], "B");
+      },
+    }
+  }
+}).export(module);
+
+vows.describe('Set new list on Fuse').addBatch({
+  'Options:': {
+    topic: function() {
+      var fruits = ["Apple", "Orange", "Banana"];
+      var vegetables = ["Onion", "Lettuce", "Broccoli"];
+
+      var fuse = new Fuse(fruits);
+      fuse.set(vegetables);
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Lettuce");
+        return result;
+      },
+      'we get a list of containing 1 item, which is an exact match': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the index 0, representing ["Lettuce"]': function(result) {
+        assert.equal(result[0], 1);
       },
     }
   }

@@ -337,6 +337,18 @@
   };
 
   /**
+   * Sets a new list for Fuse to match against.
+   * @param {Array} list
+   * @return {Array} The newly set list
+   * @public
+   */
+  Fuse.prototype.set = function(list) {
+    this.list = list;
+
+    return list;
+  };
+
+  /**
    * Searches for all the items whose keys (fuzzy) match the pattern.
    * @param {String} pattern The pattern string to fuzzy search on.
    * @return {Array} A list of all serch matches.
