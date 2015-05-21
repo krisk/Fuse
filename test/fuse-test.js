@@ -269,6 +269,28 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
   }
 }).export(module);
 
+vows.describe('Best score is -10').addBatch({
+  'Options:': {
+    topic: function() {
+      var fruits = ["Apple", "Orange", "Banana"];
+      var fuse = new Fuse(fruits, {
+        includeScore: true,
+        privilegeExactMatch: true
+      });
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Apple");
+        return result;
+      },
+      'whose value and score exist': function(result) {
+        assert.equal(result[0].score, -10);
+      },
+    },
+  }
+}).export(module);
+
 vows.describe('Only include ID in results list, with "ISBN"').addBatch({
   'Options:': {
     topic: function() {
@@ -571,6 +593,49 @@ vows.describe('Searching by nested ID').addBatch({
       'whose value is the ISBN of the book': function(result) {
         assert.isString(result[0])
         assert.equal(result[0], "B");
+      },
+    }
+  }
+}).export(module);
+
+vows.describe('Builds overall score based on multiple items').addBatch({
+  'Options:': {
+    topic: function() {
+      var books = [{
+        "genre": ["fiction"],
+        "title": "Old Man's War",
+      }, {
+        "genre": ["fantasy"],
+        "title": "Fast and furious",
+      }];
+      var options = {
+        keys: ["title", "genre"],
+        includeScore: true,
+      }
+      var fuse = new Fuse(books, options)
+      return fuse;
+    },
+    'When searching for the term "Stve"': {
+      topic: function(fuse) {
+        var result = fuse.search("fast");
+        return result;
+      },
+      'we get a list containing 2 items': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'whose value is the genre or title of the book': function(result) {
+        assert.epsilon(0.0001, result[0].score, 0);
+        assert.epsilon(0.0001, result[1].score, 0.5);
+
+        assert.equal(result[0].scoreList.length, 2);
+        for(var i = 0, len = result[0].scoreList.length, expected = [0, 0.25]; i < len; i++) {
+          assert.equal(result[0].scoreList[i], expected[i])
+        }
+
+        assert.equal(result[1].scoreList.length, 1);
+        for(var i = 0, len = result[0].scoreList.length, expected = [0]; i < len; i++) {
+          assert.epsilon(0.0001, result[0].scoreList[i], expected[i])
+        }
       },
     }
   }

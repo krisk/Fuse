@@ -19,6 +19,8 @@
  */
 (function(global) {
 
+  var PERFECT_SCORE = -10;
+
   /**
    * Adapted from "Diff, Match and Patch", by Google
    *
@@ -126,7 +128,7 @@
       // Exact match
       return {
         isMatch: true,
-        score: 0
+        score: PERFECT_SCORE
       };
     }
 
@@ -293,7 +295,7 @@
       this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key];
     }
     // Add all other options
-    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['searchFn', 'sortFn', 'scoreStrategy', 'privilegeExactMatch', 'keys', 'getFn'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = options[key] || Fuse.defaultOptions[key];
     }
@@ -333,8 +335,72 @@
     // Default get function
     getFn: Utils.deepValue,
 
-    keys: []
+    keys: [],
+
+    scoreStrategy: 'min',
+
+    privilegeExactMatch: false
   };
+
+  function calculateScore(scoreList, scoreStrategy, privilegeExactMatch) {
+    if(!privilegeExactMatch) {
+      scoreList = downgradePerfectScore(scoreList);
+    }
+
+    if(scoreStrategy === 'min') {
+      return Math.min.apply(null, scoreList);
+    } else if(scoreStrategy === 'weighted') {
+      return modifiedWeightedAverage(scoreList);
+    }
+
+    return 0;
+  }
+
+  function downgradePerfectScore(scoreList) {
+    for(var i = 0, len = scoreList.length; i < len; i++) {
+      if (scoreList[i] === PERFECT_SCORE) {
+        scoreList[i] = 0;
+      }
+    }
+    return scoreList;
+  }
+
+  /**
+   * Weighted average that reduces the score
+   * based on how many times the best score
+   * is found on a given sequence
+   *
+   * It's useful when the average is the same,
+   * but one of them has more matches.
+   *
+   * PS.: The slower the score, the better.
+   * @returns {number}
+   */
+  function modifiedWeightedAverage(scores) {
+    var result = 0,
+        smallerCount = countSmaller(scores);
+
+    for(var i = 0, len = scores.length; i < len; i++) {
+      result += scores[i];
+    }
+
+    return (result/len) - (.1 * smallerCount);
+  }
+
+  /**
+   * Count occurrences of smaller number
+   * @returns {number}
+   */
+  function countSmaller(scores) {
+    var smaller = Math.min.apply(null, scores),
+        result = 0;
+
+    for(var i = 0, len = scores.length; i < len; i++) {
+      result += scores[i] == smaller? 1: 0;
+    }
+
+    return result;
+  }
 
   /**
    * Sets a new list for Fuse to match against.
@@ -389,17 +455,16 @@
 
         // If a match is found, add the item to <rawResults>, including its score
         if (bitapResult.isMatch) {
-
           // Check if the item already exists in our results
           existingResult = resultMap[index];
           if (existingResult) {
             // Use the lowest score
-            existingResult.score = Math.min(existingResult.score, bitapResult.score);
+            existingResult.scoreList.push(bitapResult.score);
           } else {
             // Add it to the raw result list
             resultMap[index] = {
               item: entity,
-              score: bitapResult.score
+              scoreList: [bitapResult.score]
             };
             rawResults.push(resultMap[index]);
           }
@@ -430,6 +495,10 @@
           analyzeText(options.getFn(item, searchKeys[j]), item, i);
         }
       }
+    }
+
+    for(var i = 0, len = rawResults.length; i < len; i++) {
+        rawResults[i].score = calculateScore(rawResults[i].scoreList, options.scoreStrategy, options.privilegeExactMatch);
     }
 
     if (options.shouldSort) {

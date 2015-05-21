@@ -11,7 +11,7 @@
     "test": "vows --spec"
   },
   "devDependencies": {
-    "vows": "0.5.x",
+    "vows": "0.8.x",
     "grunt-bump": "0.0.11",
     "uglify-js": "*"
   }
