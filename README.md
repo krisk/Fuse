@@ -126,15 +126,15 @@ The maximum length of the pattern. The longer the pattern, the more intensive th
 
 **search(pattern)**
 
-@param {String} pattern The pattern string to fuzzy search on.
-@return {Array} A list of all serch matches.
+@param {String} pattern The pattern string to fuzzy search on.  
+@return {Array} A list of all serch matches.  
 
 Searches for all the items whose keys (fuzzy) match the pattern.
 
 **set(list)**
 
-@param {Array} list
-@return {Array} The newly set list
+@param {Array} list  
+@return {Array} The newly set list  
 
 Sets a new list for Fuse to match against.
 
