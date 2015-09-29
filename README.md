@@ -43,9 +43,9 @@ Indicates whether comparisons should be case sensitive.
 
 ---
 
-**includeScore** (*type*: `Boolean`, *default*: `false`)
+**include** (*type*: `Array`, *default*: `[]`)
 
-Whether the score should be included in the result set. When `true`, each result in the list will be of the form `{ item: ..., score: ... }`
+An array of values that should be included from the searcher's output. When this array contains elements, each result in the list will be of the form `{ item: ..., include1: ..., include2: ... }`. For example, to include the score, you would set include to ['score'], and the result would be `{ item: ..., score: ... }`
 
 ---
 
