@@ -234,7 +234,7 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
     topic: function() {
       var fruits = ["Apple", "Orange", "Banana"];
       var fuse = new Fuse(fruits, {
-        includeScore: true
+        include: ['score']
       });
       return fuse;
     },
@@ -318,7 +318,7 @@ vows.describe('Include both ID and score in results list').addBatch({
       var options = {
         keys: ["title", "author"],
         id: "ISBN",
-        includeScore: true
+        include: ['score']
       }
       var fuse = new Fuse(books, options)
       return fuse;
@@ -356,7 +356,7 @@ vows.describe('Search when IDs are numbers').addBatch({
       var options = {
         keys: ["title", "author"],
         id: "ISBN",
-        includeScore: true
+        include: ['score']
       }
       var fuse = new Fuse(books, options)
       return fuse;
