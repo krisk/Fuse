@@ -288,12 +288,12 @@
 
     var i, len, key, keys;
     // Add boolean type options
-    for (i = 0, keys = ['sort', 'shouldSort'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key];
     }
     // Add all other options
-    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = options[key] || Fuse.defaultOptions[key];
     }
@@ -304,10 +304,9 @@
 
     caseSensitive: false,
 
-    // A list of values to be passed from the searcher to the result set.
-    // If include is set to ['score', 'highlight'], each result
-    //   in the list will be of the form: `{ item: ..., score: ..., highlight: ... }`
-    include: [],
+    // Whether the score should be included in the result set.
+    // When <true>, each result in the list will be of the form: `{ item: ..., score: ... }`
+    includeScore: false,
 
     // Whether to sort the result list, by score
     shouldSort: true,
@@ -437,6 +436,15 @@
       rawResults.sort(options.sortFn);
     }
 
+    // Helper function, here for speed-up, which returns the
+    // the raw item, including the score, or simply the item itself, depending
+    // on the specified option
+    var getItem = options.includeScore ? function(i) {
+      return rawResults[i];
+    } : function(i) {
+      return rawResults[i].item;
+    };
+
     // Helper function, here for speed-up, which replaces the item with its value,
     // if the options specifies it,
     var replaceValue = options.id ? function(i) {
@@ -445,36 +453,11 @@
       return; // no-op
     };
 
-    // Helper function, here for speed-up, which returns the
-    // item formatted based on the options.
-    var getItem = function(i) {
-      var resultItem;
-
-      if(options.include.length > 0) // If `include` has values, put the item under result.item
-      {
-        resultItem = {
-          item: rawResults[i].item,
-        };
-
-        // Then include the includes
-        for(var i = 0; i < options.include.length; i++)
-        {
-          var includeVal = options.include[i];
-          resultItem[includeVal] = rawResults[i][includeVal];
-        }
-      }
-      else
-      {
-        resultItem = rawResults[i].item;
-      }
-
-      return resultItem;
-    };
-
     // From the results, push into a new array only the item identifier (if specified)
     // of the entire item.  This is because we don't want to return the <rawResults>,
     // since it contains other metadata;
     for (var i = 0, len = rawResults.length; i < len; i++) {
+      // replace the item with its value, which can be its id if the options specifies it
       replaceValue(i);
       results.push(getItem(i));
     }
