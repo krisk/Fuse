@@ -457,9 +457,9 @@
         };
 
         // Then include the includes
-        for(var i = 0; i < options.include.length; i++)
+        for(var j = 0; j < options.include.length; j++)
         {
-          var includeVal = options.include[i];
+          var includeVal = options.include[j];
           resultItem[includeVal] = rawResults[i][includeVal];
         }
       }
