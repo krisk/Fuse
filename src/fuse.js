@@ -407,9 +407,21 @@
         console.log(scores)
         console.log("-----")
 
+        var averageScore = scores[0]
+        for (var i = 1; i < scores.length; i++) {
+          averageScore += scores[i] / (i + 1)
+        }
+        console.log('Average (a)', averageScore)
+
         // Get the result
         bitapResult = searcher.search(text)
         console.log(bitapResult.score)
+
+        var finalScore = bitapResult.score
+        if (averageScore !== undefined) {
+          finalScore = (finalScore + averageScore) / 2
+        }
+        console.log('Average (b)', finalScore)
         console.log("********")
 
         // If a match is found, add the item to <rawResults>, including its score
