@@ -575,3 +575,55 @@ vows.describe('Searching by nested ID').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Searching array of functions that return strings.').addBatch({
+  'Options:': {
+    topic: function() {
+      var colors = [
+          function () { return "green";},
+          function () { return "yellow"; },
+          function () { return "red"; },
+          function () { return "blue"; }];
+      var options = {};
+
+      var fuse = new Fuse(colors, options);
+      return fuse;
+    },
+    'When searching for the term "red"': {
+      topic: function(fuse) {
+        var result = fuse.search("red");
+        return result;
+      },
+      'we get a list containing items': function(result) {
+        assert.isTrue(result.length > 0);
+      }
+    }
+  }
+}).export(module);
+
+vows.describe('Searching array of objects with function fields that return strings.').addBatch({
+  'Options:': {
+    topic: function() {
+      var colors = [
+          { color: function () { return "green"; } },
+          { color: function () { return "yellow"; } },
+          { color: function () { return "red"; } },
+          { color: function () { return "blue"; } }];
+      var options = {
+        keys: ["color"]
+      };
+
+      var fuse = new Fuse(colors, options);
+      return fuse;
+    },
+    'When searching for the term "red"': {
+      topic: function(fuse) {
+        var result = fuse.search("red");
+        return result;
+      },
+      'we get a list containing items': function(result) {
+        assert.isTrue(result.length > 0);
+      }
+    }
+  }
+}).export(module);
