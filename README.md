@@ -114,7 +114,7 @@ At what point does the match algorithm give up. A threshold of `0.0` requires a 
 
 **distance** (*type*: `Integer`, *default*: `100`)
 
-Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified, a `threshold` of `1000` would require a perfect match to be within 800 characters of the `location` to be found using a `threshold` of `0.8`.
+Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified, a `distance` of `1000` would require a perfect match to be within 800 characters of the `location` to be found using a `threshold` of `0.8`.
 
 ---
 
