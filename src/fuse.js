@@ -244,7 +244,7 @@
       }
 
       var value = obj[firstSegment];
-      if (value) {
+      if (value != null) {
         if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
           list.push(value);
         } else if (Utils.isArray(value)) {
