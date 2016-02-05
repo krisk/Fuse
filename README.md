@@ -1,7 +1,4 @@
-*Update: There are plenty of enhancements that need to be done to this library. There's more work than available time for me; so if you're interested in being one of the core contributors and helping out, let's talk!*
-
-Fuse
-====
+# Fuse
 
 [![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
@@ -98,7 +95,7 @@ getFn: function (obj, path) {
 
 The function that is used for sorting the result list.
 
-### Bitap specific options
+---
 
 **location** (*type*: `Integer`, *default*: `0`)
 
@@ -114,7 +111,7 @@ At what point does the match algorithm give up. A threshold of `0.0` requires a 
 
 **distance** (*type*: `Integer`, *default*: `100`)
 
-Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified, a `threshold` of `1000` would require a perfect match to be within 800 characters of the `location` to be found using a `threshold` of `0.8`.
+Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified, a `distance` of `1000` would require a perfect match to be within 800 characters of the `location` to be found using a `threshold` of `0.8`.
 
 ---
 
@@ -122,21 +119,35 @@ Determines how close the match must be to the fuzzy location (specified by `loca
 
 The maximum length of the pattern. The longer the pattern, the more intensive the search operation will be.  Whenever the pattern exceeds the `maxPatternLength`, an error will be thrown.  Why is this important? Read [this](http://en.wikipedia.org/wiki/Word_(computer_architecture)#Word_size_choice).
 
+---
+
+**verbose** (*type*: `Boolean`, *default*: `false`)
+
+Will print to the console. Useful for debugging.
+
 ## Methods
 
-**search(pattern)**
+**`search(/*pattern*/)`**
 
-@param {String} pattern The pattern string to fuzzy search on.  
-@return {Array} A list of all serch matches.  
+```javascript
+@param {String} pattern The pattern string to fuzzy search on.
+@return {Array} A list of all search matches.
+```
 
 Searches for all the items whose keys (fuzzy) match the pattern.
 
-**set(list)**
+**`set(/*list*/)`**
 
-@param {Array} list  
-@return {Array} The newly set list  
+```javascript
+@param {Array} list
+@return {Array} The newly set list
+```
 
 Sets a new list for Fuse to match against.
+
+## Coding conventions
+
+Code should be run through [Standard Format](https://www.npmjs.com/package/standard-format).
 
 ## Contributing to Fuse
 
