@@ -2,11 +2,15 @@ var assert = require('assert'),
   vows = require('vows'),
   Fuse = require('../src/fuse')
 
+var verbose = false
+
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
     topic: function () {
       var fruits = ['Apple', 'Orange', 'Banana']
-      var fuse = new Fuse(fruits)
+      var fuse = new Fuse(fruits, {
+        verbose: verbose
+      })
       return fuse
     },
     'When searching for the term "Apple"': {
@@ -55,7 +59,8 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
     topic: function () {
       var books = require('./books.json')
       var options = {
-        keys: ['title', 'author']
+        keys: ['title', 'author'],
+        verbose: verbose
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -65,8 +70,8 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
         var result = fuse.search('HTML5')
         return result
       },
-      'we get a list of containing 1 item, which is an exact match': function (result) {
-        assert.equal(result.length, 1)
+      'we get a list of containing 3 items': function (result) {
+        assert.equal(result.length, 3)
       },
       'whose value is { title: "HTML5", author: "Remy Sharp" }': function (result) {
         assert.deepEqual(result[0], {
@@ -77,26 +82,23 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
     },
     'When searching for the term "Woodhouse"': {
       topic: function (fuse) {
-        var result = fuse.search('Woodhouse')
+        var result = fuse.search('Jeeves Woodhouse')
         return result
       },
-      'we get a list of containing 3 items': function (result) {
-        assert.equal(result.length, 3)
+      'we get a list of containing 5 items': function (result) {
+        assert.equal(result.length, 6)
       },
       'which are all the books written by "P.D. Woodhouse"': function (result) {
-        assert.deepEqual(result[0], {
-          title: 'Right Ho Jeeves',
-          author: 'P.D. Woodhouse'
-        })
-        assert.deepEqual(result[1], {
-          title: 'The Code of the Wooster',
-          author: 'P.D. Woodhouse'
-        })
-        assert.deepEqual(result[2], {
-          title: 'Thank You Jeeves',
-          author: 'P.D. Woodhouse'
-        })
-      },
+        var output = [
+          { title: 'Right Ho Jeeves', author: 'P.D. Woodhouse' },
+          { title: 'Thank You Jeeves', author: 'P.D. Woodhouse' },
+          { title: 'The Code of the Wooster', author: 'P.D. Woodhouse' },
+          { title: 'The Lock Artist', author: 'Steve Hamilton' },
+          { title: 'the wooster code', author: 'aa' },
+          { title: 'The code of the wooster', author: 'aa' }
+        ]
+        assert.deepEqual(result, output)
+      }
     },
     'When searching for the term "brwn"': {
       topic: function (fuse) {
@@ -143,7 +145,8 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
         'title': 'HTML5',
       }]
       var options = {
-        keys: ['title', 'author.firstName']
+        keys: ['title', 'author.firstName'],
+        verbose: verbose
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -234,7 +237,8 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
     topic: function () {
       var fruits = ['Apple', 'Orange', 'Banana']
       var fuse = new Fuse(fruits, {
-        include: ['score']
+        include: ['score'],
+        verbose: verbose
       })
       return fuse
     },
@@ -318,7 +322,8 @@ vows.describe('Include both ID and score in results list').addBatch({
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
-        include: ['score']
+        include: ['score'],
+        verbose: verbose
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -356,7 +361,8 @@ vows.describe('Search when IDs are numbers').addBatch({
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
-        include: ['score']
+        include: ['score'],
+        verbose: verbose
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -401,7 +407,8 @@ vows.describe('Recurse into arrays').addBatch({
       var options = {
         keys: ['tags'],
         id: 'ISBN',
-        threshold: 0
+        threshold: 0,
+        verbose: verbose
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -455,7 +462,8 @@ vows.describe('Recurse into objects in arrays').addBatch({
       var options = {
         keys: ['author.tags.value'],
         id: 'ISBN',
-        threshold: 0
+        threshold: 0,
+        verbose: verbose
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -516,7 +524,9 @@ vows.describe('Set new list on Fuse').addBatch({
       var fruits = ['Apple', 'Orange', 'Banana']
       var vegetables = ['Onion', 'Lettuce', 'Broccoli']
 
-      var fuse = new Fuse(fruits)
+      var fuse = new Fuse(fruits, {
+        verbose: verbose
+      })
       fuse.set(vegetables)
       return fuse
     },
@@ -569,6 +579,86 @@ vows.describe('Searching by nested ID').addBatch({
       'whose value is the ISBN of the book': function (result) {
         assert.isString(result[0])
         assert.equal(result[0], 'B')
+      },
+    }
+  }
+}).export(module)
+
+vows.describe('Searching list').addBatch({
+  'Options:': {
+    topic: function () {
+      var items = ['FH Mannheim', 'University Mannheim']
+      var fuse = new Fuse(items)
+      return fuse
+    },
+    'When searching for the term "Uni Mannheim"': {
+      topic: function (fuse) {
+        var result = fuse.search('Uni Mannheim')
+        return result
+      },
+      'we get a list containing 2 items': function (result) {
+        assert.equal(result.length, 2)
+      },
+      'whose first value is the index of "University Mannheim"': function (result) {
+        assert.equal(result[0], 1)
+      }
+    }
+  }
+}).export(module)
+
+vows.describe('Searching list').addBatch({
+  'Options:': {
+    topic: function () {
+      var items = [
+        'Borwaila hamlet',
+        'Bobe hamlet',
+        'Bo hamlet',
+        'Boma hamlet']
+      var fuse = new Fuse(items, {
+        include: ['score'],
+        verbose: verbose
+      })
+      return fuse
+    },
+    'When searching for the term "Bo hamet"': {
+      topic: function (fuse) {
+        var result = fuse.search('Bo hamet')
+        return result
+      },
+      'we get a list containing 4 items': function (result) {
+        assert.equal(result.length, 4)
+      },
+      'whose first value is the index of "Bo hamlet"': function (result) {
+        assert.equal(result[0].item, 2)
+      }
+    }
+  }
+}).export(module)
+
+vows.describe('List of books - searching for long pattern length > 32').addBatch({
+  'Books:': {
+    topic: function () {
+      var books = require('./books.json')
+      var options = {
+        keys: ['title'],
+        verbose: verbose
+      }
+      var fuse = new Fuse(books, options)
+      return fuse
+    },
+    'When searching for the term "HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5"': {
+      topic: function (fuse) {
+        var result = fuse.search('HTML5 ')
+        return result
+      },
+      'we get a a non empty list': function (result) {
+        assert.isTrue(!!result.length)
+      },
+      'whose first value is { title: "HTML5 ", author: "Remy Sharp" }': function (result) {
+        assert.deepEqual(result[0], {
+          title: 'HTML5',
+          author: 'Remy Sharp'
+        })
       },
     }
   }

@@ -2,7 +2,7 @@
  * @license
  * Fuse - Lightweight fuzzy-search
  *
- * Copyright (c) 2012 Kirollos Risk <kirollos@gmail.com>.
+ * Copyright (c) 2012-2016 Kirollos Risk <kirollos@gmail.com>.
  * All Rights Reserved. Apache Software License 2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,6 +18,370 @@
  * limitations under the License.
  */
 ;(function (global) {
+  'use strict'
+
+  function log () {
+    console.log.apply(null, arguments)
+  }
+
+  var MULTI_CHAR_REGEX = / +/g
+
+  var defaultOptions = {
+    id: null,
+    caseSensitive: false,
+    // A list of values to be passed from the searcher to the result set.
+    // If include is set to ['score', 'highlight'], each result
+    //   in the list will be of the form: `{ item: ..., score: ..., highlight: ... }`
+
+    include: [],
+
+    // Whether to sort the result list, by score
+    shouldSort: true,
+
+    // The search function to use
+    // Note that the default search function ([[Function]]) must conform to the following API:
+    //
+    //  @param pattern The pattern string to search
+    //  @param options The search option
+    //  [[Function]].constructor = function(pattern, options)
+    //
+    //  @param text: the string to search in for the pattern
+    //  @return Object in the form of:
+    //    - isMatch: boolean
+    //    - score: Int
+    //  [[Function]].prototype.search = function(text)
+    searchFn: BitapSearcher,
+
+    // Default sort function
+    sortFn: function (a, b) {
+      return a.score - b.score
+    },
+
+    // Default get function
+    getFn: deepValue,
+
+    keys: [],
+
+    verbose: false
+  }
+
+  function Fuse (list, options) {
+    var i
+    var len
+    var key
+    var keys
+
+    this.list = list
+    this.options = options = options || {}
+
+    // Add boolean type options
+    for (i = 0, keys = ['sort', 'shouldSort', 'verbose'], len = keys.length; i < len; i++) {
+      key = keys[i]
+      this.options[key] = key in options ? options[key] : defaultOptions[key]
+    }
+    // Add all other options
+    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include'], len = keys.length; i < len; i++) {
+      key = keys[i]
+      this.options[key] = options[key] || defaultOptions[key]
+    }
+  }
+
+  Fuse.VERSION = '2.0.0'
+
+  /**
+   * Sets a new list for Fuse to match against.
+   * @param {Array} list
+   * @return {Array} The newly set list
+   * @public
+   */
+  Fuse.prototype.set = function (list) {
+    this.list = list
+    return list
+  }
+
+  Fuse.prototype.search = function (pattern) {
+    if (this.options.verbose) log('=====================\n', 'Search term:', pattern)
+
+    this.pattern = pattern
+    this.results = []
+    this.resultMap = {}
+
+    this._prepareSearchers()
+    this._startSearch()
+    this._computeScore()
+    this._sort()
+
+    var output = this._format()
+    return output
+  }
+
+  Fuse.prototype._prepareSearchers = function () {
+    var options = this.options
+    var pattern = this.pattern
+    var searchFn = options.searchFn
+    var tokens = pattern.split(MULTI_CHAR_REGEX)
+    var i = 0
+    var len = tokens.length
+
+    this.tokenSearchers = []
+
+    for (; i < len; i++) {
+      this.tokenSearchers.push(new searchFn(tokens[i], options))
+    }
+    this.fullSeacher = new searchFn(pattern, options)
+  }
+
+  Fuse.prototype._startSearch = function () {
+    var options = this.options
+    var getFn = options.getFn
+    var list = this.list
+    var listLen = list.length
+    var keys = this.options.keys
+    var keysLen = keys.length
+    var item = null
+    var i
+    var j
+
+    // Check the first item in the list, if it's a string, then we assume
+    // that every item in the list is also a string, and thus it's a flattened array.
+    if (typeof list[0] === 'string') {
+      // Iterate over every item
+      for (i = 0; i < listLen; i++) {
+        this._analyze(list[i], i, i)
+      }
+    } else {
+      // Otherwise, the first item is an Object (hopefully), and thus the searching
+      // is done on the values of the keys of each item.
+      // Iterate over every item
+      for (i = 0; i < listLen; i++) {
+        item = list[i]
+        // Iterate over every key
+        for (j = 0; j < keysLen; j++) {
+          this._analyze(getFn(item, keys[j], []), item, i)
+        }
+      }
+    }
+  }
+
+  Fuse.prototype._analyze = function (text, entity, index) {
+    var options = this.options
+    var words
+    var scores
+    var exists = false
+    var tokenSearchers = this.tokenSearchers
+    var tokenSearchersLen = tokenSearchers.length
+    var existingResult
+    var averageScore
+    var finalScore
+    var scoresLen
+    var mainSearchResult
+    var tokenSearcher
+    var termScores
+    var word
+    var tokenSearchResult
+    var i
+    var j
+
+    // Check if the text can be searched
+    if (text === undefined || text === null) {
+      return
+    }
+
+    scores = []
+
+    if (typeof text === 'string') {
+      words = text.split(MULTI_CHAR_REGEX)
+
+      if (options.verbose) log('---------\n', 'Record:', words)
+
+      for (i = 0; i < this.tokenSearchers.length; i++) {
+        tokenSearcher = this.tokenSearchers[i]
+        termScores = []
+        for (j = 0; j < words.length; j++) {
+          word = words[j]
+          tokenSearchResult = tokenSearcher.search(word)
+          if (tokenSearchResult.isMatch) {
+            exists = true
+            termScores.push(tokenSearchResult.score)
+            scores.push(tokenSearchResult.score)
+          } else {
+            termScores.push(1)
+            scores.push(1)
+          }
+        }
+        if (options.verbose) log('Score for "' + tokenSearcher.pattern + '":', termScores)
+      }
+
+      averageScore = scores[0]
+      scoresLen = scores.length
+      for (i = 1; i < scoresLen; i++) {
+        averageScore += scores[i]
+      }
+      averageScore = averageScore / scoresLen
+
+      if (options.verbose) log('Individual word score average:', averageScore)
+
+      // Get the result
+      mainSearchResult = this.fullSeacher.search(text)
+      if (options.verbose) log('Full text score:', mainSearchResult.score)
+
+      finalScore = mainSearchResult.score
+      if (averageScore !== undefined) {
+        finalScore = (finalScore + averageScore) / 2
+      }
+
+      if (options.verbose) log('Average', finalScore)
+
+      // If a match is found, add the item to <rawResults>, including its score
+      if (exists || mainSearchResult.isMatch) {
+        // Check if the item already exists in our results
+        existingResult = this.resultMap[index]
+        if (existingResult) {
+          // Use the lowest score
+          // existingResult.score, bitapResult.score
+          existingResult.scores.push(finalScore)
+        } else {
+          // Add it to the raw result list
+          this.resultMap[index] = {
+            item: entity,
+            scores: [finalScore]
+          }
+          this.results.push(this.resultMap[index])
+        }
+      }
+    } else if (isArray(text)) {
+      for (i = 0; i < text.length; i++) {
+        this._analyze(text[i], entity, index)
+      }
+    }
+  }
+
+  Fuse.prototype._computeScore = function () {
+    var i
+    var j
+    var totalScore
+    var currScore
+    var scoreLen
+    var results = this.results
+
+    for (i = 0; i < results.length; i++) {
+      totalScore = 0
+      currScore = results[i].scores
+      scoreLen = currScore.length
+      for (j = 0; j < scoreLen; j++) {
+        totalScore += currScore[j]
+      }
+      results[i].score = totalScore / scoreLen
+    }
+  }
+
+  Fuse.prototype._sort = function () {
+    var options = this.options
+    if (options.shouldSort) {
+      if (options.verbose) log('Sorting....')
+      this.results.sort(options.sortFn)
+    }
+  }
+
+  Fuse.prototype._format = function () {
+    var options = this.options
+    var getFn = options.getFn
+    var output = []
+    var item
+    var i
+    var len
+    var results = this.results
+    var replaceValue
+    var getItemAtIndex
+
+    if (options.verbose) log('------------\n', 'Output:\n', results)
+
+    // Helper function, here for speed-up, which replaces the item with its value,
+    // if the options specifies it,
+    replaceValue = options.id ? function (index) {
+      results[index].item = getFn(results[index].item, options.id, [])[0]
+    } : function () {}
+
+    getItemAtIndex = function (index) {
+      var resultItem
+      var includeVal
+      var j
+
+      // If `include` has values, put the item under result.item
+      if (options.include.length > 0) {
+        resultItem = {
+          item: results[index].item,
+        }
+        // Then include the `includes`
+        for (j = 0; j < options.include.length; j++) {
+          includeVal = options.include[j]
+          resultItem[includeVal] = results[index][includeVal]
+        }
+      } else {
+        resultItem = results[index].item
+      }
+
+      return resultItem
+    }
+
+    // From the results, push into a new array only the item identifier (if specified)
+    // of the entire item.  This is because we don't want to return the <results>,
+    // since it contains other metadata
+    for (i = 0, len = results.length; i < len; i++) {
+      replaceValue(i)
+      item = getItemAtIndex(i)
+      output.push(item)
+    }
+
+    return output
+  }
+
+  // Helpers
+
+  function deepValue (obj, path, list) {
+    var firstSegment
+    var remaining
+    var dotIndex
+    var value
+    var i
+    var len
+
+    if (!path) {
+      // If there's no path left, we've gotten to the object we care about.
+      list.push(obj)
+    } else {
+      dotIndex = path.indexOf('.')
+
+      if (dotIndex !== -1) {
+        firstSegment = path.slice(0, dotIndex)
+        remaining = path.slice(dotIndex + 1)
+      } else {
+        firstSegment = path
+      }
+
+      value = obj[firstSegment]
+      if (value !== null && value !== undefined) {
+        if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
+          list.push(value)
+        } else if (isArray(value)) {
+          // Search each item in the array.
+          for (i = 0, len = value.length; i < len; i++) {
+            deepValue(value[i], remaining, list)
+          }
+        } else if (remaining) {
+          // An object. Recurse further.
+          deepValue(value, remaining, list)
+        }
+      }
+    }
+
+    return list
+  }
+
+  function isArray (obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]'
+  }
+
   /**
    * Adapted from "Diff, Match and Patch", by Google
    *
@@ -34,7 +398,7 @@
    * Licensed under the Apache License, Version 2.0 (the "License")
    * you may not use this file except in compliance with the License.
    */
-  var BitapSearcher = function (pattern, options) {
+  function BitapSearcher (pattern, options) {
     options = options || {}
     this.options = options
     this.options.location = options.location || BitapSearcher.defaultOptions.location
@@ -45,12 +409,10 @@
     this.pattern = options.caseSensitive ? pattern : pattern.toLowerCase()
     this.patternLen = pattern.length
 
-    if (this.patternLen > this.options.maxPatternLength) {
-      throw new Error('Pattern length is too long')
+    if (this.patternLen <= this.options.maxPatternLength) {
+      this.matchmask = 1 << (this.patternLen - 1)
+      this.patternAlphabet = this._calculatePatternAlphabet()
     }
-
-    this.matchmask = 1 << (this.patternLen - 1)
-    this.patternAlphabet = this._calculatePatternAlphabet()
   }
 
   BitapSearcher.defaultOptions = {
@@ -119,9 +481,29 @@
    * @public
    */
   BitapSearcher.prototype.search = function (text) {
-    text = this.options.caseSensitive ? text : text.toLowerCase()
+    var options = this.options
+    var i
+    var j
+    var textLen
+    var location
+    var threshold
+    var bestLoc
+    var binMin
+    var binMid
+    var binMax
+    var start, finish
+    var bitArr
+    var lastBitArr
+    var charMatch
+    var score
+    var locations
+    var matches
+    var isMatched
+
+    text = options.caseSensitive ? text : text.toLowerCase()
 
     if (this.pattern === text) {
+      // console.log("EXACT")
       // Exact match
       return {
         isMatch: true,
@@ -129,42 +511,49 @@
       }
     }
 
-    var i, j,
-      // Set starting location at beginning text and initialize the alphabet.
-      textLen = text.length,
-      LOCATION = this.options.location,
-      // Highest score beyond which we give up.
-      THRESHOLD = this.options.threshold,
-      // Is there a nearby exact match? (speedup)
-      bestLoc = text.indexOf(this.pattern, LOCATION),
-      binMin, binMid,
-      binMax = this.patternLen + textLen,
-      start, finish,
-      bitArr, lastBitArr,
-      charMatch,
-      score = 1,
-      locations = []
+    // When pattern length is greater than the machine word length, just do a
+    // a reject comparison
+    if (this.patternLen > options.maxPatternLength) {
+      matches = text.match(new RegExp(this.pattern.replace(MULTI_CHAR_REGEX, '|')))
+      isMatched = !!matches
+      return {
+        isMatch: isMatched,
+        // TODO: revisit this score
+        score: isMatched ? 0.5 : 1
+      }
+    }
+
+    location = options.location
+    // Set starting location at beginning text and initialize the alphabet.
+    textLen = text.length
+    // Highest score beyond which we give up.
+    threshold = options.threshold
+    // Is there a nearby exact match? (speedup)
+    bestLoc = text.indexOf(this.pattern, location)
 
     if (bestLoc != -1) {
-      THRESHOLD = Math.min(this._bitapScore(0, bestLoc), THRESHOLD)
-      // What about in the other direction? (speedup)
-      bestLoc = text.lastIndexOf(this.pattern, LOCATION + this.patternLen)
+      threshold = Math.min(this._bitapScore(0, bestLoc), threshold)
+      // What about in the other direction? (speed up)
+      bestLoc = text.lastIndexOf(this.pattern, location + this.patternLen)
 
       if (bestLoc != -1) {
-        THRESHOLD = Math.min(this._bitapScore(0, bestLoc), THRESHOLD)
+        threshold = Math.min(this._bitapScore(0, bestLoc), threshold)
       }
     }
 
     bestLoc = -1
+    score = 1
+    locations = []
+    binMax = this.patternLen + textLen
 
     for (i = 0; i < this.patternLen; i++) {
       // Scan for the best match; each iteration allows for one more error.
-      // Run a binary search to determine how far from 'MATCH_LOCATION' we can stray at this
-      // error level.
+      // Run a binary search to determine how far from the match location we can stray
+      // at this error level.
       binMin = 0
       binMid = binMax
       while (binMin < binMid) {
-        if (this._bitapScore(i, LOCATION + binMid) <= THRESHOLD) {
+        if (this._bitapScore(i, location + binMid) <= threshold) {
           binMin = binMid
         } else {
           binMax = binMid
@@ -174,8 +563,8 @@
 
       // Use the result from this iteration as the maximum for the next.
       binMax = binMid
-      start = Math.max(1, LOCATION - binMid + 1)
-      finish = Math.min(LOCATION + binMid, textLen) + this.patternLen
+      start = Math.max(1, location - binMid + 1)
+      finish = Math.min(location + binMid, textLen) + this.patternLen
 
       // Initialize the bit array
       bitArr = Array(finish + 2)
@@ -183,8 +572,8 @@
       bitArr[finish + 1] = (1 << i) - 1
 
       for (j = finish; j >= start; j--) {
-        // The alphabet <patternAlphabet> is a sparse hash, so the following line generates warnings.
         charMatch = this.patternAlphabet[text.charAt(j - 1)]
+        // console.log('charMatch', charMatch, text.charAt(j - 1))
 
         if (i === 0) {
           // First pass: exact match.
@@ -194,18 +583,20 @@
           bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch | (((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1) | lastBitArr[j + 1]
         }
         if (bitArr[j] & this.matchmask) {
-          score = this._bitapScore(i, j - 1)
+          // Count exact matches (those with a score of 0) to be "almost" exact
+          score = this._bitapScore(i, j - 1) || 0.001
+
           // This match will almost certainly be better than any existing match.
           // But check anyway.
-          if (score <= THRESHOLD) {
-            // Told you so.
-            THRESHOLD = score
+          if (score <= threshold) {
+            // Indeed it is
+            threshold = score
             bestLoc = j - 1
             locations.push(bestLoc)
 
-            if (bestLoc > LOCATION) {
+            if (bestLoc > location) {
               // When passing loc, don't exceed our current distance from loc.
-              start = Math.max(1, 2 * LOCATION - bestLoc)
+              start = Math.max(1, 2 * location - bestLoc)
             } else {
               // Already passed loc, downhill from here on in.
               break
@@ -215,7 +606,7 @@
       }
 
       // No hope for a (better) match at greater error levels.
-      if (this._bitapScore(i + 1, LOCATION) > THRESHOLD) {
+      if (this._bitapScore(i + 1, location) > threshold) {
         break
       }
       lastBitArr = bitArr
@@ -225,293 +616,6 @@
       isMatch: bestLoc >= 0,
       score: score
     }
-  }
-
-  var deepValueHelper = function (obj, path, list) {
-    var firstSegment, remaining, dotIndex
-
-    if (!path) {
-      // If there's no path left, we've gotten to the object we care about.
-      list.push(obj)
-    } else {
-      dotIndex = path.indexOf('.')
-      if (dotIndex !== -1) {
-        firstSegment = path.slice(0, dotIndex)
-        remaining = path.slice(dotIndex + 1)
-      } else {
-        firstSegment = path
-      }
-
-      var value = obj[firstSegment]
-      if (value) {
-        if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
-          list.push(value)
-        } else if (Utils.isArray(value)) {
-          // Search each item in the array.
-          for (var i = 0, len = value.length; i < len; i++) {
-            deepValueHelper(value[i], remaining, list)
-          }
-        } else if (remaining) {
-          // An object. Recurse further.
-          deepValueHelper(value, remaining, list)
-        }
-      }
-    }
-
-    return list
-  }
-
-  var Utils = {
-    /**
-     * Traverse an object
-     * @param {Object} obj The object to traverse
-     * @param {String} path A . separated path to a key in the object. Example 'Data.Object.Somevalue'
-     * @return {Object}
-     */
-    deepValue: function (obj, path) {
-      return deepValueHelper(obj, path, [])
-    },
-    isArray: function (obj) {
-      return Object.prototype.toString.call(obj) === '[object Array]'
-    }
-  }
-
-  /**
-   * @param {Array} list
-   * @param {Object} options
-   * @public
-   */
-  function Fuse (list, options) {
-    this.list = list
-    this.options = options = options || {}
-
-    var i, len, key, keys
-    // Add boolean type options
-    for (i = 0, keys = ['sort', 'shouldSort'], len = keys.length; i < len; i++) {
-      key = keys[i]
-      this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key]
-    }
-    // Add all other options
-    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include'], len = keys.length; i < len; i++) {
-      key = keys[i]
-      this.options[key] = options[key] || Fuse.defaultOptions[key]
-    }
-  }
-
-  Fuse.defaultOptions = {
-    id: null,
-
-    caseSensitive: false,
-
-    // A list of values to be passed from the searcher to the result set.
-    // If include is set to ['score', 'highlight'], each result
-    //   in the list will be of the form: `{ item: ..., score: ..., highlight: ... }`
-    include: [],
-
-    // Whether to sort the result list, by score
-    shouldSort: true,
-
-    // The search function to use
-    // Note that the default search function ([[Function]]) must conform to the following API:
-    //
-    //  @param pattern The pattern string to search
-    //  @param options The search option
-    //  [[Function]].constructor = function(pattern, options)
-    //
-    //  @param text: the string to search in for the pattern
-    //  @return Object in the form of:
-    //    - isMatch: boolean
-    //    - score: Int
-    //  [[Function]].prototype.search = function(text)
-    searchFn: BitapSearcher,
-
-    // Default sort function
-    sortFn: function (a, b) {
-      return a.score - b.score
-    },
-
-    // Default get function
-    getFn: Utils.deepValue,
-
-    keys: []
-  }
-
-  /**
-   * Sets a new list for Fuse to match against.
-   * @param {Array} list
-   * @return {Array} The newly set list
-   * @public
-   */
-  Fuse.prototype.set = function (list) {
-    this.list = list
-
-    return list
-  }
-
-  /**
-   * Searches for all the items whose keys (fuzzy) match the pattern.
-   * @param {String} pattern The pattern string to fuzzy search on.
-   * @return {Array} A list of all serch matches.
-   * @public
-   */
-  Fuse.prototype.search = function (pattern) {
-    var searchers = []
-    var patterns = pattern.split(' ')
-    for (var i = 0; i < patterns.length; i++) {
-      searchers.push(new (this.options.searchFn)(patterns[i], this.options))
-    }
-
-    var searcher = new (this.options.searchFn)(pattern, this.options),
-      j, item,
-      list = this.list,
-      dataLen = list.length,
-      options = this.options,
-      searchKeys = this.options.keys,
-      searchKeysLen = searchKeys.length,
-      bitapResult,
-      rawResults = [],
-      resultMap = {},
-      existingResult,
-      results = []
-
-    /**
-     * Calls <Searcher::search> for bitap analysis. Builds the raw result list.
-     * @param {String} text The pattern string to fuzzy search on.
-     * @param {String|Number} entity If the <data> is an Array, then entity will be an index,
-     *                            otherwise it's the item object.
-     * @param {Number} index
-     * @private
-     */
-    var analyzeText = function (text, entity, index) {
-      // Check if the text can be searched
-      if (text === undefined || text === null) {
-        return
-      }
-
-      if (typeof text === 'string') {
-        console.log("********")
-        var words = text.split(' ')
-        console.log(words)
-        var scores = []
-        for (var i = 0; i < words.length; i++) {
-          var t = words[i]
-          for (var j = 0; j < searchers.length; j++) {
-            var s = searchers[j]
-            var r = s.search(t)
-            //console.log(r, t, s.pattern)
-            if (r.isMatch) {
-              scores.push(r.score)
-            }
-          }
-        }
-        console.log(scores)
-        console.log("-----")
-
-        var averageScore = scores[0]
-        for (var i = 1; i < scores.length; i++) {
-          averageScore += scores[i] / (i + 1)
-        }
-        console.log('Average (a)', averageScore)
-
-        // Get the result
-        bitapResult = searcher.search(text)
-        console.log(bitapResult.score)
-
-        var finalScore = bitapResult.score
-        if (averageScore !== undefined) {
-          finalScore = (finalScore + averageScore) / 2
-        }
-        console.log('Average (b)', finalScore)
-        console.log("********")
-
-        // If a match is found, add the item to <rawResults>, including its score
-        if (bitapResult.isMatch) {
-          // Check if the item already exists in our results
-          existingResult = resultMap[index]
-          if (existingResult) {
-            // Use the lowest score
-            existingResult.score = Math.min(existingResult.score, bitapResult.score)
-          } else {
-            // Add it to the raw result list
-            resultMap[index] = {
-              item: entity,
-              score: bitapResult.score
-            }
-            rawResults.push(resultMap[index])
-          }
-        }
-      } else if (Utils.isArray(text)) {
-        for (var i = 0; i < text.length; i++) {
-          analyzeText(text[i], entity, index)
-        }
-      }
-    }
-
-    // Check the first item in the list, if it's a string, then we assume
-    // that every item in the list is also a string, and thus it's a flattened array.
-    if (typeof list[0] === 'string') {
-      // Iterate over every item
-      for (var i = 0; i < dataLen; i++) {
-        analyzeText(list[i], i, i)
-      }
-    } else {
-      // Otherwise, the first item is an Object (hopefully), and thus the searching
-      // is done on the values of the keys of each item.
-
-      // Iterate over every item
-      for (var i = 0; i < dataLen; i++) {
-        item = list[i]
-        // Iterate over every key
-        for (j = 0; j < searchKeysLen; j++) {
-          analyzeText(options.getFn(item, searchKeys[j]), item, i)
-        }
-      }
-    }
-
-    if (options.shouldSort) {
-      rawResults.sort(options.sortFn)
-    }
-
-    // Helper function, here for speed-up, which replaces the item with its value,
-    // if the options specifies it,
-    var replaceValue = options.id ? function (i) {
-      rawResults[i].item = options.getFn(rawResults[i].item, options.id)[0]
-    } : function () {
-      return; // no-op
-    }
-
-    // Helper function, here for speed-up, which returns the
-    // item formatted based on the options.
-    var getItem = function (i) {
-      var resultItem
-
-      // If `include` has values, put the item under result.item
-      if (options.include.length > 0) {
-        resultItem = {
-          item: rawResults[i].item,
-        }
-
-        // Then include the `includes`
-        for (var i = 0; i < options.include.length; i++) {
-          var includeVal = options.include[i]
-          resultItem[includeVal] = rawResults[i][includeVal]
-        }
-      } else {
-        resultItem = rawResults[i].item
-      }
-
-      return resultItem
-    }
-
-    // From the results, push into a new array only the item identifier (if specified)
-    // of the entire item.  This is because we don't want to return the <rawResults>,
-    // since it contains other metadata
-    for (var i = 0, len = rawResults.length; i < len; i++) {
-      replaceValue(i)
-      results.push(getItem(i))
-    }
-
-    return results
   }
 
   // Export to Common JS Loader

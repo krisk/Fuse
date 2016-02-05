@@ -1,13 +1,20 @@
 Fuse = require('./src/fuse')
 
-var books = require('./test/books.json')
-var options = {
-  keys: ['title']
-}
-var fuse = new Fuse(books, options)
+var items = [
+  // 'Borwaila hamlet',
+  // 'Bobe hamlet',
+  'Boma',
+  'Bo']
+var fuse = new Fuse(items, {
+  include: ['score'],
+  verbose: true
+})
+var result = fuse.search('Bosdflkj sdlkfjs dlkfjsdlkfjsldkfj sldkfj slkdjflksdjflksdjf lkdsjf lksjdf lksjdflkjsd lkfj ')
 
-fuse.search('the wooster code')
-
-console.log()
+// var items = ['FH Mannheim', 'University Mannheim']
+// var fuse = new Fuse(items, {
+//   verbose: true
+// })
+// var result = fuse.search('Uni Mannheim')
 
 return
