@@ -21,7 +21,7 @@
   'use strict'
 
   function log () {
-    console.log.apply(null, arguments)
+    console.log.apply(console, arguments)
   }
 
   var MULTI_CHAR_REGEX = / +/g
