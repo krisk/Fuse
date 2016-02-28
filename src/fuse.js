@@ -27,12 +27,17 @@
   var MULTI_CHAR_REGEX = / +/g
 
   var defaultOptions = {
+    // The name of the identifier property. If specified, the returned result will be a list
+    // of the items' dentifiers, otherwise it will be a list of the items.
     id: null,
-    caseSensitive: false,
-    // A list of values to be passed from the searcher to the result set.
-    // If include is set to ['score', 'highlight'], each result
-    //   in the list will be of the form: `{ item: ..., score: ..., highlight: ... }`
 
+    // Indicates whether comparisons should be case sensitive.
+
+    caseSensitive: false,
+
+    // A list of values to be passed from the searcher to the result set.
+    // If include is set to ['score', 'highlight'], each result in the list will be
+    // of the form: `{ item: ..., score: ... }`
     include: [],
 
     // Whether to sort the result list, by score
@@ -57,12 +62,20 @@
       return a.score - b.score
     },
 
-    // Default get function
+    // The get function to use when fetching an object's properties.
+    // The default will search nested paths *ie foo.bar.baz*
     getFn: deepValue,
 
+    // List of properties that will be searched. This also supports nested properties.
     keys: [],
 
-    verbose: false
+    // Will print to the console. Useful for debugging.
+    verbose: false,
+
+    // When true, the search algorithm will search individual words **and** the full string,
+    // computing the final score as a function of both. Note that when `tokenize` is `true`,
+    // the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
+    tokenize: false
   }
 
   function Fuse (list, options) {
@@ -75,7 +88,7 @@
     this.options = options = options || {}
 
     // Add boolean type options
-    for (i = 0, keys = ['sort', 'shouldSort', 'verbose'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['sort', 'shouldSort', 'verbose', 'tokenize'], len = keys.length; i < len; i++) {
       key = keys[i]
       this.options[key] = key in options ? options[key] : defaultOptions[key]
     }
@@ -123,10 +136,11 @@
     var i = 0
     var len = tokens.length
 
-    this.tokenSearchers = []
-
-    for (; i < len; i++) {
-      this.tokenSearchers.push(new searchFn(tokens[i], options))
+    if (this.options.tokenize) {
+      this.tokenSearchers = []
+      for (; i < len; i++) {
+        this.tokenSearchers.push(new searchFn(tokens[i], options))
+      }
     }
     this.fullSeacher = new searchFn(pattern, options)
   }
@@ -168,8 +182,8 @@
     var words
     var scores
     var exists = false
-    var tokenSearchers = this.tokenSearchers
-    var tokenSearchersLen = tokenSearchers.length
+    var tokenSearchers
+    var tokenSearchersLen
     var existingResult
     var averageScore
     var finalScore
@@ -194,32 +208,38 @@
 
       if (options.verbose) log('---------\n', 'Record:', words)
 
-      for (i = 0; i < this.tokenSearchers.length; i++) {
-        tokenSearcher = this.tokenSearchers[i]
-        termScores = []
-        for (j = 0; j < words.length; j++) {
-          word = words[j]
-          tokenSearchResult = tokenSearcher.search(word)
-          if (tokenSearchResult.isMatch) {
-            exists = true
-            termScores.push(tokenSearchResult.score)
-            scores.push(tokenSearchResult.score)
-          } else {
-            termScores.push(1)
-            scores.push(1)
+      if (this.options.tokenize) {
+        tokenSearchers = this.tokenSearchers
+        tokenSearchersLen = tokenSearchers.length
+
+        for (i = 0; i < this.tokenSearchers.length; i++) {
+          tokenSearcher = this.tokenSearchers[i]
+          termScores = []
+          for (j = 0; j < words.length; j++) {
+            word = words[j]
+            tokenSearchResult = tokenSearcher.search(word)
+            if (tokenSearchResult.isMatch) {
+              exists = true
+              termScores.push(tokenSearchResult.score)
+              scores.push(tokenSearchResult.score)
+            } else {
+              termScores.push(1)
+              scores.push(1)
+            }
           }
+          if (options.verbose) log('Score for "' + tokenSearcher.pattern + '":', termScores)
         }
-        if (options.verbose) log('Score for "' + tokenSearcher.pattern + '":', termScores)
-      }
 
-      averageScore = scores[0]
-      scoresLen = scores.length
-      for (i = 1; i < scoresLen; i++) {
-        averageScore += scores[i]
-      }
-      averageScore = averageScore / scoresLen
+        averageScore = scores[0]
+        scoresLen = scores.length
+        for (i = 1; i < scoresLen; i++) {
+          averageScore += scores[i]
+        }
+        averageScore = averageScore / scoresLen
 
-      if (options.verbose) log('Individual word score average:', averageScore)
+        if (options.verbose) log('Individual word score average:', averageScore)
+
+      }
 
       // Get the result
       mainSearchResult = this.fullSeacher.search(text)

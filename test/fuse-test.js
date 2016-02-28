@@ -60,7 +60,8 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
       var books = require('./books.json')
       var options = {
         keys: ['title', 'author'],
-        verbose: verbose
+        verbose: verbose,
+        tokenize: true
       }
       var fuse = new Fuse(books, options)
       return fuse

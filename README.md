@@ -125,6 +125,12 @@ The maximum length of the pattern. The longer the pattern, the more intensive th
 
 Will print to the console. Useful for debugging.
 
+---
+
+**tokenize** (*type*: `Boolean`, *default*: `false`)
+
+When true, the search algorithm will search individual words **and** the full string, computing the final score as a function of both. Note that when `tokenize` is `true`, the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
+
 ## Methods
 
 **`search(/*pattern*/)`**
