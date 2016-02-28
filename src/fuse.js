@@ -583,8 +583,7 @@
           bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch | (((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1) | lastBitArr[j + 1]
         }
         if (bitArr[j] & this.matchmask) {
-          // Count exact matches (those with a score of 0) to be "almost" exact
-          score = this._bitapScore(i, j - 1) || 0.001
+          score = this._bitapScore(i, j - 1)
 
           // This match will almost certainly be better than any existing match.
           // But check anyway.
@@ -612,9 +611,10 @@
       lastBitArr = bitArr
     }
 
+    // Count exact matches (those with a score of 0) to be "almost" exact
     return {
       isMatch: bestLoc >= 0,
-      score: score
+      score: score === 0 ? 0.001 : score
     }
   }
 
