@@ -615,6 +615,7 @@ vows.describe('Searching list').addBatch({
         'Bobe hamlet',
         'Bo hamlet',
         'Boma hamlet']
+
       var fuse = new Fuse(items, {
         include: ['score'],
         verbose: verbose
@@ -655,11 +656,91 @@ vows.describe('List of books - searching for long pattern length > 32').addBatch
       'we get a a non empty list': function (result) {
         assert.isTrue(!!result.length)
       },
-      'whose first value is { title: "HTML5 ", author: "Remy Sharp" }': function (result) {
+      'whose first value is { title: "HTML5", author: "Remy Sharp" }': function (result) {
         assert.deepEqual(result[0], {
           title: 'HTML5',
           author: 'Remy Sharp'
         })
+      },
+    }
+  }
+}).export(module)
+
+vows.describe('Weighted search').addBatch({
+  'Books:': {
+    topic: function () {
+      var items = [{
+        title: "Old Man's War fiction",
+        author: 'John X',
+        tags: ['war']
+      }, {
+        title: 'Right Ho Jeeves',
+        author: 'P.D. Mans',
+        tags: ['fiction', 'war']
+      }]
+      return items
+    },
+    'When searching for the term "Man", where the author is weighted higher than title': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'title',
+            weight: 0.3
+          }, {
+            name: 'author',
+            weight: 0.7
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('Man')
+        return result
+      },
+      'We get the value { title: "Right Ho Jeeves", author: "P.D. Mans" }': function (result) {
+        assert.deepEqual(result[0].title, 'Right Ho Jeeves')
+      },
+    },
+    'When searching for the term "Man", where the title is weighted higher than author': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'title',
+            weight: 0.7
+          }, {
+            name: 'author',
+            weight: 0.3
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('Man')
+        return result
+      },
+      'We get the value for "John X"': function (result) {
+        assert.deepEqual(result[0].author, 'John X')
+      },
+    },
+    'When searching for the term "war", where tags are weighted higher than all other keys': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'title',
+            weight: 0.8
+          }, {
+            name: 'author',
+            weight: 0.3
+          }, {
+            name: 'tags',
+            weight: 0.2
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('fiction')
+        return result
+      },
+      'We get the value for "P.D. Mans"': function (result) {
+        assert.deepEqual(result[0].author, 'P.D. Mans')
       },
     }
   }

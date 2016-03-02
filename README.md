@@ -4,7 +4,7 @@
 
 [![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
 
-Fuse is a full JavaScript fuzzy-search implementation that searches accross the keys of every record in a list.
+Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
 
 - [Demo & usage](http://kiro.me/exp/fuse.html)
 - [Project page](http://kiro.me/projects/fuse.html)
@@ -150,6 +150,24 @@ Searches for all the items whose keys (fuzzy) match the pattern.
 ```
 
 Sets a new list for Fuse to match against.
+
+## Weighted Search
+
+In some cases you may want certain keys to be weighted differently:
+
+```javascript
+var fuse = new Fuse(books, {
+  keys: [{
+    name: 'title',
+    weight: 0.3
+  }, {
+    name: 'author',
+    weight: 0.7
+  }],
+});
+```
+
+Where `0 < weight <= 1`
 
 ## Coding conventions
 

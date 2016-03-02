@@ -99,7 +99,7 @@
     }
   }
 
-  Fuse.VERSION = '2.0.1'
+  Fuse.VERSION = '2.1.0'
 
   /**
    * Sets a new list for Fuse to match against.
@@ -113,11 +113,12 @@
   }
 
   Fuse.prototype.search = function (pattern) {
-    if (this.options.verbose) log('=====================\n', 'Search term:', pattern)
+    if (this.options.verbose) log('\nSearch term:', pattern, '\n')
 
     this.pattern = pattern
     this.results = []
     this.resultMap = {}
+    this._keyMap = null
 
     this._prepareSearchers()
     this._startSearch()
@@ -152,6 +153,8 @@
     var listLen = list.length
     var keys = this.options.keys
     var keysLen = keys.length
+    var key
+    var weight
     var item = null
     var i
     var j
@@ -161,9 +164,10 @@
     if (typeof list[0] === 'string') {
       // Iterate over every item
       for (i = 0; i < listLen; i++) {
-        this._analyze(list[i], i, i)
+        this._analyze('', list[i], i, i)
       }
     } else {
+      this._keyMap = {}
       // Otherwise, the first item is an Object (hopefully), and thus the searching
       // is done on the values of the keys of each item.
       // Iterate over every item
@@ -171,13 +175,28 @@
         item = list[i]
         // Iterate over every key
         for (j = 0; j < keysLen; j++) {
-          this._analyze(getFn(item, keys[j], []), item, i)
+          key = keys[j]
+          if (typeof key !== 'string') {
+            weight = (1 - key.weight) || 1
+            this._keyMap[key.name] = {
+              weight: weight
+            }
+            if (key.weight <= 0 || key.weight > 1) {
+              throw new Error('Key weight has to be > 0 and <= 1')
+            }
+            key = key.name
+          } else {
+            this._keyMap[key] = {
+              weight: 1
+            }
+          }
+          this._analyze(key, getFn(item, key, []), item, i)
         }
       }
     }
   }
 
-  Fuse.prototype._analyze = function (text, entity, index) {
+  Fuse.prototype._analyze = function (key, text, entity, index) {
     var options = this.options
     var words
     var scores
@@ -206,7 +225,8 @@
     if (typeof text === 'string') {
       words = text.split(MULTI_CHAR_REGEX)
 
-      if (options.verbose) log('---------\n', 'Record:', words)
+      if (options.verbose) log('---------\nKey:', key)
+      if (options.verbose) log('Record:', words)
 
       if (this.options.tokenize) {
         tokenSearchers = this.tokenSearchers
@@ -227,7 +247,7 @@
               scores.push(1)
             }
           }
-          if (options.verbose) log('Score for "' + tokenSearcher.pattern + '":', termScores)
+          if (options.verbose) log('Token scores:', termScores)
         }
 
         averageScore = scores[0]
@@ -237,8 +257,7 @@
         }
         averageScore = averageScore / scoresLen
 
-        if (options.verbose) log('Individual word score average:', averageScore)
-
+        if (options.verbose) log('Token score average:', averageScore)
       }
 
       // Get the result
@@ -250,28 +269,35 @@
         finalScore = (finalScore + averageScore) / 2
       }
 
-      if (options.verbose) log('Average', finalScore)
+      if (options.verbose) log('Score average:', finalScore)
 
       // If a match is found, add the item to <rawResults>, including its score
       if (exists || mainSearchResult.isMatch) {
         // Check if the item already exists in our results
         existingResult = this.resultMap[index]
+
         if (existingResult) {
           // Use the lowest score
           // existingResult.score, bitapResult.score
-          existingResult.scores.push(finalScore)
+          existingResult.scores.push({
+            key: key,
+            score: finalScore
+          })
         } else {
-          // Add it to the raw result list
+          // Add it to the raw result listå
           this.resultMap[index] = {
             item: entity,
-            scores: [finalScore]
+            scores: [{
+              key: key,
+              score: finalScore
+            }]
           }
           this.results.push(this.resultMap[index])
         }
       }
     } else if (isArray(text)) {
       for (i = 0; i < text.length; i++) {
-        this._analyze(text[i], entity, index)
+        this._analyze(key, text[i], entity, index)
       }
     }
   }
@@ -279,26 +305,53 @@
   Fuse.prototype._computeScore = function () {
     var i
     var j
+    var keyMap = this._keyMap
     var totalScore
     var currScore
     var scoreLen
+    var score
+    var weight
     var results = this.results
+    var bestScore
+    var nScore
+
+    if (this.options.verbose) log('\n\nComputing score:\n')
 
     for (i = 0; i < results.length; i++) {
       totalScore = 0
       currScore = results[i].scores
       scoreLen = currScore.length
+
+      bestScore = 1
+
       for (j = 0; j < scoreLen; j++) {
-        totalScore += currScore[j]
+        score = currScore[j].score
+        weight = keyMap ? keyMap[currScore[j].key].weight : 1
+
+        nScore = score * weight
+
+        if (weight !== 1) {
+          bestScore = Math.min(bestScore, nScore)
+        } else {
+          totalScore += nScore
+          currScore[j].nScore = nScore
+        }
       }
-      results[i].score = totalScore / scoreLen
+
+      if (bestScore === 1) {
+        results[i].score = totalScore / scoreLen
+      } else {
+        results[i].score = bestScore
+      }
+
+      if (this.options.verbose) log(results[i])
     }
   }
 
   Fuse.prototype._sort = function () {
     var options = this.options
     if (options.shouldSort) {
-      if (options.verbose) log('Sorting....')
+      if (options.verbose) log('\n\nSorting....')
       this.results.sort(options.sortFn)
     }
   }
@@ -314,7 +367,7 @@
     var replaceValue
     var getItemAtIndex
 
-    if (options.verbose) log('------------\n', 'Output:\n', results)
+    if (options.verbose) log('\n\nOutput:\n\n', results)
 
     // Helper function, here for speed-up, which replaces the item with its value,
     // if the options specifies it,
@@ -523,7 +576,6 @@
     text = options.caseSensitive ? text : text.toLowerCase()
 
     if (this.pattern === text) {
-      // console.log("EXACT")
       // Exact match
       return {
         isMatch: true,
@@ -593,7 +645,6 @@
 
       for (j = finish; j >= start; j--) {
         charMatch = this.patternAlphabet[text.charAt(j - 1)]
-        // console.log('charMatch', charMatch, text.charAt(j - 1))
 
         if (i === 0) {
           // First pass: exact match.
