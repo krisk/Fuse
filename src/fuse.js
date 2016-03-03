@@ -621,8 +621,8 @@
 
     // a mask of the matches
     matchMask = []
-    for (i = 0;i < textLen;) {
-      matchMask[i++] = 0
+    for (i = 0; i < textLen; i++) {
+      matchMask[i] = 0
     }
 
     if (bestLoc != -1) {
@@ -669,7 +669,7 @@
         charMatch = this.patternAlphabet[text.charAt(j - 1)]
 
         if (charMatch) {
-          matchMask[j] = 1
+          matchMask[j - 1] = 1
         }
 
         if (i === 0) {
