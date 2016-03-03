@@ -668,7 +668,7 @@
       for (j = finish; j >= start; j--) {
         charMatch = this.patternAlphabet[text.charAt(j - 1)]
 
-        if (charMatch !== undefined) {
+        if (charMatch) {
           matchMask[j] = 1
         }
 
