@@ -35,9 +35,9 @@
 
     caseSensitive: false,
 
-    // A list of values to be passed from the searcher to the result set.
-    // If include is set to ['score', 'highlight'], each result in the list will be
-    // of the form: `{ item: ..., score: ... }`
+    // An array of values that should be included from the searcher's output. When this array
+    // contains elements, each result in the list will be of the form `{ item: ..., include1: ..., include2: ... }`.
+    // Values you can include are `score`, `matchedLocations`
     include: [],
 
     // Whether to sort the result list, by score
@@ -99,7 +99,7 @@
     }
   }
 
-  Fuse.VERSION = '2.1.0'
+  Fuse.VERSION = '2.2.0-beta'
 
   /**
    * Sets a new list for Fuse to match against.
@@ -284,14 +284,16 @@
             score: finalScore
           })
         } else {
-          // Add it to the raw result listå
+          // Add it to the raw result list
           this.resultMap[index] = {
             item: entity,
             scores: [{
               key: key,
               score: finalScore
-            }]
+            }],
+            matchedIndices: mainSearchResult.matchedIndices
           }
+
           this.results.push(this.resultMap[index])
         }
       }
@@ -383,7 +385,7 @@
       // If `include` has values, put the item under result.item
       if (options.include.length > 0) {
         resultItem = {
-          item: results[index].item,
+          item: results[index].item
         }
         // Then include the `includes`
         for (j = 0; j < options.include.length; j++) {
@@ -572,6 +574,10 @@
     var locations
     var matches
     var isMatched
+    var matchMask
+    var matchedIndices
+    var matchesLen
+    var match
 
     text = options.caseSensitive ? text : text.toLowerCase()
 
@@ -579,19 +585,29 @@
       // Exact match
       return {
         isMatch: true,
-        score: 0
+        score: 0,
+        matchedIndices: [[0, text.length - 1]]
       }
     }
 
-    // When pattern length is greater than the machine word length, just do a
-    // a reject comparison
+    // When pattern length is greater than the machine word length, just do a a regex comparison
     if (this.patternLen > options.maxPatternLength) {
       matches = text.match(new RegExp(this.pattern.replace(MULTI_CHAR_REGEX, '|')))
       isMatched = !!matches
+
+      if (isMatched) {
+        matchedIndices = []
+        for (i = 0, matchesLen = matches.length; i < matchesLen; i++) {
+          match = matches[i]
+          matchedIndices.push([text.indexOf(match), match.length - 1])
+        }
+      }
+
       return {
         isMatch: isMatched,
         // TODO: revisit this score
-        score: isMatched ? 0.5 : 1
+        score: isMatched ? 0.5 : 1,
+        matchedIndices: matchedIndices
       }
     }
 
@@ -602,6 +618,12 @@
     threshold = options.threshold
     // Is there a nearby exact match? (speedup)
     bestLoc = text.indexOf(this.pattern, location)
+
+    // a mask of the matches
+    matchMask = []
+    for (i = 0;i < textLen;) {
+      matchMask[i++] = 0
+    }
 
     if (bestLoc != -1) {
       threshold = Math.min(this._bitapScore(0, bestLoc), threshold)
@@ -646,6 +668,10 @@
       for (j = finish; j >= start; j--) {
         charMatch = this.patternAlphabet[text.charAt(j - 1)]
 
+        if (charMatch !== undefined) {
+          matchMask[j] = 1
+        }
+
         if (i === 0) {
           // First pass: exact match.
           bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch
@@ -682,11 +708,37 @@
       lastBitArr = bitArr
     }
 
+    matchedIndices = this._getMatchedIndices(matchMask)
+
     // Count exact matches (those with a score of 0) to be "almost" exact
     return {
       isMatch: bestLoc >= 0,
-      score: score === 0 ? 0.001 : score
+      score: score === 0 ? 0.001 : score,
+      matchedIndices: matchedIndices
     }
+  }
+
+  BitapSearcher.prototype._getMatchedIndices = function (matchMask) {
+    var matchedIndices = []
+    var start = -1
+    var end = -1
+    var i = 0
+    var match
+    var len = len = matchMask.length
+    for (; i < len; i++) {
+      match = matchMask[i]
+      if (match && start === -1) {
+        start = i
+      } else if (!match && start !== -1) {
+        end = i - 1
+        matchedIndices.push([start, end])
+        start = -1
+      }
+    }
+    if (matchMask[i - 1]) {
+      matchedIndices.push([start, i - 1])
+    }
+    return matchedIndices
   }
 
   // Export to Common JS Loader

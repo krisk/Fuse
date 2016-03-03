@@ -1,3 +1,11 @@
+# Version 2.2.0-beta
+
+- Added option to include matched indices (#6)
+
+# Version 2.1.0-beta
+
+- Added ability to search with weighted keys (#62)
+
 # Version 2.0.0
 
 - Modified search algorithm to search individual words AND the full string, computing the final score as a function of both. This yields better scoring accuracy (#41)

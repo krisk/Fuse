@@ -42,7 +42,11 @@ Indicates whether comparisons should be case sensitive.
 
 **include** (*type*: `Array`, *default*: `[]`)
 
-An array of values that should be included from the searcher's output. When this array contains elements, each result in the list will be of the form `{ item: ..., include1: ..., include2: ... }`. For example, to include the score, you would set include to ['score'], and the result would be `{ item: ..., score: ... }`
+An array of values that should be included from the searcher's output. When this array contains elements, each result in the list will be of the form `{ item: ..., include1: ..., include2: ... }`. Values you can include are `score`, `matchedLocations`. Ex:
+
+```javascript
+{ include: ['score', 'matchedIndices' ] }
+```
 
 ---
 
