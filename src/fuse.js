@@ -279,19 +279,20 @@
         if (existingResult) {
           // Use the lowest score
           // existingResult.score, bitapResult.score
-          existingResult.scores.push({
+          existingResult.output.push({
             key: key,
-            score: finalScore
+            score: finalScore,
+            matchedIndices: mainSearchResult.matchedIndices
           })
         } else {
           // Add it to the raw result list
           this.resultMap[index] = {
             item: entity,
-            scores: [{
+            output: [{
               key: key,
-              score: finalScore
-            }],
-            matchedIndices: mainSearchResult.matchedIndices
+              score: finalScore,
+              matchedIndices: mainSearchResult.matchedIndices
+            }]
           }
 
           this.results.push(this.resultMap[index])
@@ -309,7 +310,7 @@
     var j
     var keyMap = this._keyMap
     var totalScore
-    var currScore
+    var output
     var scoreLen
     var score
     var weight
@@ -321,14 +322,14 @@
 
     for (i = 0; i < results.length; i++) {
       totalScore = 0
-      currScore = results[i].scores
-      scoreLen = currScore.length
+      output = results[i].output
+      scoreLen = output.length
 
       bestScore = 1
 
       for (j = 0; j < scoreLen; j++) {
-        score = currScore[j].score
-        weight = keyMap ? keyMap[currScore[j].key].weight : 1
+        score = output[j].score
+        weight = keyMap ? keyMap[output[j].key].weight : 1
 
         nScore = score * weight
 
@@ -336,7 +337,7 @@
           bestScore = Math.min(bestScore, nScore)
         } else {
           totalScore += nScore
-          currScore[j].nScore = nScore
+          output[j].nScore = nScore
         }
       }
 
@@ -361,13 +362,14 @@
   Fuse.prototype._format = function () {
     var options = this.options
     var getFn = options.getFn
-    var output = []
+    var finalOutput = []
     var item
     var i
     var len
     var results = this.results
     var replaceValue
     var getItemAtIndex
+    var include = options.include
 
     if (options.verbose) log('\n\nOutput:\n\n', results)
 
@@ -378,25 +380,43 @@
     } : function () {}
 
     getItemAtIndex = function (index) {
-      var resultItem
+      var record = results[index]
+      var data
       var includeVal
       var j
+      var output
+      var _item
+      var _result
 
-      // If `include` has values, put the item under result.item
-      if (options.include.length > 0) {
-        resultItem = {
-          item: results[index].item
+      // If `include` has values, put the item in the result
+      if (include.length > 0) {
+        data = {
+          item: record.item
         }
-        // Then include the `includes`
-        for (j = 0; j < options.include.length; j++) {
-          includeVal = options.include[j]
-          resultItem[includeVal] = results[index][includeVal]
+        if (include.indexOf('matches') !== -1) {
+          output = record.output
+          data.matches = []
+          for (j = 0; j < output.length; j++) {
+            _item = output[j]
+            _result = {
+              indices: _item.matchedIndices
+            }
+            if (_item.key) {
+              _result.key = _item.key
+            }
+            data.matches.push(_result)
+          }
         }
+
+        if (include.indexOf('score') !== -1) {
+          data.score = results[index].score
+        }
+
       } else {
-        resultItem = results[index].item
+        data = record.item
       }
 
-      return resultItem
+      return data
     }
 
     // From the results, push into a new array only the item identifier (if specified)
@@ -405,10 +425,10 @@
     for (i = 0, len = results.length; i < len; i++) {
       replaceValue(i)
       item = getItemAtIndex(i)
-      output.push(item)
+      finalOutput.push(item)
     }
 
-    return output
+    return finalOutput
   }
 
   // Helpers
