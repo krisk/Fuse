@@ -745,3 +745,37 @@ vows.describe('Weighted search').addBatch({
     }
   }
 }).export(module)
+
+vows.describe('Search location').addBatch({
+  'Books:': {
+    topic: function () {
+      var items = [{
+        name: 'Hello World'
+      }]
+      var options = {
+        keys: ['name'],
+        verbose: verbose,
+        include: ['score', 'matches']
+      }
+      var fuse = new Fuse(items, options)
+      return fuse
+    },
+    'When searching for the term "wor"': {
+      topic: function (fuse) {
+        var result = fuse.search('wor')
+        return result
+      },
+      'we get a a non empty list': function (result) {
+        assert.isTrue(!!result.length)
+      },
+      'whose indices are found': function (result) {
+        var matches = result[0].matches
+        var a = matches[0].indices[0]
+        var b = matches[0].indices[1]
+        assert.deepEqual(a, [4, 4])
+        assert.deepEqual(b, [6, 8])
+      },
+    }
+  }
+}).export(module)
+

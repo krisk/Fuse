@@ -1,6 +1,7 @@
-# Version 2.2.0-beta
+# Version 2.2.0
 
 - Added option to include matched indices (#6)
+- Added ability to search with weighted keys (#62)
 
 # Version 2.1.0-beta
 

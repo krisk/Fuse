@@ -1,7 +1,7 @@
 {
   "name": "fuse.js",
   "author": "Kirollos Risk",
-  "version": "2.2.0-beta",
+  "version": "2.2.0",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "main": "./src/fuse.js",
