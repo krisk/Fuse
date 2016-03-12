@@ -382,12 +382,15 @@
     var getItemAtIndex
     var include = options.include
 
+    var type = this.typeof
+
     if (options.verbose) log('\n\nOutput:\n\n', results)
 
     // Helper function, here for speed-up, which replaces the item with its value,
     // if the options specifies it,
     replaceValue = options.id ? function (index) {
-      results[index].item = getFn(results[index].item, options.id, [])[0]
+      if(type === 'object' && options.id === 'key') results[index].item = results[index].item.__o_key
+      else results[index].item = getFn(results[index].item, options.id, [])[0]
     } : function () {}
 
     getItemAtIndex = function (index) {
@@ -442,7 +445,7 @@
       }
     } else if(this.typeof === 'object') {
 
-      var finalOutput = {}
+      var finalOutput = options.id ? [] : {}
       for (i = 0, len = results.length; i < len; i++) {
         replaceValue(i)
         item = getItemAtIndex(i)
@@ -450,6 +453,8 @@
         if(typeof item === 'object') {
           finalOutput[item.__o_key] = item;
           delete finalOutput[item.__o_key].__o_key;
+        } else {
+          finalOutput.push(item)
         }
       }
     }
