@@ -779,3 +779,60 @@ vows.describe('Search location').addBatch({
   }
 }).export(module)
 
+
+vows.describe('List of books (nested object) - searching "title" and "author"').addBatch({
+  'Books:': {
+    topic: function () {
+      var books = {
+        31: {
+          _id: 31,
+          title: 'The Great Gatsby',
+          author: 'F. Scott Fitzgerald'
+        },
+        37: {
+          _id: 37,
+          title: 'The DaVinci Code',
+          author: 'Dan Brown'
+        },
+        41: {
+          _id: 41,
+          title: 'Angels & Demons',
+          author: 'Dan Brown'
+        }
+      };
+      var options = {
+        keys: ['title', 'author']
+      }
+      var fuse = new Fuse(books, options)
+      return fuse
+    },
+    'When searching for the term "brwn"': {
+      topic: function (fuse) {
+        var result = fuse.search('brwn')
+        return result
+      },
+      'We get an object': function(result) {
+        if (result.constructor === Array) var type = 'array'
+        else var type = typeof result
+        assert.isTrue(type === 'object')
+      },
+      'containing 2 items': function (result) {
+        assert.isTrue(Object.keys(result).length == 2)
+      },
+      'and the items should be all the books written by Dan Brown': function (result) {
+        var keys = Object.keys(result);
+        assert.deepEqual(result[keys[0]], {
+          _id: 37,
+          'title': 'The DaVinci Code',
+          'author': 'Dan Brown'
+        })
+        assert.deepEqual(result[keys[1]], {
+          _id: 41,
+          'title': 'Angels & Demons',
+          'author': 'Dan Brown'
+        })
+      },
+    }
+  }
+}).export(module)
+

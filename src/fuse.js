@@ -84,6 +84,18 @@
     var key
     var keys
 
+    if (list.constructor === Array) this.typeof = 'array'
+    else this.typeof = typeof list;
+
+    if(this.typeof === 'object') {
+      list = Object.keys(list).map(function (i) {
+        var modified = list[i];
+        modified['__o_key'] = i;
+        return modified;
+      });
+    }
+
+
     this.list = list
     this.options = options = options || {}
 
@@ -362,7 +374,6 @@
   Fuse.prototype._format = function () {
     var options = this.options
     var getFn = options.getFn
-    var finalOutput = []
     var item
     var i
     var len
@@ -419,15 +430,29 @@
       return data
     }
 
-    // From the results, push into a new array only the item identifier (if specified)
-    // of the entire item.  This is because we don't want to return the <results>,
-    // since it contains other metadata
-    for (i = 0, len = results.length; i < len; i++) {
-      replaceValue(i)
-      item = getItemAtIndex(i)
-      finalOutput.push(item)
-    }
+    if(this.typeof === 'array') {
+      // From the results, push into a new array only the item identifier (if specified)
+      // of the entire item.  This is because we don't want to return the <results>,
+      // since it contains other metadata
+      var finalOutput = []
+      for (i = 0, len = results.length; i < len; i++) {
+        replaceValue(i)
+        item = getItemAtIndex(i)
+        finalOutput.push(item)
+      }
+    } else if(this.typeof === 'object') {
 
+      var finalOutput = {}
+      for (i = 0, len = results.length; i < len; i++) {
+        replaceValue(i)
+        item = getItemAtIndex(i)
+
+        if(typeof item === 'object') {
+          finalOutput[item.__o_key] = item;
+          delete finalOutput[item.__o_key].__o_key;
+        }
+      }
+    }
     return finalOutput
   }
 
