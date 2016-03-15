@@ -88,11 +88,14 @@
     else this.typeof = typeof list;
 
     if(this.typeof === 'object') {
-      list = Object.keys(list).map(function (i) {
-        var modified = list[i];
-        modified['__o_key'] = i;
-        return modified;
-      });
+      var new_list = [];
+      for (var key in list) {
+        var modified = list[key];
+        modified['__o_key'] = key;
+        new_list.push(modified);
+      }
+
+      list = new_list;
     }
 
 
