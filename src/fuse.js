@@ -201,8 +201,6 @@
     var words
     var scores
     var exists = false
-    var tokenSearchers
-    var tokenSearchersLen
     var existingResult
     var averageScore
     var finalScore
@@ -229,9 +227,6 @@
       if (options.verbose) log('Record:', words)
 
       if (this.options.tokenize) {
-        tokenSearchers = this.tokenSearchers
-        tokenSearchersLen = tokenSearchers.length
-
         for (i = 0; i < this.tokenSearchers.length; i++) {
           tokenSearcher = this.tokenSearchers[i]
           termScores = []
@@ -382,7 +377,6 @@
     getItemAtIndex = function (index) {
       var record = results[index]
       var data
-      var includeVal
       var j
       var output
       var _item
@@ -744,7 +738,7 @@
     var end = -1
     var i = 0
     var match
-    var len = len = matchMask.length
+    var len = matchMask.length
     for (; i < len; i++) {
       match = matchMask[i]
       if (match && start === -1) {
