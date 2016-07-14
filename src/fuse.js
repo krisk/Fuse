@@ -24,8 +24,6 @@
     console.log.apply(console, arguments)
   }
 
-  var MULTI_CHAR_REGEX = / +/g
-
   var defaultOptions = {
     // The name of the identifier property. If specified, the returned result will be a list
     // of the items' dentifiers, otherwise it will be a list of the items.
@@ -75,7 +73,10 @@
     // When true, the search algorithm will search individual words **and** the full string,
     // computing the final score as a function of both. Note that when `tokenize` is `true`,
     // the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
-    tokenize: false
+    tokenize: false,
+
+    // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
+    tokenSeparator: / +/g
   }
 
   function Fuse (list, options) {
@@ -93,7 +94,7 @@
       this.options[key] = key in options ? options[key] : defaultOptions[key]
     }
     // Add all other options
-    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include', 'tokenSeparator'], len = keys.length; i < len; i++) {
       key = keys[i]
       this.options[key] = options[key] || defaultOptions[key]
     }
@@ -133,7 +134,7 @@
     var options = this.options
     var pattern = this.pattern
     var searchFn = options.searchFn
-    var tokens = pattern.split(MULTI_CHAR_REGEX)
+    var tokens = pattern.split(options.tokenSeparator)
     var i = 0
     var len = tokens.length
 
@@ -221,7 +222,7 @@
     scores = []
 
     if (typeof text === 'string') {
-      words = text.split(MULTI_CHAR_REGEX)
+      words = text.split(options.tokenSeparator)
 
       if (options.verbose) log('---------\nKey:', key)
       if (options.verbose) log('Record:', words)
@@ -606,7 +607,7 @@
 
     // When pattern length is greater than the machine word length, just do a a regex comparison
     if (this.patternLen > options.maxPatternLength) {
-      matches = text.match(new RegExp(this.pattern.replace(MULTI_CHAR_REGEX, '|')))
+      matches = text.match(new RegExp(this.pattern.replace(options.tokenSeparator, '|')))
       isMatched = !!matches
 
       if (isMatched) {

@@ -135,6 +135,12 @@ Will print to the console. Useful for debugging.
 
 When true, the search algorithm will search individual words **and** the full string, computing the final score as a function of both. Note that when `tokenize` is `true`, the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
 
+---
+
+**tokenSeparator** (*type*: `Regex`, *default*: `/ +/g`)
+
+Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
+
 ## Methods
 
 **`search(/*pattern*/)`**
