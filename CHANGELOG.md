@@ -1,3 +1,9 @@
+# Version 2.3.0
+
+- Added token separator to options, when `tokenize:true` (#93)
+- General code clean up (#88)
+- Bunch of other bug fixes
+
 # Version 2.2.0
 
 - Added option to include matched indices (#6)

@@ -100,7 +100,7 @@
     }
   }
 
-  Fuse.VERSION = '2.2.0'
+  Fuse.VERSION = '2.3.0'
 
   /**
    * Sets a new list for Fuse to match against.
