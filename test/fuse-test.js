@@ -779,3 +779,63 @@ vows.describe('Search location').addBatch({
   }
 }).export(module)
 
+vows.describe('Simple meta data scenario').addBatch({
+   'Options:': {
+    topic: function () {
+      var items = ['FH Mannheim', 'University Mannheim']
+      var fuse = new Fuse(items)
+      return fuse
+    },
+    'When retriving metaData': {
+      topic: function (fuse) {
+        fuse.search('Uni Mannheim')
+        fuse.search('Uni Mannheim')
+        var result = fuse.metaData();
+        return result
+      },
+      'we get an object with list count': function (result) {
+        assert.equal(result.listLength, 2)
+      },
+      'we get an object with options': function (result) {
+        assert.equal(result.options.sort, undefined)
+        assert.equal(result.options.shouldSort, true)
+        assert.equal(result.options.verbose, false)
+        assert.equal(typeof(result.options.searchFn), "function")
+        assert.equal(typeof(result.options.sortFn), "function")
+        assert.equal(result.options.keys.length, 0)
+        assert.equal(typeof(result.options.getFn), "function")
+        assert.equal(result.options.include.length, 0)
+        assert.equal(result.options.tokenSeparator.toString(), '/ +/g')
+      },
+      'we get a numberOfSearches': function(result) {
+        assert.equal(result.numberOfSearches, 2);
+      }
+    }
+  }
+}).export(module)
+
+vows.describe('Meta data after set scenario').addBatch({
+   'Options:': {
+    topic: function () {
+      var items = ['FH Mannheim', 'University Mannheim']
+      var fuse = new Fuse(items)
+      return fuse
+    },
+    'When retriving metaData': {
+      topic: function (fuse) {
+        fuse.search('Uni Mannheim');
+        fuse.search('Uni Mannheim');
+        fuse.set(['Vanilla', 'Chocolate', 'Strawberry', 'Lemon']);
+        fuse.search('choc');
+        var result = fuse.metaData();
+        return result
+      },
+      'we get an object with list count': function (result) {
+        assert.equal(result.listLength, 4)
+      },
+      'we get a numberOfSearches': function(result) {
+        assert.equal(result.numberOfSearches, 1);
+      }
+    }
+  }
+}).export(module)
