@@ -1,12 +1,12 @@
 # Fuse
 
-**Update**: Now on Twitter [@fusejs](https://twitter.com/fusejs)
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/kirorisk)
-
 [![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
 [![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
+
+**Update**: Now on Twitter [@fusejs](https://twitter.com/fusejs)
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/kirorisk)
 
 Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
 
