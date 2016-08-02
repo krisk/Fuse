@@ -1,4 +1,6 @@
-# Fuse
+# Fuse 
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/kirorisk)
 
 [![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
