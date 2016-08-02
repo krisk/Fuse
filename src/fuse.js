@@ -100,7 +100,7 @@
     }
   }
 
-  Fuse.VERSION = '2.3.0'
+  Fuse.VERSION = '2.4.0'
 
   /**
    * Sets a new list for Fuse to match against.
@@ -225,23 +225,27 @@
       words = text.split(options.tokenSeparator)
 
       if (options.verbose) log('---------\nKey:', key)
-      if (options.verbose) log('Record:', words)
 
       if (this.options.tokenize) {
         for (i = 0; i < this.tokenSearchers.length; i++) {
           tokenSearcher = this.tokenSearchers[i]
+
+          if (options.verbose) log('Pattern:', tokenSearcher.pattern)
+
           termScores = []
           for (j = 0; j < words.length; j++) {
             word = words[j]
             tokenSearchResult = tokenSearcher.search(word)
+            var obj = {}
             if (tokenSearchResult.isMatch) {
+              obj[word] = tokenSearchResult.score
               exists = true
-              termScores.push(tokenSearchResult.score)
               scores.push(tokenSearchResult.score)
             } else {
-              termScores.push(1)
+              obj[word] = 1
               scores.push(1)
             }
+            termScores.push(obj)
           }
           if (options.verbose) log('Token scores:', termScores)
         }
@@ -256,7 +260,6 @@
         if (options.verbose) log('Token score average:', averageScore)
       }
 
-      // Get the result
       mainSearchResult = this.fullSeacher.search(text)
       if (options.verbose) log('Full text score:', mainSearchResult.score)
 
