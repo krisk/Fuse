@@ -1,6 +1,6 @@
 # Fuse
 
-> *Update*: Now on Twitter [@fusejs](https://twitter.com/fusejs)
+**Update**: Now on Twitter [@fusejs](https://twitter.com/fusejs)
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/kirorisk)
 
