@@ -6,7 +6,11 @@
 
 **Update**: Now on Twitter [@fusejs](https://twitter.com/fusejs)
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/kirorisk)
+## Suport Fuse.js Development
+
+[![Donate](https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png)](https://www.paypal.me/kirorisk)
+
+Donate via PayPal (one time)
 
 Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
 
