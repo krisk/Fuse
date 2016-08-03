@@ -6,16 +6,16 @@
 
 **Update**: Now on Twitter [@fusejs](https://twitter.com/fusejs)
 
+Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
+
+- [Demo & usage](http://kiro.me/exp/fuse.html)
+- [Project page](http://kiro.me/projects/fuse.html)
+
 ## Suport Fuse.js Development
 
 <a href="https://www.paypal.me/kirorisk"><img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" width=120px" width="120px" alt="Donate"><a>
 
 Donate via PayPal (one time)
-
-Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
-
-- [Demo & usage](http://kiro.me/exp/fuse.html)
-- [Project page](http://kiro.me/projects/fuse.html)
 
 ## Options
 
