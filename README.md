@@ -8,7 +8,7 @@
 
 ## Suport Fuse.js Development
 
-[![Donate](https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png)](https://www.paypal.me/kirorisk)
+<a href="https://www.paypal.me/kirorisk"><img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" width=120px" width="120px" alt="Donate"><a>
 
 Donate via PayPal (one time)
 
