@@ -8,7 +8,7 @@
 
 Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
 
-- [Demo & usage](http://kiro.me/exp/fuse.html)
+- [Demo & usage](http://fusejs.io/)
 
 ## Support Fuse.js Development
 
