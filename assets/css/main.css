@@ -1,0 +1,121 @@
+body {
+    -webkit-font-smoothing: antialiased;
+}
+.demo {
+    padding: 0 20px 20px 20px;
+}
+#resultTextAreaContainer {
+    height: 300px;
+    overflow-y: scroll;
+}
+.social {
+    margin-bottom: 10px;
+}
+.jumbotron {
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    font-size: 16px;
+    color: #fff;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+    border-radius: 0;
+    padding-bottom: 80px;
+    background-image: -webkit-linear-gradient(left, #720e9e 0, #dd4b39 100%);
+    background-image: -o-linear-gradient(left, #720e9e 0, #dd4b39 100%);
+    background-image: linear-gradient(to right, #720e9e 0, #dd4b39 100%);
+    background-repeat: repeat-x;
+    filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#ff720e9e', endColorstr='#ffdd4b39', GradientType=1);
+}
+.jumbotron .container {
+    max-width: 100%;
+}
+.jumbotron h1 {
+    margin-bottom: 15px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    color: #fff;
+}
+.jumbotron p {
+    margin-bottom: 15px;
+    font-size: 21px;
+    font-weight: 200;
+}
+.jumbotron .bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 18px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.jumbotron iframe {
+    width: 100px !important;
+    height: 20px !important;
+    border: none;
+    overflow: hidden;
+    margin: 2px;
+}
+
+.btn-outline {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 18px 24px;
+    font-size: inherit;
+    font-weight: 500;
+    color: #fff;
+    background-color: transparent;
+    border-color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+    transition: all .1s ease-in-out;
+}
+.btn-outline:hover,
+.btn-outline:active {
+    color: #720e9e;
+    background-color: #fff;
+    border-color: #fff
+}
+
+.social-share {
+    font-size: 1px;
+}
+.social-share iframe {
+    vertical-align: middle;
+}
+.fb-like {
+    margin-right: 20px;
+    vertical-align: middle;
+}
+.social-share .IN-widget {
+    vertical-align: middle !important;
+    margin-right: 5px;
+}
+
+
+.support {
+    text-align: center;
+}
+.support p {
+    line-height: 1.6em;
+}
+.support a {
+    color: #42b983;
+}
+
+h2 {
+    text-align: center;
+}
+h2,
+h3 {
+    font-weight: 300;
+}
+
+footer {
+    text-align: center;
+    opacity: .8;
+    padding: 50px;
+    background-image: -webkit-linear-gradient(left, #dd4b39 0, #720e9e 100%);
+    background-image: -o-linear-gradient(left, #dd4b39 0, #720e9e 100%);
+    background-image: linear-gradient(to right, #dd4b39 0, #720e9e 100%);
+    background-repeat: repeat-x;
+    filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#ffdd4b39', endColorstr='#ff720e9e', GradientType=1)
+}
