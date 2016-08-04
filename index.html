@@ -290,7 +290,7 @@
               <label>
                 <input type="checkbox" id="scoreCheckbox">Include score
               </label>
-              <span id="helpBlock" class="help-block">Whether the score should be included in the result set. A score of <code>0</code> indicates a perfect match, while a score of <code>1</code> indicates no match.
+              <span id="helpBlock" class="help-block">Whether the score should be included in the result set. A score of <code>0</code> indicates a perfect match, while a score of <code>1</code> indicates a complete mismatch.
             </div>
           </div>
 
@@ -348,7 +348,7 @@
           <div class="form-group form-inline">
             <label for="distanceRange">Distance</label>
             <input type="number" id="distanceRange" min="0" max="1000" value="100">
-            <span id="helpBlock" class="help-block">Determines how close the match must be to the fuzzy location (specified by location). An exact letter match which is distance characters away from the fuzzy location would score as a complete mismatch. A distance of <code>0</code> requires the match be at the exact location specified, a threshold of <code>1000</code> would require a perfect match to be within <code>800</code> characters of the location to be found using a threshold of <code>0.8</code>.</span>
+            <span id="helpBlock" class="help-block">Determines how close the match must be to the fuzzy location (specified by <code>location</code>). An exact letter match which is <code>distance</code> characters away from the fuzzy location would score as a complete mismatch. A <code>distance</code> of <code>0</code> requires the match be at the exact <code>location</code> specified, a <code>distance</code> of <code>1000</code> would require a perfect match to be within <code>800</code> characters of the <code>location</code> to be found using a <code>threshold</code> of <code>0.8</code>.</span>
           </div>
 
           <div class="form-group form-inline">
@@ -371,6 +371,7 @@
 
           </section>
 
+ <hr>
           <section id="js">
            <h4>Here's the JavaScript:</h4>
 <pre>
@@ -378,6 +379,7 @@
 </pre>
           </section>
 
+           <hr>
           <section id="output">
             <h4>Your search results:</h4>
 <pre id="resultTextAreaContainer">
