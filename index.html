@@ -1,1 +1,606 @@
-My Page
+<!DOCTYPE>
+<html>
+  <style type="text/css">
+    body {
+    font: 100%/1.6 cambria, palatino, georgia, serif;
+    }
+    main {
+      padding: 20px;
+    }
+    #resultTextAreaContainer {
+    height: 300px;
+    overflow-y: scroll;
+    }
+  </style>
+  <body>
+    <head>
+      <meta name=viewport content="width=device-width initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+      <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+      <script src="http://underscorejs.org/underscore-min.js"></script>
+
+      <script src="http://kiro.me/javascript/projects/fuse.min.js"></script>
+      <script src="http://kiro.me/javascript/projects/fiber.min.js"></script>
+    </head>
+
+    <main>
+      <h1>Fuse.js - Demo</h1>
+
+      <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a>
+
+      <div class="row">
+        <div class="col-md-4">
+
+        <h3>Items</h3>
+
+        <span id="helpBlock" class="help-block">Insert your list of items here</span>
+
+        <textarea id="itemsTextArea" style="min-width: 100%; min-height: 500px">
+  [
+     {
+        title: "Old Man's War",
+        author: {
+          firstName: "John",
+          lastName: "Scalzi"
+        }
+     },
+     {
+        title: "The Lock Artist",
+        author: {
+          firstName: "Steve",
+          lastName: "Hamilton"
+        }
+     },
+     {
+        title: "HTML5",
+        author: {
+          firstName: "Remy",
+          lastName: "Sharp"
+        }
+     },
+     {
+        title: "Right Ho Jeeves",
+        author: {
+          firstName: "P.D",
+          lastName: "Woodhouse"
+        }
+     },
+     {
+        title: "The Code of the Wooster",
+        author: {
+          firstName: "P.D",
+          lastName: "Woodhouse"
+        }
+     },
+     {
+        title: "Thank You Jeeves",
+        author: {
+          firstName: "P.D",
+          lastName: "Woodhouse"
+        }
+     },
+     {
+        title: "The DaVinci Code",
+        author: {
+          firstName: "Dan",
+          lastName: "Brown"
+        }
+     },
+     {
+        title: "Angels & Demons",
+        author: {
+          firstName: "Dan",
+          lastName: "Brown"
+        }
+     },
+     {
+        title: "The Silmarillion",
+        author: {
+          firstName: "J.R.R",
+          lastName: "Tolkien"
+        }
+     },
+     {
+        title: "Syrup",
+        author: {
+          firstName: "Max",
+          lastName: "Barry"
+        }
+     },
+     {
+        title: "The Lost Symbol",
+        author: {
+          firstName: "Dan",
+          lastName: "Brown"
+        }
+     },
+     {
+        title: "The Book of Lies",
+        author: {
+          firstName: "Brad",
+          lastName: "Meltzer"
+        }
+     },
+     {
+        title: "Lamb",
+        author: {
+          firstName: "Christopher",
+          lastName: "Moore"
+        }
+     },
+     {
+        title: "Fool",
+        author: {
+          firstName: "Christopher",
+          lastName: "Moore"
+        }
+     },
+     {
+        title: "Incompetence",
+        author: {
+          firstName: "Rob",
+          lastName: "Grant"
+        }
+     },
+     {
+        title: "Fat",
+        author: {
+          firstName: "Rob",
+          lastName: "Grant"
+        }
+     },
+     {
+        title: "Colony",
+        author: {
+          firstName: "Rob",
+          lastName: "Grant"
+        }
+     },
+     {
+        title: "Backwards, Red Dwarf",
+        author: {
+          firstName: "Rob",
+          lastName: "Grant"
+        }
+     },
+     {
+        title: "The Grand Design",
+        author: {
+          firstName: "Stephen",
+          lastName: "Hawking"
+        }
+     },
+     {
+        title: "The Book of Samson",
+        author: {
+          firstName: "David",
+          lastName: "Maine"
+        }
+     },
+     {
+        title: "The Preservationist",
+        author: {
+          firstName: "David",
+          lastName: "Maine"
+        }
+     },
+     {
+        title: "Fallen",
+        author: {
+          firstName: "David",
+          lastName: "Maine"
+        }
+     },
+     {
+        title: "Monster 1959",
+        author: {
+          firstName: "David",
+          lastName: "Maine"
+        }
+     }
+  ]
+      </textarea>
+        </div>
+
+        <div class="col-md-4">
+
+          <h3>Options</h3>
+
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="caseSensitiveCheckbox"> Case sensitive
+              </label>
+              <span id="helpBlock" class="help-block">Indicates whether comparisons should be case sensitive.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="scoreCheckbox">Include score
+              </label>
+              <span id="helpBlock" class="help-block">Whether the score should be included in the result set. A score of <code>0</code> indicates a perfect match, while a score of <code>1</code> indicates no match.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="matchesCheckbox">Include matches
+              </label>
+              <span id="helpBlock" class="help-block">Whether the matches should be included in the result set. When <code>true</code>, each record in the result set will include the indices of the matched characters: <code>indices: [start, length]</code>. These can consequently be used for highlighting purposes.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="sortCheckbox" checked="checked">Sort
+              </label>
+              <span id="helpBlock" class="help-block">Whether to sort the result list, by score.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="tokenizeCheckbox">Tokenize
+              </label>
+              <span id="helpBlock" class="help-block">When <code>true</code>, the algorithm will search individual words <strong>and</strong> the full string, computing the final score as a function of both. In this case, the <code>threshold</code>, <code>distance</code>, and <code>location</code> are inconsequential for individual tokens, and are thus ignored.</span>
+            </div>
+          </div>
+
+          <div class="form-group form-inline">
+            <label for="identifierTextbox">ID</label>
+            <input type="text" class="form-control" id="identifierTextbox">
+            <span id="helpBlock" class="help-block">The name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items.</span>
+          </div>
+
+          <div class="form-group form-inline">
+            <label for="keysTextbox">Keys</label>
+            <input type="text" class="form-control" id="keysTextbox" value="title,author.firstName">
+            <span id="helpBlock" class="help-block">List of properties that will be searched. This also supports nested properties.</span>
+          </div>
+
+          <div class="form-group form-inline">
+            <label for="locationRange">Location</label>
+            <input type="number" id="locationRange" min="0" max="100" value="0">
+            <span id="helpBlock" class="help-block">Determines approximately where in the text is the pattern expected to be found.</span>
+          </div>
+
+          <div class="form-group form-inline">
+            <label for="thresholdRange">Threshold</label>
+            <input type="number" id="thresholdRange" min="0" step="0.1" max="1" value="0.6">
+            <span id="helpBlock" class="help-block">At what point does the match algorithm give up. A threshold of <code>0.0</code> requires a perfect match (of both letters and location), a threshold of <code>1.0</code> would match anything.</span>
+          </div>
+
+          <div class="form-group form-inline">
+            <label for="distanceRange">Distance</label>
+            <input type="number" id="distanceRange" min="0" max="1000" value="100">
+            <span id="helpBlock" class="help-block">Determines how close the match must be to the fuzzy location (specified by location). An exact letter match which is distance characters away from the fuzzy location would score as a complete mismatch. A distance of <code>0</code> requires the match be at the exact location specified, a threshold of <code>1000</code> would require a perfect match to be within <code>800</code> characters of the location to be found using a threshold of <code>0.8</code>.</span>
+          </div>
+
+          <div class="form-group form-inline">
+            <label for="maxPatternLength">Max pattern length</label>
+            <input type="number" id="maxPatternLength" min="0" max="64" value="32">
+            <span id="helpBlock" class="help-block">The maximum length of the pattern. The longer the pattern (i.e. the search query), the more intensive the search operation will be. Whenever the pattern exceeds the <code>maxPatternLength</code>, an error will be thrown. Why is this important? Read <a href="https://en.wikipedia.org/wiki/Word_(computer_architecture)#Word_size_choice" alt="word size choice" target="_blank">this</a>.</span>
+          </div>
+
+        </div>
+        <div class="col-md-4">
+
+          <section id="search">
+            <h3>Search</h3>
+
+            <div class="form-group form-inline">
+              <input type="text" class="form-control" id="searchTextbox" placeholder="Old man's war, etc...">
+              <span id="helpBlock" class="help-block">Type your search query, typos are ok (and the point of Fuse) :)</span>
+            </div>
+
+          </section>
+
+          <section id="js">
+           <h3>JavaScript</h3>
+<pre>
+<code id="jsTextArea"></code>
+</pre>
+          </section>
+
+          <section id="output">
+            <h3>Result</h3>
+            <label>Search time:</label>
+            <span id="searchTimeLabel"></span>
+<pre id="resultTextAreaContainer">
+<code id="resultTextArea"></code>
+</pre>
+          </section>
+
+      </div>
+  </div>
+
+  <script>window.twttr = (function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0],
+    t = window.twttr || {};
+  if (d.getElementById(id)) return t;
+  js = d.createElement(s);
+  js.id = id;
+  js.src = "https://platform.twitter.com/widgets.js";
+  fjs.parentNode.insertBefore(js, fjs);
+
+  t._e = [];
+  t.ready = function(f) {
+    t._e.push(f);
+  };
+
+  return t;
+}(document, "script", "twitter-wjs"));</script>
+
+      <script>
+        $(function (window) {
+
+          // Mixins
+          var Mixins = {};
+          Mixins.Event = function (base) {
+            return  {
+              _hook: function () {
+                if (!this._$hook) {
+                  this._$hook = $({});
+                }
+                return this._$hook;
+              },
+              on: function () {
+                var hook = this._hook();
+                hook.on.apply(hook, arguments);
+              },
+              off: function () {
+                var hook = this._hook();
+                hook.off.apply(hook, arguments);
+              },
+              trigger: function () {
+                var hook = this._hook();
+                hook.trigger.apply(hook, arguments);
+              }
+            };
+          };
+
+          // Core
+          var App = {};
+
+          App.Options = Fiber.extend(function() {
+            return {
+              init: function() {
+                this.setupNodes();
+                this.bindEvents();
+                this.data = {
+                  include: []
+                };
+
+                _.each(this.checkboxItems, _.bind(function(item) {
+                  this.setupCheckboxItems(item, false);
+                }, this));
+
+                _.each(this.rangeItems, _.bind(function(item) {
+                  this.setupRangeItems(item, false);
+                }, this));
+
+                this.setupKeys(false);
+
+                this.setupIdentifier(false);
+
+                this.setupPatternLength(false);
+              },
+              setupNodes: function() {
+                this.$caseSensitiveCheckbox = $('#caseSensitiveCheckbox');
+                this.$scoreCheckbox = $('#scoreCheckbox');
+                this.$matchesCheckbox = $('#matchesCheckbox');
+                this.$sortCheckbox = $('#sortCheckbox');
+                this.$tokenizeCheckbox = $('#tokenizeCheckbox');
+                this.$identifierTextbox = $('#identifierTextbox');
+                this.$keysTextbox = $('#keysTextbox');
+                this.$locationRange = $('#locationRange');
+                this.$thresholdRange = $('#thresholdRange');
+                this.$distanceRange = $('#distanceRange');
+                this.$maxPatternLength = $('#maxPatternLength');
+
+                this.checkboxItems = [{
+                  node: this.$caseSensitiveCheckbox,
+                  name: 'caseSensitive'
+                }, {
+                  node: this.$sortCheckbox,
+                  name: 'shouldSort'
+                }, {
+                  node: this.$tokenizeCheckbox,
+                  name: 'tokenize'
+                }];
+
+                this.includeItems = [{
+                  node: this.$scoreCheckbox,
+                  name: 'score'
+                },{
+                  node: this.$matchesCheckbox,
+                  name: 'matches'
+                }]
+
+                this.rangeItems = [{
+                  node: this.$thresholdRange,
+                  name: 'threshold'
+                }, {
+                  node: this.$locationRange,
+                  name: 'location'
+                }, {
+                  node: this.$distanceRange,
+                  name: 'distance'
+                }];
+              },
+              bindEvents: function() {
+                // Checkboxes
+                _.each(this.checkboxItems, _.bind(function(item) {
+                  item.node.on('change', _.bind(function() {
+                    this.setupCheckboxItems(item, true);
+                  }, this));
+                }, this));
+
+                // Checkboxes
+                _.each(this.includeItems, _.bind(function(item) {
+                  item.node.on('change', _.bind(function() {
+                    this.setupIncludetems(item, true);
+                  }, this));
+                }, this));
+
+                // Ranges
+                _.each(this.rangeItems, _.bind(function(item) {
+                  item.node.on('change', _.bind(function() {
+                    this.setupRangeItems(item, true);
+                  }, this));
+                }, this));
+
+                this.$identifierTextbox.on('change', _.bind(this.setupIdentifier, this));
+
+                // keys
+                this.$keysTextbox.on('change', _.bind(this.setupKeys, this));
+
+                // Pattern length
+                this.$maxPatternLength.on('change', _.bind(this.setupPatternLength, this));
+              },
+              setupCheckboxItems: function(item, trigger) {
+                var checked = item.node.prop('checked');
+                this.data[item.name] = checked;
+                if (trigger || trigger === undefined) {
+                  this.trigger('change');
+                }
+              },
+              setupIncludetems: function(item, trigger) {
+                var checked = item.node.prop('checked');
+                var index = this.data.include.indexOf(item.name)
+                if (checked) {
+                  if (index == -1) {
+                    this.data.include.push(item.name);
+                  }
+                } else {
+                  if (index !== -1) {
+                    this.data.include.splice(index, 1);
+                  }
+                }
+                if (trigger || trigger === undefined) {
+                  this.trigger('change');
+                }
+              },
+              setupRangeItems: function(item, trigger) {
+                var value = item.node.val();
+                this.data[item.name] = parseFloat(value);
+                if (trigger || trigger === undefined) {
+                  this.trigger('change');
+                }
+              },
+              setupIdentifier: function(trigger) {
+                this.data.id = this.$identifierTextbox.val();
+                if (trigger) {
+                  this.trigger('change');
+                }
+              },
+              setupKeys: function(trigger) {
+                var text = this.$keysTextbox.val();
+                var keys = text.split(',');
+                keys = _.each(keys, function(key) {
+                  return key.trim();
+                });
+                this.data.keys = keys;
+                if (trigger) {
+                  this.trigger('change');
+                }
+              },
+              setupPatternLength: function(trigger) {
+                var value = this.$maxPatternLength.val();
+                this.data['maxPatternLength'] = parseInt(value);
+                if (trigger || trigger === undefined) {
+                  this.trigger('change');
+                }
+              }
+            }
+          });
+          Fiber.mixin(App.Options, Mixins.Event);
+
+          App.Main = new (Fiber.extend(function() {
+            return {
+              init: function() {
+                this.setupNodes();
+                this.bindEvents();
+                this.setupItems();
+              },
+              setupNodes: function() {
+                this.$itemsTextArea = $('#itemsTextArea');
+                this.$searchTextbox = $('#searchTextbox');
+                this.$resultTextArea = $('#resultTextArea');
+                this.$jsTextArea = $('#jsTextArea');
+                this.$searchTimeLabel = $('#searchTimeLabel');
+              },
+              bindEvents: function() {
+                this.options = new App.Options();
+                this.options.on('change', _.bind(this.setupFuse, this));
+                this.$itemsTextArea.on('change', _.bind(this.setupItems, this));
+
+                this.$searchTextbox.on('keyup', _.debounce(_.bind(function() {
+                  this.search(this.$searchTextbox.val());
+                }, this), 0));
+              },
+              setupItems: function() {
+                var list = this.$itemsTextArea.val();
+                this.list = eval(list);
+                this.setupFuse();
+              },
+              setupFuse: function() {
+                this.fuse = new Fuse(this.list, this.options.data);
+                this.search(this.$searchTextbox.val());
+              },
+              search: function(pattern) {
+                if (pattern.length > this.options.data.maxPatternLength) {
+                  this.$resultTextArea.html("Pattern length is too long");
+                  return;
+                }
+                this.pattern = pattern;
+                var start = new Date().getTime();
+                var result = this.fuse.search(pattern);
+                var end = new Date().getTime();
+                this.$searchTimeLabel.text((end - start) + ' ms');
+                this.$resultTextArea.html(JSON.stringify(result, null, '  '));
+                this.updateJS();
+              },
+              updateJS: function() {
+                var arr = [];
+                arr.push('var options = {');
+                if (this.options.data.id) {
+                  arr.push('  id: "' + this.options.data.id + '",');
+                }
+                arr.push('  caseSensitive: ' + this.options.data.caseSensitive + ',');
+                if (this.options.data.include.length) {
+                  var items = _.map(this.options.data.include, function(item) {
+                    return '"' + item + '"'
+                  }).join(',')
+                  arr.push('  include: [' + items + '],');
+                }
+                arr.push('  shouldSort: ' + this.options.data.shouldSort + ',');
+                arr.push('  tokenize: ' + this.options.data.tokenize + ',');
+                arr.push('  threshold: ' + this.options.data.threshold + ',');
+                arr.push('  location: ' + this.options.data.location + ',');
+                arr.push('  distance: ' + this.options.data.distance + ',');
+                arr.push('  maxPatternLength: ' + this.options.data.maxPatternLength + ',');
+                var keys = _.map(this.options.data.keys, function(item) {
+                  return '"' + item + '"'
+                }).join(',');
+                arr.push('  keys: [' + keys + ']');
+                arr.push('};');
+                arr.push('var fuse = new Fuse(list, options); // "list" is the item array');
+                arr.push('var result = fuse.search("' + this.pattern + '");');
+                arr = arr.join('\n');
+                this.$jsTextArea.html(arr);
+              }
+            }
+          }))();
+
+        });
+
+      </script>
+    </main>
+  </body>
+</html>
