@@ -10,16 +10,6 @@ Fuse is a full JavaScript fuzzy-search implementation that searches across the k
 
 - [Demo & usage](http://fusejs.io/)
 
-## Support Fuse.js Development
-
-<a href="https://www.patreon.com/edit"><img src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png" width=120px" width="120px" alt="Support"><a>
-
-Support on Patreon (recurring pledge)
-
-<a href="https://www.paypal.me/kirorisk"><img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" width=120px" width="120px" alt="Donate"><a>
-
-Donate via PayPal (one time)
-
 ## Options
 
 **keys** (*type*: `Array`)
