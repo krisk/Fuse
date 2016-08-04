@@ -83,21 +83,59 @@ body {
 }
 .fb-like {
     margin-right: 20px;
-    vertical-align: middle;
+    vertical-align: top;
 }
 .social-share .IN-widget {
     vertical-align: middle !important;
     margin-right: 5px;
 }
 
+#donate {
+    height: 22px;
+    display: inline-block;
+    vertical-align: bottom;
+}
+#donate .wrapper {
+  width: 115px;
+  vertical-align: top;
+  height: 20px;
+  border: 1px solid #d4d4d4;
+  display: inline-block;
+  box-sizing: border-box;
+  line-height: 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  background-image: linear-gradient(to bottom, #fcfcfc 0, #eee 100%);
+  position: relative;
+}
+#donate .wrapper:hover {
+  border-color: #ccc;
+  background-image: linear-gradient(to bottom, #eee 0, #ddd 100%);
+}
+#donate .wrapper img {
+  width: 14px;
+  height: 14px;
+  position: absolute;
+  top: 2px;
+  left: 5px;
+}
+#donate .wrapper a {
+  font: 700 11px/14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #333;
+  text-shadow: 0 1px 0 #fff;
+  position: absolute;
+  top: 2px;
+  left: 24px;
+}
 
-.support {
+
+#support {
     text-align: center;
 }
-.support p {
+#support p {
     line-height: 1.6em;
 }
-.support a {
+#support a {
     color: #42b983;
 }
 
