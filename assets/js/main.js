@@ -257,5 +257,4 @@ $(function (window) {
       }
     }
   }))()
-
 })

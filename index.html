@@ -17,6 +17,7 @@
       <script src="/assets/js/fuse.min.js"></script>
       <script src="/assets/js/fiber.min.js"></script>
       <script src="/assets/js/main.js"></script>
+
     </head>
 
     <div class="jumbotron">
@@ -100,9 +101,8 @@
       <div class="row">
         <div class="col-md-4">
 
-        <h3>Items</h3>
-
-        <span id="helpBlock" class="help-block">Insert your list of items here</span>
+        <h3>Step 1: Insert your items</h3>
+        <hr>
 
         <textarea id="itemsTextArea" style="min-width: 100%; min-height: 500px">
   [
@@ -273,7 +273,8 @@
 
         <div class="col-md-4">
 
-          <h3>Options</h3>
+          <h3>Step 2: Set the options</h3>
+          <hr>
 
           <div class="form-group">
             <div class="checkbox">
@@ -360,29 +361,30 @@
         <div class="col-md-4">
 
           <section id="search">
-            <h3>Search</h3>
+            <h3>Step 3: Search!</h3>
+            <hr>
 
             <div class="form-group form-inline">
+              <span id="helpBlock" class="help-block">Go ahead and spell your query incorrectly. That's the point of Fuse.js <i class="fa fa-smile-o" aria-hidden="true"></i></span>
               <input type="text" class="form-control" id="searchTextbox" placeholder="Old man's war, etc...">
-              <span id="helpBlock" class="help-block">Type your search query, typos are ok (and the point of Fuse) :)</span>
             </div>
 
           </section>
 
           <section id="js">
-           <h3>JavaScript</h3>
+           <h4>Here's the JavaScript:</h4>
 <pre>
 <code id="jsTextArea"></code>
 </pre>
           </section>
 
           <section id="output">
-            <h3>Result</h3>
-            <label>Search time:</label>
-            <span id="searchTimeLabel"></span>
+            <h4>Your search results:</h4>
 <pre id="resultTextAreaContainer">
 <code id="resultTextArea"></code>
 </pre>
+            <label>Search time:</label>
+            <span id="searchTimeLabel"></span>
           </section>
 
       </div>
@@ -398,18 +400,17 @@
       <div class="col-md-6">
         <p>
           <a href="https://www.patreon.com/fusejs" target="_blank">
+            <img src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png">
             <br>
-            <img style="width:120px" src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png"><br>
             <span>Support Fuse.js on Patreon (recurring pledge)</span>
-            <br>
           </a>
         </p>
       </div>
       <div class="col-md-6">
         <p>
           <a href="https://www.paypal.me/kirorisk" target="_blank">
+            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png">
             <br>
-            <img style="width:120px" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png"><br>
             <span>Donate via PayPal (one time)</span>
             <br>
           </a>

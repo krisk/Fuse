@@ -137,11 +137,18 @@ body {
     margin: 0 auto;
     max-width: 630px;
 }
+#support > div {
+  margin-top: 40px;
+}
 #support p {
     line-height: 1.6em;
 }
 #support a {
     color: #42b983;
+}
+#support img {
+  width: 120px;
+  margin-bottom: 5px;
 }
 #support a:hover {
     text-decoration: none;
@@ -150,8 +157,7 @@ body {
 h2 {
     text-align: center;
 }
-h2,
-h3 {
+h2, h3, h4 {
     font-weight: 300;
 }
 
