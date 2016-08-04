@@ -1,32 +1,236 @@
 <!DOCTYPE>
 <html>
-  <style type="text/css">
-    body {
-    font: 100%/1.6 cambria, palatino, georgia, serif;
-    }
-    main {
-      padding: 20px;
-    }
-    #resultTextAreaContainer {
-    height: 300px;
-    overflow-y: scroll;
-    }
-  </style>
   <body>
     <head>
       <meta name=viewport content="width=device-width initial-scale=1">
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
       <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
       <script src="http://underscorejs.org/underscore-min.js"></script>
 
       <script src="http://kiro.me/javascript/projects/fuse.min.js"></script>
       <script src="http://kiro.me/javascript/projects/fiber.min.js"></script>
+
+      <style type="text/css">
+
+        body {
+          -webkit-font-smoothing: antialiased;
+        }
+
+        .demo {
+          padding: 0 20px 20px 20px;
+        }
+
+        #resultTextAreaContainer {
+          height: 300px;
+          overflow-y: scroll;
+        }
+
+        .social {
+          margin-bottom: 10px;
+        }
+
+        .jumbotron {
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            font-size: 16px;
+            color: #fff;
+            color: rgba(255,255,255,0.75);
+            text-align: center;
+            border-radius: 0;
+            padding-bottom: 80px;
+            background-image: -webkit-linear-gradient(left, #720e9e 0, #dd4b39 100%);
+            background-image: -o-linear-gradient(left, #720e9e 0, #dd4b39 100%);
+            /* background-image:linear-gradient(to right, #720e9e 0, #dd4b39 100%); */
+            background-repeat: repeat-x;
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff720e9e', endColorstr='#ffdd4b39', GradientType=1);
+        }
+
+        .jumbotron .container {
+          max-width: 100%;
+        }
+
+        .jumbotron h1 {
+            margin-bottom: 15px;
+            font-weight: 300;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+
+        .jumbotron p {
+            margin-bottom: 15px;
+            font-size: 21px;
+            font-weight: 200;
+        }
+
+        .jumbotron .bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 18px;
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        .jumbotron iframe {
+            width: 100px !important;
+            height: 20px !important;
+            border: none;
+            overflow: hidden;
+            margin: 2px;
+        }
+
+        .btn-outline {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 18px 24px;
+            font-size: inherit;
+            font-weight: 500;
+            color: #fff;
+            background-color: transparent;
+            border-color: #fff;
+            border-color: rgba(255,255,255,0.5);
+            transition: all .1s ease-in-out;
+        }
+        .btn-outline:hover,.btn-outline:active {
+            color: #720e9e;
+            background-color: #fff;
+            border-color: #fff
+        }
+
+        /* This gets Google to fall into place */
+        .social-share {
+          font-size: 1px;
+        }
+
+        /* This gets Facebook to fall into place */
+        .social-share iframe {
+          vertical-align: middle;
+
+        }
+        .fb-like {
+         margin-right:20px;
+         vertical-align: middle;
+        }
+
+        .social-share .IN-widget {
+          vertical-align: middle !important;
+          margin-right: 5px;
+        }
+        /* Adjust the widths individually if you like */
+        .social-share .google {
+          /*width: 75px;*/
+        }
+
+        .support {
+          text-align: center;
+        }
+        .support p {
+          line-height: 1.6em;
+        }
+        .support a {
+          color: #42b983;
+        }
+
+        h2 {
+          text-align: center;
+        }
+
+        h2, h3 {
+          font-weight: 300;
+        }
+
+        footer {
+            text-align: center;
+            opacity: .8;
+            padding: 50px;
+            background-image: -webkit-linear-gradient(left, #dd4b39 0, #720e9e 100%);
+            background-image: -o-linear-gradient(left, #dd4b39 0, #720e9e 100%);
+            background-image: linear-gradient(to right, #dd4b39 0, #720e9e 100%);
+            background-repeat: repeat-x;
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffdd4b39', endColorstr='#ff720e9e', GradientType=1)
+        }
+
+
+      </style>
     </head>
 
-    <main>
-      <h1>Fuse.js - Demo</h1>
 
-      <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a>
+    <div class="jumbotron">
+
+      <div class="container">
+        <h1>Fuse.js</h1>
+        <p>Lightweight fuzzy-search library</p>
+        <a href="https://github.com/krisk/fuse" class="btn btn-outline btn-lg" target="_blank"><span class="fa fa-github"></span> View on GitHub</a>
+      </div>
+
+      <div class="bottom social-share">
+
+        <iframe src="https://ghbtns.com/github-btn.html?user=krisk&amp;repo=fuse&amp;type=watch&amp;count=true" class="social-share"></iframe>
+
+        <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
+
+        <script type="IN/Share" data-counter="right"></script>
+
+        <g:plusone size="medium"></g:plusone>
+
+        <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false"></div>
+
+        <div id="fb-root"></div>
+
+        <script>
+          //Facebook
+          (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=399955583389436";
+            fjs.parentNode.insertBefore(js, fjs);
+          }(document, 'script', 'facebook-jssdk'));
+
+          // LinkedIn
+          (function() {
+            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+            po.src = '//platform.linkedin.com/in.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+          })();
+
+          //Twitter
+          !function(d,s,id){
+            var js,fjs=d.getElementsByTagName(s)[0];
+            if(!d.getElementById(id)){
+              js=d.createElement(s);
+              js.id=id;
+              js.src="//platform.twitter.com/widgets.js";
+              fjs.parentNode.insertBefore(js,fjs);
+            }}(document,"script","twitter-wjs");
+
+          // G+
+          (function() {
+            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+            po.src = 'https://apis.google.com/js/plusone.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+          })();
+
+          // SU
+          (function() {
+            var li = document.createElement('script'); li.type = 'text/javascript'; li.async = true;
+            li.src = 'https://platform.stumbleupon.com/1/widgets.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(li, s);
+          })();
+        </script>
+      </div>
+    </div>
+
+        <div class="social">
+          <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a>
+        </div>
+
+
+
+    <div class="demo">
+
+      <h2>How To Use</h2>
 
       <div class="row">
         <div class="col-md-4">
@@ -318,23 +522,36 @@
 
       </div>
   </div>
+  </div>
 
-  <script>window.twttr = (function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0],
-    t = window.twttr || {};
-  if (d.getElementById(id)) return t;
-  js = d.createElement(s);
-  js.id = id;
-  js.src = "https://platform.twitter.com/widgets.js";
-  fjs.parentNode.insertBefore(js, fjs);
+  <hr>
 
-  t._e = [];
-  t.ready = function(f) {
-    t._e.push(f);
-  };
+  <div class="support">
+    <h2>Support Fuse.js Development</h2>
 
-  return t;
-}(document, "script", "twitter-wjs"));</script>
+    <p>
+      <a href="https://www.patreon.com/fusejs" target="_blank">
+        <br>
+        <img style="width:120px" src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png"><br>
+        <span>Support Fuse.js on Patreon (recurring pledge)</span>
+        <br>
+      </a>
+    </p>
+
+    <p>
+      <a href="https://www.paypal.me/kirorisk" target="_blank">
+        <br>
+        <img style="width:120px" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png"><br>
+        <span>Donate via PayPal (one time)</span>
+        <br>
+      </a>
+    </p>
+
+  </div>
+
+  <footer>
+
+  </footer>
 
       <script>
         $(function (window) {
@@ -601,6 +818,6 @@
         });
 
       </script>
-    </main>
+
   </body>
 </html>
