@@ -274,10 +274,10 @@
 
       if (options.verbose) log('Score average:', finalScore)
 
-      var check = this.options.matchAllTokens ? scores.length >= this.tokenSearchers.length : true
+      var checkMatches = this.options.matchAllTokens ? scores.length >= this.tokenSearchers.length : true
 
       // If a match is found, add the item to <rawResults>, including its score
-      if ((exists || mainSearchResult.isMatch) && check) {
+      if ((exists || mainSearchResult.isMatch) && checkMatches) {
         // Check if the item already exists in our results
         existingResult = this.resultMap[index]
 
