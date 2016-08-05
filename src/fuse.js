@@ -75,6 +75,8 @@
     // the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
     tokenize: false,
 
+    matchAllTokens: false,
+
     // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
     tokenSeparator: / +/g
   }
@@ -243,7 +245,9 @@
               scores.push(tokenSearchResult.score)
             } else {
               obj[word] = 1
-              scores.push(1)
+              if (!this.options.matchAllTokens) {
+                scores.push(1)
+              }
             }
             termScores.push(obj)
           }
@@ -270,8 +274,10 @@
 
       if (options.verbose) log('Score average:', finalScore)
 
+      var check = this.options.matchAllTokens ? scores.length >= this.tokenSearchers.length : true
+
       // If a match is found, add the item to <rawResults>, including its score
-      if (exists || mainSearchResult.isMatch) {
+      if ((exists || mainSearchResult.isMatch) && check) {
         // Check if the item already exists in our results
         existingResult = this.resultMap[index]
 
