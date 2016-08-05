@@ -18,6 +18,10 @@
       <script src="/assets/js/fiber.min.js"></script>
       <script src="/assets/js/main.js"></script>
 
+      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/tomorrow.min.css">
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script>
+
     </head>
 
     <div class="jumbotron">
@@ -103,7 +107,7 @@
 <!--
     <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a> -->
 
-    <div class="demo">
+    <div class="content">
 
       <h2>Live Demo</h2>
 
@@ -337,9 +341,12 @@
           </div>
 
           <div class="form-group form-inline">
-            <label for="keysTextbox">Keys</label>
-            <input type="text" class="form-control" id="keysTextbox" value="title,author.firstName">
-            <span id="helpBlock" class="help-block">List of properties that will be searched. This also supports nested properties.</span>
+            <label>Keys</label>
+            <br>
+            <textarea class="form-control" id="normalKeysTextbox" style="min-width: 100%; min-height: 20px">
+["title","author.firstName"]
+            </textarea>
+            <span id="helpBlock" class="help-block">List of properties that will be searched. This supports nested properties, weighted search, searching in arrays</span>
           </div>
 
           <div class="form-group form-inline">
@@ -384,7 +391,7 @@
           <section id="js">
            <h4>Here's the JavaScript:</h4>
 <pre>
-<code id="jsTextArea"></code>
+<code id="jsTextArea" class="nohighlight"></code>
 </pre>
           </section>
 
@@ -392,7 +399,7 @@
           <section id="output">
             <h4>Your search results:</h4>
 <pre id="resultTextAreaContainer">
-<code id="resultTextArea"></code>
+<code id="resultTextArea" class="nohighlight"></code>
 </pre>
             <label>Search time:</label>
             <span id="searchTimeLabel"></span>
@@ -400,6 +407,171 @@
 
       </div>
   </div>
+  </div>
+
+  <hr>
+
+  <div class="content narrow">
+    <h2>Examples</h2>
+
+    <h4>Searching by ID</h4>
+
+    <div class="row">
+      <div class="col-md-4">
+<pre><code>var books = [{
+  'ISBN': 'A',
+  'title': "Old Man's War",
+  'author': 'John Scalzi'
+}, {
+  'ISBN': 'B',
+  'title': 'The Lock Artist',
+  'author': 'Steve Hamilton'
+}]</code></pre>
+        <div class="operation">+</div>
+      </div>
+    <div class="col-md-4">
+<pre><code class="javascript">var options = {
+  keys: ['title', 'author'],
+  id: 'ISBN'
+}
+var fuse = new Fuse(books, options)
+
+fuse.search('old')</code></pre>
+      <div class="operation">=</div>
+    </div>
+    <div class="col-md-4">
+<pre><code class="javascript">[
+  "A"
+]</code></pre>
+    </div>
+  </div>
+
+    <hr>
+
+    <h4>Weighted search</h4>
+
+    <div class="row" >
+      <div class="col-md-4">
+<pre><code>var books = [{
+  title: "Old Man's War fiction",
+  author: 'John X',
+  tags: ['war']
+}, {
+  title: 'Right Ho Jeeves',
+  author: 'P.D. Mans',
+  tags: ['fiction', 'war']
+}]</code></pre>
+        <div class="operation">+</div>
+      </div>
+      <div class="col-md-4">
+<pre><code class="javascript">var options = {
+  keys: [{
+    name: 'title',
+    weight: 0.3
+  }, {
+    name: 'author',
+    weight: 0.7
+  }]
+});
+var fuse = new Fuse(books, options)
+
+fuse.search('Man')</code></pre>
+        <div class="operation">=</div>
+      </div>
+      <div class="col-md-4">
+<pre><code class="javascript">[{
+  "title": "Right Ho Jeeves",
+  "author": "P.D. Mans",
+  "tags": ["fiction", "war"]
+}, {
+  "title": "Old Man's War fiction",
+  "author": "John X",
+  "tags": ["war"]
+}])</code></pre>
+      </div>
+    </div>
+
+    <hr>
+
+    <h4>Searching in arrays of strings</h4>
+
+    <div class="row" >
+      <div class="col-md-4">
+<pre><code class="javascript">var books = [{
+  'title': "Old Man's War",
+  'author': 'John Scalzi',
+  'tags': ['fiction']
+}, {
+  'title': 'The Lock Artist',
+  'author': 'Steve',
+  'tags': ['thriller']
+}]</code></pre>
+        <div class="operation">+</div>
+      </div>
+      <div class="col-md-4">
+<pre><code>var options = {
+  keys: ['author', 'tags']
+});
+var fuse = new Fuse(books, options)
+
+fuse.search('tion')</code></pre>
+        <div class="operation">=</div>
+      </div>
+      <div class="col-md-4">
+<pre><code>[{
+  "title": "Old Man's War",
+  "author": "John Scalzi",
+  "tags": ["fiction"]
+}])</code></pre>
+      </div>
+    </div>
+
+<hr>
+
+    <h4>Searching in arrays of objects</h4>
+
+    <div class="row" >
+      <div class="col-md-4">
+<pre><code>var books = [{
+  'title': "Old Man's War",
+  'author': {
+    'name': 'John Scalzi',
+    'tags': [{
+      value: 'American'
+    }]
+  }
+}, {
+  'title': 'The Lock Artist',
+  'author': {
+    'name': 'Steve Hamilton',
+    'tags': [{
+      value: 'English'
+    }]
+  }
+}]</code></pre>
+        <div class="operation">+</div>
+      </div>
+      <div class="col-md-4">
+<pre><code>var options = {
+  keys: ['author.tags.value'],
+});
+var fuse = new Fuse(books, options)
+
+fuse.search('engsh')</code></pre>
+        <div class="operation">=</div>
+      </div>
+      <div class="col-md-4">
+<pre><code>[{
+  "title": "The Lock Artist",
+  "author": {
+    "tags": [{
+      "value": "English"
+    }]
+  }
+}]</code></pre>
+      </div>
+    </div>
+
   </div>
 
   <hr>

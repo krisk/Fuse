@@ -1,7 +1,7 @@
 body {
     -webkit-font-smoothing: antialiased;
 }
-.demo {
+.content {
     padding: 0 20px 20px 20px;
 }
 #resultTextAreaContainer {
@@ -136,6 +136,24 @@ body {
     text-decoration: none;
 }
 
+.narrow {
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+.operation {
+  position: absolute;
+  top: 30;
+  right: -5px;
+}
+
+@media only screen and (max-width: 990px) {
+  .operation {
+    position: initial;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+}
 
 #support {
     text-align: center;
@@ -164,6 +182,10 @@ h2 {
 }
 h2, h3, h4 {
     font-weight: 300;
+}
+
+pre {
+  border: none;
 }
 
 footer {

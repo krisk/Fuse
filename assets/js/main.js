@@ -57,11 +57,15 @@ $(function (window) {
         this.$sortCheckbox = $('#sortCheckbox')
         this.$tokenizeCheckbox = $('#tokenizeCheckbox')
         this.$identifierTextbox = $('#identifierTextbox')
-        this.$keysTextbox = $('#keysTextbox')
+
         this.$locationRange = $('#locationRange')
         this.$thresholdRange = $('#thresholdRange')
         this.$distanceRange = $('#distanceRange')
         this.$maxPatternLength = $('#maxPatternLength')
+        this.$normalKeysTextbox = $('#normalKeysTextbox')
+        this.$advancedKeysRadio = $('#advancedKeysRadio')
+        this.$advancedKeysTextbox = $('#advancedKeysTextbox')
+        this.$advancedKeysTextboxContainer = $('#advancedKeysTextboxContainer')
 
         this.checkboxItems = [{
           node: this.$caseSensitiveCheckbox,
@@ -118,7 +122,7 @@ $(function (window) {
         this.$identifierTextbox.on('change', _.bind(this.setupIdentifier, this))
 
         // keys
-        this.$keysTextbox.on('change', _.bind(this.setupKeys, this))
+        this.$normalKeysTextbox.on('change', _.bind(this.setupKeys, this))
 
         // Pattern length
         this.$maxPatternLength.on('change', _.bind(this.setupPatternLength, this))
@@ -160,12 +164,8 @@ $(function (window) {
         }
       },
       setupKeys: function (trigger) {
-        var text = this.$keysTextbox.val()
-        var keys = text.split(',')
-        keys = _.each(keys, function (key) {
-          return key.trim()
-        })
-        this.data.keys = keys
+        var text = this.$normalKeysTextbox.val()
+        this.data.keys = eval(text)
         if (trigger) {
           this.trigger('change')
         }
@@ -245,10 +245,7 @@ $(function (window) {
         arr.push('  location: ' + this.options.data.location + ',')
         arr.push('  distance: ' + this.options.data.distance + ',')
         arr.push('  maxPatternLength: ' + this.options.data.maxPatternLength + ',')
-        var keys = _.map(this.options.data.keys, function (item) {
-          return '"' + item + '"'
-        }).join(',')
-        arr.push('  keys: [' + keys + ']')
+        arr.push('  keys: ' + JSON.stringify(this.options.data.keys, null, '    '))
         arr.push('};')
         arr.push('var fuse = new Fuse(list, options); // "list" is the item array')
         arr.push('var result = fuse.search("' + this.pattern + '");')
