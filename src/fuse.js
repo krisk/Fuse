@@ -75,6 +75,8 @@
     // the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
     tokenize: false,
 
+    // When true, the result set will only include records that match all tokens. Will only work
+    // if `tokenize` is also true.
     matchAllTokens: false,
 
     // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
