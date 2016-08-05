@@ -82,12 +82,17 @@ body {
     vertical-align: middle;
 }
 .fb-like {
-    margin-right: 20px;
+    margin-right: 15px;
     vertical-align: top;
+    display: inline-block;
 }
 .social-share .IN-widget {
     vertical-align: middle !important;
     margin-right: 5px;
+}
+
+#searchTextbox {
+  width: 100%;
 }
 
 #donate {
