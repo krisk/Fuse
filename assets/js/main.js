@@ -126,25 +126,25 @@ $(function (window) {
 
         // Google events
         this.$caseSensitiveCheckbox.on('change', function () {
-          ga('send', 'event', 'Options', 'change', 'case-sensitive')
+          ga('send', 'event', 'Demo', 'change', 'option:case-sensitive')
         })
         this.$scoreCheckbox.on('change', function () {
-          ga('send', 'event', 'Options', 'change', 'score')
+          ga('send', 'event', 'Demo', 'change', 'option:score')
         })
         this.$matchesCheckbox.on('change', function () {
-          ga('send', 'event', 'Options', 'change', 'matches')
+          ga('send', 'event', 'Demo', 'change', 'option:matches')
         })
         this.$sortCheckbox.on('change', function () {
-          ga('send', 'event', 'Options', 'change', 'sort')
+          ga('send', 'event', 'Demo', 'change', 'option:sort')
         })
         this.$tokenizeCheckbox.on('change', function () {
-          ga('send', 'event', 'Options', 'change', 'tokenize')
+          ga('send', 'event', 'Demo', 'change', 'option:tokenize')
         })
-        this.$identifierTextbox.on('focus', function () {
-          ga('send', 'event', 'Options', 'click', 'identifier')
+        this.$identifierTextbox.on('change', function () {
+          ga('send', 'event', 'Demo', 'change', 'option:identifier')
         })
-        this.$keysTextbox.on('focus', function () {
-          ga('send', 'event', 'Options', 'click', 'keys')
+        this.$keysTextbox.on('change', function () {
+          ga('send', 'event', 'Demo', 'change', 'option:keys')
         })
       },
       setupCheckboxItems: function (item, trigger) {
@@ -224,8 +224,11 @@ $(function (window) {
           this.search(this.$searchTextbox.val())
         }, this), 0))
 
-        this.$searchTextbox.on('focus', function () {
-          ga('send', 'event', 'Search', 'click', 'search')
+        this.$itemsTextArea.on('change', function () {
+          ga('send', 'event', 'Demo', 'changed', 'items')
+        })
+        this.$searchTextbox.on('change', function () {
+          ga('send', 'event', 'Demo', 'changed', 'search')
         })
       },
       setupItems: function () {
