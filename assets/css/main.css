@@ -147,6 +147,18 @@ body {
   right: -5px;
 }
 
+.headline-link,
+.headline-link:hover,
+.headline-link:link,
+.headline-link:visited {
+  text-decoration: none;
+  color: #CDCDCD;
+}
+.headline-link:hover {
+  font-weight: bolder;
+  color: #7b7b7b;
+}
+
 @media only screen and (max-width: 990px) {
   .operation {
     position: initial;
@@ -155,25 +167,25 @@ body {
   }
 }
 
-#support {
+#support-container {
     text-align: center;
     margin: 0 auto;
     max-width: 630px;
 }
-#support > div {
+#support-container > div {
   margin-top: 40px;
 }
-#support p {
+#support-container p {
     line-height: 1.6em;
 }
-#support a {
+#support-container div a {
     color: #42b983;
 }
-#support img {
+#support-container img {
   width: 120px;
   margin-bottom: 5px;
 }
-#support a:hover {
+#support-container a:hover {
     text-decoration: none;
 }
 
