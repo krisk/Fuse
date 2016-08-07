@@ -225,10 +225,10 @@ $(function (window) {
         }, this), 0))
 
         this.$itemsTextArea.on('change', function () {
-          ga('send', 'event', 'Demo', 'changed', 'items')
+          ga('send', 'event', 'Demo', 'change', 'items')
         })
         this.$searchTextbox.on('change', function () {
-          ga('send', 'event', 'Demo', 'changed', 'search')
+          ga('send', 'event', 'Demo', 'change', 'search')
         })
       },
       setupItems: function () {
