@@ -62,10 +62,7 @@ $(function (window) {
         this.$thresholdRange = $('#thresholdRange')
         this.$distanceRange = $('#distanceRange')
         this.$maxPatternLength = $('#maxPatternLength')
-        this.$normalKeysTextbox = $('#normalKeysTextbox')
-        this.$advancedKeysRadio = $('#advancedKeysRadio')
-        this.$advancedKeysTextbox = $('#advancedKeysTextbox')
-        this.$advancedKeysTextboxContainer = $('#advancedKeysTextboxContainer')
+        this.$keysTextbox = $('#keysTextbox')
 
         this.checkboxItems = [{
           node: this.$caseSensitiveCheckbox,
@@ -122,10 +119,33 @@ $(function (window) {
         this.$identifierTextbox.on('change', _.bind(this.setupIdentifier, this))
 
         // keys
-        this.$normalKeysTextbox.on('change', _.bind(this.setupKeys, this))
+        this.$keysTextbox.on('change', _.bind(this.setupKeys, this))
 
         // Pattern length
         this.$maxPatternLength.on('change', _.bind(this.setupPatternLength, this))
+
+        // Google events
+        this.$caseSensitiveCheckbox.on('change', function () {
+          ga('send', 'event', 'Options', 'change', 'case-sensitive')
+        })
+        this.$scoreCheckbox.on('change', function () {
+          ga('send', 'event', 'Options', 'change', 'score')
+        })
+        this.$matchesCheckbox.on('change', function () {
+          ga('send', 'event', 'Options', 'change', 'matches')
+        })
+        this.$sortCheckbox.on('change', function () {
+          ga('send', 'event', 'Options', 'change', 'sort')
+        })
+        this.$tokenizeCheckbox.on('change', function () {
+          ga('send', 'event', 'Options', 'change', 'tokenize')
+        })
+        this.$identifierTextbox.on('focus', function () {
+          ga('send', 'event', 'Options', 'click', 'identifier')
+        })
+        this.$keysTextbox.on('focus', function () {
+          ga('send', 'event', 'Options', 'click', 'keys')
+        })
       },
       setupCheckboxItems: function (item, trigger) {
         var checked = item.node.prop('checked')
@@ -164,7 +184,7 @@ $(function (window) {
         }
       },
       setupKeys: function (trigger) {
-        var text = this.$normalKeysTextbox.val()
+        var text = this.$keysTextbox.val()
         this.data.keys = eval(text)
         if (trigger) {
           this.trigger('change')
@@ -203,6 +223,10 @@ $(function (window) {
         this.$searchTextbox.on('keyup', _.debounce(_.bind(function () {
           this.search(this.$searchTextbox.val())
         }, this), 0))
+
+        this.$searchTextbox.on('focus', function () {
+          ga('send', 'event', 'Search', 'click', 'search')
+        })
       },
       setupItems: function () {
         var list = this.$itemsTextArea.val()
