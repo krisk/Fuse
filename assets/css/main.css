@@ -186,14 +186,18 @@ body {
   margin-bottom: 5px;
 }
 #support-container a:hover {
-    text-decoration: none;
+  text-decoration: none;
+}
+
+pre.small {
+  max-width: 400px;
 }
 
 h2 {
-    text-align: center;
+  text-align: center;
 }
 h2, h3, h4 {
-    font-weight: 300;
+  font-weight: 300;
 }
 
 pre {
