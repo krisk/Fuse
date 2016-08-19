@@ -7,7 +7,20 @@
 [![Join the chat at https://gitter.im/fuselib/Lobby](https://badges.gitter.im/fuselib/Lobby.svg)](https://gitter.im/fuselib/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40fusejs)](https://twitter.com/fusejs)
 
-- [Demo & usage](http://fusejs.io/)
+Check out the [demo & usage](http://fusejs.io/)
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Options](#options)
+- [Methods](#methods)
+- [Weighted Search](#weighted-search)
+- [Contributing](#contributing)
+  - [Coding conventions](#coding-conventions)
+  - [Testing](#testing)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Options
 
@@ -179,11 +192,13 @@ var fuse = new Fuse(books, {
 
 Where `0 < weight <= 1`
 
-## Coding conventions
+## Contributing
+
+### Coding conventions
 
 Code should be run through [Standard Format](https://www.npmjs.com/package/standard-format).
 
-## Contributing to Fuse
+### Testing
 
 Before submitting a pull request, please add relevant tests in `test/fuse-test.js`, and execute them via `npm test`.
 
