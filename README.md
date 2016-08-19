@@ -1,6 +1,6 @@
-# Fuse.js - Lightweight fuzzy-search
+# Fuse.js
 
-[![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
+*Lightweight fuzzy-search, in JavaScript, with zero dependencies*
 
 [![npm version](https://badge.fury.io/js/fuse.js.svg)](https://badge.fury.io/js/fuse.js)
 [![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
