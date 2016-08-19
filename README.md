@@ -1,4 +1,5 @@
-# Fuse - Lightweight fuzzy-search, in JavaScript, zero dependencies
+# Fuse
+## Lightweight fuzzy-search, in JavaScript, zero dependencies
 
 [![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
