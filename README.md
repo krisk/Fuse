@@ -1,4 +1,4 @@
-# Fuse.js - JavaScript fuzzy-search
+# Fuse.js - Lightweight fuzzy-search
 
 [![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
