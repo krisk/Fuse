@@ -7,8 +7,6 @@
 [![Join the chat at https://gitter.im/fuselib/Lobby](https://badges.gitter.im/fuselib/Lobby.svg)](https://gitter.im/fuselib/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40fusejs)](https://twitter.com/fusejs)
 
-Fuse is a full JavaScript fuzzy-search implementation that searches across the keys of every record in a list.
-
 - [Demo & usage](http://fusejs.io/)
 
 ## Options
