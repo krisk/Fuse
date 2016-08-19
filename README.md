@@ -1,4 +1,4 @@
-# Fuse - JavaSscript fuzzy-search
+# Fuse - JavaScript fuzzy-search
 
 [![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
