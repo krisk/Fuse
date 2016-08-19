@@ -5,6 +5,9 @@
 [![npm version](https://badge.fury.io/js/fuse.js.svg)](https://badge.fury.io/js/fuse.js)
 [![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
 [![Join the chat at https://gitter.im/fuselib/Lobby](https://badges.gitter.im/fuselib/Lobby.svg)](https://gitter.im/fuselib/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-red.svg)](https://www.paypal.me/kirorisk)
+[![Donate](https://img.shields.io/badge/patreon-donate-red.svg)](https://www.patreon.com/fusejs)
+
 [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40fusejs)](https://twitter.com/fusejs)
 
 Check out the [demo & usage](http://fusejs.io/)
