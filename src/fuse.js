@@ -86,6 +86,7 @@
     var keys
 
     this.list = list
+    this.numberOfSearches = 0;
     this.options = options = options || {}
 
     // Add boolean type options
@@ -110,6 +111,7 @@
    */
   Fuse.prototype.set = function (list) {
     this.list = list
+    this.numberOfSearches = 0;
     return list
   }
 
@@ -127,7 +129,16 @@
     this._sort()
 
     var output = this._format()
+    this.numberOfSearches++;
     return output
+  }
+
+  Fuse.prototype.metaData = function(){
+      return {
+          listLength: this.list.length,
+          options: this.options,
+          numberOfSearches: this.numberOfSearches
+      }
   }
 
   Fuse.prototype._prepareSearchers = function () {
