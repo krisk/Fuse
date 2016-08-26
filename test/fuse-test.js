@@ -779,3 +779,91 @@ vows.describe('Search location').addBatch({
   }
 }).export(module)
 
+vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund", "Workforce Superannuation Corporate", "IGT (Australia) Pty Ltd Superannuation Fund"]').addBatch({
+  'Flat:': {
+    topic: function () {
+      var items = [
+        'AustralianSuper - Corporate Division',
+        'Aon Master Trust - Corporate Super',
+        'Promina Corporate Superannuation Fund',
+        'Workforce Superannuation Corporate',
+        'IGT (Australia) Pty Ltd Superannuation Fund'
+      ]
+      return items
+    },
+    'When searching for the term "Australia"': {
+      topic: function (items) {
+        var fuse = new Fuse(items, {
+          verbose: verbose,
+          tokenize: true
+        })
+        var result = fuse.search('Australia')
+        return result
+      },
+      'we get a list of containing 2 items': function (result) {
+        assert.equal(result.length, 2)
+      },
+      'whose items represent the indices of "AustralianSuper - Corporate Division" and "IGT (Australia) Pty Ltd Superannuation Fund"': function (result) {
+        assert.notEqual(result.indexOf(0), -1)
+        assert.notEqual(result.indexOf(4), -1)
+      }
+    },
+    'When searching for the term "corporate"': {
+      topic: function (items) {
+        var fuse = new Fuse(items, {
+          verbose: verbose,
+          tokenize: true
+        })
+        var result = fuse.search('corporate')
+        return result
+      },
+      'we get a list of containing 4 items': function (result) {
+        assert.equal(result.length, 4)
+      },
+      'whose items represent the indices of "AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund" and "Workforce Superannuation Corporate"': function (result) {
+        assert.notEqual(result.indexOf(0), -1)
+        assert.notEqual(result.indexOf(1), -1)
+        assert.notEqual(result.indexOf(2), -1)
+        assert.notEqual(result.indexOf(3), -1)
+      }
+    },
+    'When searching for the term "Australia corporate" without "matchAllTokens" set to false': {
+      topic: function (items) {
+        var fuse = new Fuse(items, {
+          verbose: verbose,
+          tokenize: true,
+          matchAllTokens: false
+        })
+        var result = fuse.search('Australia corporate')
+        return result
+      },
+      'we get a list of containing 5 items': function (result) {
+        assert.equal(result.length, 5)
+      },
+      'whose items represent the indices of "AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund", "Workforce Superannuation Corporate" and "IGT (Australia) Pty Ltd Superannuation Fund"': function (result) {
+        assert.notEqual(result.indexOf(0), -1)
+        assert.notEqual(result.indexOf(1), -1)
+        assert.notEqual(result.indexOf(2), -1)
+        assert.notEqual(result.indexOf(3), -1)
+        assert.notEqual(result.indexOf(4), -1)
+      }
+    },
+    'When searching for the term "Australia corporate" with "matchAllTokens" set to true': {
+      topic: function (items) {
+        var fuse = new Fuse(items, {
+          verbose: verbose,
+          tokenize: true,
+          matchAllTokens: true
+        })
+        var result = fuse.search('Australia corporate')
+        return result
+      },
+      'we get a list of containing 1 item': function (result) {
+        assert.equal(result.length, 1)
+      },
+      'whose item represents the index of "AustralianSuper - Corporate Division"': function (result) {
+        assert.notEqual(result.indexOf(0), -1)
+      }
+    }
+  }
+}).export(module)
