@@ -1,3 +1,7 @@
+# Version 2.5.0
+
+- Added option to search by matching all tokens (in every record) when `matchAllTokens:true` (#95)
+
 # Version 2.3.0
 
 - Added token separator to options, when `tokenize:true` (#93)
