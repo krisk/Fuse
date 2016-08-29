@@ -143,6 +143,12 @@ When true, the search algorithm will search individual words **and** the full st
 
 Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
 
+---
+
+**matchAllTokens** (*type*: `Boolean`, *default*: `false`)
+
+When `true`, the result set will only include records that match all tokens. Will only work if `tokenize` is also true.
+
 ## Methods
 
 **`search(/*pattern*/)`**
