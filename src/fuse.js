@@ -104,7 +104,7 @@
     }
   }
 
-  Fuse.VERSION = '2.4.1'
+  Fuse.VERSION = '2.5.0'
 
   /**
    * Sets a new list for Fuse to match against.
@@ -215,6 +215,8 @@
     var termScores
     var word
     var tokenSearchResult
+    var hasMatchInText
+    var checkTextMatches
     var i
     var j
 
@@ -224,6 +226,8 @@
     }
 
     scores = []
+
+    var numTextMatches = 0
 
     if (typeof text === 'string') {
       words = text.split(options.tokenSeparator)
@@ -237,6 +241,8 @@
           if (options.verbose) log('Pattern:', tokenSearcher.pattern)
 
           termScores = []
+          hasMatchInText = false
+
           for (j = 0; j < words.length; j++) {
             word = words[j]
             tokenSearchResult = tokenSearcher.search(word)
@@ -244,6 +250,7 @@
             if (tokenSearchResult.isMatch) {
               obj[word] = tokenSearchResult.score
               exists = true
+              hasMatchInText = true
               scores.push(tokenSearchResult.score)
             } else {
               obj[word] = 1
@@ -253,6 +260,11 @@
             }
             termScores.push(obj)
           }
+
+          if (hasMatchInText) {
+            numTextMatches++
+          }
+
           if (options.verbose) log('Token scores:', termScores)
         }
 
@@ -276,10 +288,12 @@
 
       if (options.verbose) log('Score average:', finalScore)
 
-      var checkMatches = (this.options.tokenize && this.options.matchAllTokens) ? scores.length >= this.tokenSearchers.length : true
+      checkTextMatches = (this.options.tokenize && this.options.matchAllTokens) ? numTextMatches >= this.tokenSearchers.length : true
+
+      if (options.verbose) log('Check Matches', checkTextMatches)
 
       // If a match is found, add the item to <rawResults>, including its score
-      if ((exists || mainSearchResult.isMatch) && checkMatches) {
+      if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
         // Check if the item already exists in our results
         existingResult = this.resultMap[index]
 
