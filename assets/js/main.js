@@ -56,6 +56,7 @@ $(function (window) {
         this.$matchesCheckbox = $('#matchesCheckbox')
         this.$sortCheckbox = $('#sortCheckbox')
         this.$tokenizeCheckbox = $('#tokenizeCheckbox')
+        this.$matchAllTokensCheckbox = $('#matchAllTokensCheckbox')
         this.$identifierTextbox = $('#identifierTextbox')
 
         this.$locationRange = $('#locationRange')
@@ -73,6 +74,9 @@ $(function (window) {
         }, {
           node: this.$tokenizeCheckbox,
           name: 'tokenize'
+        }, {
+          node: this.$matchAllTokensCheckbox,
+          name: 'matchAllTokens'
         }]
 
         this.includeItems = [{
@@ -139,6 +143,9 @@ $(function (window) {
         })
         this.$tokenizeCheckbox.on('change', function () {
           ga('send', 'event', 'Demo', 'change', 'option:tokenize')
+        })
+        this.$matchAllTokensCheckbox.on('change', function () {
+          ga('send', 'event', 'Demo', 'change', 'option:match-all-tokens')
         })
         this.$identifierTextbox.on('change', function () {
           ga('send', 'event', 'Demo', 'change', 'option:identifier')
@@ -259,15 +266,24 @@ $(function (window) {
         if (this.options.data.id) {
           arr.push('  id: "' + this.options.data.id + '",')
         }
-        arr.push('  caseSensitive: ' + this.options.data.caseSensitive + ',')
+        if (this.options.data.caseSensitive) {
+          arr.push('  caseSensitive: ' + this.options.data.caseSensitive + ',')
+        }
         if (this.options.data.include.length) {
           var items = _.map(this.options.data.include, function (item) {
             return '"' + item + '"'
           }).join(',')
           arr.push('  include: [' + items + '],')
         }
-        arr.push('  shouldSort: ' + this.options.data.shouldSort + ',')
-        arr.push('  tokenize: ' + this.options.data.tokenize + ',')
+        if (this.options.data.shouldSort) {
+          arr.push('  shouldSort: ' + this.options.data.shouldSort + ',')
+        }
+        if (this.options.data.tokenize) {
+          arr.push('  tokenize: ' + this.options.data.tokenize + ',')
+        }
+        if (this.options.data.matchAllTokens) {
+          arr.push('  matchAllTokens: ' + this.options.data.matchAllTokens + ',')
+        }
         arr.push('  threshold: ' + this.options.data.threshold + ',')
         arr.push('  location: ' + this.options.data.location + ',')
         arr.push('  distance: ' + this.options.data.distance + ',')
