@@ -797,4 +797,4 @@
     global.Fuse = Fuse
   }
 
-})(this)
+})(this);
