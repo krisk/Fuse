@@ -33,7 +33,7 @@ List of properties that will be searched.  This also supports nested properties:
 
 ```javascript
 var books = [{
-  title: "Old Man's War"
+  title: "Old Man's War",
   author: {
     firstName: "John",
     lastName: "Scalzi"
