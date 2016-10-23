@@ -195,7 +195,7 @@ var fuse = new Fuse(books, {
   }, {
     name: 'author',
     weight: 0.7
-  }],
+  }]
 });
 ```
 
