@@ -17,7 +17,7 @@ Check out the [demo & usage](http://fusejs.io/)
 **Table of Contents**
 
 - [Where-to-post summary](#where-to-post-summary)
-- [Development](#development)
+- [Usage](#usage)
   - [Options](#options)
   - [Methods](#methods)
   - [Weighted Search](#weighted-search)
@@ -38,7 +38,7 @@ Check out the [demo & usage](http://fusejs.io/)
 
 ---
 
-## Development
+## Usage
 
 ### Options
 
