@@ -30,8 +30,8 @@ Check out the [demo & usage](http://fusejs.io/)
 
 - How do I? -- [StackOverflow](https://stackoverflow.com/questions/ask?tags=fuse.js)
 - I got this error, why? -- [StackOverflow](https://stackoverflow.com/questions/ask?tags=fuse.js)
-- I got this error and I'm sure it's a bug -- file an [issue](https://github.com/krisk/Fuse/issues)
-- I have an idea/request -- file an [issue](https://github.com/krisk/Fuse/issues)
+- I got this error and I'm sure it's a bug -- file an [issue](https://github.com/krisk/Fuse/issues/new)
+- I have an idea/request -- file an [issue](https://github.com/krisk/Fuse/issues/new)
 - You're a horrible human being -- send me an [email](kirollos+github@gmail.com)
 - You're awesome -- support Fuse.js development with [Patreon](https://www.patreon.com/fusejs)/[PayPal](https://www.paypal.me/kirorisk)
 
