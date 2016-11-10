@@ -16,6 +16,7 @@ Check out the [demo & usage](http://fusejs.io/)
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Where-to-post summary](#where-to-post-summary)
 - [Options](#options)
 - [Methods](#methods)
 - [Weighted Search](#weighted-search)
@@ -24,6 +25,15 @@ Check out the [demo & usage](http://fusejs.io/)
   - [Testing](#testing)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Where-to-post summary
+
+- How do I? -- [StackOverflow](https://stackoverflow.com/questions/ask?tags=fuse.js)
+- I got this error, why? -- [StackOverflow](https://stackoverflow.com/questions/ask?tags=fuse.js)
+- I got this error and I'm sure it's a bug -- file an [issue](https://github.com/krisk/Fuse/issues)
+- I have an idea/request -- file an [issue](https://github.com/krisk/Fuse/issues)
+- You're a horrible human being -- send me an [email](kirollos+github@gmail.com)
+- You're awesome -- support Fuse.js development with [Patreon](https://www.patreon.com/fusejs)/[PayPal](https://www.paypal.me/kirorisk)
 
 ## Options
 
