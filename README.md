@@ -17,9 +17,10 @@ Check out the [demo & usage](http://fusejs.io/)
 **Table of Contents**
 
 - [Where-to-post summary](#where-to-post-summary)
-- [Options](#options)
-- [Methods](#methods)
-- [Weighted Search](#weighted-search)
+- [Development](#development)
+  - [Options](#options)
+  - [Methods](#methods)
+  - [Weighted Search](#weighted-search)
 - [Contributing](#contributing)
   - [Coding conventions](#coding-conventions)
   - [Testing](#testing)
@@ -30,12 +31,16 @@ Check out the [demo & usage](http://fusejs.io/)
 
 - How do I? -- [StackOverflow](https://stackoverflow.com/questions/ask?tags=fuse.js)
 - I got this error, why? -- [StackOverflow](https://stackoverflow.com/questions/ask?tags=fuse.js)
-- I got this error and I'm sure it's a bug -- file an [issue](https://github.com/krisk/Fuse/issues/new)
-- I have an idea/request -- file an [issue](https://github.com/krisk/Fuse/issues/new)
+- I got this error and I'm sure it's a bug -- file an [issue](https://github.com/krisk/Fuse/issues)
+- I have an idea/request -- file an [issue](https://github.com/krisk/Fuse/issues)
 - You're a horrible human being -- send me an [email](kirollos+github@gmail.com)
 - You're awesome -- support Fuse.js development with [Patreon](https://www.patreon.com/fusejs)/[PayPal](https://www.paypal.me/kirorisk)
 
-## Options
+---
+
+## Development
+
+### Options
 
 **keys** (*type*: `Array`)
 
@@ -52,19 +57,19 @@ var books = [{
 var fuse = new Fuse(books, { keys: ["title", "author.firstName"] });
 ```
 
----
+-
 
 **id** (*type*: `String`)
 
 The name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items.
 
----
+-
 
 **caseSensitive** (*type*: `Boolean`, *default*: `false`)
 
 Indicates whether comparisons should be case sensitive.
 
----
+-
 
 **include** (*type*: `Array`, *default*: `[]`)
 
@@ -74,13 +79,13 @@ An array of values that should be included from the searcher's output. When this
 { include: ['score', 'matches' ] }
 ```
 
----
+-
 
 **shouldSort** (*type*: `Boolean`, *default*: `true`)
 
 Whether to sort the result list, by score.
 
----
+-
 
 **searchFn** (*type*: `Function`, *default*: `BitapSearcher`)
 
@@ -102,7 +107,7 @@ The search function to use.  Note that the search function (`[[Function]]`) must
 [[Function]].prototype.search = function(text) { ... }
 ```
 
----
+-
 
 **getFn** (*type*: `Function`, *default*: `Utils.deepValue`)
 
@@ -119,61 +124,61 @@ getFn: function (obj, path) {
   return obj.get(path);
 }
 ```
----
+-
 
 **sortFn** (*type*: `Function`, *default*: `Array.prototype.sort`)
 
 The function that is used for sorting the result list.
 
----
+-
 
 **location** (*type*: `Integer`, *default*: `0`)
 
 Determines approximately where in the text is the pattern expected to be found.
 
----
+-
 
 **threshold** (*type*: `Decimal`, *default*: `0.6`)
 
 At what point does the match algorithm give up. A threshold of `0.0` requires a perfect match (of both letters and location), a threshold of `1.0` would match anything.
 
----
+-
 
 **distance** (*type*: `Integer`, *default*: `100`)
 
 Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified, a `distance` of `1000` would require a perfect match to be within 800 characters of the `location` to be found using a `threshold` of `0.8`.
 
----
+-
 
 **maxPatternLength** (*type*: `Integer`, *default*: `32`)
 
 The maximum length of the pattern. The longer the pattern, the more intensive the search operation will be.  Whenever the pattern exceeds the `maxPatternLength`, an error will be thrown.  Why is this important? Read [this](http://en.wikipedia.org/wiki/Word_(computer_architecture)#Word_size_choice).
 
----
+-
 
 **verbose** (*type*: `Boolean`, *default*: `false`)
 
 Will print to the console. Useful for debugging.
 
----
+-
 
 **tokenize** (*type*: `Boolean`, *default*: `false`)
 
 When true, the search algorithm will search individual words **and** the full string, computing the final score as a function of both. Note that when `tokenize` is `true`, the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
 
----
+-
 
 **tokenSeparator** (*type*: `Regex`, *default*: `/ +/g`)
 
 Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
 
----
+-
 
 **matchAllTokens** (*type*: `Boolean`, *default*: `false`)
 
 When `true`, the result set will only include records that match all tokens. Will only work if `tokenize` is also true.
 
-## Methods
+### Methods
 
 **`search(/*pattern*/)`**
 
@@ -193,7 +198,7 @@ Searches for all the items whose keys (fuzzy) match the pattern.
 
 Sets a new list for Fuse to match against.
 
-## Weighted Search
+### Weighted Search
 
 In some cases you may want certain keys to be weighted differently:
 
