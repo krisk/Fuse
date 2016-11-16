@@ -20,8 +20,8 @@
 ;(function (global) {
   'use strict'
 
-  /** @param {...*} var_args */
-  function log (var_args) {
+  /** @type {function(...*)} */
+  function log () {
     console.log.apply(console, arguments)
   }
 
