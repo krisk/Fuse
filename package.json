@@ -5,6 +5,7 @@
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "main": "./src/fuse.js",
+  "types": "./index.d.ts",
   "repository": "https://github.com/krisk/Fuse.git",
   "dependencies": {},
   "scripts": {
