@@ -1,7 +1,7 @@
 // Type definitions for Fuse.js 2.5.0
 
 declare module 'fuse.js' {
-  export class Fuse {
+  class Fuse {
     constructor(list: any[], options?: FuseOptions)
     search<T>(pattern: string): T[];
     search(pattern: string): any[];
