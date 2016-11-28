@@ -2,12 +2,13 @@
 
 declare module 'fuse.js' {
   export class Fuse {
-    constructor(list: any[], options?: IFuseOptions)
-
-    public search(pattern: string): any[];
+    constructor(list: any[], options?: FuseOptions)
+    search<T>(pattern: string): T[];
+    search(pattern: string): any[];
   }
 
-  interface IFuseOptions extends ISearchOptions {
+  interface FuseOptions {
+    id?: string;
     caseSensitive?: boolean;
     include?: string[];
     shouldSort?: boolean;
@@ -16,9 +17,6 @@ declare module 'fuse.js' {
     getFn?: (obj: any, path: string) => any;
     keys?: string[] | { name: string; weight: number }[];
     verbose?: boolean;
-  }
-
-  interface ISearchOptions {
     tokenize?: boolean;
     tokenSeparator?: RegExp;
     matchAllTokens?: boolean;
