@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js 2.5.0
+// Type definitions for Fuse.js 2.6.1
 
 declare module 'fuse.js' {
   class Fuse {
