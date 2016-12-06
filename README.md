@@ -186,7 +186,7 @@ When `true`, the matching function will continue to the end of a search pattern 
 
 -
 
-**minMatchCharLength** (*type*: `Integer`, *default*: `0`)
+**minMatchCharLength** (*type*: `Integer`, *default*: `1`)
 
 When set to include matches, only those whose length exceeds this value will be returned. (For instance, if you want to ignore single character index returns, set to `2`)
 
