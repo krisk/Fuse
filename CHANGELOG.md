@@ -1,3 +1,7 @@
+# Version 2.6.0
+
+- Added Typescript definition
+
 # Version 2.5.0
 
 - Added option to search by matching all tokens (in every record) when `matchAllTokens:true` (#95)
