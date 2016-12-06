@@ -923,14 +923,14 @@ vows.describe('Searching with findallmatches options').addBatch({
   }
 }).export(module)
 
-vows.describe('Searching with minMatchCharLen options').addBatch({
+vows.describe('Searching with minMatchCharLength options').addBatch({
   'Options:': {
     topic: function () {
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
         include: ['matches'],
-        minMatchCharLen: 2,
+        minMatchCharLength: 2,
         verbose: verbose
       })
       return fuse

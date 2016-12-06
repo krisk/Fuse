@@ -83,10 +83,11 @@
     // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
     tokenSeparator: / +/g,
 
-    // Minimum number of characters that must be matched before indices are returned
-    minMatchCharLen: 1,
+    // Minimum number of characters that must be matched before a result is considered a match
+    minMatchCharLength: 1,
 
-    // Continue to end of text even if perfect match is found before hand
+    // When true, the algorithm continues searching to the end of the input even if a perfect
+    // match is found before the end of the same input.
     findAllMatches: false
   }
 
@@ -794,14 +795,14 @@
         start = i
       } else if (!match && start !== -1) {
         end = i - 1
-        if ((end - start) + 1 >= this.options.minMatchCharLen) {
+        if ((end - start) + 1 >= this.options.minMatchCharLength) {
             matchedIndices.push([start, end])
         }
         start = -1
       }
     }
     if (matchMask[i - 1]) {
-      if ((i-1 - start) + 1 >= this.options.minMatchCharLen) {
+      if ((i-1 - start) + 1 >= this.options.minMatchCharLength) {
         matchedIndices.push([start, i - 1])
       }
     }
