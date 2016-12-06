@@ -616,6 +616,7 @@
     var i
     var j
     var textLen
+    var findAllMatches
     var location
     var threshold
     var bestLoc
@@ -667,6 +668,8 @@
       }
     }
 
+    findAllMatches = options.findAllMatches
+
     location = options.location
     // Set starting location at beginning text and initialize the alphabet.
     textLen = text.length
@@ -714,7 +717,7 @@
       // Use the result from this iteration as the maximum for the next.
       binMax = binMid
       start = Math.max(1, location - binMid + 1)
-      if (this.options.findAllMatches) {
+      if (findAllMatches) {
         finish = textLen;
       } else {
         finish = Math.min(location + binMid, textLen) + this.patternLen
