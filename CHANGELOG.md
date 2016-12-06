@@ -1,6 +1,7 @@
 # Version 2.6.0
 
 - Added Typescript definition
+- Added ability to set min/max matched character lengths when returning the matched indices (#122)
 
 # Version 2.5.0
 

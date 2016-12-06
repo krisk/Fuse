@@ -81,7 +81,13 @@
     matchAllTokens: false,
 
     // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
-    tokenSeparator: / +/g
+    tokenSeparator: / +/g,
+
+    // Minimum number of characters that must be matched before indices are returned
+    minMatchCharLen: 1,
+
+    // Continue to end of text even if perfect match is found before hand
+    findAllMatches: false
   }
 
   /**
@@ -708,7 +714,11 @@
       // Use the result from this iteration as the maximum for the next.
       binMax = binMid
       start = Math.max(1, location - binMid + 1)
-      finish = Math.min(location + binMid, textLen) + this.patternLen
+      if (this.options.findAllMatches) {
+        finish = textLen;
+      } else {
+        finish = Math.min(location + binMid, textLen) + this.patternLen
+      }
 
       // Initialize the bit array
       bitArr = Array(finish + 2)
@@ -781,12 +791,16 @@
         start = i
       } else if (!match && start !== -1) {
         end = i - 1
-        matchedIndices.push([start, end])
+        if ((end - start) + 1 >= this.options.minMatchCharLen) {
+            matchedIndices.push([start, end])
+        }
         start = -1
       }
     }
     if (matchMask[i - 1]) {
-      matchedIndices.push([start, i - 1])
+      if ((i-1 - start) + 1 >= this.options.minMatchCharLen) {
+        matchedIndices.push([start, i - 1])
+      }
     }
     return matchedIndices
   }
