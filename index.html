@@ -328,6 +328,12 @@
             </div>
           </div>
 
+          <div class="form-group form-inline">
+              <label for="minMatchCharLengthTextbox">Minimum character length</label>
+              <input type="number" id="minMatchCharLengthTextbox" min="0" max="32" value="1">
+              <span id="helpBlock" class="help-block">When set to include matches, only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character index returns, set to <code>2</code>)</span>
+          </div>
+
           <div class="form-group">
             <div class="checkbox">
               <label>
@@ -352,6 +358,15 @@
                 <input type="checkbox" id="matchAllTokensCheckbox">Match all tokens
               </label>
               <span id="helpBlock" class="help-block">When <code>true</code>, the result set will only include records that match all tokens. Will only work if <code>tokenize</code> is also <code>true</code>.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="findAllMatchesCheckbox">Find All Matches
+              </label>
+              <span id="helpBlock" class="help-block">When <code>true</code>, the matching function will continue to the end of a search pattern even if a perfect match has already been located in the string.</span>
             </div>
           </div>
 

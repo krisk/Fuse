@@ -64,6 +64,8 @@ $(function (window) {
         this.$distanceRange = $('#distanceRange')
         this.$maxPatternLength = $('#maxPatternLength')
         this.$keysTextbox = $('#keysTextbox')
+        this.$minMatchCharLengthRange = $('#minMatchCharLengthTextbox')
+        this.$findAllMatchesCheckbox = $('#findAllMatchesCheckbox')
 
         this.checkboxItems = [{
           node: this.$caseSensitiveCheckbox,
@@ -77,6 +79,9 @@ $(function (window) {
         }, {
           node: this.$matchAllTokensCheckbox,
           name: 'matchAllTokens'
+        }, {
+          node: this.$findAllMatchesCheckbox,
+          name: 'findAllMatches'
         }]
 
         this.includeItems = [{
@@ -96,6 +101,9 @@ $(function (window) {
         }, {
           node: this.$distanceRange,
           name: 'distance'
+        }, {
+          node: this.$minMatchCharLengthRange,
+          name: 'minMatchCharLength'
         }]
       },
       bindEvents: function () {
@@ -152,6 +160,12 @@ $(function (window) {
         })
         this.$keysTextbox.on('change', function () {
           ga('send', 'event', 'Demo', 'change', 'option:keys')
+        })
+        this.$findAllMatchesCheckbox.on('change', function () {
+          ga('send', 'event', 'Demo', 'change', 'option:find-all-matches')
+        })
+        this.$minMatchCharLengthRange.on('change', function () {
+          ga('send', 'event', 'Demo', 'change', 'option:min-match-char-length')
         })
       },
       setupCheckboxItems: function (item, trigger) {
@@ -284,10 +298,14 @@ $(function (window) {
         if (this.options.data.matchAllTokens) {
           arr.push('  matchAllTokens: ' + this.options.data.matchAllTokens + ',')
         }
+        if (this.options.data.findAllMatches) {
+          arr.push('  findAllMatches: ' + this.options.data.findAllMatches + ',')
+        }
         arr.push('  threshold: ' + this.options.data.threshold + ',')
         arr.push('  location: ' + this.options.data.location + ',')
         arr.push('  distance: ' + this.options.data.distance + ',')
         arr.push('  maxPatternLength: ' + this.options.data.maxPatternLength + ',')
+        arr.push('  minMatchCharLength: ' + this.options.data.minMatchCharLength + ',')
         arr.push('  keys: ' + JSON.stringify(this.options.data.keys, null, '    '))
         arr.push('};')
         arr.push('var fuse = new Fuse(list, options); // "list" is the item array')
