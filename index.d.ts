@@ -24,7 +24,6 @@ declare module 'fuse.js' {
     distance?: number;
     threshold?: number;
     maxPatternLength?: number;
-    tokenSeparator?: RegExp;
     minMatchCharLen?: number;
     findAllMatches?: boolean;
   }
