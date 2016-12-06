@@ -867,3 +867,86 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
     }
   }
 }).export(module)
+
+vows.describe('Searching with default options').addBatch({
+  'Options:': {
+    topic: function () {
+      var items = ['t te tes test tes te t'];
+
+      var fuse = new Fuse(items, {
+        include: ['matches'],
+        verbose: verbose
+      })
+      return fuse
+    },
+    'When searching for the term "test"': {
+      topic: function (fuse) {
+        var result = fuse.search('test')
+        return result
+      },
+      'We get a match containing 4 indices': function (result) {
+        assert.equal(result[0].matches[0].indices.length, 4)
+      },
+      'The first index is a single character': function (result) {
+        assert.equal(result[0].matches[0].indices[0][0], 0)
+        assert.equal(result[0].matches[0].indices[0][1], 0)
+      },
+    }
+  }
+}).export(module)
+
+vows.describe('Searching with findallmatches options').addBatch({
+  'Options:': {
+    topic: function () {
+      var items = ['t te tes test tes te t'];
+
+      var fuse = new Fuse(items, {
+        include: ['matches'],
+        findAllMatches: true,
+        verbose: verbose
+      })
+      return fuse
+    },
+    'When searching for the term "test"': {
+      topic: function (fuse) {
+        var result = fuse.search('test')
+        return result
+      },
+      'We get a match containing 7 indices': function (result) {
+        assert.equal(result[0].matches[0].indices.length, 7)
+      },
+      'The first index is a single character': function (result) {
+        assert.equal(result[0].matches[0].indices[0][0], 0)
+        assert.equal(result[0].matches[0].indices[0][1], 0)
+      },
+    }
+  }
+}).export(module)
+
+vows.describe('Searching with minMatchCharLen options').addBatch({
+  'Options:': {
+    topic: function () {
+      var items = ['t te tes test tes te t'];
+
+      var fuse = new Fuse(items, {
+        include: ['matches'],
+        minMatchCharLen: 2,
+        verbose: verbose
+      })
+      return fuse
+    },
+    'When searching for the term "test"': {
+      topic: function (fuse) {
+        var result = fuse.search('test')
+        return result
+      },
+      'We get a match containing 3 indices': function (result) {
+        assert.equal(result[0].matches[0].indices.length, 3)
+      },
+      'The first index is a single character': function (result) {
+        assert.equal(result[0].matches[0].indices[0][0], 2)
+        assert.equal(result[0].matches[0].indices[0][1], 3)
+      },
+    }
+  }
+}).export(module)

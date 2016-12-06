@@ -178,6 +178,14 @@ Regex used to separate words when searching. Only applicable when `tokenize` is 
 
 When `true`, the result set will only include records that match all tokens. Will only work if `tokenize` is also true.
 
+**findAllMatches** (*type*: `Boolean`, *default*: `false`)
+
+When `true`, the matching function will continue to the end of a search pattern even if a perfect match has already been located in the string.
+
+**minMatchCharLen** (*type*: `Integer`, *default*: `0`)
+
+When set to return indices, only those whose length exceeds this value will be returned. (For instance, if you want to ignore single character index returns, set to `2`)
+
 ### Methods
 
 **`search(/*pattern*/)`**
