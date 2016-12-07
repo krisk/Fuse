@@ -3,7 +3,7 @@
 declare module 'fuse.js' {
     namespace fuse.js {
         export class Fuse {
-            constructor(list: any[], options?: fuse.js.FuseOptions)
+            constructor(list: any[], options?: FuseOptions)
             search<T>(pattern: string): T[];
             search(pattern: string): any[];
         }
