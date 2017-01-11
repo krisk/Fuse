@@ -1,13 +1,16 @@
 // Type definitions for Fuse.js 2.6.1
 
-declare module 'fuse.js' {
-  class Fuse {
-    constructor(list: any[], options?: FuseOptions)
-    search<T>(pattern: string): T[];
-    search(pattern: string): any[];
-  }
+export = Fuse;
+export as namespace Fuse;
 
-  interface FuseOptions {
+declare class Fuse {
+  constructor(list: any[], options?: Fuse.FuseOptions)
+  search<T>(pattern: string): T[];
+  search(pattern: string): any[];
+}
+
+declare namespace Fuse {
+  export interface FuseOptions {
     id?: string;
     caseSensitive?: boolean;
     include?: string[];
@@ -28,5 +31,3 @@ declare module 'fuse.js' {
     findAllMatches?: boolean;
   }
 }
-
-declare const Fuse;
