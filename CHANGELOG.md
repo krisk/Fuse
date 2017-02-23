@@ -1,3 +1,7 @@
+# Version 2.6.2
+
+- Fix typings based on TypeScript guidelines (#129)
+
 # Version 2.6.0
 
 - Added Typescript definition

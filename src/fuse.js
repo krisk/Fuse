@@ -97,10 +97,7 @@
    * @param {!Object<string, *>} options
    */
   function Fuse (list, options) {
-    var i
-    var len
     var key
-    var keys
 
     this.list = list
     this.options = options = options || {}
@@ -119,7 +116,7 @@
     }
   }
 
-  Fuse.VERSION = '2.6.0'
+  Fuse.VERSION = '2.6.2'
 
   /**
    * Sets a new list for Fuse to match against.

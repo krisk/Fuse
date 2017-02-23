@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js 2.6.1
+// Type definitions for Fuse.js 2.6.2
 
 export = Fuse;
 export as namespace Fuse;
