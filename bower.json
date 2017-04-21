@@ -1,8 +1,0 @@
-{
-  "name": "fuse.js",
-  "version": "2.6.2",
-  "main": "./src/fuse.js",
-  "ignore": [
-    "test"
-  ]
-}

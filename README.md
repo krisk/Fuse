@@ -71,41 +71,21 @@ Indicates whether comparisons should be case sensitive.
 
 -
 
-**include** (*type*: `Array`, *default*: `[]`)
+**showScore** (*type*: `Boolean`, *default*: `false`)
 
-An array of values that should be included from the searcher's output. When this array contains elements, each result in the list will be of the form `{ item: ..., include1: ..., include2: ... }`. Values you can include are `score`, `matches`. Ex:
+Include the score of each item in the result list
 
-```javascript
-{ include: ['score', 'matches' ] }
-```
+-
+
+**showMatches** (*type*: `Boolean`, *default*: `false`)
+
+Include the matched indices of each item in the result list
 
 -
 
 **shouldSort** (*type*: `Boolean`, *default*: `true`)
 
 Whether to sort the result list, by score.
-
--
-
-**searchFn** (*type*: `Function`, *default*: `BitapSearcher`)
-
-The search function to use.  Note that the search function (`[[Function]]`) must conform to the following API:
-
-```javascript
-/*
-@param pattern The pattern string to search
-@param options The search option
-*/
-[[Function]].constructor = function(pattern, options) { ... }
-
-/*
-@param text: the string to search in for the pattern
-@return Object in the form of:
- - isMatch: boolean
- - score: Int
- */
-[[Function]].prototype.search = function(text) { ... }
-```
 
 -
 
