@@ -1,12 +1,22 @@
+/*!
+ * Fuse.js v2.6.2 - Lightweight fuzzy-search
+ * 
+ * http://fusejs.io/
+ * 
+ * Copyright (c) 2012-2017 Kirollos Risk <kirollos@gmail.com>
+ * All Rights Reserved. Apache Software License 2.0
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("fuse", [], factory);
+		define("Fuse", [], factory);
 	else if(typeof exports === 'object')
-		exports["fuse"] = factory();
+		exports["Fuse"] = factory();
 	else
-		root["fuse"] = factory();
+		root["Fuse"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -573,10 +583,10 @@ var Fuse = function () {
         tokenize = _ref$tokenize === undefined ? false : _ref$tokenize,
         _ref$matchAllTokens = _ref.matchAllTokens,
         matchAllTokens = _ref$matchAllTokens === undefined ? false : _ref$matchAllTokens,
-        _ref$showMatches = _ref.showMatches,
-        showMatches = _ref$showMatches === undefined ? false : _ref$showMatches,
-        _ref$showScore = _ref.showScore,
-        showScore = _ref$showScore === undefined ? false : _ref$showScore,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === undefined ? false : _ref$includeMatches,
+        _ref$includeScore = _ref.includeScore,
+        includeScore = _ref$includeScore === undefined ? false : _ref$includeScore,
         _ref$verbose = _ref.verbose,
         verbose = _ref$verbose === undefined ? false : _ref$verbose;
 
@@ -593,8 +603,8 @@ var Fuse = function () {
       minMatchCharLength: minMatchCharLength,
       id: id,
       keys: keys,
-      showMatches: showMatches,
-      showScore: showScore,
+      includeMatches: includeMatches,
+      includeScore: includeScore,
       shouldSort: shouldSort,
       getFn: getFn,
       sortFn: sortFn,
@@ -897,7 +907,7 @@ var Fuse = function () {
 
       var transformers = [];
 
-      if (this.options.showMatches) {
+      if (this.options.includeMatches) {
         transformers.push(function (result, data) {
           var output = result.output;
           data.matches = [];
@@ -915,7 +925,7 @@ var Fuse = function () {
         });
       }
 
-      if (this.options.showScore) {
+      if (this.options.includeScore) {
         transformers.push(function (result, data) {
           data.score = result.score;
         });

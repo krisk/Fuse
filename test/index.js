@@ -238,7 +238,7 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
     topic: () => {
       var fruits = ['Apple', 'Orange', 'Banana']
       var fuse = new Fuse(fruits, {
-        showScore: true,
+        includeScore: true,
         verbose: verbose
       })
       return fuse
@@ -323,7 +323,7 @@ vows.describe('Include both ID and score in results list').addBatch({
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
-        showScore: true,
+        includeScore: true,
         verbose: verbose
       }
       var fuse = new Fuse(books, options)
@@ -362,7 +362,7 @@ vows.describe('Search when IDs are numbers').addBatch({
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
-        showScore: true,
+        includeScore: true,
         verbose: verbose
       }
       var fuse = new Fuse(books, options)
@@ -617,7 +617,7 @@ vows.describe('Searching list').addBatch({
         'Boma hamlet']
 
       var fuse = new Fuse(items, {
-        showScore: true,
+        includeScore: true,
         verbose: verbose
       })
       return fuse
@@ -754,8 +754,8 @@ vows.describe('Search location').addBatch({
       var options = {
         keys: ['name'],
         verbose: verbose,
-        showScore: true,
-        showMatches: true
+        includeScore: true,
+        includeMatches: true
       }
       var fuse = new Fuse(items, options)
       return fuse
@@ -874,7 +874,7 @@ vows.describe('Searching with default options').addBatch({
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
-        showMatches: true,
+        includeMatches: true,
         verbose: verbose
       })
       return fuse
@@ -901,7 +901,7 @@ vows.describe('Searching with findallmatches options').addBatch({
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
-        showMatches: true,
+        includeMatches: true,
         findAllMatches: true,
         verbose: verbose
       })
@@ -929,7 +929,7 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
-        showMatches: true,
+        includeMatches: true,
         minMatchCharLength: 2,
         verbose: verbose
       })

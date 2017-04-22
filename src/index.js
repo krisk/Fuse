@@ -47,8 +47,8 @@ class Fuse {
     matchAllTokens = false,
     // Will print to the console. Useful for debugging.
 
-    showMatches = false,
-    showScore = false,
+    includeMatches = false,
+    includeScore = false,
 
     verbose = false
   }) {
@@ -63,8 +63,8 @@ class Fuse {
       minMatchCharLength,
       id,
       keys,
-      showMatches,
-      showScore,
+      includeMatches,
+      includeScore,
       shouldSort,
       getFn,
       sortFn,
@@ -339,7 +339,7 @@ class Fuse {
 
     let transformers = []
 
-    if (this.options.showMatches) {
+    if (this.options.includeMatches) {
       transformers.push((result, data) => {
         const output = result.output
         data.matches = []
@@ -357,7 +357,7 @@ class Fuse {
       })
     }
     
-    if (this.options.showScore) {
+    if (this.options.includeScore) {
       transformers.push((result, data) => {
         data.score = result.score
       })
