@@ -5,8 +5,8 @@ node_js:
     - 'iojs'
     
 before_install:
-    - '[ "${TRAVIS_NODE_VERSION}" != "0.8" ] || npm install -g npm@1.4.28'
-    - npm install -g npm@2.12
+    - '[ "${TRAVIS_NODE_VERSION}" != "0.8" ] || npm install -g npm@3.10'
+    - npm install -g npm@3.10
     
 git:
     depth: 10
