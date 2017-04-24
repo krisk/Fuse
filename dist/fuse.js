@@ -1,12 +1,11 @@
 /*!
- * Fuse.js v2.6.2 - Lightweight fuzzy-search
+ * Fuse.js v2.6.2 - Lightweight fuzzy-search (http://fusejs.io)
  * 
- * http://fusejs.io/
- * 
- * Copyright (c) 2012-2017 Kirollos Risk <kirollos@gmail.com>
+ * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  * 
  * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')

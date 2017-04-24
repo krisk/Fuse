@@ -1,12 +1,21 @@
 {
   "name": "fuse.js",
-  "author": "Kirollos Risk",
+  "author": { 
+    "name" : "Kirollos Risk",
+    "email" : "kirollos@gmail.com",
+    "url" : "http://kiro.me"
+  },
   "version": "2.6.2",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "types": "./index.d.ts",
-  "repository": "https://github.com/krisk/Fuse.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krisk/Fuse.git"
+  },
+  "homepage": "http://fusejs.io",
   "dependencies": {},
+  "keywords": ["fuzzy", "bitap"],
   "main": "src/index.js",
   "scripts": {
     "test": "vows test/**.js",
