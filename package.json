@@ -5,7 +5,7 @@
     "email" : "kirollos@gmail.com",
     "url" : "http://kiro.me"
   },
-  "version": "2.6.2",
+  "version": "2.7.2",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "types": "./index.d.ts",
@@ -16,7 +16,7 @@
   "homepage": "http://fusejs.io",
   "dependencies": {},
   "keywords": ["fuzzy", "bitap"],
-  "main": "src/index.js",
+  "main": "dist/fuse.js",
   "scripts": {
     "test": "vows test/**.js",
     "build": "WEBPACK_ENV=build webpack && WEBPACK_ENV=dev webpack",
