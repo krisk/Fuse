@@ -32,10 +32,8 @@ $(function (window) {
       init: function () {
         this.setupNodes()
         this.bindEvents()
-        this.data = {
-          include: []
-        }
-
+        this.data = {}
+        
         _.each(this.checkboxItems, _.bind(function (item) {
           this.setupCheckboxItems(item, false)
         }, this))
@@ -82,14 +80,12 @@ $(function (window) {
         }, {
           node: this.$findAllMatchesCheckbox,
           name: 'findAllMatches'
-        }]
-
-        this.includeItems = [{
+        }, {
           node: this.$scoreCheckbox,
-          name: 'score'
+          name: 'includeScore'
         }, {
           node: this.$matchesCheckbox,
-          name: 'matches'
+          name: 'includeMatches'
         }]
 
         this.rangeItems = [{
@@ -111,13 +107,6 @@ $(function (window) {
         _.each(this.checkboxItems, _.bind(function (item) {
           item.node.on('change', _.bind(function () {
             this.setupCheckboxItems(item, true)
-          }, this))
-        }, this))
-
-        // Checkboxes
-        _.each(this.includeItems, _.bind(function (item) {
-          item.node.on('change', _.bind(function () {
-            this.setupIncludetems(item, true)
           }, this))
         }, this))
 
@@ -171,22 +160,6 @@ $(function (window) {
       setupCheckboxItems: function (item, trigger) {
         var checked = item.node.prop('checked')
         this.data[item.name] = checked
-        if (trigger || trigger === undefined) {
-          this.trigger('change')
-        }
-      },
-      setupIncludetems: function (item, trigger) {
-        var checked = item.node.prop('checked')
-        var index = this.data.include.indexOf(item.name)
-        if (checked) {
-          if (index == -1) {
-            this.data.include.push(item.name)
-          }
-        } else {
-          if (index !== -1) {
-            this.data.include.splice(index, 1)
-          }
-        }
         if (trigger || trigger === undefined) {
           this.trigger('change')
         }
@@ -283,12 +256,6 @@ $(function (window) {
         if (this.options.data.caseSensitive) {
           arr.push('  caseSensitive: ' + this.options.data.caseSensitive + ',')
         }
-        if (this.options.data.include.length) {
-          var items = _.map(this.options.data.include, function (item) {
-            return '"' + item + '"'
-          }).join(',')
-          arr.push('  include: [' + items + '],')
-        }
         if (this.options.data.shouldSort) {
           arr.push('  shouldSort: ' + this.options.data.shouldSort + ',')
         }
@@ -300,6 +267,12 @@ $(function (window) {
         }
         if (this.options.data.findAllMatches) {
           arr.push('  findAllMatches: ' + this.options.data.findAllMatches + ',')
+        }
+        if (this.options.data.includeScore) {
+          arr.push('  includeScore: ' + this.options.data.includeScore + ',')
+        }
+        if (this.options.data.includeMatches) {
+          arr.push('  includeMatches: ' + this.options.data.includeMatches + ',')
         }
         arr.push('  threshold: ' + this.options.data.threshold + ',')
         arr.push('  location: ' + this.options.data.location + ',')
