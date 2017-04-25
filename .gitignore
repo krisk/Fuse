@@ -1,6 +1,5 @@
 node_modules/
-test/index.html
-latest.zip
+npm-debug.log
 .DS_Store
 .idea
 runner.js

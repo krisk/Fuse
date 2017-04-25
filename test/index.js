@@ -1,12 +1,13 @@
-var assert = require('assert'),
-  vows = require('vows'),
-  Fuse = require('../src/fuse')
+const assert = require('assert')
+const vows = require('vows')
+const Fuse = require('../dist/fuse')
+const books = require('./fixtures/books.json')
 
-var verbose = false
+const verbose = false
 
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
-    topic: function () {
+    topic: function() {
       var fruits = ['Apple', 'Orange', 'Banana']
       var fuse = new Fuse(fruits, {
         verbose: verbose
@@ -56,8 +57,7 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
 
 vows.describe('List of books - searching "title" and "author"').addBatch({
   'Books:': {
-    topic: function () {
-      var books = require('./books.json')
+    topic: function() {
       var options = {
         keys: ['title', 'author'],
         verbose: verbose,
@@ -129,7 +129,7 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
 
 vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
   'Deep:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'title': "Old Man's War",
         'author': {
@@ -175,7 +175,7 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
 
 vows.describe('Custom search function, with ["title", "author.firstName"]').addBatch({
   'Deep:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'title': "Old Man's War",
         'author': {
@@ -235,10 +235,10 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
 
 vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var fruits = ['Apple', 'Orange', 'Banana']
       var fuse = new Fuse(fruits, {
-        include: ['score'],
+        includeScore: true,
         verbose: verbose
       })
       return fuse
@@ -276,7 +276,7 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
 
 vows.describe('Only include ID in results list, with "ISBN"').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -310,7 +310,7 @@ vows.describe('Only include ID in results list, with "ISBN"').addBatch({
 
 vows.describe('Include both ID and score in results list').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -323,7 +323,7 @@ vows.describe('Include both ID and score in results list').addBatch({
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
-        include: ['score'],
+        includeScore: true,
         verbose: verbose
       }
       var fuse = new Fuse(books, options)
@@ -349,7 +349,7 @@ vows.describe('Include both ID and score in results list').addBatch({
 
 vows.describe('Search when IDs are numbers').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': 1111,
         'title': "Old Man's War",
@@ -362,7 +362,7 @@ vows.describe('Search when IDs are numbers').addBatch({
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
-        include: ['score'],
+        includeScore: true,
         verbose: verbose
       }
       var fuse = new Fuse(books, options)
@@ -388,7 +388,7 @@ vows.describe('Search when IDs are numbers').addBatch({
 
 vows.describe('Recurse into arrays').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -431,7 +431,7 @@ vows.describe('Recurse into arrays').addBatch({
 
 vows.describe('Recurse into objects in arrays').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -486,7 +486,7 @@ vows.describe('Recurse into objects in arrays').addBatch({
 
 vows.describe('Searching by ID').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': 'A',
         'title': "Old Man's War",
@@ -521,7 +521,7 @@ vows.describe('Searching by ID').addBatch({
 
 vows.describe('Set new list on Fuse').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var fruits = ['Apple', 'Orange', 'Banana']
       var vegetables = ['Onion', 'Lettuce', 'Broccoli']
 
@@ -548,7 +548,7 @@ vows.describe('Set new list on Fuse').addBatch({
 
 vows.describe('Searching by nested ID').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var books = [{
         'ISBN': {
           'name': 'A'
@@ -587,7 +587,7 @@ vows.describe('Searching by nested ID').addBatch({
 
 vows.describe('Searching list').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var items = ['FH Mannheim', 'University Mannheim']
       var fuse = new Fuse(items)
       return fuse
@@ -609,7 +609,7 @@ vows.describe('Searching list').addBatch({
 
 vows.describe('Searching list').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var items = [
         'Borwaila hamlet',
         'Bobe hamlet',
@@ -617,7 +617,7 @@ vows.describe('Searching list').addBatch({
         'Boma hamlet']
 
       var fuse = new Fuse(items, {
-        include: ['score'],
+        includeScore: true,
         verbose: verbose
       })
       return fuse
@@ -639,8 +639,7 @@ vows.describe('Searching list').addBatch({
 
 vows.describe('List of books - searching for long pattern length > 32').addBatch({
   'Books:': {
-    topic: function () {
-      var books = require('./books.json')
+    topic: function() {
       var options = {
         keys: ['title'],
         verbose: verbose
@@ -668,7 +667,7 @@ vows.describe('List of books - searching for long pattern length > 32').addBatch
 
 vows.describe('Weighted search').addBatch({
   'Books:': {
-    topic: function () {
+    topic: function() {
       var items = [{
         title: "Old Man's War fiction",
         author: 'John X',
@@ -748,14 +747,15 @@ vows.describe('Weighted search').addBatch({
 
 vows.describe('Search location').addBatch({
   'Books:': {
-    topic: function () {
+    topic: function() {
       var items = [{
         name: 'Hello World'
       }]
       var options = {
         keys: ['name'],
         verbose: verbose,
-        include: ['score', 'matches']
+        includeScore: true,
+        includeMatches: true
       }
       var fuse = new Fuse(items, options)
       return fuse
@@ -781,7 +781,7 @@ vows.describe('Search location').addBatch({
 
 vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund", "Workforce Superannuation Corporate", "IGT (Australia) Pty Ltd Superannuation Fund"]').addBatch({
   'Flat:': {
-    topic: function () {
+    topic: function() {
       var items = [
         'AustralianSuper - Corporate Division',
         'Aon Master Trust - Corporate Super',
@@ -870,11 +870,11 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
 
 vows.describe('Searching with default options').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
-        include: ['matches'],
+        includeMatches: true,
         verbose: verbose
       })
       return fuse
@@ -897,11 +897,11 @@ vows.describe('Searching with default options').addBatch({
 
 vows.describe('Searching with findallmatches options').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
-        include: ['matches'],
+        includeMatches: true,
         findAllMatches: true,
         verbose: verbose
       })
@@ -925,11 +925,11 @@ vows.describe('Searching with findallmatches options').addBatch({
 
 vows.describe('Searching with minMatchCharLength options').addBatch({
   'Options:': {
-    topic: function () {
+    topic: function() {
       var items = ['t te tes test tes te t'];
 
       var fuse = new Fuse(items, {
-        include: ['matches'],
+        includeMatches: true,
         minMatchCharLength: 2,
         verbose: verbose
       })

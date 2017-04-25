@@ -1,19 +1,34 @@
 {
   "name": "fuse.js",
-  "author": "Kirollos Risk",
-  "version": "2.6.2",
+  "author": { 
+    "name" : "Kirollos Risk",
+    "email" : "kirollos@gmail.com",
+    "url" : "http://kiro.me"
+  },
+  "version": "2.7.2",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
-  "main": "./src/fuse.js",
   "types": "./index.d.ts",
-  "repository": "https://github.com/krisk/Fuse.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krisk/Fuse.git"
+  },
+  "homepage": "http://fusejs.io",
   "dependencies": {},
+  "keywords": ["fuzzy", "bitap"],
+  "main": "dist/fuse.js",
   "scripts": {
-    "test": "vows --spec"
+    "test": "vows test/**.js",
+    "build": "WEBPACK_ENV=build webpack && WEBPACK_ENV=dev webpack",
+    "dev": "WEBPACK_ENV=dev webpack --progress --colors --watch"
   },
   "devDependencies": {
-    "vows": "0.5.x",
-    "grunt-bump": "0.0.11",
-    "uglify-js": "*"
+    "webpack": "^2.4.1",
+    "babel-core": "^6.24.1",
+    "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "vows": "0.5.x"
   }
 }

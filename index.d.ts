@@ -13,9 +13,9 @@ declare namespace Fuse {
   export interface FuseOptions {
     id?: string;
     caseSensitive?: boolean;
-    include?: string[];
+    showMatches?: boolean;
+    showScore?: boolean;
     shouldSort?: boolean;
-    searchFn?: any;
     sortFn?: (a: { score: number }, b: { score: number }) => number;
     getFn?: (obj: any, path: string) => any;
     keys?: string[] | { name: string; weight: number }[];
