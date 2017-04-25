@@ -1,3 +1,12 @@
+# Version 2.7.2
+
+- Removed Bower support
+- Modified library into a more more palatable architecture, where the Bitap portion is now its own separate module.
+
+### BREAKING CHANGES
+
+- Removed `include` option in favor of more explicit booleans: `includeScore` and `includeMatches`. Both are `false` by default.
+
 # Version 2.6.2
 
 - Fix typings based on TypeScript guidelines (#129)
