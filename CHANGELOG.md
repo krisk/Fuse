@@ -1,3 +1,7 @@
+# Version 2.7.3
+
+- Fixed options in TypeScript definition
+
 # Version 2.7.2
 
 - Removed Bower support
@@ -6,6 +10,7 @@
 ### BREAKING CHANGES
 
 - Removed `include` option in favor of more explicit booleans: `includeScore` and `includeMatches`. Both are `false` by default.
+- Removed `searchFn` option, as this (for now) will remain a Bitap based solution
 
 # Version 2.6.2
 

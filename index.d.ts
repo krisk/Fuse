@@ -13,8 +13,8 @@ declare namespace Fuse {
   export interface FuseOptions {
     id?: string;
     caseSensitive?: boolean;
-    showMatches?: boolean;
-    showScore?: boolean;
+    includeMatches?: boolean;
+    includeScore?: boolean;
     shouldSort?: boolean;
     sortFn?: (a: { score: number }, b: { score: number }) => number;
     getFn?: (obj: any, path: string) => any;

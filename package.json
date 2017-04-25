@@ -5,7 +5,7 @@
     "email" : "kirollos@gmail.com",
     "url" : "http://kiro.me"
   },
-  "version": "2.7.2",
+  "version": "2.7.3",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "types": "./index.d.ts",
