@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v2.7.3 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.0.0 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -194,6 +194,10 @@ var Bitap = function () {
 
   return Bitap;
 }();
+
+// let x = new Bitap("od mn war", {})
+// let result = x.search("Old Man's War")
+// console.log(result)
 
 module.exports = Bitap;
 

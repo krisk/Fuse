@@ -1,8 +1,4 @@
-# Version 2.7.3
-
-- Fixed options in TypeScript definition
-
-# Version 2.7.2
+# Version 3.0.0
 
 - Removed Bower support
 - Modified library into a more more palatable architecture, where the Bitap portion is now its own separate module.
@@ -11,6 +7,14 @@
 
 - Removed `include` option in favor of more explicit booleans: `includeScore` and `includeMatches`. Both are `false` by default.
 - Removed `searchFn` option, as this (for now) will remain a Bitap based solution
+
+# Version 2.7.4
+
+- Reverted to previous version, thus fixing breaking changes (a little bit of a version match here)
+
+# Version 2.6.2
+
+- Revert back to previous version
 
 # Version 2.6.2
 
