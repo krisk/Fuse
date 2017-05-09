@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.0.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.0.1 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -432,7 +432,6 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
   var finalScore = 1;
   var binMax = patternLen + textLen;
 
-  var locations = [];
   var mask = 1 << patternLen - 1;
 
   for (var _i = 0; _i < patternLen; _i += 1) {
@@ -500,7 +499,6 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
           // Indeed it is
           currentThreshold = finalScore;
           bestLocation = currentLocation;
-          locations.push(bestLocation);
 
           // Already passed `loc`, downhill from here on in.
           if (bestLocation <= expectedLocation) {
@@ -513,7 +511,7 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
       }
     }
 
-    // No hope for a (better) match at greater error levels.    
+    // No hope for a (better) match at greater error levels.  
     var _score2 = bitapScore(pattern, {
       errors: _i + 1,
       currentLocation: expectedLocation,
