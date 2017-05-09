@@ -1,11 +1,11 @@
 {
   "name": "fuse.js",
-  "author": { 
-    "name" : "Kirollos Risk",
-    "email" : "kirollos@gmail.com",
-    "url" : "http://kiro.me"
+  "author": {
+    "name": "Kirollos Risk",
+    "email": "kirollos@gmail.com",
+    "url": "http://kiro.me"
   },
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Lightweight fuzzy-search",
   "license": "Apache",
   "types": "./index.d.ts",
@@ -15,7 +15,10 @@
   },
   "homepage": "http://fusejs.io",
   "dependencies": {},
-  "keywords": ["fuzzy", "bitap"],
+  "keywords": [
+    "fuzzy",
+    "bitap"
+  ],
   "main": "dist/fuse.js",
   "scripts": {
     "test": "vows test/**.js",
@@ -23,12 +26,12 @@
     "dev": "WEBPACK_ENV=dev webpack --progress --colors --watch"
   },
   "devDependencies": {
-    "webpack": "^2.4.1",
     "babel-core": "^6.24.1",
     "babel-loader": "^6.4.1",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-2": "^6.24.1",
     "babel-plugin-add-module-exports": "0.2.1",
-    "vows": "0.5.x"
+    "babel-preset-es2015": "6.24.1",
+    "babel-preset-stage-2": "6.24.1",
+    "vows": "0.5.x",
+    "webpack": "^2.4.1"
   }
 }

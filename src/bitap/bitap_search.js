@@ -48,7 +48,6 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
   let finalScore = 1
   let binMax = patternLen + textLen
 
-  const locations = []
   const mask = 1 << (patternLen - 1)
 
   for (let i = 0; i < patternLen; i += 1) {
@@ -116,7 +115,6 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
           // Indeed it is
           currentThreshold = finalScore
           bestLocation = currentLocation
-          locations.push(bestLocation)
 
           // Already passed `loc`, downhill from here on in.
           if (bestLocation <= expectedLocation) {
@@ -129,7 +127,7 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
       }
     }
 
-    // No hope for a (better) match at greater error levels.    
+    // No hope for a (better) match at greater error levels.  
     const score = bitapScore(pattern, { 
       errors: i + 1, 
       currentLocation: expectedLocation, 
