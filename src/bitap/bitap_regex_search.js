@@ -12,7 +12,7 @@ module.exports = (text, pattern, tokenSeparator = / +/g) => {
   
   return {
     // TODO: revisit this score
-    score: isMatched ? 0.5 : 1,
+    score: isMatch ? 0.5 : 1,
     isMatch,
     matchedIndices
   } 

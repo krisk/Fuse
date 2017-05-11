@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.0.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.0.2 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -330,7 +330,7 @@ module.exports = function (text, pattern) {
 
   return {
     // TODO: revisit this score
-    score: isMatched ? 0.5 : 1,
+    score: isMatch ? 0.5 : 1,
     isMatch: isMatch,
     matchedIndices: matchedIndices
   };
