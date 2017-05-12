@@ -322,8 +322,8 @@ module.exports = function (text, pattern) {
   var matchedIndices = [];
 
   if (isMatch) {
-    for (i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
-      match = matches[i];
+    for (var i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
+      var match = matches[i];
       matchedIndices.push([text.indexOf(match), match.length - 1]);
     }
   }
