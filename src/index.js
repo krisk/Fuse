@@ -283,8 +283,11 @@ class Fuse {
       }
     } else if (isArray(value)) {
       for (let i = 0, len = value.length; i < len; i += 1) {
+        // If value length > 1 then the key is for searching an array
+        let thiskey = (value.length > 1) ? key + '[' + i.toString() + ']' : key // maintaining array, object convention
+        
         this._analyze({
-          key, 
+          key: thiskey, 
           value: value[i], 
           record, 
           index
@@ -310,7 +313,9 @@ class Fuse {
 
       for (let j = 0; j < scoreLen; j += 1) {
         let score = output[j].score
-        let weight = weights ? weights[output[j].key].weight : 1
+        let arrayregex = /(\[\d*\])$/g // maintaining array, object convention
+        let key = !(arrayregex.test(output[j].key)) ? output[j].key : output[j].key.replace(arrayregex, '')
+        let weight = weights ? weights[key].weight : 1
         let nScore = score * weight
 
         if (weight !== 1) {
