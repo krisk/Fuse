@@ -4,7 +4,7 @@ module.exports = (text, pattern, tokenSeparator = / +/g) => {
   let matchedIndices = []
 
   if (isMatch) {
-    for (i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
+    for (let i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
       match = matches[i]
       matchedIndices.push([text.indexOf(match), match.length - 1])
     }

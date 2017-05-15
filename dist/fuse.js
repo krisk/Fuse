@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.0.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.0.3 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -322,7 +322,7 @@ module.exports = function (text, pattern) {
   var matchedIndices = [];
 
   if (isMatch) {
-    for (i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
+    for (var i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
       match = matches[i];
       matchedIndices.push([text.indexOf(match), match.length - 1]);
     }
