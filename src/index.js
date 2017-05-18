@@ -42,6 +42,8 @@ class Fuse {
     // computing the final score as a function of both. Note that when `tokenize` is `true`,
     // the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
     tokenize = false,
+    tokenizePatternFn = pattern => pattern.split(this.options.tokenSeparator),
+    tokenizeValueFn = pattern => pattern.split(this.options.tokenSeparator),
     // When true, the result set will only include records that match all tokens. Will only work
     // if `tokenize` is also true.
     matchAllTokens = false,
@@ -70,6 +72,8 @@ class Fuse {
       sortFn,
       verbose,
       tokenize,
+      tokenizePatternFn,
+      tokenizeValueFn,
       matchAllTokens
     }
 
@@ -105,7 +109,7 @@ class Fuse {
 
     if (this.options.tokenize) {
       // Tokenize on the separator
-      const tokens = pattern.split(this.options.tokenSeparator)
+      const tokens = this.options.tokenizePatternFn(pattern)
       for (let i = 0, len = tokens.length; i < len; i += 1) {
         tokenSearchers.push(new Bitap(tokens[i], this.options))
       }
@@ -198,7 +202,7 @@ class Fuse {
       this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
       
       if (this.options.tokenize) {
-        let words = value.split(this.options.tokenSeparator)
+        let words = this.options.tokenizeValueFn(value)
         let scores = []
 
         for (let i = 0; i < tokenSearchers.length; i += 1) {

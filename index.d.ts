@@ -21,6 +21,8 @@ declare namespace Fuse {
     keys?: string[] | { name: string; weight: number }[];
     verbose?: boolean;
     tokenize?: boolean;
+    tokenizePatternFn?: (pattern: string) => string[];
+    tokenizeValueFn?: (pattern: string) => string[];
     tokenSeparator?: RegExp;
     matchAllTokens?: boolean;
     location?: number;
