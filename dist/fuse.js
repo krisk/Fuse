@@ -511,7 +511,7 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
       }
     }
 
-    // No hope for a (better) match at greater error levels.  
+    // No hope for a (better) match at greater error levels.
     var _score2 = bitapScore(pattern, {
       errors: _i + 1,
       currentLocation: expectedLocation,
@@ -551,6 +551,8 @@ var isArray = __webpack_require__(0);
 
 var Fuse = function () {
   function Fuse(list, _ref) {
+    var _this = this;
+
     var _ref$location = _ref.location,
         location = _ref$location === undefined ? 0 : _ref$location,
         _ref$distance = _ref.distance,
@@ -581,6 +583,14 @@ var Fuse = function () {
     } : _ref$sortFn,
         _ref$tokenize = _ref.tokenize,
         tokenize = _ref$tokenize === undefined ? false : _ref$tokenize,
+        _ref$tokenizePatternF = _ref.tokenizePatternFn,
+        tokenizePatternFn = _ref$tokenizePatternF === undefined ? function (pattern) {
+      return pattern.split(_this.options.tokenSeparator);
+    } : _ref$tokenizePatternF,
+        _ref$tokenizeValueFn = _ref.tokenizeValueFn,
+        tokenizeValueFn = _ref$tokenizeValueFn === undefined ? function (pattern) {
+      return pattern.split(_this.options.tokenSeparator);
+    } : _ref$tokenizeValueFn,
         _ref$matchAllTokens = _ref.matchAllTokens,
         matchAllTokens = _ref$matchAllTokens === undefined ? false : _ref$matchAllTokens,
         _ref$includeMatches = _ref.includeMatches,
@@ -610,6 +620,8 @@ var Fuse = function () {
       sortFn: sortFn,
       verbose: verbose,
       tokenize: tokenize,
+      tokenizePatternFn: tokenizePatternFn,
+      tokenizeValueFn: tokenizeValueFn,
       matchAllTokens: matchAllTokens
     };
 
@@ -652,7 +664,7 @@ var Fuse = function () {
 
       if (this.options.tokenize) {
         // Tokenize on the separator
-        var tokens = pattern.split(this.options.tokenSeparator);
+        var tokens = this.options.tokenizePatternFn(pattern);
         for (var i = 0, len = tokens.length; i < len; i += 1) {
           tokenSearchers.push(new Bitap(tokens[i], this.options));
         }
@@ -763,7 +775,7 @@ var Fuse = function () {
         this._log('Full text: "' + value + '", score: ' + mainSearchResult.score);
 
         if (this.options.tokenize) {
-          var words = value.split(this.options.tokenSeparator);
+          var words = this.options.tokenizeValueFn(value);
           var scores = [];
 
           for (var i = 0; i < tokenSearchers.length; i += 1) {

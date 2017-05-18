@@ -1,5 +1,6 @@
 const assert = require('assert')
 const vows = require('vows')
+const TinySegmenter = require('tiny-segmenter')
 const Fuse = require('../dist/fuse')
 const books = require('./fixtures/books.json')
 
@@ -946,6 +947,49 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
       'The first index is a single character': function (result) {
         assert.equal(result[0].matches[0].indices[0][0], 2)
         assert.equal(result[0].matches[0].indices[0][1], 3)
+      },
+    }
+  }
+}).export(module)
+
+vows.describe('Customize tokenizer').addBatch({
+  'Options:': {
+    topic: function() {
+      var items = ['私の名前は中野ﾃﾞｽ']
+      var segmenter = new TinySegmenter()
+
+      var fuseDefault = new Fuse(items, {
+        includeScore: true,
+        includeMatches: true,
+        tokenize: true,
+        verbose: verbose
+      })
+      var fuseCustom = new Fuse(items, {
+        includeScore: true,
+        includeMatches: true,
+        tokenize: true,
+        tokenizeValueFn: pattern => segmenter.segment(pattern.normalize('NFKC')).filter(p => !p.match(/^\s+$/)),
+        verbose: verbose
+      })
+      return [fuseDefault, fuseCustom]
+    },
+    'When searching "私の名前は中野ﾃﾞｽ" for the term "私 野中デス" (Japanese) with custom tokenizer': {
+      topic: function (fuses) {
+        var pattern = '私 野中デス'
+        var resultDefault = fuses[0].search(pattern)
+        var resultCustom = fuses[1].search(pattern)
+        return [resultDefault, resultCustom]
+      },
+      'We get a match containing 2 indices': function (results) {
+        var resultDefault = results[0]
+        var resultCustom = results[1]
+        assert.equal(resultDefault[0].matches[0].indices.length, 2)
+        assert.equal(resultCustom[0].matches[0].indices.length, 2)
+      },
+      'Custom tokenizer is higher score than default for the unsuitable term': function (results) {
+        var resultDefault = results[0]
+        var resultCustom = results[1]
+        assert.isTrue(resultDefault[0].score < resultCustom[0].score)
       },
     }
   }
