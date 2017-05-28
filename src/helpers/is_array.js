@@ -1,3 +1,1 @@
-module.exports = (obj) => {
-  return Object.prototype.toString.call(obj) === '[object Array]'
-}
+module.exports = obj => Object.prototype.toString.call(obj) === '[object Array]'

@@ -3,18 +3,18 @@ const deepValue = require('./helpers/deep_value')
 const isArray = require('./helpers/is_array')
 
 class Fuse {
-  constructor (list, { 
+  constructor (list, {
     // Approximately where in the text is the pattern expected to be found?
-    location = 0, 
+    location = 0,
     // Determines how close the match must be to the fuzzy location (specified above).
     // An exact letter match which is 'distance' characters away from the fuzzy location
     // would score as a complete mismatch. A distance of '0' requires the match be at
     // the exact location specified, a threshold of '1000' would require a perfect match
     // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-    distance = 100, 
+    distance = 100,
     // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
     // (of both letters and location), a threshold of '1.0' would match anything.
-    threshold = 0.6, 
+    threshold = 0.6,
     // Machine word size
     maxPatternLength = 32,
     // Indicates whether comparisons should be case sensitive.
@@ -73,10 +73,10 @@ class Fuse {
       matchAllTokens
     }
 
-    this.set(list)
+    this.setCollection(list)
   }
 
-  set (list) {
+  setCollection (list) {
     this.list = list
     return list
   }
@@ -96,7 +96,7 @@ class Fuse {
     if (this.options.shouldSort) {
       this._sort(results)
     }
-    
+
     return this._format(results)
   }
 
@@ -110,9 +110,9 @@ class Fuse {
         tokenSearchers.push(new Bitap(tokens[i], this.options))
       }
     }
-    
+
     let fullSearcher = new Bitap(pattern, this.options)
-    
+
     return { tokenSearchers, fullSearcher }
   }
 
@@ -127,12 +127,12 @@ class Fuse {
       // Iterate over every item
       for (let i = 0, len = list.length; i < len; i += 1) {
         this._analyze({
-          key: '', 
-          value: list[i], 
-          record: i, 
+          key: '',
+          value: list[i],
+          record: i,
           index: i
         }, {
-          resultMap, 
+          resultMap,
           results,
           tokenSearchers,
           fullSearcher
@@ -165,14 +165,14 @@ class Fuse {
         }
 
         this._analyze({
-          key, 
-          value: this.options.getFn(item, key), 
-          record: item, 
+          key,
+          value: this.options.getFn(item, key),
+          record: item,
           index: i
         }, {
-          resultMap, 
+          resultMap,
           results,
-          tokenSearchers, 
+          tokenSearchers,
           fullSearcher
         })
       }
@@ -196,7 +196,7 @@ class Fuse {
 
       let mainSearchResult = fullSearcher.search(value)
       this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
-      
+
       if (this.options.tokenize) {
         let words = value.split(this.options.tokenSeparator)
         let scores = []
@@ -284,12 +284,12 @@ class Fuse {
     } else if (isArray(value)) {
       for (let i = 0, len = value.length; i < len; i += 1) {
         this._analyze({
-          key, 
-          value: value[i], 
-          record, 
+          key,
+          value: value[i],
+          record,
           index
         }, {
-          resultMap, 
+          resultMap,
           results,
           tokenSearchers,
           fullSearcher
@@ -320,7 +320,7 @@ class Fuse {
           totalScore += nScore
         }
       }
-      
+
       results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore
 
       this._log(results[i])
@@ -356,7 +356,7 @@ class Fuse {
         }
       })
     }
-    
+
     if (this.options.includeScore) {
       transformers.push((result, data) => {
         data.score = result.score

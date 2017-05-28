@@ -528,7 +528,7 @@ vows.describe('Set new list on Fuse').addBatch({
       var fuse = new Fuse(fruits, {
         verbose: verbose
       })
-      fuse.set(vegetables)
+      fuse.setCollection(vegetables)
       return fuse
     },
     'When searching for the term "Apple"': {

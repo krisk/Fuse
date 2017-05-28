@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.0.3 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.0.4 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -323,7 +323,7 @@ module.exports = function (text, pattern) {
 
   if (isMatch) {
     for (var i = 0, matchesLen = matches.length; i < matchesLen; i += 1) {
-      match = matches[i];
+      var match = matches[i];
       matchedIndices.push([text.indexOf(match), match.length - 1]);
     }
   }
@@ -613,12 +613,12 @@ var Fuse = function () {
       matchAllTokens: matchAllTokens
     };
 
-    this.set(list);
+    this.setCollection(list);
   }
 
   _createClass(Fuse, [{
-    key: 'set',
-    value: function set(list) {
+    key: 'setCollection',
+    value: function setCollection(list) {
       this.list = list;
       return list;
     }

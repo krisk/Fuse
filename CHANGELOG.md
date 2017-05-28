@@ -1,3 +1,7 @@
+# Version 3.0.4
+
+- Random bug fixes (#162)
+
 # Version 3.0.0
 
 - Removed Bower support
