@@ -255,10 +255,9 @@ class Fuse {
       this._log(`\nCheck Matches: ${checkTextMatches}`)
 
       // If a match is found, add the item to <rawResults>, including its score
-      if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
+      if ((exists || mainSearchResult.isMatch) && checkTextMatches && mainSearchResult.matchedIndices.length > 0) {
         // Check if the item already exists in our results
         let existingResult = resultMap[index]
-
         if (existingResult) {
           // Use the lowest score
           // existingResult.score, bitapResult.score
