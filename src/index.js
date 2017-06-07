@@ -181,7 +181,7 @@ class Fuse {
     return { weights, results }
   }
 
-  _analyze ({ key, value, record, index }, { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] }) {
+  _analyze ({ key, keyIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] }) {
     // Check if the texvaluet can be searched
     if (value === undefined || value === null) {
       return
@@ -263,7 +263,8 @@ class Fuse {
           // Use the lowest score
           // existingResult.score, bitapResult.score
           existingResult.output.push({
-            key: key,
+            key,
+            keyIndex,
             score: finalScore,
             matchedIndices: mainSearchResult.matchedIndices
           })
@@ -272,7 +273,8 @@ class Fuse {
           resultMap[index] = {
             item: record,
             output: [{
-              key: key,
+              key,
+              keyIndex,
               score: finalScore,
               matchedIndices: mainSearchResult.matchedIndices
             }]
@@ -285,6 +287,7 @@ class Fuse {
       for (let i = 0, len = value.length; i < len; i += 1) {
         this._analyze({
           key,
+          keyIndex: (value.length > 1) ? i : -1,
           value: value[i],
           record,
           index
@@ -351,6 +354,9 @@ class Fuse {
           }
           if (item.key) {
             obj.key = item.key
+          }
+          if (item.hasOwnProperty('keyIndex') && item.keyIndex > -1) {
+            obj.index = item.keyIndex
           }
           data.matches.push(obj)
         }
