@@ -187,7 +187,7 @@ a {
 #support-container {
     text-align: center;
     margin: 0 auto;
-    max-width: 630px;
+    max-width: 860px;
 }
 #support-container > div {
   margin-top: 40px;
@@ -204,6 +204,12 @@ a {
 }
 #support-container a:hover {
   text-decoration: none;
+}
+.bitcoin-address {
+    padding: 4px;
+    font-size: 95%;
+    background-color: rgba(27,31,35,0.05);
+    border-radius: 3px;
 }
 
 pre.small {
