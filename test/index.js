@@ -894,7 +894,9 @@ vows.describe('Searching with default options').addBatch({
     },
     'When the seach pattern is longer than maxPatternLength and contains RegExp special characters': {
       topic: function (fuse) {
-        var resultThunk = () => fuse.search('searching with a sufficiently long string sprinkled with ([ )] *+^$ etc.')
+        var resultThunk = function() {
+          return fuse.search('searching with a sufficiently long string sprinkled with ([ )] *+^$ etc.')
+        };
         return resultThunk
       },
       'We get a match without crashing': function (resultThunk) {
