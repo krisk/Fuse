@@ -1,3 +1,7 @@
+# Version 3.0.5
+
+- Escape special characters in search pattern (#168)
+
 # Version 3.0.4
 
 - Random bug fixes (#162)

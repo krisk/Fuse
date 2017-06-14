@@ -1,5 +1,8 @@
+const SPECIAL_CHARS_REGEX = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g
+
 module.exports = (text, pattern, tokenSeparator = / +/g) => {
-  let matches = text.match(new RegExp(escapeRegExpChars(pattern).replace(tokenSeparator, '|')))
+  let regex = new RegExp(pattern.replace(SPECIAL_CHARS_REGEX, '\\$&').replace(tokenSeparator, '|'))
+  let matches = text.match(regex)
   let isMatch = !!matches
   let matchedIndices = []
 
@@ -17,5 +20,3 @@ module.exports = (text, pattern, tokenSeparator = / +/g) => {
     matchedIndices
   }
 }
-
-const escapeRegExpChars = string => string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
