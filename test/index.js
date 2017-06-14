@@ -891,6 +891,15 @@ vows.describe('Searching with default options').addBatch({
         assert.equal(result[0].matches[0].indices[0][0], 0)
         assert.equal(result[0].matches[0].indices[0][1], 0)
       },
+    },
+    'When the seach pattern is longer than maxPatternLength and contains RegExp special characters': {
+      topic: function (fuse) {
+        var resultThunk = () => fuse.search('searching with a sufficiently long string sprinkled with ([ )] *+^$ etc.')
+        return resultThunk
+      },
+      'We get a match without crashing': function (resultThunk) {
+        assert.doesNotThrow(resultThunk)
+      }
     }
   }
 }).export(module)
