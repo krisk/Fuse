@@ -412,10 +412,10 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
       expectedLocation: expectedLocation,
       distance: distance
     });
-    currentThreshold = Math.min(score, currentThreshold
+    currentThreshold = Math.min(score, currentThreshold);
 
     // What about in the other direction? (speed up)
-    );bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
+    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
 
     if (bestLocation !== -1) {
       var _score = bitapScore(pattern, {
@@ -494,11 +494,11 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
           currentLocation: currentLocation,
           expectedLocation: expectedLocation,
           distance: distance
-        }
+        });
 
         // This match will almost certainly be better than any existing match.
         // But check anyway.
-        );if (finalScore <= currentThreshold) {
+        if (finalScore <= currentThreshold) {
           // Indeed it is
           currentThreshold = finalScore;
           bestLocation = currentLocation;
@@ -774,10 +774,10 @@ var Fuse = function () {
           for (var i = 0; i < tokenSearchers.length; i += 1) {
             var tokenSearcher = tokenSearchers[i];
 
-            this._log('\nPattern: "' + tokenSearcher.pattern + '"'
+            this._log('\nPattern: "' + tokenSearcher.pattern + '"');
 
             // let tokenScores = []
-            );var hasMatchInText = false;
+            var hasMatchInText = false;
 
             for (var j = 0; j < words.length; j += 1) {
               var word = words[j];
@@ -794,9 +794,8 @@ var Fuse = function () {
                   scores.push(1);
                 }
               }
-              this._log('Token: "' + word + '", score: ' + obj[word]
+              this._log('Token: "' + word + '", score: ' + obj[word]);
               // tokenScores.push(obj)
-              );
             }
 
             if (hasMatchInText) {
@@ -823,10 +822,10 @@ var Fuse = function () {
 
         var checkTextMatches = this.options.tokenize && this.options.matchAllTokens ? numTextMatches >= tokenSearchers.length : true;
 
-        this._log('\nCheck Matches: ' + checkTextMatches
+        this._log('\nCheck Matches: ' + checkTextMatches);
 
         // If a match is found, add the item to <rawResults>, including its score
-        );if ((exists || mainSearchResult.isMatch) && checkTextMatches && mainSearchResult.matchedIndices.length > 0) {
+        if ((exists || mainSearchResult.isMatch) && checkTextMatches && mainSearchResult.matchedIndices.length > 0) {
           // Check if the item already exists in our results
           var existingResult = resultMap[index];
           if (existingResult) {
