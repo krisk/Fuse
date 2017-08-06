@@ -45,11 +45,11 @@ class Fuse {
     // When true, the result set will only include records that match all tokens. Will only work
     // if `tokenize` is also true.
     matchAllTokens = false,
-    // Will print to the console. Useful for debugging.
 
     includeMatches = false,
     includeScore = false,
 
+    // Will print to the console. Useful for debugging.
     verbose = false
   }) {
     this.options = {
@@ -192,7 +192,7 @@ class Fuse {
     let numTextMatches = 0
 
     if (typeof value === 'string') {
-      this._log(`\nKey: ${key === '' ? '-': key}`)
+      this._log(`\nKey: ${key === '' ? '-' : key}`)
 
       let mainSearchResult = fullSearcher.search(value)
       this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
