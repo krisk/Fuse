@@ -50,7 +50,7 @@ class Fuse {
     includeScore = false,
 
     // Will print to the console. Useful for debugging.
-    verbose = true
+    verbose = false
   }) {
     this.options = {
       location,
