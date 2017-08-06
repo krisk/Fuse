@@ -50,7 +50,7 @@ class Fuse {
     includeScore = false,
 
     // Will print to the console. Useful for debugging.
-    verbose = false
+    verbose = true
   }) {
     this.options = {
       location,
@@ -264,6 +264,7 @@ class Fuse {
           existingResult.output.push({
             key,
             arrayIndex,
+            value,
             score: finalScore,
             matchedIndices: mainSearchResult.matchedIndices
           })
@@ -274,6 +275,7 @@ class Fuse {
             output: [{
               key,
               arrayIndex,
+              value,
               score: finalScore,
               matchedIndices: mainSearchResult.matchedIndices
             }]
@@ -337,7 +339,7 @@ class Fuse {
   _format (results) {
     const finalOutput = []
 
-    this._log('\n\nOutput:\n\n', results)
+    this._log('\n\nOutput:\n\n', JSON.stringify(results))
 
     let transformers = []
 
@@ -349,7 +351,8 @@ class Fuse {
         for (let i = 0, len = output.length; i < len; i += 1) {
           let item = output[i]
           let obj = {
-            indices: item.matchedIndices
+            indices: item.matchedIndices,
+            value: item.value
           }
           if (item.key) {
             obj.key = item.key

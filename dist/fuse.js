@@ -591,7 +591,7 @@ var Fuse = function () {
         _ref$includeScore = _ref.includeScore,
         includeScore = _ref$includeScore === undefined ? false : _ref$includeScore,
         _ref$verbose = _ref.verbose,
-        verbose = _ref$verbose === undefined ? false : _ref$verbose;
+        verbose = _ref$verbose === undefined ? true : _ref$verbose;
 
     _classCallCheck(this, Fuse);
 
@@ -738,8 +738,8 @@ var Fuse = function () {
     key: '_analyze',
     value: function _analyze(_ref2, _ref3) {
       var key = _ref2.key,
-          _ref2$keyIndex = _ref2.keyIndex,
-          keyIndex = _ref2$keyIndex === undefined ? -1 : _ref2$keyIndex,
+          _ref2$arrayIndex = _ref2.arrayIndex,
+          arrayIndex = _ref2$arrayIndex === undefined ? -1 : _ref2$arrayIndex,
           value = _ref2.value,
           record = _ref2.record,
           index = _ref2.index;
@@ -833,7 +833,8 @@ var Fuse = function () {
             // existingResult.score, bitapResult.score
             existingResult.output.push({
               key: key,
-              keyIndex: keyIndex,
+              arrayIndex: arrayIndex,
+              value: value,
               score: finalScore,
               matchedIndices: mainSearchResult.matchedIndices
             });
@@ -843,7 +844,8 @@ var Fuse = function () {
               item: record,
               output: [{
                 key: key,
-                keyIndex: keyIndex,
+                arrayIndex: arrayIndex,
+                value: value,
                 score: finalScore,
                 matchedIndices: mainSearchResult.matchedIndices
               }]
@@ -856,7 +858,7 @@ var Fuse = function () {
         for (var _i3 = 0, len = value.length; _i3 < len; _i3 += 1) {
           this._analyze({
             key: key,
-            keyIndex: value.length > 1 ? _i3 : -1,
+            arrayIndex: _i3,
             value: value[_i3],
             record: record,
             index: index
@@ -910,7 +912,7 @@ var Fuse = function () {
     value: function _format(results) {
       var finalOutput = [];
 
-      this._log('\n\nOutput:\n\n', results);
+      this._log('\n\nOutput:\n\n', JSON.stringify(results));
 
       var transformers = [];
 
@@ -922,13 +924,14 @@ var Fuse = function () {
           for (var i = 0, len = output.length; i < len; i += 1) {
             var item = output[i];
             var obj = {
-              indices: item.matchedIndices
+              indices: item.matchedIndices,
+              value: item.value
             };
             if (item.key) {
               obj.key = item.key;
             }
-            if (item.hasOwnProperty('keyIndex') && item.keyIndex > -1) {
-              obj.index = item.keyIndex;
+            if (item.hasOwnProperty('arrayIndex') && item.arrayIndex > -1) {
+              obj.arrayIndex = item.arrayIndex;
             }
             data.matches.push(obj);
           }
