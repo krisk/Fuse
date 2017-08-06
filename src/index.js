@@ -286,7 +286,7 @@ class Fuse {
       for (let i = 0, len = value.length; i < len; i += 1) {
         this._analyze({
           key,
-          arrayIndex: (value.length > 1) ? i : -1,
+          arrayIndex: i,
           value: value[i],
           record,
           index
