@@ -978,8 +978,9 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
         var result = fuse.search('t')
         return result
       },
-      'We get no matches': function (result) {
-        assert.equal(result.length, 0)
+      'We get a result with no matches included': function (result) {
+        assert.equal(result.length, 1)
+        assert.equal(result[0].matches.length, 0)
       }
     }
   }

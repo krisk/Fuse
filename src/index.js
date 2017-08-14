@@ -255,7 +255,7 @@ class Fuse {
       this._log(`\nCheck Matches: ${checkTextMatches}`)
 
       // If a match is found, add the item to <rawResults>, including its score
-      if ((exists || mainSearchResult.isMatch) && checkTextMatches && mainSearchResult.matchedIndices.length > 0) {
+      if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
         // Check if the item already exists in our results
         let existingResult = resultMap[index]
         if (existingResult) {
@@ -350,6 +350,11 @@ class Fuse {
 
         for (let i = 0, len = output.length; i < len; i += 1) {
           let item = output[i]
+
+          if (item.matchedIndices.length === 0) {
+            continue
+          }
+
           let obj = {
             indices: item.matchedIndices,
             value: item.value
