@@ -591,7 +591,7 @@ var Fuse = function () {
         _ref$includeScore = _ref.includeScore,
         includeScore = _ref$includeScore === undefined ? false : _ref$includeScore,
         _ref$verbose = _ref.verbose,
-        verbose = _ref$verbose === undefined ? true : _ref$verbose;
+        verbose = _ref$verbose === undefined ? false : _ref$verbose;
 
     _classCallCheck(this, Fuse);
 
@@ -825,7 +825,7 @@ var Fuse = function () {
         this._log('\nCheck Matches: ' + checkTextMatches);
 
         // If a match is found, add the item to <rawResults>, including its score
-        if ((exists || mainSearchResult.isMatch) && checkTextMatches && mainSearchResult.matchedIndices.length > 0) {
+        if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
           // Check if the item already exists in our results
           var existingResult = resultMap[index];
           if (existingResult) {
@@ -923,6 +923,11 @@ var Fuse = function () {
 
           for (var i = 0, len = output.length; i < len; i += 1) {
             var item = output[i];
+
+            if (item.matchedIndices.length === 0) {
+              continue;
+            }
+
             var obj = {
               indices: item.matchedIndices,
               value: item.value
