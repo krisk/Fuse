@@ -388,7 +388,7 @@ vows.describe('Search when IDs are numbers').addBatch({
 
 vows.describe('Recurse into arrays').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -403,13 +403,14 @@ vows.describe('Recurse into arrays').addBatch({
         'ISBN': '0321784421',
         'title': 'HTML5',
         'author': 'Remy Sharp',
-        'tags': ['nonfiction']
+        'tags': ['web development', 'nonfiction']
       }]
       var options = {
         keys: ['tags'],
         id: 'ISBN',
         threshold: 0,
-        verbose: verbose
+        verbose: verbose,
+        includeMatches: true
       }
       var fuse = new Fuse(books, options)
       return fuse
@@ -423,7 +424,16 @@ vows.describe('Recurse into arrays').addBatch({
         assert.equal(result.length, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.equal(result[0], '0321784421')
+        assert.equal(result[0].item, '0321784421')
+      },
+      'with matched tag provided': function (result) {
+        const matches = result[0].matches
+        assert.deepEqual(matches[0], {
+          key: 'tags',
+          arrayIndex: 1,
+          value: 'nonfiction',
+          indices: [[0, 9]]
+        })
       }
     }
   }
@@ -747,7 +757,7 @@ vows.describe('Weighted search').addBatch({
 
 vows.describe('Search location').addBatch({
   'Books:': {
-    topic: function() {
+    topic: function () {
       var items = [{
         name: 'Hello World'
       }]
@@ -775,6 +785,10 @@ vows.describe('Search location').addBatch({
         assert.deepEqual(a, [4, 4])
         assert.deepEqual(b, [6, 8])
       },
+      'with original text value': function (result) {
+        var matches = result[0].matches
+        assert.equal(matches[0].value, 'Hello World')
+      }
     }
   }
 }).export(module)
@@ -936,8 +950,8 @@ vows.describe('Searching with findallmatches options').addBatch({
 
 vows.describe('Searching with minMatchCharLength options').addBatch({
   'Options:': {
-    topic: function() {
-      var items = ['t te tes test tes te t'];
+    topic: function () {
+      var items = ['t te tes test tes te t']
 
       var fuse = new Fuse(items, {
         includeMatches: true,
@@ -957,7 +971,17 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
       'The first index is a single character': function (result) {
         assert.equal(result[0].matches[0].indices[0][0], 2)
         assert.equal(result[0].matches[0].indices[0][1], 3)
+      }
+    },
+    'When searching for a string shorter than minMatchCharLength': {
+      topic: function (fuse) {
+        var result = fuse.search('t')
+        return result
       },
+      'We get a result with no matches included': function (result) {
+        assert.equal(result.length, 1)
+        assert.equal(result[0].matches.length, 0)
+      }
     }
   }
 }).export(module)

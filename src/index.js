@@ -45,11 +45,11 @@ class Fuse {
     // When true, the result set will only include records that match all tokens. Will only work
     // if `tokenize` is also true.
     matchAllTokens = false,
-    // Will print to the console. Useful for debugging.
 
     includeMatches = false,
     includeScore = false,
 
+    // Will print to the console. Useful for debugging.
     verbose = false
   }) {
     this.options = {
@@ -181,7 +181,7 @@ class Fuse {
     return { weights, results }
   }
 
-  _analyze ({ key, value, record, index }, { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] }) {
+  _analyze ({ key, arrayIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] }) {
     // Check if the texvaluet can be searched
     if (value === undefined || value === null) {
       return
@@ -192,7 +192,7 @@ class Fuse {
     let numTextMatches = 0
 
     if (typeof value === 'string') {
-      this._log(`\nKey: ${key === '' ? '-': key}`)
+      this._log(`\nKey: ${key === '' ? '-' : key}`)
 
       let mainSearchResult = fullSearcher.search(value)
       this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
@@ -258,12 +258,13 @@ class Fuse {
       if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
         // Check if the item already exists in our results
         let existingResult = resultMap[index]
-
         if (existingResult) {
           // Use the lowest score
           // existingResult.score, bitapResult.score
           existingResult.output.push({
-            key: key,
+            key,
+            arrayIndex,
+            value,
             score: finalScore,
             matchedIndices: mainSearchResult.matchedIndices
           })
@@ -272,7 +273,9 @@ class Fuse {
           resultMap[index] = {
             item: record,
             output: [{
-              key: key,
+              key,
+              arrayIndex,
+              value,
               score: finalScore,
               matchedIndices: mainSearchResult.matchedIndices
             }]
@@ -285,6 +288,7 @@ class Fuse {
       for (let i = 0, len = value.length; i < len; i += 1) {
         this._analyze({
           key,
+          arrayIndex: i,
           value: value[i],
           record,
           index
@@ -335,7 +339,7 @@ class Fuse {
   _format (results) {
     const finalOutput = []
 
-    this._log('\n\nOutput:\n\n', results)
+    this._log('\n\nOutput:\n\n', JSON.stringify(results))
 
     let transformers = []
 
@@ -346,11 +350,20 @@ class Fuse {
 
         for (let i = 0, len = output.length; i < len; i += 1) {
           let item = output[i]
+
+          if (item.matchedIndices.length === 0) {
+            continue
+          }
+
           let obj = {
-            indices: item.matchedIndices
+            indices: item.matchedIndices,
+            value: item.value
           }
           if (item.key) {
             obj.key = item.key
+          }
+          if (item.hasOwnProperty('arrayIndex') && item.arrayIndex > -1) {
+            obj.arrayIndex = item.arrayIndex
           }
           data.matches.push(obj)
         }
