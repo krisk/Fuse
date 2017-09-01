@@ -144,6 +144,12 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
         }
       }, {
         'title': 'HTML5',
+      }, {
+        'title': 'A History of England',
+        'author': {
+          'firstName': 1066,
+          'lastName': 'Hastings'
+        }
       }]
       var options = {
         keys: ['title', 'author.firstName'],
@@ -166,6 +172,24 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
           'author': {
             'firstName': 'Steve',
             'lastName': 'Hamilton'
+          }
+        })
+      },
+    },
+    'When searching for the term 106': {
+      topic: function (fuse) {
+        var result = fuse.search('106')
+        return result
+      },
+      'we get a list of exactly 1 item': function (result) {
+        assert.isTrue(result.length > 0)
+      },
+      'whose first value is found': function (result) {
+        assert.deepEqual(result[0], {
+          'title': 'A History of England',
+          'author': {
+            'firstName': 1066,
+            'lastName': 'Hastings'
           }
         })
       },

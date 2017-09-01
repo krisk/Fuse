@@ -91,17 +91,6 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 
-module.exports = function (obj) {
-  return Object.prototype.toString.call(obj) === '[object Array]';
-};
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -202,13 +191,13 @@ var Bitap = function () {
 module.exports = Bitap;
 
 /***/ }),
-/* 2 */
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var isArray = __webpack_require__(0);
+var isArray = __webpack_require__(2);
 
 var deepValue = function deepValue(obj, path, list) {
   if (!path) {
@@ -228,7 +217,7 @@ var deepValue = function deepValue(obj, path, list) {
 
     if (value !== null && value !== undefined) {
       if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
-        list.push(value);
+        list.push(value.toString());
       } else if (isArray(value)) {
         // Search each item in the array.
         for (var i = 0, len = value.length; i < len; i += 1) {
@@ -246,6 +235,17 @@ var deepValue = function deepValue(obj, path, list) {
 
 module.exports = function (obj, path) {
   return deepValue(obj, path, []);
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
 };
 
 /***/ }),
@@ -548,9 +548,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Bitap = __webpack_require__(1);
-var deepValue = __webpack_require__(2);
-var isArray = __webpack_require__(0);
+var Bitap = __webpack_require__(0);
+var deepValue = __webpack_require__(1);
+var isArray = __webpack_require__(2);
 
 var Fuse = function () {
   function Fuse(list, _ref) {
