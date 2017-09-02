@@ -1,3 +1,8 @@
+# Version 3.1.0
+
+- Added match index location for array key (#183)
+- Allow searching deep nested numbers (#189)
+
 # Version 3.0.5
 
 - Escape special characters in search pattern (#168)

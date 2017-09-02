@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.0.5 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.1.0 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -86,6 +86,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -191,13 +202,13 @@ var Bitap = function () {
 module.exports = Bitap;
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var isArray = __webpack_require__(2);
+var isArray = __webpack_require__(0);
 
 var deepValue = function deepValue(obj, path, list) {
   if (!path) {
@@ -235,17 +246,6 @@ var deepValue = function deepValue(obj, path, list) {
 
 module.exports = function (obj, path) {
   return deepValue(obj, path, []);
-};
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function (obj) {
-  return Object.prototype.toString.call(obj) === '[object Array]';
 };
 
 /***/ }),
@@ -548,9 +548,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Bitap = __webpack_require__(0);
-var deepValue = __webpack_require__(1);
-var isArray = __webpack_require__(2);
+var Bitap = __webpack_require__(1);
+var deepValue = __webpack_require__(2);
+var isArray = __webpack_require__(0);
 
 var Fuse = function () {
   function Fuse(list, _ref) {
