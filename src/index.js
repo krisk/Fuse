@@ -313,8 +313,8 @@ class Fuse {
       let bestScore = 1
 
       for (let j = 0; j < scoreLen; j += 1) {
-        let score = output[j].score
         let weight = weights ? weights[output[j].key].weight : 1
+        let score = weight === 1 ? output[j].score : (output[j].score || 0.001)
         let nScore = score * weight
 
         if (weight !== 1) {
