@@ -45,6 +45,8 @@ class Fuse {
     // When true, the result set will only include records that match all tokens. Will only work
     // if `tokenize` is also true.
     matchAllTokens = false,
+    // When true, will return the score of the best matching property
+    bestScore = false,
 
     includeMatches = false,
     includeScore = false,
@@ -63,6 +65,7 @@ class Fuse {
       minMatchCharLength,
       id,
       keys,
+      bestScore,
       includeMatches,
       includeScore,
       shouldSort,
@@ -317,7 +320,15 @@ class Fuse {
         let weight = weights ? weights[output[j].key].weight : 1
         let nScore = score * weight
 
-        if (weight !== 1) {
+        if (this.options.bestScore) {
+         if (score === 0) {
+          score = 0;
+          bestScore = 0;
+          break;
+         } else {
+           bestScore = Math.min(bestScore, nScore);
+         }
+        } else if (weight !== 1) {
           bestScore = Math.min(bestScore, nScore)
         } else {
           output[j].nScore = nScore
@@ -325,7 +336,11 @@ class Fuse {
         }
       }
 
-      results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore
+      if (this.options.bestScore) {
+        results[i].score = bestScore;
+      } else {
+        results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore
+      }
 
       this._log(results[i])
     }

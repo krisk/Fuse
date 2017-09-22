@@ -1009,3 +1009,35 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
     }
   }
 }).export(module)
+
+vows.describe('Searchingwith bestScore option').addBatch({
+  'When bestMatch is set': {
+    topic: function() {
+      var books = [{
+        'title': "Old Man's War",
+        'description': 'A history of the old mans war'
+      }, {
+        'title': 'The Lock Artist',
+        'description': 'All about the Lock Artist'
+      }, {
+        'title': 'HTML5',
+        'description': 'How to HTML5 and the history of the web'
+      }, {
+        'title': 'A History of England',
+        'description': 'The full history of england and how great it is'
+      }]
+      var options = {
+        keys: ['title', 'description'],
+        verbose: verbose,
+        includeScore: true,
+        shouldSort: true,
+        bestScore: true
+      }
+      var fuse = new Fuse(books, options)
+      return fuse.search('A History of England')
+    },
+    'A History of England should match with a score of 0': function (result) {
+      assert.isTrue(result[0].score === 0)
+    }
+  }
+}).export(module)

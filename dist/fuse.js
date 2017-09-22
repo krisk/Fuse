@@ -586,6 +586,8 @@ var Fuse = function () {
         tokenize = _ref$tokenize === undefined ? false : _ref$tokenize,
         _ref$matchAllTokens = _ref.matchAllTokens,
         matchAllTokens = _ref$matchAllTokens === undefined ? false : _ref$matchAllTokens,
+        _ref$bestScore = _ref.bestScore,
+        bestScore = _ref$bestScore === undefined ? false : _ref$bestScore,
         _ref$includeMatches = _ref.includeMatches,
         includeMatches = _ref$includeMatches === undefined ? false : _ref$includeMatches,
         _ref$includeScore = _ref.includeScore,
@@ -606,6 +608,7 @@ var Fuse = function () {
       minMatchCharLength: minMatchCharLength,
       id: id,
       keys: keys,
+      bestScore: bestScore,
       includeMatches: includeMatches,
       includeScore: includeScore,
       shouldSort: shouldSort,
@@ -888,7 +891,15 @@ var Fuse = function () {
           var weight = weights ? weights[output[j].key].weight : 1;
           var nScore = score * weight;
 
-          if (weight !== 1) {
+          if (this.options.bestScore) {
+            if (score === 0) {
+              score = 0;
+              bestScore = 0;
+              break;
+            } else {
+              bestScore = Math.min(bestScore, nScore);
+            }
+          } else if (weight !== 1) {
             bestScore = Math.min(bestScore, nScore);
           } else {
             output[j].nScore = nScore;
@@ -896,7 +907,11 @@ var Fuse = function () {
           }
         }
 
-        results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore;
+        if (this.options.bestScore) {
+          results[i].score = bestScore;
+        } else {
+          results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore;
+        }
 
         this._log(results[i]);
       }
