@@ -1010,7 +1010,7 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
   }
 }).export(module)
 
-vows.describe('Searching a large nested object data should not throw the circular JSON error').addBatch({
+vows.describe('Searching through a large nested object data').addBatch({
   'Options:': {
     topic: function () {
       var o = {};
@@ -1023,7 +1023,7 @@ vows.describe('Searching a large nested object data should not throw the circula
       })
       return fuse
     },
-    'When we are working with long nest JSOn data structures': {
+    'When we are working with long nest JSON data structures': {
       topic: function (fuse) {
         var resultThunk = function () {
           return fuse._format(fuse)
