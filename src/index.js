@@ -1,6 +1,7 @@
 const Bitap = require('./bitap')
 const deepValue = require('./helpers/deep_value')
 const isArray = require('./helpers/is_array')
+const CircularJSON = require('circular-json')
 
 class Fuse {
   constructor (list, {
@@ -338,8 +339,20 @@ class Fuse {
 
   _format (results) {
     const finalOutput = []
+    let cache = []
 
-    this._log('\n\nOutput:\n\n', JSON.stringify(results))
+    this._log('\n\nOutput:\n\n', JSON.stringify(results, function (key, value) {
+      if (typeof value === 'object' && value !== null) {
+        if (cache.indexOf(value) !== -1) {
+          // Circular reference found, discard key
+          return;
+        }
+        // Store value in our collection
+        cache.push(value);
+      }
+      return value;
+    }))
+    cache = null; // Enable garbage collection
 
     let transformers = []
 
