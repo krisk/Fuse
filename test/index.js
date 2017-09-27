@@ -1009,3 +1009,123 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
     }
   }
 }).export(module)
+
+vows.describe('Weighted search with exact match').addBatch({
+  'Books:': {
+    topic: function() {
+      var items = [{
+        title: "John Smith",
+        author: 'Steve Pearson',
+      }, {
+        title: 'The life of Jane',
+        author: 'John Smith',
+      }]
+      return items
+    },
+
+    'When searching for the term "John Smith" with author weighted higher': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'title',
+            weight: 0.3
+          }, {
+            name: 'author',
+            weight: 0.7
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('John Smith')
+        return result
+      },
+      'We get the value { title: "The life of Jane", author: "John Smith" }': function (result) {
+        assert.deepEqual(result[0].title, 'The life of Jane');
+        assert.deepEqual(result[0].author, 'John Smith');
+      },
+    },
+
+    'When searching for the term "John Smith" with title weighted higher': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'title',
+            weight: 0.7
+          }, {
+            name: 'author',
+            weight: 0.3
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('John Smith')
+        return result
+      },
+      'We get the value { title: "John Smith", author: "Steve Pearson" }': function (result) {
+        assert.deepEqual(result[0].title, 'John Smith');
+        assert.deepEqual(result[0].author, 'Steve Pearson');
+      },
+    },
+  }
+}).export(module);
+
+vows.describe('Weighted search with exact match in arrays').addBatch({
+  'Books:': {
+    topic: function() {
+      var items = [ {
+        title: "Jackson",
+        author: 'Steve Pearson',
+        tags: ['Kevin Wong', 'Victoria Adam', 'John Smith']
+      }, {
+        title: 'The life of Jane',
+        author: 'John Smith',
+        tags: ['Jane', 'Jackson', 'Sam']
+      }]
+      return items
+    },
+
+    'When searching for the term "Jackson", with tags weighted higher and string inside tags getting exact match': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'tags',
+            weight: 0.7
+          }, {
+            name: 'title',
+            weight: 0.3
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('Jackson')
+        return result
+      },
+      'We get the value { title: "The life of Jane", tags: ["Jane", "Jackson", "Sam"] ... }': function (result) {
+        assert.deepEqual(result[0].title, 'The life of Jane');
+        assert.deepEqual(result[0].tags, ['Jane', 'Jackson', 'Sam']);
+      },
+    },
+
+    'When searching for the term "Jackson", with title weighted higher and string inside getting exact match': {
+      topic: function (items) {
+        var options = {
+          keys: [{
+            name: 'tags',
+            weight: 0.3
+          }, {
+            name: 'title',
+            weight: 0.7
+          }],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('Jackson')
+        return result
+      },
+      'We get the value { title: "Jackson", tags: "Kevin Wong", ... }': function (result) {
+        assert.deepEqual(result[0].title, 'Jackson');
+        assert.deepEqual(result[0].tags, ['Kevin Wong', 'Victoria Adam', 'John Smith']);
+      },
+    }
+  }
+}).export(module);
