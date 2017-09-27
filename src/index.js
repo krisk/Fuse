@@ -1,7 +1,6 @@
 const Bitap = require('./bitap')
 const deepValue = require('./helpers/deep_value')
 const isArray = require('./helpers/is_array')
-const CircularJSON = require('circular-json')
 
 class Fuse {
   constructor (list, {
