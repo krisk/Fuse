@@ -190,7 +190,8 @@ class Fuse {
     let exists = false
     let averageScore = -1
     let numTextMatches = 0
-
+    
+    if (typeof value === 'number') value = String(value)
     if (typeof value === 'string') {
       this._log(`\nKey: ${key === '' ? '-' : key}`)
 
