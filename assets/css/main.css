@@ -17,6 +17,9 @@ a {
   text-decoration: none;
   background-color: #0269c2;
 }
+.tease a {
+    color: white !important;
+}
 
 .content {
     padding: 0 20px 20px 20px;
