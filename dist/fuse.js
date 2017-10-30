@@ -655,7 +655,7 @@ var Fuse = function () {
 
       if (this.options.tokenize) {
         // Tokenize on the separator
-        var tokens = pattern.split(this.options.tokenSeparator);
+        var tokens = pattern.split(this.options.tokenSeparator).filter(String);
         for (var i = 0, len = tokens.length; i < len; i += 1) {
           tokenSearchers.push(new Bitap(tokens[i], this.options));
         }

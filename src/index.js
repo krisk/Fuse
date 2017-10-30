@@ -105,7 +105,7 @@ class Fuse {
 
     if (this.options.tokenize) {
       // Tokenize on the separator
-      const tokens = pattern.split(this.options.tokenSeparator)
+      const tokens = pattern.split(this.options.tokenSeparator).filter(String)
       for (let i = 0, len = tokens.length; i < len; i += 1) {
         tokenSearchers.push(new Bitap(tokens[i], this.options))
       }
