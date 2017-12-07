@@ -1,3 +1,7 @@
+# Version 3.2.0
+
+- Give better result for exact match when using weighted keys (#192)
+
 # Version 3.1.0
 
 - Added match index location for array key (#183)

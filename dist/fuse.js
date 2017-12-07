@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.1.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.2.1 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -886,8 +886,8 @@ var Fuse = function () {
         var bestScore = 1;
 
         for (var j = 0; j < scoreLen; j += 1) {
-          var score = output[j].score;
           var weight = weights ? weights[output[j].key].weight : 1;
+          var score = weight === 1 ? output[j].score : output[j].score || 0.001;
           var nScore = score * weight;
 
           if (weight !== 1) {
