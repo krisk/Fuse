@@ -1,5 +1,6 @@
 const assert = require('assert')
 const vows = require('vows')
+const { List, fromJS } = require('immutable')
 const Fuse = require('../dist/fuse')
 const books = require('./fixtures/books.json')
 
@@ -8,7 +9,7 @@ const verbose = false
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
     topic: function() {
-      var fruits = ['Apple', 'Orange', 'Banana']
+      var fruits = List.of('Apple', 'Orange', 'Banana')
       var fuse = new Fuse(fruits, {
         verbose: verbose
       })
@@ -20,10 +21,10 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
         return result
       },
       'we get a list of containing 1 item, which is an exact match': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the index 0, representing ["Apple"]': function (result) {
-        assert.equal(result[0], 0)
+        assert.equal(result.first(), 0)
       },
     },
     'When performing a fuzzy search for the term "ran"': {
@@ -32,11 +33,11 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
         return result
       },
       'we get a list of containing 2 items: [1, 2]': function (result) {
-        assert.equal(result.length, 2)
+        assert.equal(result.size, 2)
       },
       'whose values represent the indices of ["Orange", "Banana"]': function (result) {
-        assert.equal(result[0], 1)
-        assert.equal(result[1], 2)
+        assert.equal(result.first(), 1)
+        assert.equal(result.get(1), 2)
       },
     },
     'When performing a fuzzy search for the term "nan"': {
@@ -45,11 +46,11 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
         return result
       },
       'we get a list of containing 2 items: [2, 1]': function (result) {
-        assert.equal(result.length, 2)
+        assert.equal(result.size, 2)
       },
       'whose values represent the indices of ["Banana", "Orange"]': function (result) {
-        assert.equal(result[0], 2)
-        assert.equal(result[1], 1)
+        assert.equal(result.first(), 2)
+        assert.equal(result.get(1), 1)
       },
     }
   }
@@ -63,7 +64,7 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
         verbose: verbose,
         tokenize: true
       }
-      var fuse = new Fuse(books, options)
+      var fuse = new Fuse(fromJS(books), options)
       return fuse
     },
     'When searching for the term "HTML5"': {
@@ -72,13 +73,13 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
         return result
       },
       'we get a list of containing 3 items': function (result) {
-        assert.equal(result.length, 3)
+        assert.equal(result.size, 3)
       },
       'whose value is { title: "HTML5", author: "Remy Sharp" }': function (result) {
-        assert.deepEqual(result[0], {
+        assert.deepEqual(result.first(), fromJS({
           title: 'HTML5',
           author: 'Remy Sharp'
-        })
+        }))
       },
     },
     'When searching for the term "Woodhouse"': {
@@ -87,17 +88,17 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
         return result
       },
       'we get a list of containing 5 items': function (result) {
-        assert.equal(result.length, 6)
+        assert.equal(result.size, 6)
       },
       'which are all the books written by "P.D. Woodhouse"': function (result) {
-        var output = [
+        var output = fromJS([
           { title: 'Right Ho Jeeves', author: 'P.D. Woodhouse' },
           { title: 'Thank You Jeeves', author: 'P.D. Woodhouse' },
           { title: 'The Code of the Wooster', author: 'P.D. Woodhouse' },
           { title: 'The Lock Artist', author: 'Steve Hamilton' },
           { title: 'the wooster code', author: 'aa' },
           { title: 'The code of the wooster', author: 'aa' }
-        ]
+        ])
         assert.deepEqual(result, output)
       }
     },
@@ -107,21 +108,21 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
         return result
       },
       'we get a list of containing at least 3 items': function (result) {
-        assert.isTrue(result.length > 3)
+        assert.isTrue(result.size > 3)
       },
       'and the first 3 items should be all the books written by Dan Brown': function (result) {
-        assert.deepEqual(result[0], {
+        assert.deepEqual(result.first(), fromJS({
           'title': 'The DaVinci Code',
           'author': 'Dan Brown'
-        })
-        assert.deepEqual(result[1], {
+        }))
+        assert.deepEqual(result.get(1), fromJS({
           'title': 'Angels & Demons',
           'author': 'Dan Brown'
-        })
-        assert.deepEqual(result[2], {
+        }))
+        assert.deepEqual(result.get(2), fromJS({
           'title': 'The Lost Symbol',
           'author': 'Dan Brown'
-        })
+        }))
       },
     }
   }
@@ -130,7 +131,7 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
 vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
   'Deep:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'title': "Old Man's War",
         'author': {
           'firstName': 'John',
@@ -150,7 +151,7 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
           'firstName': 1066,
           'lastName': 'Hastings'
         }
-      }]
+      }])
       var options = {
         keys: ['title', 'author.firstName'],
         verbose: verbose
@@ -164,16 +165,16 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
         return result
       },
       'we get a list of containing at least 1 item': function (result) {
-        assert.isTrue(result.length > 0)
+        assert.isTrue(result.size > 0)
       },
       'whose first value is found': function (result) {
-        assert.deepEqual(result[0], {
+        assert.deepEqual(result.first(), fromJS({
           'title': 'The Lock Artist',
           'author': {
             'firstName': 'Steve',
             'lastName': 'Hamilton'
           }
-        })
+        }))
       },
     },
     'When searching for the term 106': {
@@ -182,16 +183,16 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
         return result
       },
       'we get a list of exactly 1 item': function (result) {
-        assert.isTrue(result.length > 0)
+        assert.isTrue(result.size > 0)
       },
       'whose first value is found': function (result) {
-        assert.deepEqual(result[0], {
+        assert.deepEqual(result.first(), fromJS({
           'title': 'A History of England',
           'author': {
             'firstName': 1066,
             'lastName': 'Hastings'
           }
-        })
+        }))
       },
     }
   }
@@ -200,7 +201,7 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
 vows.describe('Custom search function, with ["title", "author.firstName"]').addBatch({
   'Deep:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'title': "Old Man's War",
         'author': {
           'firstName': 'John',
@@ -212,14 +213,14 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
           'firstName': 'Steve',
           'lastName': 'Hamilton'
         }
-      }]
+      }])
       var options = {
         keys: ['title', 'author.firstName'],
         getFn: function (obj, path) {
           if (!obj) {
             return null
           }
-          obj = obj.author.lastName
+          obj = obj.getIn(['author', 'lastName'])
           return obj
         }
       }
@@ -232,16 +233,16 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
         return result
       },
       'we get a list of containing at least 1 item': function (result) {
-        assert.isTrue(result.length > 0)
+        assert.isTrue(result.size > 0)
       },
       'whose first value is found': function (result) {
-        assert.deepEqual(result[0], {
+        assert.deepEqual(result.first(), fromJS({
           'title': 'The Lock Artist',
           'author': {
             'firstName': 'Steve',
             'lastName': 'Hamilton'
           }
-        })
+        }))
       },
     },
     'When searching for the term "Stve"': {
@@ -250,8 +251,8 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
         return result
       },
       'we get a list of containing at least no items': function (result) {
-        // assert.isTrue(result.length > 0)
-        assert.equal(result.length, 0)
+        // assert.isTrue(result.size > 0)
+        assert.equal(result.size, 0)
       },
     }
   }
@@ -260,7 +261,7 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
 vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').addBatch({
   'Options:': {
     topic: function() {
-      var fruits = ['Apple', 'Orange', 'Banana']
+      var fruits = List.of('Apple', 'Orange', 'Banana')
       var fuse = new Fuse(fruits, {
         includeScore: true,
         verbose: verbose
@@ -273,11 +274,11 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
         return result
       },
       'we get a list of containing 1 item, which is an exact match': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value and score exist': function (result) {
-        assert.equal(result[0].item, 0)
-        assert.equal(result[0].score, 0)
+        assert.equal(result.first().get('item'), 0)
+        assert.equal(result.first().get('score'), 0)
       },
     },
     'When performing a fuzzy search for the term "ran"': {
@@ -286,13 +287,13 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
         return result
       },
       'we get a list of containing 2 items': function (result) {
-        assert.equal(result.length, 2)
+        assert.equal(result.size, 2)
       },
       'whose items represent the indices, and have non-zero scores': function (result) {
-        assert.equal(result[0].item, 1)
-        assert.equal(result[1].item, 2)
-        assert.isNotZero(result[0].score)
-        assert.isNotZero(result[1].score)
+        assert.equal(result.first().get('item'), 1)
+        assert.equal(result.getIn([1, 'item']), 2)
+        assert.isNotZero(result.first().get('score'))
+        assert.isNotZero(result.getIn([1, 'score']))
       },
     }
   }
@@ -301,7 +302,7 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
 vows.describe('Only include ID in results list, with "ISBN"').addBatch({
   'Options:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'ISBN': '0765348276',
         'title': "Old Man's War",
         'author': 'John Scalzi'
@@ -309,7 +310,7 @@ vows.describe('Only include ID in results list, with "ISBN"').addBatch({
         'ISBN': '0312696957',
         'title': 'The Lock Artist',
         'author': 'Steve Hamilton'
-      }]
+      }])
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN'
@@ -323,10 +324,10 @@ vows.describe('Only include ID in results list, with "ISBN"').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.equal(result, '0312696957')
+        assert.equal(result.first(), '0312696957')
       },
     }
   }
@@ -335,7 +336,7 @@ vows.describe('Only include ID in results list, with "ISBN"').addBatch({
 vows.describe('Include both ID and score in results list').addBatch({
   'Options:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'ISBN': '0765348276',
         'title': "Old Man's War",
         'author': 'John Scalzi'
@@ -343,7 +344,7 @@ vows.describe('Include both ID and score in results list').addBatch({
         'ISBN': '0312696957',
         'title': 'The Lock Artist',
         'author': 'Steve Hamilton'
-      }]
+      }])
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
@@ -359,13 +360,13 @@ vows.describe('Include both ID and score in results list').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.equal(result[0].item, '0312696957')
+        assert.equal(result.first().get('item'), '0312696957')
       },
       'and has a score different than zero': function (result) {
-        assert.isNotZero(result[0].score)
+        assert.isNotZero(result.first().get('score'))
       }
     }
   }
@@ -374,7 +375,7 @@ vows.describe('Include both ID and score in results list').addBatch({
 vows.describe('Search when IDs are numbers').addBatch({
   'Options:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'ISBN': 1111,
         'title': "Old Man's War",
         'author': 'John Scalzi'
@@ -382,7 +383,7 @@ vows.describe('Search when IDs are numbers').addBatch({
         'ISBN': 2222,
         'title': 'The Lock Artist',
         'author': 'Steve Hamilton'
-      }]
+      }])
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN',
@@ -398,13 +399,13 @@ vows.describe('Search when IDs are numbers').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.equal(result[0].item, 2222)
+        assert.equal(result.first().get('item'), 2222)
       },
       'and has a score different than zero': function (result) {
-        assert.isNotZero(result[0].score)
+        assert.isNotZero(result.first().get('score'))
       }
     }
   }
@@ -413,7 +414,7 @@ vows.describe('Search when IDs are numbers').addBatch({
 vows.describe('Recurse into arrays').addBatch({
   'Options:': {
     topic: function () {
-      var books = [{
+      var books = fromJS([{
         'ISBN': '0765348276',
         'title': "Old Man's War",
         'author': 'John Scalzi',
@@ -428,7 +429,7 @@ vows.describe('Recurse into arrays').addBatch({
         'title': 'HTML5',
         'author': 'Remy Sharp',
         'tags': ['web development', 'nonfiction']
-      }]
+      }])
       var options = {
         keys: ['tags'],
         id: 'ISBN',
@@ -445,19 +446,19 @@ vows.describe('Recurse into arrays').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.equal(result[0].item, '0321784421')
+        assert.equal(result.first().get('item'), '0321784421')
       },
       'with matched tag provided': function (result) {
-        const matches = result[0].matches
-        assert.deepEqual(matches[0], {
+        const matches = result.first().get('matches')
+        assert.equal(matches.first().equals(fromJS({
           key: 'tags',
           arrayIndex: 1,
           value: 'nonfiction',
           indices: [[0, 9]]
-        })
+        })), true)
       }
     }
   }
@@ -466,7 +467,7 @@ vows.describe('Recurse into arrays').addBatch({
 vows.describe('Recurse into objects in arrays').addBatch({
   'Options:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'ISBN': '0765348276',
         'title': "Old Man's War",
         'author': {
@@ -493,7 +494,7 @@ vows.describe('Recurse into objects in arrays').addBatch({
             value: 'British'
           }]
         }
-      }]
+      }])
       var options = {
         keys: ['author.tags.value'],
         id: 'ISBN',
@@ -509,10 +510,10 @@ vows.describe('Recurse into objects in arrays').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.equal(result[0], '0321784421')
+        assert.equal(result.first(), '0321784421')
       }
     }
   }
@@ -521,7 +522,7 @@ vows.describe('Recurse into objects in arrays').addBatch({
 vows.describe('Searching by ID').addBatch({
   'Options:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'ISBN': 'A',
         'title': "Old Man's War",
         'author': 'John Scalzi'
@@ -529,7 +530,7 @@ vows.describe('Searching by ID').addBatch({
         'ISBN': 'B',
         'title': 'The Lock Artist',
         'author': 'Steve Hamilton'
-      }]
+      }])
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN'
@@ -543,11 +544,11 @@ vows.describe('Searching by ID').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.isString(result[0])
-        assert.equal(result[0], 'B')
+        assert.isString(result.first())
+        assert.equal(result.first(), 'B')
       },
     }
   }
@@ -556,8 +557,8 @@ vows.describe('Searching by ID').addBatch({
 vows.describe('Set new list on Fuse').addBatch({
   'Options:': {
     topic: function() {
-      var fruits = ['Apple', 'Orange', 'Banana']
-      var vegetables = ['Onion', 'Lettuce', 'Broccoli']
+      var fruits = List.of('Apple', 'Orange', 'Banana')
+      var vegetables = List.of('Onion', 'Lettuce', 'Broccoli')
 
       var fuse = new Fuse(fruits, {
         verbose: verbose
@@ -571,10 +572,10 @@ vows.describe('Set new list on Fuse').addBatch({
         return result
       },
       'we get a list of containing 1 item, which is an exact match': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the index 0, representing ["Lettuce"]': function (result) {
-        assert.equal(result[0], 1)
+        assert.equal(result.first(), 1)
       },
     }
   }
@@ -583,7 +584,7 @@ vows.describe('Set new list on Fuse').addBatch({
 vows.describe('Searching by nested ID').addBatch({
   'Options:': {
     topic: function() {
-      var books = [{
+      var books = fromJS([{
         'ISBN': {
           'name': 'A'
         },
@@ -595,7 +596,7 @@ vows.describe('Searching by nested ID').addBatch({
         },
         'title': 'The Lock Artist',
         'author': 'Steve Hamilton'
-      }]
+      }])
       var options = {
         keys: ['title', 'author'],
         id: 'ISBN.name'
@@ -609,11 +610,11 @@ vows.describe('Searching by nested ID').addBatch({
         return result
       },
       'we get a list containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose value is the ISBN of the book': function (result) {
-        assert.isString(result[0])
-        assert.equal(result[0], 'B')
+        assert.isString(result.first())
+        assert.equal(result.first(), 'B')
       },
     }
   }
@@ -622,7 +623,7 @@ vows.describe('Searching by nested ID').addBatch({
 vows.describe('Searching list').addBatch({
   'Options:': {
     topic: function() {
-      var items = ['FH Mannheim', 'University Mannheim']
+      var items = List.of('FH Mannheim', 'University Mannheim')
       var fuse = new Fuse(items)
       return fuse
     },
@@ -632,10 +633,10 @@ vows.describe('Searching list').addBatch({
         return result
       },
       'we get a list containing 2 items': function (result) {
-        assert.equal(result.length, 2)
+        assert.equal(result.size, 2)
       },
       'whose first value is the index of "University Mannheim"': function (result) {
-        assert.equal(result[0], 1)
+        assert.equal(result.first(), 1)
       }
     }
   }
@@ -644,11 +645,11 @@ vows.describe('Searching list').addBatch({
 vows.describe('Searching list').addBatch({
   'Options:': {
     topic: function() {
-      var items = [
+      var items = List.of(
         'Borwaila hamlet',
         'Bobe hamlet',
         'Bo hamlet',
-        'Boma hamlet']
+        'Boma hamlet')
 
       var fuse = new Fuse(items, {
         includeScore: true,
@@ -662,10 +663,10 @@ vows.describe('Searching list').addBatch({
         return result
       },
       'we get a list containing 4 items': function (result) {
-        assert.equal(result.length, 4)
+        assert.equal(result.size, 4)
       },
       'whose first value is the index of "Bo hamlet"': function (result) {
-        assert.equal(result[0].item, 2)
+        assert.equal(result.first().get('item'), 2)
       }
     }
   }
@@ -678,7 +679,7 @@ vows.describe('List of books - searching for long pattern length > 32').addBatch
         keys: ['title'],
         verbose: verbose
       }
-      var fuse = new Fuse(books, options)
+      var fuse = new Fuse(fromJS(books), options)
       return fuse
     },
     'When searching for the term "HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5 HTML5"': {
@@ -687,13 +688,13 @@ vows.describe('List of books - searching for long pattern length > 32').addBatch
         return result
       },
       'we get a a non empty list': function (result) {
-        assert.isTrue(!!result.length)
+        assert.isTrue(!!result.size)
       },
       'whose first value is { title: "HTML5", author: "Remy Sharp" }': function (result) {
-        assert.deepEqual(result[0], {
+        assert.deepEqual(result.first(), fromJS({
           title: 'HTML5',
           author: 'Remy Sharp'
-        })
+        }))
       },
     }
   }
@@ -702,7 +703,7 @@ vows.describe('List of books - searching for long pattern length > 32').addBatch
 vows.describe('Weighted search').addBatch({
   'Books:': {
     topic: function() {
-      var items = [{
+      var items = fromJS([{
         title: "Old Man's War fiction",
         author: 'John X',
         tags: ['war']
@@ -710,7 +711,7 @@ vows.describe('Weighted search').addBatch({
         title: 'Right Ho Jeeves',
         author: 'P.D. Mans',
         tags: ['fiction', 'war']
-      }]
+      }])
       return items
     },
     'When searching for the term "Man", where the author is weighted higher than title': {
@@ -730,7 +731,7 @@ vows.describe('Weighted search').addBatch({
         return result
       },
       'We get the value { title: "Right Ho Jeeves", author: "P.D. Mans" }': function (result) {
-        assert.deepEqual(result[0].title, 'Right Ho Jeeves')
+        assert.deepEqual(result.first().get('title'), 'Right Ho Jeeves')
       },
     },
     'When searching for the term "Man", where the title is weighted higher than author': {
@@ -750,7 +751,7 @@ vows.describe('Weighted search').addBatch({
         return result
       },
       'We get the value for "John X"': function (result) {
-        assert.deepEqual(result[0].author, 'John X')
+        assert.deepEqual(result.first().get('author'), 'John X')
       },
     },
     'When searching for the term "war", where tags are weighted higher than all other keys': {
@@ -773,7 +774,7 @@ vows.describe('Weighted search').addBatch({
         return result
       },
       'We get the value for "P.D. Mans"': function (result) {
-        assert.deepEqual(result[0].author, 'P.D. Mans')
+        assert.deepEqual(result.first().get('author'), 'P.D. Mans')
       },
     }
   }
@@ -782,9 +783,9 @@ vows.describe('Weighted search').addBatch({
 vows.describe('Search location').addBatch({
   'Books:': {
     topic: function () {
-      var items = [{
+      var items = fromJS([{
         name: 'Hello World'
-      }]
+      }])
       var options = {
         keys: ['name'],
         verbose: verbose,
@@ -800,18 +801,18 @@ vows.describe('Search location').addBatch({
         return result
       },
       'we get a a non empty list': function (result) {
-        assert.isTrue(!!result.length)
+        assert.isTrue(!!result.size)
       },
       'whose indices are found': function (result) {
-        var matches = result[0].matches
-        var a = matches[0].indices[0]
-        var b = matches[0].indices[1]
-        assert.deepEqual(a, [4, 4])
-        assert.deepEqual(b, [6, 8])
+        var matches = result.first().get('matches')
+        var a = matches.first().get('indices').first()
+        var b = matches.first().get('indices').get(1)
+        assert.deepEqual(a, List.of(4, 4))
+        assert.deepEqual(b, List.of(6, 8))
       },
       'with original text value': function (result) {
-        var matches = result[0].matches
-        assert.equal(matches[0].value, 'Hello World')
+        var matches = result.first().get('matches')
+        assert.equal(matches.first().get('value'), 'Hello World')
       }
     }
   }
@@ -820,13 +821,13 @@ vows.describe('Search location').addBatch({
 vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund", "Workforce Superannuation Corporate", "IGT (Australia) Pty Ltd Superannuation Fund"]').addBatch({
   'Flat:': {
     topic: function() {
-      var items = [
+      var items = List.of(
         'AustralianSuper - Corporate Division',
         'Aon Master Trust - Corporate Super',
         'Promina Corporate Superannuation Fund',
         'Workforce Superannuation Corporate',
         'IGT (Australia) Pty Ltd Superannuation Fund'
-      ]
+      )
       return items
     },
     'When searching for the term "Australia"': {
@@ -839,7 +840,7 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
         return result
       },
       'we get a list of containing 2 items': function (result) {
-        assert.equal(result.length, 2)
+        assert.equal(result.size, 2)
       },
       'whose items represent the indices of "AustralianSuper - Corporate Division" and "IGT (Australia) Pty Ltd Superannuation Fund"': function (result) {
         assert.notEqual(result.indexOf(0), -1)
@@ -856,7 +857,7 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
         return result
       },
       'we get a list of containing 4 items': function (result) {
-        assert.equal(result.length, 4)
+        assert.equal(result.size, 4)
       },
       'whose items represent the indices of "AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund" and "Workforce Superannuation Corporate"': function (result) {
         assert.notEqual(result.indexOf(0), -1)
@@ -876,7 +877,7 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
         return result
       },
       'we get a list of containing 5 items': function (result) {
-        assert.equal(result.length, 5)
+        assert.equal(result.size, 5)
       },
       'whose items represent the indices of "AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund", "Workforce Superannuation Corporate" and "IGT (Australia) Pty Ltd Superannuation Fund"': function (result) {
         assert.notEqual(result.indexOf(0), -1)
@@ -897,7 +898,7 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
         return result
       },
       'we get a list of containing 1 item': function (result) {
-        assert.equal(result.length, 1)
+        assert.equal(result.size, 1)
       },
       'whose item represents the index of "AustralianSuper - Corporate Division"': function (result) {
         assert.notEqual(result.indexOf(0), -1)
@@ -909,7 +910,7 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
 vows.describe('Searching with default options').addBatch({
   'Options:': {
     topic: function() {
-      var items = ['t te tes test tes te t'];
+      var items = List.of('t te tes test tes te t');
 
       var fuse = new Fuse(items, {
         includeMatches: true,
@@ -923,11 +924,11 @@ vows.describe('Searching with default options').addBatch({
         return result
       },
       'We get a match containing 4 indices': function (result) {
-        assert.equal(result[0].matches[0].indices.length, 4)
+        assert.equal(result.first().get('matches').first().get('indices').size, 4)
       },
       'The first index is a single character': function (result) {
-        assert.equal(result[0].matches[0].indices[0][0], 0)
-        assert.equal(result[0].matches[0].indices[0][1], 0)
+        assert.equal(result.first().get('matches').first().get('indices').first().first(), 0)
+        assert.equal(result.first().get('matches').first().get('indices').first().get(1), 0)
       },
     },
     'When the seach pattern is longer than maxPatternLength and contains RegExp special characters': {
@@ -947,7 +948,7 @@ vows.describe('Searching with default options').addBatch({
 vows.describe('Searching with findallmatches options').addBatch({
   'Options:': {
     topic: function() {
-      var items = ['t te tes test tes te t'];
+      var items = List.of('t te tes test tes te t')
 
       var fuse = new Fuse(items, {
         includeMatches: true,
@@ -962,11 +963,11 @@ vows.describe('Searching with findallmatches options').addBatch({
         return result
       },
       'We get a match containing 7 indices': function (result) {
-        assert.equal(result[0].matches[0].indices.length, 7)
+        assert.equal(result.first().get('matches').first().get('indices').size, 7)
       },
       'The first index is a single character': function (result) {
-        assert.equal(result[0].matches[0].indices[0][0], 0)
-        assert.equal(result[0].matches[0].indices[0][1], 0)
+        assert.equal(result.first().get('matches').first().get('indices').first().first(), 0)
+        assert.equal(result.first().get('matches').first().get('indices').first().get(1), 0)
       },
     }
   }
@@ -975,7 +976,7 @@ vows.describe('Searching with findallmatches options').addBatch({
 vows.describe('Searching with minMatchCharLength options').addBatch({
   'Options:': {
     topic: function () {
-      var items = ['t te tes test tes te t']
+      var items = List.of('t te tes test tes te t')
 
       var fuse = new Fuse(items, {
         includeMatches: true,
@@ -990,11 +991,11 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
         return result
       },
       'We get a match containing 3 indices': function (result) {
-        assert.equal(result[0].matches[0].indices.length, 3)
+        assert.equal(result.first().get('matches').first().get('indices').size, 3)
       },
       'The first index is a single character': function (result) {
-        assert.equal(result[0].matches[0].indices[0][0], 2)
-        assert.equal(result[0].matches[0].indices[0][1], 3)
+        assert.equal(result.first().get('matches').first().get('indices').first().first(), 2)
+        assert.equal(result.first().get('matches').first().get('indices').first().get(1), 3)
       }
     },
     'When searching for a string shorter than minMatchCharLength': {
@@ -1003,8 +1004,8 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
         return result
       },
       'We get a result with no matches included': function (result) {
-        assert.equal(result.length, 1)
-        assert.equal(result[0].matches.length, 0)
+        assert.equal(result.size, 1)
+        assert.equal(result.first().get('matches').size, 0)
       }
     }
   }
@@ -1013,13 +1014,13 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
 vows.describe('Weighted search with exact match').addBatch({
   'Books:': {
     topic: function() {
-      var items = [{
+      var items = fromJS([{
         title: "John Smith",
         author: 'Steve Pearson',
       }, {
         title: 'The life of Jane',
         author: 'John Smith',
-      }]
+      }])
       return items
     },
 
@@ -1040,8 +1041,8 @@ vows.describe('Weighted search with exact match').addBatch({
         return result
       },
       'We get the value { title: "The life of Jane", author: "John Smith" }': function (result) {
-        assert.deepEqual(result[0].title, 'The life of Jane');
-        assert.deepEqual(result[0].author, 'John Smith');
+        assert.deepEqual(result.first().get('title'), 'The life of Jane');
+        assert.deepEqual(result.first().get('author'), 'John Smith');
       },
     },
 
@@ -1062,8 +1063,8 @@ vows.describe('Weighted search with exact match').addBatch({
         return result
       },
       'We get the value { title: "John Smith", author: "Steve Pearson" }': function (result) {
-        assert.deepEqual(result[0].title, 'John Smith');
-        assert.deepEqual(result[0].author, 'Steve Pearson');
+        assert.deepEqual(result.first().get('title'), 'John Smith');
+        assert.deepEqual(result.first().get('author'), 'Steve Pearson');
       },
     },
   }
@@ -1072,7 +1073,7 @@ vows.describe('Weighted search with exact match').addBatch({
 vows.describe('Weighted search with exact match in arrays').addBatch({
   'Books:': {
     topic: function() {
-      var items = [ {
+      var items = fromJS([{
         title: "Jackson",
         author: 'Steve Pearson',
         tags: ['Kevin Wong', 'Victoria Adam', 'John Smith']
@@ -1080,7 +1081,7 @@ vows.describe('Weighted search with exact match in arrays').addBatch({
         title: 'The life of Jane',
         author: 'John Smith',
         tags: ['Jane', 'Jackson', 'Sam']
-      }]
+      }])
       return items
     },
 
@@ -1101,8 +1102,8 @@ vows.describe('Weighted search with exact match in arrays').addBatch({
         return result
       },
       'We get the value { title: "The life of Jane", tags: ["Jane", "Jackson", "Sam"] ... }': function (result) {
-        assert.deepEqual(result[0].title, 'The life of Jane');
-        assert.deepEqual(result[0].tags, ['Jane', 'Jackson', 'Sam']);
+        assert.deepEqual(result.first().get('title'), 'The life of Jane');
+        assert.deepEqual(result.first().get('tags'), List.of('Jane', 'Jackson', 'Sam'));
       },
     },
 
@@ -1123,8 +1124,8 @@ vows.describe('Weighted search with exact match in arrays').addBatch({
         return result
       },
       'We get the value { title: "Jackson", tags: "Kevin Wong", ... }': function (result) {
-        assert.deepEqual(result[0].title, 'Jackson');
-        assert.deepEqual(result[0].tags, ['Kevin Wong', 'Victoria Adam', 'John Smith']);
+        assert.deepEqual(result.first().get('title'), 'Jackson');
+        assert.deepEqual(result.first().get('tags'), List.of('Kevin Wong', 'Victoria Adam', 'John Smith'));
       },
     }
   }
