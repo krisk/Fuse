@@ -14,7 +14,9 @@
     "url": "https://github.com/krisk/Fuse.git"
   },
   "homepage": "http://fusejs.io",
-  "dependencies": {},
+  "dependencies": {
+    "immutable": "^3.8.2"
+  },
   "keywords": [
     "fuzzy",
     "bitap"
