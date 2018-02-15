@@ -1129,3 +1129,54 @@ vows.describe('Weighted search with exact match in arrays').addBatch({
     }
   }
 }).export(module);
+
+vows.describe('Search patterns that exceed 32 characters').addBatch({
+  'Patterns:': {
+    topic: function () {
+      var patterns = ['wwwww', 'wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww']
+      return patterns
+    },
+
+    'When matching a pattern less than 32 characters': {
+      topic: function (patterns) {
+        var options = {
+          maxPatternLength: 50,
+          minMatchCharLength: 4,
+          keys: [
+            'text'
+          ]
+        }
+        var list = [{
+          text: 'listItem'
+        }]
+        var fuse = new Fuse(list, options)
+        var matched = fuse.search(patterns[0]).length > 0
+        return matched
+      },
+      'We get the value false': function (matched) {
+        assert.deepEqual(matched, false)
+      }
+    },
+
+    'When matching a pattern greater than 32 characters': {
+      topic: function (patterns) {
+        var options = {
+          maxPatternLength: 50,
+          minMatchCharLength: 4,
+          keys: [
+            'text'
+          ]
+        }
+        var list = [{
+          text: 'listItem'
+        }]
+        var fuse = new Fuse(list, options)
+        var matched = fuse.search(patterns[1]).length > 0
+        return matched
+      },
+      'We get the value false': function (matched) {
+        assert.deepEqual(matched, false)
+      }
+    }
+  }
+}).export(module)

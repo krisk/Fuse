@@ -48,7 +48,7 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
   let finalScore = 1
   let binMax = patternLen + textLen
 
-  const mask = 1 << (patternLen - 1)
+  const mask = Math.pow(2, patternLen - 1)
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
