@@ -912,7 +912,9 @@ var Fuse = function () {
     value: function _format(results) {
       var finalOutput = [];
 
-      this._log('\n\nOutput:\n\n', JSON.stringify(results));
+      if (this.options.verbose) {
+        this._log('\n\nOutput:\n\n', JSON.stringify(results));
+      }
 
       var transformers = [];
 

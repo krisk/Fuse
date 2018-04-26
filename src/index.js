@@ -339,7 +339,9 @@ class Fuse {
   _format (results) {
     const finalOutput = []
 
-    this._log('\n\nOutput:\n\n', JSON.stringify(results))
+    if (this.options.verbose) {
+      this._log('\n\nOutput:\n\n', JSON.stringify(results))
+    }
 
     let transformers = []
 
