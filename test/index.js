@@ -7,7 +7,7 @@ const verbose = false
 
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
-    topic: function() {
+    topic: function () {
       var fruits = ['Apple', 'Orange', 'Banana']
       var fuse = new Fuse(fruits, {
         verbose: verbose
@@ -24,7 +24,7 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
       },
       'whose value is the index 0, representing ["Apple"]': function (result) {
         assert.equal(result[0], 0)
-      },
+      }
     },
     'When performing a fuzzy search for the term "ran"': {
       topic: function (fuse) {
@@ -37,7 +37,7 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
       'whose values represent the indices of ["Orange", "Banana"]': function (result) {
         assert.equal(result[0], 1)
         assert.equal(result[1], 2)
-      },
+      }
     },
     'When performing a fuzzy search for the term "nan"': {
       topic: function (fuse) {
@@ -50,14 +50,14 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
       'whose values represent the indices of ["Banana", "Orange"]': function (result) {
         assert.equal(result[0], 2)
         assert.equal(result[1], 1)
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('List of books - searching "title" and "author"').addBatch({
   'Books:': {
-    topic: function() {
+    topic: function () {
       var options = {
         keys: ['title', 'author'],
         verbose: verbose,
@@ -79,7 +79,7 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
           title: 'HTML5',
           author: 'Remy Sharp'
         })
-      },
+      }
     },
     'When searching for the term "Woodhouse"': {
       topic: function (fuse) {
@@ -122,14 +122,14 @@ vows.describe('List of books - searching "title" and "author"').addBatch({
           'title': 'The Lost Symbol',
           'author': 'Dan Brown'
         })
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
   'Deep:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'title': "Old Man's War",
         'author': {
@@ -143,7 +143,7 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
           'lastName': 'Hamilton'
         }
       }, {
-        'title': 'HTML5',
+        'title': 'HTML5'
       }, {
         'title': 'A History of England',
         'author': {
@@ -174,7 +174,7 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
             'lastName': 'Hamilton'
           }
         })
-      },
+      }
     },
     'When searching for the term 106': {
       topic: function (fuse) {
@@ -192,14 +192,14 @@ vows.describe('Deep key search, with ["title", "author.firstName"]').addBatch({
             'lastName': 'Hastings'
           }
         })
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Custom search function, with ["title", "author.firstName"]').addBatch({
   'Deep:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'title': "Old Man's War",
         'author': {
@@ -242,7 +242,7 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
             'lastName': 'Hamilton'
           }
         })
-      },
+      }
     },
     'When searching for the term "Stve"': {
       topic: function (fuse) {
@@ -252,14 +252,14 @@ vows.describe('Custom search function, with ["title", "author.firstName"]').addB
       'we get a list of containing at least no items': function (result) {
         // assert.isTrue(result.length > 0)
         assert.equal(result.length, 0)
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var fruits = ['Apple', 'Orange', 'Banana']
       var fuse = new Fuse(fruits, {
         includeScore: true,
@@ -278,7 +278,7 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
       'whose value and score exist': function (result) {
         assert.equal(result[0].item, 0)
         assert.equal(result[0].score, 0)
-      },
+      }
     },
     'When performing a fuzzy search for the term "ran"': {
       topic: function (fuse) {
@@ -293,14 +293,14 @@ vows.describe('Include score in result list: ["Apple", "Orange", "Banana"]').add
         assert.equal(result[1].item, 2)
         assert.isNotZero(result[0].score)
         assert.isNotZero(result[1].score)
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Only include ID in results list, with "ISBN"').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -327,14 +327,14 @@ vows.describe('Only include ID in results list, with "ISBN"').addBatch({
       },
       'whose value is the ISBN of the book': function (result) {
         assert.equal(result, '0312696957')
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Include both ID and score in results list').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -373,7 +373,7 @@ vows.describe('Include both ID and score in results list').addBatch({
 
 vows.describe('Search when IDs are numbers').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': 1111,
         'title': "Old Man's War",
@@ -465,7 +465,7 @@ vows.describe('Recurse into arrays').addBatch({
 
 vows.describe('Recurse into objects in arrays').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': '0765348276',
         'title': "Old Man's War",
@@ -520,7 +520,7 @@ vows.describe('Recurse into objects in arrays').addBatch({
 
 vows.describe('Searching by ID').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': 'A',
         'title': "Old Man's War",
@@ -548,14 +548,14 @@ vows.describe('Searching by ID').addBatch({
       'whose value is the ISBN of the book': function (result) {
         assert.isString(result[0])
         assert.equal(result[0], 'B')
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Set new list on Fuse').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var fruits = ['Apple', 'Orange', 'Banana']
       var vegetables = ['Onion', 'Lettuce', 'Broccoli']
 
@@ -575,14 +575,14 @@ vows.describe('Set new list on Fuse').addBatch({
       },
       'whose value is the index 0, representing ["Lettuce"]': function (result) {
         assert.equal(result[0], 1)
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Searching by nested ID').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var books = [{
         'ISBN': {
           'name': 'A'
@@ -614,14 +614,14 @@ vows.describe('Searching by nested ID').addBatch({
       'whose value is the ISBN of the book': function (result) {
         assert.isString(result[0])
         assert.equal(result[0], 'B')
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Searching list').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var items = ['FH Mannheim', 'University Mannheim']
       var fuse = new Fuse(items)
       return fuse
@@ -643,7 +643,7 @@ vows.describe('Searching list').addBatch({
 
 vows.describe('Searching list').addBatch({
   'Options:': {
-    topic: function() {
+    topic: function () {
       var items = [
         'Borwaila hamlet',
         'Bobe hamlet',
@@ -673,7 +673,7 @@ vows.describe('Searching list').addBatch({
 
 vows.describe('List of books - searching for long pattern length > 32').addBatch({
   'Books:': {
-    topic: function() {
+    topic: function () {
       var options = {
         keys: ['title'],
         verbose: verbose
@@ -694,14 +694,14 @@ vows.describe('List of books - searching for long pattern length > 32').addBatch
           title: 'HTML5',
           author: 'Remy Sharp'
         })
-      },
+      }
     }
   }
 }).export(module)
 
 vows.describe('Weighted search').addBatch({
   'Books:': {
-    topic: function() {
+    topic: function () {
       var items = [{
         title: "Old Man's War fiction",
         author: 'John X',
@@ -731,7 +731,7 @@ vows.describe('Weighted search').addBatch({
       },
       'We get the value { title: "Right Ho Jeeves", author: "P.D. Mans" }': function (result) {
         assert.deepEqual(result[0].title, 'Right Ho Jeeves')
-      },
+      }
     },
     'When searching for the term "Man", where the title is weighted higher than author': {
       topic: function (items) {
@@ -751,7 +751,7 @@ vows.describe('Weighted search').addBatch({
       },
       'We get the value for "John X"': function (result) {
         assert.deepEqual(result[0].author, 'John X')
-      },
+      }
     },
     'When searching for the term "war", where tags are weighted higher than all other keys': {
       topic: function (items) {
@@ -774,7 +774,7 @@ vows.describe('Weighted search').addBatch({
       },
       'We get the value for "P.D. Mans"': function (result) {
         assert.deepEqual(result[0].author, 'P.D. Mans')
-      },
+      }
     }
   }
 }).export(module)
@@ -819,7 +819,7 @@ vows.describe('Search location').addBatch({
 
 vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Division", "Aon Master Trust - Corporate Super", "Promina Corporate Superannuation Fund", "Workforce Superannuation Corporate", "IGT (Australia) Pty Ltd Superannuation Fund"]').addBatch({
   'Flat:': {
-    topic: function() {
+    topic: function () {
       var items = [
         'AustralianSuper - Corporate Division',
         'Aon Master Trust - Corporate Super',
@@ -908,8 +908,8 @@ vows.describe('Search with match all tokens: ["AustralianSuper - Corporate Divis
 
 vows.describe('Searching with default options').addBatch({
   'Options:': {
-    topic: function() {
-      var items = ['t te tes test tes te t'];
+    topic: function () {
+      var items = ['t te tes test tes te t']
 
       var fuse = new Fuse(items, {
         includeMatches: true,
@@ -928,13 +928,13 @@ vows.describe('Searching with default options').addBatch({
       'The first index is a single character': function (result) {
         assert.equal(result[0].matches[0].indices[0][0], 0)
         assert.equal(result[0].matches[0].indices[0][1], 0)
-      },
+      }
     },
     'When the seach pattern is longer than maxPatternLength and contains RegExp special characters': {
       topic: function (fuse) {
-        var resultThunk = function() {
+        var resultThunk = function () {
           return fuse.search('searching with a sufficiently long string sprinkled with ([ )] *+^$ etc.')
-        };
+        }
         return resultThunk
       },
       'We get a match without crashing': function (resultThunk) {
@@ -946,8 +946,8 @@ vows.describe('Searching with default options').addBatch({
 
 vows.describe('Searching with findallmatches options').addBatch({
   'Options:': {
-    topic: function() {
-      var items = ['t te tes test tes te t'];
+    topic: function () {
+      var items = ['t te tes test tes te t']
 
       var fuse = new Fuse(items, {
         includeMatches: true,
@@ -967,7 +967,7 @@ vows.describe('Searching with findallmatches options').addBatch({
       'The first index is a single character': function (result) {
         assert.equal(result[0].matches[0].indices[0][0], 0)
         assert.equal(result[0].matches[0].indices[0][1], 0)
-      },
+      }
     }
   }
 }).export(module)
@@ -1012,13 +1012,13 @@ vows.describe('Searching with minMatchCharLength options').addBatch({
 
 vows.describe('Weighted search with exact match').addBatch({
   'Books:': {
-    topic: function() {
+    topic: function () {
       var items = [{
-        title: "John Smith",
-        author: 'Steve Pearson',
+        title: 'John Smith',
+        author: 'Steve Pearson'
       }, {
         title: 'The life of Jane',
-        author: 'John Smith',
+        author: 'John Smith'
       }]
       return items
     },
@@ -1040,9 +1040,9 @@ vows.describe('Weighted search with exact match').addBatch({
         return result
       },
       'We get the value { title: "The life of Jane", author: "John Smith" }': function (result) {
-        assert.deepEqual(result[0].title, 'The life of Jane');
-        assert.deepEqual(result[0].author, 'John Smith');
-      },
+        assert.deepEqual(result[0].title, 'The life of Jane')
+        assert.deepEqual(result[0].author, 'John Smith')
+      }
     },
 
     'When searching for the term "John Smith" with title weighted higher': {
@@ -1062,18 +1062,18 @@ vows.describe('Weighted search with exact match').addBatch({
         return result
       },
       'We get the value { title: "John Smith", author: "Steve Pearson" }': function (result) {
-        assert.deepEqual(result[0].title, 'John Smith');
-        assert.deepEqual(result[0].author, 'Steve Pearson');
-      },
-    },
+        assert.deepEqual(result[0].title, 'John Smith')
+        assert.deepEqual(result[0].author, 'Steve Pearson')
+      }
+    }
   }
-}).export(module);
+}).export(module)
 
 vows.describe('Weighted search with exact match in arrays').addBatch({
   'Books:': {
-    topic: function() {
+    topic: function () {
       var items = [ {
-        title: "Jackson",
+        title: 'Jackson',
         author: 'Steve Pearson',
         tags: ['Kevin Wong', 'Victoria Adam', 'John Smith']
       }, {
@@ -1101,9 +1101,9 @@ vows.describe('Weighted search with exact match in arrays').addBatch({
         return result
       },
       'We get the value { title: "The life of Jane", tags: ["Jane", "Jackson", "Sam"] ... }': function (result) {
-        assert.deepEqual(result[0].title, 'The life of Jane');
-        assert.deepEqual(result[0].tags, ['Jane', 'Jackson', 'Sam']);
-      },
+        assert.deepEqual(result[0].title, 'The life of Jane')
+        assert.deepEqual(result[0].tags, ['Jane', 'Jackson', 'Sam'])
+      }
     },
 
     'When searching for the term "Jackson", with title weighted higher and string inside getting exact match': {
@@ -1123,9 +1123,52 @@ vows.describe('Weighted search with exact match in arrays').addBatch({
         return result
       },
       'We get the value { title: "Jackson", tags: "Kevin Wong", ... }': function (result) {
-        assert.deepEqual(result[0].title, 'Jackson');
-        assert.deepEqual(result[0].tags, ['Kevin Wong', 'Victoria Adam', 'John Smith']);
-      },
+        assert.deepEqual(result[0].title, 'Jackson')
+        assert.deepEqual(result[0].tags, ['Kevin Wong', 'Victoria Adam', 'John Smith'])
+      }
     }
   }
-}).export(module);
+}).export(module)
+
+vows.describe('Averaged search results').addBatch({
+  'Books:': {
+    topic: function () {
+      var items = [{
+        title: 'Right Ho Jeeves',
+        author: {
+          firstName: 'P.D',
+          lastName: 'Woodhouse'
+        }
+      }, {
+        title: 'The Code of the Wooster',
+        author: {
+          firstName: 'P.D',
+          lastName: 'Woodhouse'
+        }
+      }, {
+        title: 'Thank You Jeeves',
+        author: {
+          firstName: 'P.D',
+          lastName: 'Woodhouse'
+        }
+      }]
+      return items
+    },
+    'When searching for the term "wood"': {
+      topic: function (items) {
+        var options = {
+          keys: ['title', 'author.firstName', 'author.lastName'],
+          verbose: verbose
+        }
+        var fuse = new Fuse(items, options)
+        var result = fuse.search('wood')
+        return result
+      },
+      'We get the properly ordered results': function (result) {
+        assert.deepEqual(result[0].title, 'The Code of the Wooster')
+        assert.deepEqual(result[1].title, 'Right Ho Jeeves')
+        assert.deepEqual(result[2].title, 'Thank You Jeeves')
+      }
+    }
+  }
+}).export(module)

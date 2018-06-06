@@ -309,7 +309,7 @@ class Fuse {
       const output = results[i].output
       const scoreLen = output.length
 
-      let totalScore = 0
+      let currScore = 1
       let bestScore = 1
 
       for (let j = 0; j < scoreLen; j += 1) {
@@ -321,11 +321,11 @@ class Fuse {
           bestScore = Math.min(bestScore, nScore)
         } else {
           output[j].nScore = nScore
-          totalScore += nScore
+          currScore *= nScore
         }
       }
 
-      results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore
+      results[i].score = bestScore === 1 ? currScore : bestScore
 
       this._log(results[i])
     }

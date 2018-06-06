@@ -15,7 +15,7 @@ const deepValue = (obj, path, list) => {
     }
 
     const value = obj[firstSegment]
-    
+
     if (value !== null && value !== undefined) {
       if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
         list.push(value.toString())

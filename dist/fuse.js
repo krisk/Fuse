@@ -522,12 +522,16 @@ module.exports = function (text, pattern, patternAlphabet, _ref) {
       distance: distance
     });
 
+    // console.log('score', score, finalScore)
+
     if (_score2 > currentThreshold) {
       break;
     }
 
     lastBitArr = bitArr;
   }
+
+  // console.log('FINAL SCORE', finalScore)
 
   // Count exact matches (those with a score of 0) to be "almost" exact
   return {
@@ -880,7 +884,7 @@ var Fuse = function () {
         var output = results[i].output;
         var scoreLen = output.length;
 
-        var totalScore = 0;
+        var currScore = 1;
         var bestScore = 1;
 
         for (var j = 0; j < scoreLen; j += 1) {
@@ -892,11 +896,11 @@ var Fuse = function () {
             bestScore = Math.min(bestScore, nScore);
           } else {
             output[j].nScore = nScore;
-            totalScore += nScore;
+            currScore *= nScore;
           }
         }
 
-        results[i].score = bestScore === 1 ? totalScore / scoreLen : bestScore;
+        results[i].score = bestScore === 1 ? currScore : bestScore;
 
         this._log(results[i]);
       }
