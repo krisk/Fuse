@@ -1,3 +1,7 @@
+# Version 3.2.1
+
+- Fixed issue in which more fuzzy matches would weaken a score instead of strengthening it (#233)
+
 # Version 3.2.0
 
 - Give better result for exact match when using weighted keys (#192)
