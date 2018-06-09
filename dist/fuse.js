@@ -631,7 +631,7 @@ var Fuse = function () {
     }
   }, {
     key: 'search',
-    value: function search(pattern) {
+    value: function search(pattern, limit) {
       this._log('---------\nSearch pattern: "' + pattern + '"');
 
       var _prepareSearchers2 = this._prepareSearchers(pattern),
@@ -646,6 +646,10 @@ var Fuse = function () {
 
       if (this.options.shouldSort) {
         this._sort(results);
+      }
+
+      if (limit && typeof limit === 'number') {
+        results = results.slice(0, limit);
       }
 
       return this._format(results);

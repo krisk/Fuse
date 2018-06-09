@@ -5,8 +5,8 @@ export as namespace Fuse;
 
 declare class Fuse {
   constructor(list: any[], options?: Fuse.FuseOptions)
-  search<T>(pattern: string): T[];
-  search(pattern: string): any[];
+  search<T>(pattern: string, limit: number): T[];
+  search(pattern: string, limit: number): any[];
 }
 
 declare namespace Fuse {
