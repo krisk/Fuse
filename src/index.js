@@ -81,7 +81,7 @@ class Fuse {
     return list
   }
 
-  search (pattern, limit) {
+  search (pattern, opts = { limit: false }) {
     this._log(`---------\nSearch pattern: "${pattern}"`)
 
     const {
@@ -97,8 +97,8 @@ class Fuse {
       this._sort(results)
     }
     
-    if (limit && typeof limit === 'number') {
-      results = results.slice(0, limit)
+    if (opts.limit && typeof opts.limit === 'number') {
+      results = results.slice(0, opts.limit)
     }
 
     return this._format(results)
