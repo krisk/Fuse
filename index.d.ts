@@ -3,10 +3,9 @@
 export = Fuse;
 export as namespace Fuse;
 
-declare class Fuse {
-  constructor(list: ReadonlyArray<any>, options?: Fuse.FuseOptions)
-  search<T>(pattern: string): T[];
-  search(pattern: string): any[];
+declare class Fuse<T> {
+  constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions)
+  search(pattern: string): T[];
 }
 
 declare namespace Fuse {
