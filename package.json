@@ -7,7 +7,7 @@
   },
   "version": "3.2.1",
   "description": "Lightweight fuzzy-search",
-  "license": "Apache",
+  "license": "Apache-2.0",
   "types": "./index.d.ts",
   "repository": {
     "type": "git",
