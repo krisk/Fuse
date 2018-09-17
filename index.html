@@ -510,7 +510,14 @@
       CDN
     </h4>
 
-    Available on <a href="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.0.4/fuse.min.js" target="_blank">cdnjs</a> (takes some time to sync so the latest version might not be available yet).
+    <p>Available on <a id="cdn-link" href="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" target="_blank">cdnjs</a> (see the latest <a href="https://github.com/krisk/Fuse/releases" target="_blank">version on Github</a>).</p>
+
+    <script>
+      // Auto-update CDN link
+      $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse' ).done( function( json ) {
+        $( '#cdn-link' ).attr( 'href', json.results[0].latest )
+      } )
+    </script>
 
     <br>
     <br>
