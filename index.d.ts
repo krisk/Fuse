@@ -6,6 +6,8 @@ export as namespace Fuse;
 declare class Fuse<T> {
   constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions)
   search(pattern: string): T[];
+
+  setCollection(list: ReadonlyArray<T>): ReadonlyArray<T>;
 }
 
 declare namespace Fuse {
