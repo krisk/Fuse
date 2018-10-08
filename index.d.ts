@@ -4,12 +4,12 @@ export = Fuse;
 export as namespace Fuse;
 
 declare class Fuse<T> {
-  constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions)
+  constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions<T>)
   search(pattern: string): T[];
 }
 
 declare namespace Fuse {
-  export interface FuseOptions {
+  export interface FuseOptions<T> {
     id?: string;
     caseSensitive?: boolean;
     includeMatches?: boolean;
@@ -17,7 +17,7 @@ declare namespace Fuse {
     shouldSort?: boolean;
     sortFn?: (a: { score: number }, b: { score: number }) => number;
     getFn?: (obj: any, path: string) => any;
-    keys?: string[] | { name: string; weight: number }[];
+    keys?: (keyof T)[] | { name: keyof T; weight: number }[];
     verbose?: boolean;
     tokenize?: boolean;
     tokenSeparator?: RegExp;
