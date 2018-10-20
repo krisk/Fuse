@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v3.2.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v3.3.0 - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
