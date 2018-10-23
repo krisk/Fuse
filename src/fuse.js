@@ -283,17 +283,17 @@
    * @public
    */
   function Fuse(list, options) {
-    this.list = list;
+    this.list = list || [];
     this.options = options = options || {};
 
     var i, len, key, keys;
     // Add boolean type options
-    for (i = 0, keys = ['sort', 'includeScore', 'shouldSort'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['sort', 'shouldSort'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = key in options ? options[key] : Fuse.defaultOptions[key];
     }
     // Add all other options
-    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn'], len = keys.length; i < len; i++) {
+    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include'], len = keys.length; i < len; i++) {
       key = keys[i];
       this.options[key] = options[key] || Fuse.defaultOptions[key];
     }
@@ -304,9 +304,10 @@
 
     caseSensitive: false,
 
-    // Whether the score should be included in the result set.
-    // When <true>, each result in the list will be of the form: `{ item: ..., score: ... }`
-    includeScore: false,
+    // A list of values to be passed from the searcher to the result set.
+    // If include is set to ['score', 'highlight'], each result
+    //   in the list will be of the form: `{ item: ..., score: ..., highlight: ... }`
+    include: [],
 
     // Whether to sort the result list, by score
     shouldSort: true,
@@ -346,40 +347,43 @@
   };
 
   /**
-   * Dynamically remove an item or a list of items to the list
+   * Dynamically remove an item or a list of items to the list, and return the number of removed elements.
    * If the list contains strings, items can be removed by value or by index;
    * If the list contains objects, items can only be removed by id.
    * @param {String|Number|Array} to_remove The item or list of items to be removed
    * @public
    */
   Fuse.prototype.remove = function(to_remove) {
+    var removed=0;
     to_remove = Utils.isArray(to_remove) ? to_remove : [to_remove];
     for (var i = 0, len = to_remove.length; i < len; i++) {
-      Fuse.prototype.remove.apply(to_remove[i]);
+      removed += removeFromFuseList.apply(this, [to_remove[i]]);
     }
+    return removed;
   };
 
   /**
-   * Dynamically remove a single item from the list
+   * Dynamically remove a single item from the list, return the number of removed elements.
    * @private
    */
-  Fuse.prototype._remove = function(to_remove) {
+  var removeFromFuseList = function(to_remove) {
     var options = this.options;
 
     if (this.list.length === 0)
-      return;
+      return 0;
 
     // List of strings
     if (typeof this.list[0] === 'string') {
       // ...remove by index
       if (typeof to_remove === 'number') {
-        this.list.splice(to_remove, 1);
+        return this.list.splice(to_remove, 1).length;
       }
       // ...remove the first matched value
       else if (typeof to_remove === 'string') {
         var idx = this.list.indexOf(to_remove);
-        if (idx > -1)
-          this.list.splice(idx, 1);
+        if (idx > -1) {
+          return this.list.splice(idx, 1).length;
+        }
       }
     }
 
@@ -389,12 +393,25 @@
       if ((typeof to_remove === 'string' || typeof to_remove === 'number') && options.id) {
         for (var i = 0, len = this.list.length; i < len; i++) {
           if (options.getFn(this.list[i], options.id)[0] === to_remove) {
-            this.list.splice(i, 1);
-            break;
+            return this.list.splice(i, 1).length;
           }
         }
       }
     }
+
+    return 0;
+  };
+
+  /**
+   * Sets a new list for Fuse to match against.
+   * @param {Array} list
+   * @return {Array} The newly set list
+   * @public
+   */
+  Fuse.prototype.set = function(list) {
+    this.list = list;
+
+    return list;
   };
 
   /**
@@ -485,15 +502,6 @@
       rawResults.sort(options.sortFn);
     }
 
-    // Helper function, here for speed-up, which returns the
-    // the raw item, including the score, or simply the item itself, depending
-    // on the specified option
-    var getItem = options.includeScore ? function(i) {
-      return rawResults[i];
-    } : function(i) {
-      return rawResults[i].item;
-    };
-
     // Helper function, here for speed-up, which replaces the item with its value,
     // if the options specifies it,
     var replaceValue = options.id ? function(i) {
@@ -502,11 +510,36 @@
       return; // no-op
     };
 
+    // Helper function, here for speed-up, which returns the
+    // item formatted based on the options.
+    var getItem = function(i) {
+      var resultItem;
+
+      if(options.include.length > 0) // If `include` has values, put the item under result.item
+      {
+        resultItem = {
+          item: rawResults[i].item,
+        };
+
+        // Then include the includes
+        for(var j = 0; j < options.include.length; j++)
+        {
+          var includeVal = options.include[j];
+          resultItem[includeVal] = rawResults[i][includeVal];
+        }
+      }
+      else
+      {
+        resultItem = rawResults[i].item;
+      }
+
+      return resultItem;
+    };
+
     // From the results, push into a new array only the item identifier (if specified)
     // of the entire item.  This is because we don't want to return the <rawResults>,
     // since it contains other metadata;
     for (var i = 0, len = rawResults.length; i < len; i++) {
-      // replace the item with its value, which can be its id if the options specifies it
       replaceValue(i);
       results.push(getItem(i));
     }

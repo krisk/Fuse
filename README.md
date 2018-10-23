@@ -1,5 +1,9 @@
+*Update: There are plenty of enhancements that need to be done to this library. There's more work than available time for me; so if you're interested in being one of the core contributors and helping out, let's talk!*
+
 Fuse
 ====
+
+[![NPM](https://nodei.co/npm/fuse.js.png?downloads=true)](https://nodei.co/npm/fuse.js/)
 
 [![Build Status](https://secure.travis-ci.org/krisk/Fuse.png?branch=master)](http://travis-ci.org/krisk/Fuse)
 
@@ -39,9 +43,9 @@ Indicates whether comparisons should be case sensitive.
 
 ---
 
-**includeScore** (*type*: `Boolean`, *default*: `false`)
+**include** (*type*: `Array`, *default*: `[]`)
 
-Whether the score should be included in the result set. When `true`, each result in the list will be of the form `{ item: ..., score: ... }`
+An array of values that should be included from the searcher's output. When this array contains elements, each result in the list will be of the form `{ item: ..., include1: ..., include2: ... }`. For example, to include the score, you would set include to ['score'], and the result would be `{ item: ..., score: ... }`
 
 ---
 
@@ -117,6 +121,22 @@ Determines how close the match must be to the fuzzy location (specified by `loca
 **maxPatternLength** (*type*: `Integer`, *default*: `32`)
 
 The maximum length of the pattern. The longer the pattern, the more intensive the search operation will be.  Whenever the pattern exceeds the `maxPatternLength`, an error will be thrown.  Why is this important? Read [this](http://en.wikipedia.org/wiki/Word_(computer_architecture)#Word_size_choice).
+
+## Methods
+
+**search(pattern)**
+
+@param {String} pattern The pattern string to fuzzy search on.  
+@return {Array} A list of all serch matches.  
+
+Searches for all the items whose keys (fuzzy) match the pattern.
+
+**set(list)**
+
+@param {Array} list  
+@return {Array} The newly set list  
+
+Sets a new list for Fuse to match against.
 
 ## Contributing to Fuse
 
