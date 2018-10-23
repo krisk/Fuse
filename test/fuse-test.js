@@ -50,6 +50,109 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   }
 }).export(module);
 
+vows.describe('Flat list of strings, added and removed dynamically: ["Apple", "Orange", "Banana"]').addBatch({
+  'Dynamic:': {
+    topic: function() {
+      var fruits = [];
+      var fuse = new Fuse(fruits);
+      fuse.add(["Apple", "Orange", "Kiwi"]);
+      fuse.add("Banana");
+      fuse.remove("Kiwi");
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Apple");
+        return result;
+      },
+      'we get a list of containing 1 item, which is an exact match': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the index 0, representing ["Apple"]': function(result) {
+        assert.equal(result[0], 0);
+      },
+    },
+    'When performing a fuzzy search for the term "ran"': {
+      topic: function(fuse) {
+        var result = fuse.search("ran");
+        return result;
+      },
+      'we get a list of containing 2 items: [1, 2]': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'whose values represent the indices of ["Orange", "Banana"]': function(result) {
+        assert.equal(result[0], 1);
+        assert.equal(result[1], 2);
+      },
+    },
+    'When performing a fuzzy search for the term "nan"': {
+      topic: function(fuse) {
+        var result = fuse.search("nan");
+        return result;
+      },
+      'we get a list of containing 2 items: [2, 1]': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'whose values represent the indices of ["Banana", "Orange"]': function(result) {
+        assert.equal(result[0], 2);
+        assert.equal(result[1], 1);
+      },
+    }
+  }
+}).export(module);
+
+vows.describe('List of objects, added and removed dynamically: [{id: "Apple"}, {id: "Orange"}, {id: "Banana"}]').addBatch({
+  'Dynamic:': {
+    topic: function() {
+      var fruits = [];
+      var fuse = new Fuse(fruits, {keys: ['name'], id: 'id'});
+      fuse.add([{id: 1, name: "Apple"}, {id: 2, name: "Orange"}, {id: 4, name: "Kiwi"}]);
+      fuse.add({id: 3, name: "Banana"});
+      fuse.remove(4);
+      //console.info('LIST', fuse.list);
+      return fuse;
+    },
+    'When searching for the term "Apple"': {
+      topic: function(fuse) {
+        var result = fuse.search("Apple");
+        return result;
+      },
+      'we get a list of containing 1 item, which is an exact match': function(result) {
+        assert.equal(result.length, 1);
+      },
+      'whose value is the id 1, representing "Apple"': function(result) {
+        assert.equal(result[0], 1);
+      },
+    },
+    'When performing a fuzzy search for the term "ran"': {
+      topic: function(fuse) {
+        var result = fuse.search("ran");
+        return result;
+      },
+      'we get a list of containing 2 items: [1, 2]': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'whose values represent the indices of ["Orange", "Banana"]': function(result) {
+        assert.equal(result[0], 2);
+        assert.equal(result[1], 3);
+      },
+    },
+    'When performing a fuzzy search for the term "nan"': {
+      topic: function(fuse) {
+        var result = fuse.search("nan");
+        return result;
+      },
+      'we get a list of containing 2 items: [2, 1]': function(result) {
+        assert.equal(result.length, 2);
+      },
+      'whose values represent the indices of ["Banana", "Orange"]': function(result) {
+        assert.equal(result[0], 3);
+        assert.equal(result[1], 2);
+      },
+    }
+  }
+}).export(module);
+
 vows.describe('List of books - searching "title" and "author"').addBatch({
   'Books:': {
     topic: function() {
