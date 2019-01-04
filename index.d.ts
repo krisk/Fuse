@@ -7,14 +7,14 @@ interface SearchOpts {
   limit?: number
 }
 
-declare class Fuse {
-  constructor(list: any[], options?: Fuse.FuseOptions)
-  search<T>(pattern: string, opts?: SearchOpts): T[];
-  search(pattern: string, opts?: SearchOpts): any[];
+declare class Fuse<T> {
+  constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions<T>)
+  search(pattern: string, opts?: SearchOpts): T[];
+  setCollection(list: ReadonlyArray<T>): ReadonlyArray<T>;
 }
 
 declare namespace Fuse {
-  export interface FuseOptions {
+  export interface FuseOptions<T> {
     id?: string;
     caseSensitive?: boolean;
     includeMatches?: boolean;
@@ -22,7 +22,7 @@ declare namespace Fuse {
     shouldSort?: boolean;
     sortFn?: (a: { score: number }, b: { score: number }) => number;
     getFn?: (obj: any, path: string) => any;
-    keys?: string[] | { name: string; weight: number }[];
+    keys?: (keyof T)[] | { name: keyof T; weight: number }[];
     verbose?: boolean;
     tokenize?: boolean;
     tokenSeparator?: RegExp;
