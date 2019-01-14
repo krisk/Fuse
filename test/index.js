@@ -51,6 +51,18 @@ vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
         assert.equal(result[0], 2)
         assert.equal(result[1], 1)
       }
+    },
+    'When performing a fuzzy search for the term "nan" with a limit of 1 result': {
+      topic: function (fuse) {
+        var result = fuse.search('nan', { limit: 1 })
+        return result
+      },
+      'we get a list of containing 2 items: [2, 1]': function (result) {
+        assert.equal(result.length, 1)
+      },
+      'whose values represent the index of "Banana"': function (result) {
+        assert.equal(result[0], 2)
+      }
     }
   }
 }).export(module)

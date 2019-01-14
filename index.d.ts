@@ -3,10 +3,13 @@
 export = Fuse;
 export as namespace Fuse;
 
+interface SearchOpts {
+  limit?: number
+}
+
 declare class Fuse<T> {
   constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions<T>)
-  search(pattern: string): T[];
-
+  search(pattern: string, opts?: SearchOpts): T[];
   setCollection(list: ReadonlyArray<T>): ReadonlyArray<T>;
 }
 
