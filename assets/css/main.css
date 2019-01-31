@@ -31,6 +31,33 @@ a {
 .social {
     margin-bottom: 10px;
 }
+
+.top-header {
+    -webkit-font-smoothing: antialiased;
+    color: #fff;
+    color: rgba(255, 255, 255, 0.75);
+    background-image: -webkit-linear-gradient(left, #720e9e 0, #dd4b39 100%);
+    background-image: -o-linear-gradient(left, #720e9e 0, #dd4b39 100%);
+    background-image: linear-gradient(to right, #720e9e 0, #dd4b39 100%);
+    background-repeat: repeat-x;
+    filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#ff720e9e', endColorstr='#ffdd4b39', GradientType=1);
+}
+
+.navbar-brand {
+  height: auto;
+}
+.top-header .title {
+  font-weight: 300;
+  color: white;
+  line-height: 1;
+  font-size: 40px;
+}
+.navbar-brand small {
+  display: block;
+  font-size: 21px;
+  margin-top: 5px;
+}
+
 .jumbotron {
     -webkit-font-smoothing: antialiased;
     position: relative;
@@ -45,6 +72,7 @@ a {
     background-image: linear-gradient(to right, #720e9e 0, #dd4b39 100%);
     background-repeat: repeat-x;
     filter: progid: DXImageTransform.Microsoft.gradient(startColorstr='#ff720e9e', endColorstr='#ffdd4b39', GradientType=1);
+    padding-top: 0;
 }
 .jumbotron .container {
     max-width: 100%;
@@ -185,6 +213,48 @@ a {
     text-align: center;
     margin-bottom: 10px;
   }
+}
+
+.github {
+  margin: 0 !important;
+  padding: 10px !important;
+}
+.weekly form {
+  padding: 0;
+  margin: 0;
+}
+
+.weekly #subscribe-email {
+    font-size: 18px;
+    padding: 7px 4px;
+    margin-right: 12px;
+    width: 240px;
+}
+
+.weekly h4 {
+  color: #333;
+  background-color: #f7df1e;
+  padding: 16px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.weekly input.awesome:hover {
+    filter: brightness(105%);
+}
+
+.weekly input.awesome {
+    background-color: #ffd65e;
+    padding: 7px 14px;
+    font-family: "Helvetica Neue", Helvetica, Ubuntu, Arial, sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+    border: 1px solid #ffd65e;
+    border-radius: 4px;
+    background-color: #fc0;
+    background-image: linear-gradient(to bottom, #ffd65e, #febf04);
 }
 
 #support-container {
