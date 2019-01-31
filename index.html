@@ -33,18 +33,34 @@
       </script>
     </head>
 
+    <!-- <nav class="navbar navbar-default navbar-fixed-top top-header">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand title" href="#">Fuse.js <small>Lightweight fuzzy-search library. Zero dependencies.</small></a>
+        </div>
+    </nav> -->
+
     <!-- <div class="tease">Want your company displayed on this page? <a href="mailto:kirollos@gmail.com?subject=Sponsorship opportunity">Contact me</a> for sponsorship opportunities</div> -->
     <div class="jumbotron">
       <div class="container">
         <h1>Fuse.js</h1>
         <p>Lightweight fuzzy-search library. Zero dependencies.</p>
-        <a href="https://github.com/krisk/fuse" class="btn btn-outline btn-lg"><span class="fa fa-github"></span> View on GitHub</a>
+        <a href="https://github.com/krisk/fuse" class="btn btn-outline btn-sm github"><span class="fa fa-github"></span> View on GitHub</a>
       </div>
+
+      <!-- <div>
+        <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
+        <p>Subscribe to JavaScript Expert Weekly</p>
+        <label for='subscribe-email'>Email</label>
+        <input id='subscribe-email' name='email' type='email' />
+        <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
+        <input type='submit' onclick="this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
+        </form>
+      </div> -->
 
       <div class="bottom social-share">
 
         <iframe src="https://ghbtns.com/github-btn.html?user=krisk&amp;repo=fuse&amp;type=watch&amp;count=true" class="social-share"></iframe>
-
         <a class="twitter-share-button"
           href="https://twitter.com/share"
           data-url="http://fusejs.io"
@@ -53,19 +69,16 @@
           data-text="Fuse.js - JavaScript fuzzy-search library">
         Tweet
         </a>
-
         <script type="IN/Share" data-counter="right"></script>
-
         <g:plusone size="medium"></g:plusone>
-
         <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false"></div>
 
-        <div id="donate">
+        <!-- <div id="donate">
           <span class="wrapper">
             <img src="/assets/images/patreon.png">
             <a href="/#support">Support Fuse.js</a>
           </span>
-        </div>
+        </div> -->
 
 
         <div id="fb-root"></div>
@@ -97,27 +110,26 @@
               fjs.parentNode.insertBefore(js,fjs);
             }}(document,"script","twitter-wjs");
 
-          // G+
-          (function() {
-            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-            po.src = 'https://apis.google.com/js/plusone.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-          })();
-
-          // SU
-          (function() {
-            var li = document.createElement('script'); li.type = 'text/javascript'; li.async = true;
-            li.src = 'https://platform.stumbleupon.com/1/widgets.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(li, s);
-          })();
         </script>
       </div>
     </div>
 
-
-
 <!--
     <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a> -->
+
+  <div class="content narrow">
+    <div class="weekly">
+      <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
+      <h4>JavaScript Expert Weekly</h4>
+      <p>A free, weekly email roundup of JavaScript news and articles.</p>
+      <input id='subscribe-email' placeholder="Your email address" name='email' type='email' />
+      <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
+      <input type='submit' class="awesome" onclick="this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
+      </form>
+    </div>
+  </div>
+
+  <hr>
 
     <div class="content">
 
@@ -450,54 +462,6 @@
 
   <hr>
 
-  <div id="support-container">
-
-    <h2 id="support">
-      <a class="headline-link" href="#support">#</a>
-      Support Fuse.js Development
-    </h2>
-
-    <div style="text-align: left;">
-      Fuse.js is an Apache License open source project. Maintaining and updating it takes up a good chunk of time, and there's still plenty of work to do. To be able to provide the project with the attention it deserves, I decided to experiment with sponsorship and/or support. If this works out, I can route the chunk of time that is usually spent on lucrative endeavors to this project.
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <p>
-          <a href="https://www.patreon.com/fusejs" target="_blank">
-            <img src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png" class="donation-logo">
-            <br>
-            <span>Support on Patreon (recurring pledge)</span>
-          </a>
-        </p>
-      </div>
-      <div class="col-md-6">
-        <p>
-          <a href="https://www.paypal.me/kirorisk" target="_blank">
-            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" class="donation-logo">
-            <br>
-            <span>Donate via PayPal (one time)</span>
-            <br>
-          </a>
-        </p>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-12">
-        <p>
-        <img src="/assets/images/stellar_xlm.png" class="donation-logo">
-        <br>
-        <span class="bitcoin-address">GBBBRDTCN6VDPWQ37VA6W4HROX2FVCYVHMDXMXM4KKI2SU2CDPE7OSZL</span>
-        <br>
-        <img src="/assets/images/stellar_address_qr.png">
-        <br>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
   <div class="content narrow">
 
     <h2 id="install">
@@ -714,6 +678,54 @@ fuse.search('engsh')</code></pre>
       </div>
     </div>
 
+  </div>
+
+  <hr>
+
+  <div id="support-container">
+
+    <h2 id="support">
+      <a class="headline-link" href="#support">#</a>
+      Support Fuse.js Development
+    </h2>
+
+    <div style="text-align: left;">
+      Fuse.js is an Apache License open source project. Maintaining and updating it takes up a good chunk of time, and there's still plenty of work to do. To be able to provide the project with the attention it deserves, I decided to experiment with sponsorship and/or support. If this works out, I can route the chunk of time that is usually spent on lucrative endeavors to this project.
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <p>
+          <a href="https://www.patreon.com/fusejs" target="_blank">
+            <img src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png" class="donation-logo">
+            <br>
+            <span>Support on Patreon (recurring pledge)</span>
+          </a>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <p>
+          <a href="https://www.paypal.me/kirorisk" target="_blank">
+            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" class="donation-logo">
+            <br>
+            <span>Donate via PayPal (one time)</span>
+            <br>
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <!-- <div class="row">
+      <div class="col-md-12">
+        <p>
+        <img src="/assets/images/stellar_xlm.png" class="donation-logo">
+        <br>
+        <span class="bitcoin-address">GBBBRDTCN6VDPWQ37VA6W4HROX2FVCYVHMDXMXM4KKI2SU2CDPE7OSZL</span>
+        <br>
+        <img src="/assets/images/stellar_address_qr.png">
+        <br>
+      </div>
+    </div> -->
   </div>
 
   <footer>
