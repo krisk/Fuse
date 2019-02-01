@@ -1,4 +1,22 @@
 $(function (window) {
+
+  function handleExperiments() {
+    // Define JavaScript for each page variation of this experiment.
+    var pageVariations = [
+      function() { // Original
+        $('#exp-original').show();
+      },
+      function() { // Variation 1
+        $('#exp-variation-1').show()
+      }
+    ];
+    // Execute the chosen view
+    pageVariations[chosenVariation]()
+    $('#newsletter-form').show()
+  }
+
+  handleExperiments()
+
   // Mixins
   var Mixins = {}
   Mixins.Event = function (base) {
@@ -33,7 +51,7 @@ $(function (window) {
         this.setupNodes()
         this.bindEvents()
         this.data = {}
-        
+
         _.each(this.checkboxItems, _.bind(function (item) {
           this.setupCheckboxItems(item, false)
         }, this))
