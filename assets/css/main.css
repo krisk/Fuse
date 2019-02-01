@@ -219,6 +219,9 @@ a {
   margin: 0 !important;
   padding: 10px !important;
 }
+.weekly {
+    text-align: center;
+}
 .weekly form {
   padding: 0;
   margin: 0;
@@ -236,7 +239,11 @@ a {
   background-color: #f7df1e;
   padding: 16px;
   display: inline-block;
-  font-weight: 500;
+  font-weight: 400;
+}
+
+.weekly h4 strong {
+  font-weight: 700;
 }
 
 .weekly input.awesome:hover {
