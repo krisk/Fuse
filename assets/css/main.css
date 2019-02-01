@@ -219,6 +219,9 @@ a {
   margin: 0 !important;
   padding: 10px !important;
 }
+#newsletter-form, .experiment {
+  display: none;
+}
 .weekly {
     text-align: center;
 }
