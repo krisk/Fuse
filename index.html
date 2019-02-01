@@ -32,6 +32,13 @@
         ga('send', 'pageview');
       </script>
 
+      <!-- Load the Content Experiment JavaScript API client for the experiment -->
+      <script src="//www.google-analytics.com/cx/api.js?experiment=FyRefdfESX-ipi7iLIr7uA"></script>
+      <script>
+        // Ask Google Analytics which variation to show the user.
+        var chosenVariation = cxApi.chooseVariation();
+      </script>
+
       <!-- Facebook Pixel Code -->
       <script>
           !function(f,b,e,v,n,t,s)
@@ -51,22 +58,6 @@
       <!-- End Facebook Pixel Code -->
 
     </head>
-
-    <!-- <nav class="navbar navbar-default navbar-fixed-top top-header">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand title" href="#">Fuse.js <small>Lightweight fuzzy-search library. Zero dependencies.</small></a>
-        </div>
-    </nav> -->
-
-    <!-- <div class="tease">Want your company displayed on this page? <a href="mailto:kirollos@gmail.com?subject=Sponsorship opportunity">Contact me</a> for sponsorship opportunities</div> -->
-
-    <!-- <div>
-      <div>
-        <p>JavaScript <strong>Expert</strong> Weekly</p>
-        <input id='subscribe-email' placeholder="Your email address" name='email' type='email' />
-      </div>
-    </div> -->
 
     <div class="jumbotron">
       <div class="container">
@@ -134,15 +125,19 @@
     <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a> -->
 
   <div class="content narrow">
-    <div class="weekly">
+    <div id="newsletter-form" class="weekly">
       <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
         <h4>JavaScript <strong>Expert</strong> Weekly</h4>
-        <p>Do you want to become a <strong>JavaScript expert?</strong></p>
-        <p>Do you want to keep up to date with the latest Javascript news?</p>
-        <!-- <p>Get this free weekly roundup of the most relevant JavaScript news and articles.</p> -->
+        <div id="exp-original" class="experiment">
+          <p>Do you want to become a <strong>JavaScript expert?</strong></p>
+          <p>Do you want to keep up to date with the latest Javascript news?</p>
+        </div>
+        <div id="exp-variation-1" class="experiment">
+          <p>Get this free weekly roundup of the most relevant JavaScript news and articles.</p>
+        </div>
         <input id='subscribe-email' placeholder="Your email address" name='email' type='email' />
         <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
-        <input type='submit' class="awesome" onclick="fbq('track', 'Subscribe'); this.form.submit(); this.disabled=true; this.value='Sending...';" value='Sign me up!'/>
+        <input type='submit' class="awesome" onclick="fbq('track', 'Subscribe'); this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
       </form>
     </div>
   </div>
