@@ -47,7 +47,7 @@
         </script>
         <noscript><img height="1" width="1" style="display:none"
           src="https://www.facebook.com/tr?id=234169324153860&ev=PageView&noscript=1"
-      /></noscript>
+        /></noscript>
       <!-- End Facebook Pixel Code -->
 
     </head>
@@ -75,18 +75,7 @@
         <a href="https://github.com/krisk/fuse" class="btn btn-outline btn-sm github"><span class="fa fa-github"></span> View on GitHub</a>
       </div>
 
-      <!-- <div>
-        <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
-        <p>Subscribe to JavaScript Expert Weekly</p>
-        <label for='subscribe-email'>Email</label>
-        <input id='subscribe-email' name='email' type='email' />
-        <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
-        <input type='submit' onclick="this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
-        </form>
-      </div> -->
-
       <div class="bottom social-share">
-
         <iframe src="https://ghbtns.com/github-btn.html?user=krisk&amp;repo=fuse&amp;type=watch&amp;count=true" class="social-share"></iframe>
         <a class="twitter-share-button"
           href="https://twitter.com/share"
@@ -151,7 +140,7 @@
         <p>A free, weekly email roundup of JavaScript news and articles.</p>
         <input id='subscribe-email' placeholder="Your email address" name='email' type='email' />
         <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
-        <input type='submit' class="awesome" onclick="this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
+        <input type='submit' class="awesome" onclick="fbq('track', 'Subscribe'); this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
       </form>
     </div>
   </div>
