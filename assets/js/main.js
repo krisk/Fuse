@@ -1,4 +1,21 @@
 $(function (window) {
+  // function handleExperiments () {
+  //   // Define JavaScript for each page variation of this experiment.
+  //   var pageVariations = [
+  //     function () { // Original
+  //       $('#exp-original').show()
+  //     },
+  //     function () { // Variation 1
+  //       $('#exp-variation-1').show()
+  //     }
+  //   ]
+  //   // Execute the chosen view
+  //   pageVariations[chosenVariation]()
+  //   $('#newsletter-form').show()
+  // }
+
+  // handleExperiments()
+
   // Mixins
   var Mixins = {}
   Mixins.Event = function (base) {

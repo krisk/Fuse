@@ -98,11 +98,16 @@ a {
     background-color: rgba(0, 0, 0, 0.2);
 }
 .jumbotron iframe {
-    width: 100px !important;
+    max-width: 100px !important;
     height: 20px !important;
     border: none;
     overflow: hidden;
     margin: 2px;
+    margin-right: 10px;
+}
+
+.IN-widget {
+    margin-right: 10px !important;
 }
 
 .btn-outline {
