@@ -1,6 +1,6 @@
 body {
     -webkit-font-smoothing: antialiased;
-    padding-top: 50px;
+    padding-top: 58px;
 }
 a {
     text-decoration:none;
@@ -286,12 +286,11 @@ footer a:hover {
 #newsletter-bar {
     background-color: black;
     position: fixed;
-    /* top: 0; */
     left: 0;
     width: 100%;
     margin: 0;
     z-index: 10000;
-    padding: .5em;
+    padding: 10px;
 }
 
 @media only screen and (min-width: 928px){
