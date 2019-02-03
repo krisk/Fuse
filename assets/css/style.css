@@ -108,10 +108,9 @@ pre.small {
     text-shadow: 0 1px 1px rgba(0,0,0,.2);
 }
 
-#sidebar ul.components {
+/* #sidebar ul.components {
     padding: 20px 0;
-    border-bottom: 1px solid #4f3d85;
-}
+} */
 
 #sidebar ul p {
     color: #fff;
@@ -119,7 +118,7 @@ pre.small {
 }
 
 #sidebar ul li a {
-    padding: 10px;
+    padding: 10px 20px;
     font-size: 1.1em;
     display: block;
     text-shadow: 0 1px 1px rgba(0,0,0,.2);
@@ -197,10 +196,11 @@ a.article:hover {
 }
 
 .content-header {
-    padding: 20px;
-    background: #6d7fcc;
+    padding: 20px 20px 20px 40px;
+    margin: 0px -40px 20px -40px;
     color: white;
     display: none;
+    background: linear-gradient(5deg,#745fb5,#9066b8);
 }
 
 .content-header h3 {
@@ -484,6 +484,7 @@ iframe {
     }
     #content {
         width: 100%;
+        padding-top: 0px;
     }
     #content.active {
         width: calc(100% - 250px);
