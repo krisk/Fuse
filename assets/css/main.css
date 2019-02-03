@@ -22,8 +22,42 @@ a {
     color: white !important;
 }
 
-.content {
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    width: 300px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 999;
+    background: #7386D5;
+    color: #fff;
+}
+
+#sidebar.active {
+    margin-left: -300px;
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        margin-left: -300px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+}
+
+.inner-content {
     padding: 0 20px 20px 20px;
+}
+#itemsTextArea {
+    min-width: 100%;
+    min-height: 500px;
 }
 #resultTextAreaContainer {
     height: 300px;

@@ -1,518 +1,558 @@
-<!DOCTYPE>
+<!DOCTYPE html>
 <html>
-  <body>
-    <head>
-      <title>Fuse.js - JavaScript fuzzy-search library</title>
 
-      <meta name=viewport content="width=device-width initial-scale=1">
-      <meta name="description" content="Lightweight fuzzy-search library, in JavaScript">
-      <meta name="keywords" content="javascript, fuzzy-search, string algorithm, list, search">
-      <meta name="author" content="Kirollos Risk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Lightweight fuzzy-search library, in JavaScript">
+    <meta name="keywords" content="javascript, fuzzy-search, string algorithm, list, search">
+    <meta name="author" content="Kirollos Risk">
 
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
-      <link rel="stylesheet" href="/assets/css/main.css">
-      <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
-      <script src="/assets/js/fuse.min.js"></script>
-      <script src="/assets/js/fiber.min.js"></script>
-      <script src="/assets/js/main.js"></script>
+    <title>Fuse.js - JavaScript fuzzy-search library</title>
 
-      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/tomorrow.min.css">
-      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
-      <script>hljs.initHighlightingOnLoad();</script>
+    <!-- Bootstrap CSS CDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <!-- Scrollbar Custom CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.min.css">
 
-      <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    <!-- jQuery CDN - Slim version (=without AJAX) -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/tomorrow.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 
-        ga('create', 'UA-82107035-1', 'auto');
-        ga('send', 'pageview');
+    <!-- Font Awesome JS -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script> -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script> -->
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-82107035-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+
+    <!-- Facebook Pixel Code -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '234169324153860');
+        fbq('track', 'PageView');
       </script>
+      <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=234169324153860&ev=PageView&noscript=1"
+      /></noscript>
+    <!-- End Facebook Pixel Code -->
 
-      <!-- Facebook Pixel Code -->
-      <script>
-          !function(f,b,e,v,n,t,s)
-          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '234169324153860');
-          fbq('track', 'PageView');
-        </script>
-        <noscript><img height="1" width="1" style="display:none"
-          src="https://www.facebook.com/tr?id=234169324153860&ev=PageView&noscript=1"
-        /></noscript>
-      <!-- End Facebook Pixel Code -->
+</head>
 
-    </head>
+<body>
 
-    <nav id="newsletter-bar" class="">
-      <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
-        <p>Subscribe to <strong>JavaScript Expert Weekly</strong> to get the latest JavaScript news and articles: </p>
-        <input id='subscribe-email' placeholder="Your email address" name='email' type='email' />
-        <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
-        <input id='subscribe-button' type='submit' onclick="fbq('track', 'Subscribe'); this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
-      </form>
-    </nav>
-
-    <div class="jumbotron">
-      <div class="container">
-        <h1>Fuse.js</h1>
-        <p>Lightweight fuzzy-search library. Zero dependencies.</p>
-        <a href="https://github.com/krisk/fuse" class="btn btn-outline btn-sm github"><span class="fa fa-github"></span> View on GitHub</a>
-      </div>
-
-      <div class="bottom social-share">
-        <iframe src="https://ghbtns.com/github-btn.html?user=krisk&amp;repo=fuse&amp;type=watch&amp;count=true" class="social-share"></iframe>
-        <a class="twitter-share-button"
-          href="https://twitter.com/share"
-          data-url="http://fusejs.io"
-          data-via="kirorisk"
-          data-related="fusejs"
-          data-text="Fuse.js - JavaScript fuzzy-search library">
-        Tweet
-        </a>
-        <script type="IN/Share" data-counter="right"></script>
-        <g:plusone size="medium"></g:plusone>
-        <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false"></div>
-
-        <div id="donate">
-          <span class="wrapper">
-            <img src="/assets/images/patreon.png">
-            <a href="/#support">Support Fuse.js</a>
-          </span>
-        </div>
-
-
-        <div id="fb-root"></div>
-
-        <script>
-          //Facebook
-          (function(d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=399955583389436";
-            fjs.parentNode.insertBefore(js, fjs);
-          }(document, 'script', 'facebook-jssdk'));
-
-          // LinkedIn
-          (function() {
-            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-            po.src = '//platform.linkedin.com/in.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-          })();
-
-          //Twitter
-          !function(d,s,id){
-            var js,fjs=d.getElementsByTagName(s)[0];
-            if(!d.getElementById(id)){
-              js=d.createElement(s);
-              js.id=id;
-              js.src="//platform.twitter.com/widgets.js";
-              fjs.parentNode.insertBefore(js,fjs);
-            }}(document,"script","twitter-wjs");
-
-        </script>
-      </div>
-    </div>
-
-<!--
-    <a class="twitter-follow-button" href="https://twitter.com/FuseJS" data-size="large" data-show-count="false">Follow @FuseJS</a> -->
-
-  <hr>
-
-    <div class="content">
-
-      <h2 id="live-demo">
-        <a class="headline-link" href="#live-demo">#</a>
-        Live Demo
-      </h2>
-
-      <div class="row">
-        <div class="col-md-4">
-
-        <h3>Step 1: Insert your items</h3>
-        <hr>
-
-        <textarea id="itemsTextArea" style="min-width: 100%; min-height: 500px">
-  [
-     {
-        title: "Old Man's War",
-        author: {
-          firstName: "John",
-          lastName: "Scalzi"
-        }
-     },
-     {
-        title: "The Lock Artist",
-        author: {
-          firstName: "Steve",
-          lastName: "Hamilton"
-        }
-     },
-     {
-        title: "HTML5",
-        author: {
-          firstName: "Remy",
-          lastName: "Sharp"
-        }
-     },
-     {
-        title: "Right Ho Jeeves",
-        author: {
-          firstName: "P.D",
-          lastName: "Woodhouse"
-        }
-     },
-     {
-        title: "The Code of the Wooster",
-        author: {
-          firstName: "P.D",
-          lastName: "Woodhouse"
-        }
-     },
-     {
-        title: "Thank You Jeeves",
-        author: {
-          firstName: "P.D",
-          lastName: "Woodhouse"
-        }
-     },
-     {
-        title: "The DaVinci Code",
-        author: {
-          firstName: "Dan",
-          lastName: "Brown"
-        }
-     },
-     {
-        title: "Angels & Demons",
-        author: {
-          firstName: "Dan",
-          lastName: "Brown"
-        }
-     },
-     {
-        title: "The Silmarillion",
-        author: {
-          firstName: "J.R.R",
-          lastName: "Tolkien"
-        }
-     },
-     {
-        title: "Syrup",
-        author: {
-          firstName: "Max",
-          lastName: "Barry"
-        }
-     },
-     {
-        title: "The Lost Symbol",
-        author: {
-          firstName: "Dan",
-          lastName: "Brown"
-        }
-     },
-     {
-        title: "The Book of Lies",
-        author: {
-          firstName: "Brad",
-          lastName: "Meltzer"
-        }
-     },
-     {
-        title: "Lamb",
-        author: {
-          firstName: "Christopher",
-          lastName: "Moore"
-        }
-     },
-     {
-        title: "Fool",
-        author: {
-          firstName: "Christopher",
-          lastName: "Moore"
-        }
-     },
-     {
-        title: "Incompetence",
-        author: {
-          firstName: "Rob",
-          lastName: "Grant"
-        }
-     },
-     {
-        title: "Fat",
-        author: {
-          firstName: "Rob",
-          lastName: "Grant"
-        }
-     },
-     {
-        title: "Colony",
-        author: {
-          firstName: "Rob",
-          lastName: "Grant"
-        }
-     },
-     {
-        title: "Backwards, Red Dwarf",
-        author: {
-          firstName: "Rob",
-          lastName: "Grant"
-        }
-     },
-     {
-        title: "The Grand Design",
-        author: {
-          firstName: "Stephen",
-          lastName: "Hawking"
-        }
-     },
-     {
-        title: "The Book of Samson",
-        author: {
-          firstName: "David",
-          lastName: "Maine"
-        }
-     },
-     {
-        title: "The Preservationist",
-        author: {
-          firstName: "David",
-          lastName: "Maine"
-        }
-     },
-     {
-        title: "Fallen",
-        author: {
-          firstName: "David",
-          lastName: "Maine"
-        }
-     },
-     {
-        title: "Monster 1959",
-        author: {
-          firstName: "David",
-          lastName: "Maine"
-        }
-     }
-  ]
-      </textarea>
-        </div>
-
-        <div class="col-md-4">
-
-          <h3>Step 2: Set the options</h3>
-          <hr>
-
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="caseSensitiveCheckbox"> Case sensitive
-              </label>
-              <span id="helpBlock" class="help-block">Indicates whether comparisons should be case sensitive.</span>
+    <div class="wrapper">
+        <!-- Sidebar  -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3><a href="/">Fuse.js</a></h3>
+                <h4>Lightweight fuzzy-search library. Zero dependencies.</h4>
+                <p>By <a href="https://kiro.me" class="author-link">Kiro Risk</a></p>
             </div>
-          </div>
 
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="scoreCheckbox">Include score
-              </label>
-              <span id="helpBlock" class="help-block">Whether the score should be included in the result set. A score of <code>0</code> indicates a perfect match, while a score of <code>1</code> indicates a complete mismatch.
+            <ul class="list-unstyled components">
+                <li>
+                    <a href="#live-demo"><i class="fas fa-desktop"></i> Live Demo</a>
+                </li>
+                <li>
+                    <a href="#install"><i class="fas fa-download"></i> Install</a>
+                </li>
+                <li>
+                    <a href="#examples"><i class="fas fa-list-ul"></i> Examples</a>
+                </li>
+                <li>
+                    <a href="#support"><i class="fas fa-donate"></i> Support</a>
+                </li>
+                <li>
+                    <a href="#contact"><i class="fas fa-paper-plane"></i> Contact</a>
+                </li>
+            </ul>
+
+            <ul class="list-unstyled CTAs">
+                <li>
+                    <!-- <a href="https://bootstrapious.com/tutorial/files/sidebar.zip" class="download"> View on GitHub</a> -->
+                    <a href="https://github.com/krisk/fuse" class="push-button -dark"><i class="fab fa-github"></i> View on GitHub</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content  -->
+        <div id="content">
+
+            <div class="content-header">
+                <h3>Fuse.js</h3>
+                <p>Lightweight fuzzy-search library. Zero dependencies.</p>
             </div>
-          </div>
 
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="matchesCheckbox">Include matches
-              </label>
-              <span id="helpBlock" class="help-block">Whether the matches should be included in the result set. When <code>true</code>, each record in the result set will include the indices of the matched characters: <code>indices: [start, end]</code>. These can consequently be used for highlighting purposes.</span>
-            </div>
-          </div>
+            <!-- <nav id="newsletter-bar" class="">
+                <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
+                  <p>Subscribe to <strong>JavaScript Expert Weekly</strong> to get the latest JavaScript news and articles: </p>
+                  <input id='subscribe-email' placeholder="Your email address" name='email' type='email' />
+                  <input name='form_dom_id' value='embedded-subscribe-form' type='hidden' />
+                  <input id='subscribe-button' type='submit' onclick="fbq('track', 'Subscribe'); this.form.submit(); this.disabled=true; this.value='Sending...';" value='Subscribe'/>
+                </form>
+              </nav> -->
+              <div>
+                  <div class="bottom social-share">
+                      <iframe src="https://ghbtns.com/github-btn.html?user=krisk&amp;repo=fuse&amp;type=watch&amp;count=true" class="social-share"></iframe>
+                      <a class="twitter-share-button"
+                        href="https://twitter.com/share"
+                        data-url="http://fusejs.io"
+                        data-via="kirorisk"
+                        data-related="fusejs"
+                        data-text="Fuse.js - JavaScript fuzzy-search library">
+                      Tweet
+                      </a>
+                      <script type="IN/Share" data-counter="right"></script>
+                      <g:plusone size="medium"></g:plusone>
+                      <div class="fb-like" data-send="false" data-layout="button_count" data-show-faces="false"></div>
 
-          <div class="form-group form-inline">
-              <label for="minMatchCharLengthTextbox">Minimum character length</label>
-              <input type="number" id="minMatchCharLengthTextbox" min="0" max="32" value="1">
-              <span id="helpBlock" class="help-block">When set to include matches, only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character index returns, set to <code>2</code>)</span>
-          </div>
+                      <div id="donate">
+                        <span class="wrapper">
+                          <img src="/assets/images/patreon.png">
+                          <a href="#support">Support Fuse.js</a>
+                        </span>
+                      </div>
 
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="sortCheckbox" checked="checked">Sort
-              </label>
-              <span id="helpBlock" class="help-block">Whether to sort the result list, by score.</span>
-            </div>
-          </div>
 
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="tokenizeCheckbox">Tokenize
-              </label>
-              <span id="helpBlock" class="help-block">When <code>true</code>, the algorithm will search individual words <strong>and</strong> the full string, computing the final score as a function of both. In this case, the <code>threshold</code>, <code>distance</code>, and <code>location</code> are inconsequential for individual tokens, and are thus ignored.</span>
-            </div>
-          </div>
+                      <div id="fb-root"></div>
 
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="matchAllTokensCheckbox">Match all tokens
-              </label>
-              <span id="helpBlock" class="help-block">When <code>true</code>, the result set will only include records that match all tokens. Will only work if <code>tokenize</code> is also <code>true</code>.</span>
-            </div>
-          </div>
+                      <script>
+                        //Facebook
+                        (function(d, s, id) {
+                          var js, fjs = d.getElementsByTagName(s)[0];
+                          if (d.getElementById(id)) return;
+                          js = d.createElement(s); js.id = id;
+                          js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=399955583389436";
+                          fjs.parentNode.insertBefore(js, fjs);
+                        }(document, 'script', 'facebook-jssdk'));
 
-          <div class="form-group">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" id="findAllMatchesCheckbox">Find All Matches
-              </label>
-              <span id="helpBlock" class="help-block">When <code>true</code>, the matching function will continue to the end of a search pattern even if a perfect match has already been located in the string.</span>
-            </div>
-          </div>
+                        // LinkedIn
+                        (function() {
+                          var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+                          po.src = '//platform.linkedin.com/in.js';
+                          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+                        })();
 
-          <div class="form-group form-inline">
-            <label for="identifierTextbox">ID</label>
-            <input type="text" class="form-control" id="identifierTextbox">
-            <span id="helpBlock" class="help-block">The name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items. See <a href="#searching-by-id">example</a>.</span>
-          </div>
+                        //Twitter
+                        !function(d,s,id){
+                          var js,fjs=d.getElementsByTagName(s)[0];
+                          if(!d.getElementById(id)){
+                            js=d.createElement(s);
+                            js.id=id;
+                            js.src="//platform.twitter.com/widgets.js";
+                            fjs.parentNode.insertBefore(js,fjs);
+                          }}(document,"script","twitter-wjs");
 
-          <div class="form-group form-inline">
-            <label>Keys</label>
-            <br>
-            <textarea class="form-control" id="keysTextbox" style="min-width: 100%; min-height: 20px">
+                      </script>
+                  </div>
+              </div>
+            <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+            </nav> -->
+
+            <div class="section">
+                    <h2 id="live-demo">
+                      <a class="headline-link" href="#live-demo">#</a>
+                      Live Demo
+                    </h2>
+                    <div class="row">
+                      <div class="col-md-6">
+
+                            <h3>
+                              <span class="fa-stack fa-3x">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <strong class="fa-stack-1x text-primary">1</strong>
+                              </span>
+                              Insert your items
+                            </h3>
+
+                              <textarea id="itemsTextArea" style="min-width: 100%; min-height: 250px">
+[
+  {
+      title: "Old Man's War",
+      author: {
+        firstName: "John",
+        lastName: "Scalzi"
+      }
+  },
+  {
+      title: "The Lock Artist",
+      author: {
+        firstName: "Steve",
+        lastName: "Hamilton"
+      }
+  },
+  {
+      title: "HTML5",
+      author: {
+        firstName: "Remy",
+        lastName: "Sharp"
+      }
+  },
+  {
+      title: "Right Ho Jeeves",
+      author: {
+        firstName: "P.D",
+        lastName: "Woodhouse"
+      }
+  },
+  {
+      title: "The Code of the Wooster",
+      author: {
+        firstName: "P.D",
+        lastName: "Woodhouse"
+      }
+  },
+  {
+      title: "Thank You Jeeves",
+      author: {
+        firstName: "P.D",
+        lastName: "Woodhouse"
+      }
+  },
+  {
+      title: "The DaVinci Code",
+      author: {
+        firstName: "Dan",
+        lastName: "Brown"
+      }
+  },
+  {
+      title: "Angels & Demons",
+      author: {
+        firstName: "Dan",
+        lastName: "Brown"
+      }
+  },
+  {
+      title: "The Silmarillion",
+      author: {
+        firstName: "J.R.R",
+        lastName: "Tolkien"
+      }
+  },
+  {
+      title: "Syrup",
+      author: {
+        firstName: "Max",
+        lastName: "Barry"
+      }
+  },
+  {
+      title: "The Lost Symbol",
+      author: {
+        firstName: "Dan",
+        lastName: "Brown"
+      }
+  },
+  {
+      title: "The Book of Lies",
+      author: {
+        firstName: "Brad",
+        lastName: "Meltzer"
+      }
+  },
+  {
+      title: "Lamb",
+      author: {
+        firstName: "Christopher",
+        lastName: "Moore"
+      }
+  },
+  {
+      title: "Fool",
+      author: {
+        firstName: "Christopher",
+        lastName: "Moore"
+      }
+  },
+  {
+      title: "Incompetence",
+      author: {
+        firstName: "Rob",
+        lastName: "Grant"
+      }
+  },
+  {
+      title: "Fat",
+      author: {
+        firstName: "Rob",
+        lastName: "Grant"
+      }
+  },
+  {
+      title: "Colony",
+      author: {
+        firstName: "Rob",
+        lastName: "Grant"
+      }
+  },
+  {
+      title: "Backwards, Red Dwarf",
+      author: {
+        firstName: "Rob",
+        lastName: "Grant"
+      }
+  },
+  {
+      title: "The Grand Design",
+      author: {
+        firstName: "Stephen",
+        lastName: "Hawking"
+      }
+  },
+  {
+      title: "The Book of Samson",
+      author: {
+        firstName: "David",
+        lastName: "Maine"
+      }
+  },
+  {
+      title: "The Preservationist",
+      author: {
+        firstName: "David",
+        lastName: "Maine"
+      }
+  },
+  {
+      title: "Fallen",
+      author: {
+        firstName: "David",
+        lastName: "Maine"
+      }
+  },
+  {
+      title: "Monster 1959",
+      author: {
+        firstName: "David",
+        lastName: "Maine"
+      }
+  }
+]
+                            </textarea>
+                      </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                          <h3>
+                            <span class="fa-stack fa-3x">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <strong class="fa-stack-1x text-primary">2</strong>
+                            </span>
+                            Set the options
+                          </h3>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="caseSensitiveCheckbox"> Case sensitive
+                              </label>
+                              <span id="helpBlock" class="help-block">Indicates whether comparisons should be case sensitive.</span>
+                            </div>
+                          </div>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="scoreCheckbox">Include score
+                              </label>
+                              <span id="helpBlock" class="help-block">Whether the score should be included in the result set. A score of <code>0</code> indicates a perfect match, while a score of <code>1</code> indicates a complete mismatch.
+                            </div>
+                          </div>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="matchesCheckbox">Include matches
+                              </label>
+                              <span id="helpBlock" class="help-block">Whether the matches should be included in the result set. When <code>true</code>, each record in the result set will include the indices of the matched characters: <code>indices: [start, end]</code>. These can consequently be used for highlighting purposes.</span>
+                            </div>
+                          </div>
+
+                          <div class="form-group form-inline">
+                              <label for="minMatchCharLengthTextbox">Minimum character length</label>
+                              <input type="number" id="minMatchCharLengthTextbox" min="0" max="32" value="1">
+                              <span id="helpBlock" class="help-block">When set to include matches, only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character index returns, set to <code>2</code>)</span>
+                          </div>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="sortCheckbox" checked="checked">Sort
+                              </label>
+                              <span id="helpBlock" class="help-block">Whether to sort the result list, by score.</span>
+                            </div>
+                          </div>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="tokenizeCheckbox">Tokenize
+                              </label>
+                              <span id="helpBlock" class="help-block">When <code>true</code>, the algorithm will search individual words <strong>and</strong> the full string, computing the final score as a function of both. In this case, the <code>threshold</code>, <code>distance</code>, and <code>location</code> are inconsequential for individual tokens, and are thus ignored.</span>
+                            </div>
+                          </div>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="matchAllTokensCheckbox">Match all tokens
+                              </label>
+                              <span id="helpBlock" class="help-block">When <code>true</code>, the result set will only include records that match all tokens. Will only work if <code>tokenize</code> is also <code>true</code>.</span>
+                            </div>
+                          </div>
+
+                          <div class="form-group">
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" id="findAllMatchesCheckbox">Find All Matches
+                              </label>
+                              <span id="helpBlock" class="help-block">When <code>true</code>, the matching function will continue to the end of a search pattern even if a perfect match has already been located in the string.</span>
+                            </div>
+                          </div>
+
+                          <div class="form-group form-inline">
+                            <label for="identifierTextbox">ID</label>
+                            <input type="text" class="form-control" id="identifierTextbox">
+                            <span id="helpBlock" class="help-block">The name of the identifier property. If specified, the returned result will be a list of the items' identifiers, otherwise it will be a list of the items. See <a href="#searching-by-id">example</a>.</span>
+                          </div>
+
+                          <div class="form-group form-inline">
+                            <label>Keys</label>
+                            <br>
+                            <textarea class="form-control" id="keysTextbox" style="min-width: 100%; min-height: 20px">
 ["title","author.firstName"]
-            </textarea>
-            <span id="helpBlock" class="help-block">List of properties that will be searched. This supports nested properties, <a href="#weighted-search">weighted search</a>, searching in arrays of <a href="#searching-in-arrays-of-strings">strings</a> and <a href="#searching-in-arrays-of-objects">objects</a></span>
-          </div>
+                            </textarea>
+                            <span id="helpBlock" class="help-block">List of properties that will be searched. This supports nested properties, <a href="#weighted-search">weighted search</a>, searching in arrays of <a href="#searching-in-arrays-of-strings">strings</a> and <a href="#searching-in-arrays-of-objects">objects</a></span>
+                          </div>
 
-          <div class="form-group form-inline">
-            <label for="locationRange">Location</label>
-            <input type="number" id="locationRange" min="0" max="100" value="0">
-            <span id="helpBlock" class="help-block">Determines approximately where in the text is the pattern expected to be found.</span>
-          </div>
+                          <div class="form-group form-inline">
+                            <label for="locationRange">Location</label>
+                            <input type="number" id="locationRange" min="0" max="100" value="0">
+                            <span id="helpBlock" class="help-block">Determines approximately where in the text is the pattern expected to be found.</span>
+                          </div>
 
-          <div class="form-group form-inline">
-            <label for="thresholdRange">Threshold</label>
-            <input type="number" id="thresholdRange" min="0" step="0.1" max="1" value="0.6">
-            <span id="helpBlock" class="help-block">At what point does the match algorithm give up. A threshold of <code>0.0</code> requires a perfect match (of both letters and location), a threshold of <code>1.0</code> would match anything.</span>
-          </div>
+                          <div class="form-group form-inline">
+                            <label for="thresholdRange">Threshold</label>
+                            <input type="number" id="thresholdRange" min="0" step="0.1" max="1" value="0.6">
+                            <span id="helpBlock" class="help-block">At what point does the match algorithm give up. A threshold of <code>0.0</code> requires a perfect match (of both letters and location), a threshold of <code>1.0</code> would match anything.</span>
+                          </div>
 
-          <div class="form-group form-inline">
-            <label for="distanceRange">Distance</label>
-            <input type="number" id="distanceRange" min="0" max="1000" value="100">
-            <span id="helpBlock" class="help-block">Determines how close the match must be to the fuzzy location (specified by <code>location</code>). An exact letter match which is <code>distance</code> characters away from the fuzzy location would score as a complete mismatch. A <code>distance</code> of <code>0</code> requires the match be at the exact <code>location</code> specified, a <code>distance</code> of <code>1000</code> would require a perfect match to be within <code>800</code> characters of the <code>location</code> to be found using a <code>threshold</code> of <code>0.8</code>.</span>
-          </div>
+                          <div class="form-group form-inline">
+                            <label for="distanceRange">Distance</label>
+                            <input type="number" id="distanceRange" min="0" max="1000" value="100">
+                            <span id="helpBlock" class="help-block">Determines how close the match must be to the fuzzy location (specified by <code>location</code>). An exact letter match which is <code>distance</code> characters away from the fuzzy location would score as a complete mismatch. A <code>distance</code> of <code>0</code> requires the match be at the exact <code>location</code> specified, a <code>distance</code> of <code>1000</code> would require a perfect match to be within <code>800</code> characters of the <code>location</code> to be found using a <code>threshold</code> of <code>0.8</code>.</span>
+                          </div>
 
-          <div class="form-group form-inline">
-            <label for="maxPatternLength">Max pattern length</label>
-            <input type="number" id="maxPatternLength" min="0" max="64" value="32">
-            <span id="helpBlock" class="help-block">The maximum length of the pattern. The longer the pattern (i.e. the search query), the more intensive the search operation will be. Whenever the pattern exceeds the <code>maxPatternLength</code>, an error will be thrown. Why is this important? Read <a href="https://en.wikipedia.org/wiki/Word_(computer_architecture)#Word_size_choice" alt="word size choice" target="_blank">this</a>.</span>
-          </div>
+                          <div class="form-group form-inline">
+                            <label for="maxPatternLength">Max pattern length</label>
+                            <input type="number" id="maxPatternLength" min="0" max="64" value="32">
+                            <span id="helpBlock" class="help-block">The maximum length of the pattern. The longer the pattern (i.e. the search query), the more intensive the search operation will be. Whenever the pattern exceeds the <code>maxPatternLength</code>, an error will be thrown. Why is this important? Read <a href="https://en.wikipedia.org/wiki/Word_(computer_architecture)#Word_size_choice" alt="word size choice" target="_blank">this</a>.</span>
+                          </div>
 
-        </div>
-        <div class="col-md-4">
+                        </div>
+                        <div class="col-md-6">
 
-          <section id="search">
-            <h3>Step 3: Search!</h3>
-            <hr>
+                          <section id="search">
+                              <h3>
+                                <span class="fa-stack fa-3x">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <strong class="fa-stack-1x text-primary">3</strong>
+                                </span>
+                                Search
+                              </h3>
 
-            <div class="form-group form-inline">
-              <span id="helpBlock" class="help-block">Go ahead and spell your query incorrectly. That's the point of Fuse.js <i class="fa fa-smile-o" aria-hidden="true"></i></span>
-              <input type="text" class="form-control" id="searchTextbox" placeholder="Old man's war, etc...">
-            </div>
+                            <div class="form-group form-inline">
+                              <span id="helpBlock" class="help-block">Go ahead and spell your query incorrectly. That's the point of Fuse.js <i class="far fa-smile"></i></span>
+                              <input type="text" class="form-control" id="searchTextbox" placeholder="Old man's war, etc...">
+                            </div>
 
-          </section>
+                          </section>
 
- <hr>
-          <section id="js">
-           <h4>Here's the JavaScript:</h4>
+                          <section id="js">
+                          <h4>Here's the JavaScript:</h4>
 <pre>
-<code id="jsTextArea" class="nohighlight"></code>
+<code id="jsTextArea" class="javascript"></code>
 </pre>
-          </section>
+                          </section>
 
-           <hr>
-          <section id="output">
-            <h4>Your search results:</h4>
+                          <section id="output">
+                            <h4>Your search results:</h4>
 <pre id="resultTextAreaContainer">
 <code id="resultTextArea" class="nohighlight"></code>
 </pre>
-            <label>Search time:</label>
-            <span id="searchTimeLabel"></span>
-          </section>
+                            <label>Search time:</label>
+                            <span id="searchTimeLabel"></span>
+                          </section>
 
-      </div>
-  </div>
-  </div>
+                      </div>
+                    </div>
+            </div>
 
+            <div class="section">
 
-  <hr>
+              <h2 id="install">
+                <a class="headline-link" href="#install">#</a>
+                Install
+              </h2>
 
-  <div class="content narrow">
+              <h3>CDN</h3>
 
-    <h2 id="install">
-      <a class="headline-link" href="#install">#</a>
-      Install
-    </h2>
+              <p>Available on <a id="cdn-link" href="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" target="_blank">cdnjs</a> (see the latest <a href="https://github.com/krisk/Fuse/releases" target="_blank">version on Github</a>).</p>
 
-    <h4 id="install-cdn">
-      <a class="headline-link" href="#install-cdn">#</a>
-      CDN
-    </h4>
+              <script>
+                // Auto-update CDN link
+                $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse' ).done( function( json ) {
+                  $( '#cdn-link' ).attr( 'href', json.results[0].latest )
+                } )
+              </script>
 
-    <p>Available on <a id="cdn-link" href="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" target="_blank">cdnjs</a> (see the latest <a href="https://github.com/krisk/Fuse/releases" target="_blank">version on Github</a>).</p>
+              <h3>NPM</h3>
 
-    <script>
-      // Auto-update CDN link
-      $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse' ).done( function( json ) {
-        $( '#cdn-link' ).attr( 'href', json.results[0].latest )
-      } )
-    </script>
-
-    <br>
-    <br>
-
-    <h4 id="install-npm">
-      <a class="headline-link" href="#install-npm">#</a>
-      NPM
-    </h4>
-
-    <p>NPM is the recommended installation method. It pairs nicely with a CommonJS module bundler such as <a href="http://webpack.github.io/" target="_blank" rel="external">Webpack</a> or <a href="http://browserify.org/" target="_blank" rel="external">Browserify</a>.</p>
+              <p>NPM is the recommended installation method. It pairs nicely with a CommonJS module bundler such as <a href="http://webpack.github.io/" target="_blank" rel="external">Webpack</a> or <a href="http://browserify.org/" target="_blank" rel="external">Browserify</a>.</p>
 
 <pre class="small"><code class="bash"># latest stable
 $ npm install fuse.js
 </code></pre>
 
-  </div>
+            </div>
 
-  <hr>
+            <div class="section">
 
-  <div class="content narrow">
+                    <h2 id="examples">
+                      <a class="headline-link" href="#examples">#</a>
+                      Examples
+                    </h2>
 
-    <h2 id="examples">
-      <a class="headline-link" href="#examples">#</a>
-      Examples
-    </h2>
+                    <h3>Searching by ID</h3>
 
-    <h4 id="searching-by-id">
-      <a class="headline-link" href="#searching-by-id">#</a>
-      Searching by ID
-    </h4>
-
-    <div class="row">
-      <div class="col-md-4">
+                    <div class="row">
+                      <div class="col-md-4">
 <pre><code>var books = [{
   'ISBN': 'A',
   'title': "Old Man's War",
@@ -522,9 +562,9 @@ $ npm install fuse.js
   'title': 'The Lock Artist',
   'author': 'Steve Hamilton'
 }]</code></pre>
-        <div class="operation">+</div>
-      </div>
-    <div class="col-md-4">
+                        <div class="operation">+</div>
+                      </div>
+                    <div class="col-md-4">
 <pre><code class="javascript">var options = {
   keys: ['title', 'author'],
   id: 'ISBN'
@@ -532,24 +572,20 @@ $ npm install fuse.js
 var fuse = new Fuse(books, options)
 
 fuse.search('old')</code></pre>
-      <div class="operation">=</div>
-    </div>
-    <div class="col-md-4">
+                      <div class="operation">=</div>
+                    </div>
+                    <div class="col-md-4">
 <pre><code class="javascript">[
   "A"
 ]</code></pre>
-    </div>
-  </div>
+                    </div>
+                  </div>
 
-    <hr>
 
-    <h4 id="weighted-search">
-      <a class="headline-link" href="#weighted-search">#</a>
-      Weighted search
-    </h4>
+                    <h3>Weighted search</h3>
 
-    <div class="row" >
-      <div class="col-md-4">
+                    <div class="row" >
+                      <div class="col-md-4">
 <pre><code>var books = [{
   title: "Old Man's War fiction",
   author: 'John X',
@@ -559,9 +595,9 @@ fuse.search('old')</code></pre>
   author: 'P.D. Mans',
   tags: ['fiction', 'war']
 }]</code></pre>
-        <div class="operation">+</div>
-      </div>
-      <div class="col-md-4">
+                        <div class="operation">+</div>
+                      </div>
+                      <div class="col-md-4">
 <pre><code class="javascript">var options = {
   keys: [{
     name: 'title',
@@ -574,9 +610,9 @@ fuse.search('old')</code></pre>
 var fuse = new Fuse(books, options)
 
 fuse.search('Man')</code></pre>
-        <div class="operation">=</div>
-      </div>
-      <div class="col-md-4">
+                        <div class="operation">=</div>
+                      </div>
+                      <div class="col-md-4">
 <pre><code class="javascript">[{
   "title": "Right Ho Jeeves",
   "author": "P.D. Mans",
@@ -586,18 +622,14 @@ fuse.search('Man')</code></pre>
   "author": "John X",
   "tags": ["war"]
 }]</code></pre>
-      </div>
-    </div>
+                      </div>
+                    </div>
 
-    <hr>
 
-    <h4 id="searching-in-arrays-of-strings">
-      <a class="headline-link" href="#searching-in-arrays-of-strings">#</a>
-      Searching in arrays of strings
-    </h4>
+                    <h3>Searching in arrays of strings</h3>
 
-    <div class="row" >
-      <div class="col-md-4">
+                    <div class="row" >
+                      <div class="col-md-4">
 <pre><code class="javascript">var books = [{
   'title': "Old Man's War",
   'author': 'John Scalzi',
@@ -607,35 +639,32 @@ fuse.search('Man')</code></pre>
   'author': 'Steve',
   'tags': ['thriller']
 }]</code></pre>
-        <div class="operation">+</div>
-      </div>
-      <div class="col-md-4">
+                        <div class="operation">+</div>
+                      </div>
+                      <div class="col-md-4">
 <pre><code>var options = {
   keys: ['author', 'tags']
 };
 var fuse = new Fuse(books, options)
 
 fuse.search('tion')</code></pre>
-        <div class="operation">=</div>
-      </div>
-      <div class="col-md-4">
+                        <div class="operation">=</div>
+                      </div>
+                      <div class="col-md-4">
 <pre><code>[{
   "title": "Old Man's War",
   "author": "John Scalzi",
   "tags": ["fiction"]
 }]</code></pre>
-      </div>
-    </div>
+                      </div>
+                    </div>
 
-<hr>
 
-    <h4 id="searching-in-arrays-of-objects">
-      <a class="headline-link" href="#searching-in-arrays-of-objects">#</a>
-      Searching in arrays of objects
-    </h4>
+                    <h3>Searching in arrays of objects</h3>
 
-    <div class="row" >
-      <div class="col-md-4">
+
+                    <div class="row" >
+                      <div class="col-md-4">
 <pre><code>var books = [{
   'title': "Old Man's War",
   'author': {
@@ -653,18 +682,18 @@ fuse.search('tion')</code></pre>
     }]
   }
 }]</code></pre>
-        <div class="operation">+</div>
-      </div>
-      <div class="col-md-4">
+                        <div class="operation">+</div>
+                      </div>
+                      <div class="col-md-4">
 <pre><code>var options = {
   keys: ['author.tags.value'],
 };
 var fuse = new Fuse(books, options)
 
 fuse.search('engsh')</code></pre>
-        <div class="operation">=</div>
-      </div>
-      <div class="col-md-4">
+                        <div class="operation">=</div>
+                      </div>
+                      <div class="col-md-4">
 <pre><code>[{
   "title": "The Lock Artist",
   "author": {
@@ -673,63 +702,94 @@ fuse.search('engsh')</code></pre>
     }]
   }
 }]</code></pre>
-      </div>
+                      </div>
+                    </div>
+
+            </div>
+
+            <div id="support-container" class="section">
+
+                    <h2 id="support">
+                      <a class="headline-link" href="#support">#</a>
+                      Support Fuse.js Development
+                    </h2>
+
+                    <div style="text-align: left;">
+                      Fuse.js is an Apache License open source project. Maintaining and updating it takes up a good chunk of time, and there's still plenty of work to do. To be able to provide the project with the attention it deserves, I decided to experiment with sponsorship and/or support. If this works out, I can route the chunk of time that is usually spent on lucrative endeavors to this project.
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-4">
+                        <p>
+                          <a href="https://www.patreon.com/fusejs" target="_blank">
+                            <img src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png" class="donation-logo">
+                            <br>
+                            <span>Support on Patreon (recurring pledge)</span>
+                          </a>
+                        </p>
+                      </div>
+                      <div class="col-md-4">
+                        <p>
+                          <a href="https://www.paypal.me/kirorisk" target="_blank">
+                            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" class="donation-logo">
+                            <br>
+                            <span>Donate via PayPal (one time)</span>
+                            <br>
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- <div class="row">
+                      <div class="col-md-12">
+                        <p>
+                        <img src="/assets/images/stellar_xlm.png" class="donation-logo">
+                        <br>
+                        <span class="bitcoin-address">GBBBRDTCN6VDPWQ37VA6W4HROX2FVCYVHMDXMXM4KKI2SU2CDPE7OSZL</span>
+                        <br>
+                        <img src="/assets/images/stellar_address_qr.png">
+                        <br>
+                      </div>
+                    </div> -->
+            </div>
+
+            <div class="section"">
+
+                      <h2 id="contact">
+                        <a class="headline-link" href="#contact">#</a>
+                        Contact
+                      </h2>
+
+                      <p>Fuse.js is created and maintained by <a href="https://kiro.me">Kiro Risk</a></p>
+            </div>
+        </div>
     </div>
 
-  </div>
+    <!-- Popper.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+    <!-- jQuery Custom Scroller CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/malihu-custom-scrollbar-plugin/3.1.5/jquery.mCustomScrollbar.concat.min.js"></script>
 
-  <hr>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
+    <script src="/assets/js/fuse.min.js"></script>
+    <script src="/assets/js/fiber.min.js"></script>
+    <script src="/assets/js/main.js"></script>
 
-  <div id="support-container">
+    <script type="text/javascript">
+        $(function () {
+            $("#sidebar").mCustomScrollbar({
+                theme: "minimal"
+            });
 
-    <h2 id="support">
-      <a class="headline-link" href="#support">#</a>
-      Support Fuse.js Development
-    </h2>
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar, #content').toggleClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+        });
+    </script>
+</body>
 
-    <div style="text-align: left;">
-      Fuse.js is an Apache License open source project. Maintaining and updating it takes up a good chunk of time, and there's still plenty of work to do. To be able to provide the project with the attention it deserves, I decided to experiment with sponsorship and/or support. If this works out, I can route the chunk of time that is usually spent on lucrative endeavors to this project.
-    </div>
-
-    <div class="row">
-      <div class="col-md-6">
-        <p>
-          <a href="https://www.patreon.com/fusejs" target="_blank">
-            <img src="https://s3.amazonaws.com/patreon_public_assets/toolbox/patreon.png" class="donation-logo">
-            <br>
-            <span>Support on Patreon (recurring pledge)</span>
-          </a>
-        </p>
-      </div>
-      <div class="col-md-6">
-        <p>
-          <a href="https://www.paypal.me/kirorisk" target="_blank">
-            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" class="donation-logo">
-            <br>
-            <span>Donate via PayPal (one time)</span>
-            <br>
-          </a>
-        </p>
-      </div>
-    </div>
-
-    <!-- <div class="row">
-      <div class="col-md-12">
-        <p>
-        <img src="/assets/images/stellar_xlm.png" class="donation-logo">
-        <br>
-        <span class="bitcoin-address">GBBBRDTCN6VDPWQ37VA6W4HROX2FVCYVHMDXMXM4KKI2SU2CDPE7OSZL</span>
-        <br>
-        <img src="/assets/images/stellar_address_qr.png">
-        <br>
-      </div>
-    </div> -->
-  </div>
-
-  <footer>
-    <p>Released under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License - 2.0</a></p>
-    <p>Copyright (c) 2019 <strong>Kiro Risk</strong></p>
-  </footer>
-
-  </body>
 </html>
