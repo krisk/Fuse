@@ -189,6 +189,7 @@ a.article:hover {
     position: absolute;
     top: 0;
     right: 0;
+    padding-bottom: 50px;
 }
 
 #content.active {
@@ -395,38 +396,46 @@ iframe {
 ----------------------------------------------------- */
 
 #newsletter-bar {
-    background-color: black;
     position: fixed;
-    left: 250px ;
-    bottom: 0;
+    left: 250px;
+    bottom: -58px;
     width: calc(100% - 250px);
     margin: 0;
     z-index: 10000;
-    padding: 10px;
+    transition: all 0.3s;
+}
+#newsletter-bar.visible {
+    bottom: 0;
 }
 
 #newsletter-bar form {
     text-align: center;
     display: block;
-    margin: 0;
+    padding: 10px 25px;
+    margin: 0px 40px;
+    background-color: #f7df1e;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    position: relative;
 }
 
 #newsletter-bar p {
     vertical-align: middle;
     display: inline;
-    font-weight: 800;
-    font-family: nunito,helvetica,Arial,sans-serif;
-    color: white;
+    color: black;
+    line-height: 2;
 }
 
-#newsletter-bar strong {
-    background-color: #f7df1e;
-    padding: 5px;
-    color: black;
+#btn-newsletter-bar-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 19px;
+    cursor: pointer;
 }
 
 #newsletter-bar #subscribe-email {
-    width: 230px;
+    width: 200px;
     -webkit-appearance: none;
     appearance: none;
     outline: none;
