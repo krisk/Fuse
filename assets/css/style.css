@@ -79,7 +79,7 @@ pre.small {
 }
 
 #sidebar {
-    width: 250px;
+    width: 255px;
     position: fixed;
     top: 0;
     left: 0;
@@ -92,7 +92,7 @@ pre.small {
 }
 
 #sidebar.active {
-    margin-left: -250px;
+    margin-left: -255px;
 }
 
 #sidebar .sidebar-header {
@@ -182,7 +182,7 @@ a.article:hover {
 ----------------------------------------------------- */
 
 #content {
-    width: calc(100% - 250px);
+    width: calc(100% - 255px);
     padding: 40px;
     min-height: 100vh;
     transition: all 0.3s;
@@ -390,16 +390,15 @@ iframe {
     text-decoration: none;
 }
 
-
 /* ---------------------------------------------------
     Newsletter bar
 ----------------------------------------------------- */
 
 #newsletter-bar {
     position: fixed;
-    left: 250px;
+    left: 255px;
     bottom: -58px;
-    width: calc(100% - 250px);
+    width: calc(100% - 255px);
     margin: 0;
     z-index: 10000;
     transition: all 0.3s;
@@ -486,7 +485,7 @@ iframe {
 
 @media (max-width: 768px) {
     #sidebar {
-        margin-left: -250px;
+        margin-left: -255px;
     }
     #sidebar.active {
         margin-left: 0;
@@ -496,7 +495,7 @@ iframe {
         padding-top: 0px;
     }
     #content.active {
-        width: calc(100% - 250px);
+        width: calc(100% - 255px);
     }
     #sidebarCollapse span {
         display: none;
