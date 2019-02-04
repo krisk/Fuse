@@ -71,7 +71,7 @@
                 <p>By <a href="https://kiro.me" class="author-link">Kiro Risk</a></p>
             </div>
 
-            <ul class="list-unstyled components">
+            <ul id="menu" class="list-unstyled components">
                 <li>
                     <a href="#live-demo"><i class="fas fa-desktop"></i> Live Demo</a>
                 </li>
@@ -789,6 +789,52 @@ fuse.search('engsh')</code></pre>
                 $('a[aria-expanded=true]').attr('aria-expanded', 'false');
             });
         });
+
+        // Select all links with hashes
+        var $menu = $('#menu')
+        var hash = location.hash.slice(1);
+        var $current = null;
+
+        // if (hash) {
+        //   $current = $menu.find('a[href*="#' +  hash + '"]').parent()
+        //   $current.addClass('active')
+        // }
+
+        $body = $('html, body')
+
+        $menu.find('a[href*="#"]:not([href="#"])').click(function() {
+            // On-page links
+            if (
+              location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '')
+              &&
+              location.hostname == this.hostname
+            ) {
+              // Figure out element to scroll to
+              var target = $(this.hash);
+              var hash = this.hash.slice(1)
+              if ($current) {
+                $current.removeClass('active')
+              }
+              // $current = $(this).parent()
+              // $current.addClass('active')
+              target = target.length ? target : $('[name=' + hash + ']');
+              // Does a scroll target exist?
+              if (target.length) {
+                // Only prevent default if animation is actually gonna happen
+                event.preventDefault();
+                $body.stop().animate({
+                  scrollTop: target.offset().top
+                }, 500, function() {
+                  // Callback after animation
+                  // Must change focus!
+                  var $target = $(target);
+                  $target.focus();
+                  // location.hash = '#' + hash;
+                });
+              }
+            }
+          });
+
     </script>
 </body>
 

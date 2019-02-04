@@ -125,15 +125,15 @@ pre.small {
 }
 
 #sidebar ul.components li a:hover {
-    color: #7386D5;
-    background: #fff;
+    /* color: #7386D5; */
+    background: #4f3d85;
     text-shadow: none;
 }
 
 #sidebar ul.components li.active>a,
 #sidebar ul.components a[aria-expanded="true"] {
     color: #fff;
-    background: #6d7fcc;
+    background: #3e3069;
 }
 
 #sidebar ul.components a[data-toggle="collapse"] {
