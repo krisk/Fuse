@@ -23,7 +23,7 @@
 //   document.cookie = name + '=; Max-Age=-99999999;'
 // }
 
-(function (window, $, _, Fiber, hljs) {
+(function (window, $, _, Fiber, hljs, gtag) {
   $(function (window) {
   // function handleExperiments () {
   //   // Define JavaScript for each page variation of this experiment.
@@ -183,34 +183,64 @@
 
         // Google events
           this.$caseSensitiveCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:case-sensitive')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:case-sensitive'
+            })
           })
           this.$scoreCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:score')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:score'
+            })
           })
           this.$matchesCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:matches')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:matches'
+            })
           })
           this.$sortCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:sort')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:sort'
+            })
           })
           this.$tokenizeCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:tokenize')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:tokenize'
+            })
           })
           this.$matchAllTokensCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:match-all-tokens')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:match-all-tokens'
+            })
           })
           this.$identifierTextbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:identifier')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:identifier'
+            })
           })
           this.$keysTextbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:keys')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:keys'
+            })
           })
           this.$findAllMatchesCheckbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:find-all-matches')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:find-all-matches'
+            })
           })
           this.$minMatchCharLengthRange.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'option:min-match-char-length')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'option:min-match-char-length'
+            })
           })
         },
         setupCheckboxItems: function (item, trigger) {
@@ -275,10 +305,16 @@
           }, this), 0))
 
           this.$itemsTextArea.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'items')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'items'
+            })
           })
           this.$searchTextbox.on('change', function () {
-            ga('send', 'event', 'Demo', 'change', 'search')
+            gtag('event', 'change', {
+              'event_category': 'Demo',
+              'event_label': 'search'
+            })
           })
         },
         setupItems: function () {
@@ -346,4 +382,4 @@
       }
     }))()
   })
-})(window, $, _, Fiber, hljs)
+})(window, $, _, Fiber, hljs, gtag)
