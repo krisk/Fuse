@@ -1,6 +1,6 @@
 # Version 3.3.1
 
-- Fixed the circular JSON TypeError #197. Thanks @ThinkTankShark, and my apologies on the delay getting your fix in!
+- Fixed the circular JSON TypeError (#197). Thanks [ThinkTankShark](https://github.com/ThinkTankShark)!
 
 # Version 3.2.1
 
