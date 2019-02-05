@@ -28,6 +28,10 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
 
+    <!-- Font Awesome JS -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script> -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script> -->
+
     <!-- Global Site Tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-82107035-1"></script>
     <script>
@@ -763,14 +767,13 @@ fuse.search('engsh')</code></pre>
                     </div> -->
             </div>
 
-            <div class="section"">
+            <div class="section">
+                <h2 id="contact">
+                  <a class="headline-link" href="#contact">#</a>
+                  Contact
+                </h2>
 
-                      <h2 id="contact">
-                        <a class="headline-link" href="#contact">#</a>
-                        Contact
-                      </h2>
-
-                      <p>Fuse.js is created and maintained by <a href="https://kiro.me">Kiro Risk</a></p>
+                <p>Fuse.js is created and maintained by <a href="https://kiro.me">Kiro Risk</a></p>
             </div>
         </div>
     </div>
@@ -789,30 +792,24 @@ fuse.search('engsh')</code></pre>
 
     <script type="text/javascript">
         $(function () {
-            $("#sidebar").mCustomScrollbar({
-                theme: "minimal"
-            });
+          var $sidebar = $("#sidebar")
+          var $body = $('html, body')
+          var $menu = $('#menu')
 
-            $('#sidebarCollapse').on('click', function () {
-                $('#sidebar, #content').toggleClass('active');
-                $('.collapse.in').toggleClass('in');
-                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
-            });
-        });
+          $sidebar.mCustomScrollbar({
+              theme: "minimal"
+          });
 
-        // Select all links with hashes
-        var $menu = $('#menu')
-        var hash = location.hash.slice(1);
-        var $current = null;
+          // Select all links with hashes
+          var hash = location.hash.slice(1);
+          var $current = null;
 
-        // if (hash) {
-        //   $current = $menu.find('a[href*="#' +  hash + '"]').parent()
-        //   $current.addClass('active')
-        // }
+          // if (hash) {
+          //   $current = $menu.find('a[href*="#' +  hash + '"]').parent()
+          //   $current.addClass('active')
+          // }
 
-        $body = $('html, body')
-
-        $menu.find('a[href*="#"]:not([href="#"])').click(function() {
+          $menu.find('a[href*="#"]:not([href="#"])').click(function() {
             // On-page links
             if (
               location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '')
@@ -830,6 +827,10 @@ fuse.search('engsh')</code></pre>
               target = target.length ? target : $('[name=' + hash + ']');
               // Does a scroll target exist?
               if (target.length) {
+                gtag('event', 'change', {
+                  'event_category': 'Navigation',
+                  'event_label': hash
+                })
                 // Only prevent default if animation is actually gonna happen
                 event.preventDefault();
                 $body.stop().animate({
@@ -840,11 +841,11 @@ fuse.search('engsh')</code></pre>
                   var $target = $(target);
                   $target.focus();
                   // location.hash = '#' + hash;
-                });
+                })
               }
             }
-          });
-
+          })
+        });
     </script>
 </body>
 
