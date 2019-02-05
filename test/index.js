@@ -3,7 +3,7 @@ const vows = require('vows')
 const Fuse = require('../dist/fuse')
 const books = require('./fixtures/books.json')
 
-const verbose = true
+const verbose = false
 
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
