@@ -3,7 +3,7 @@ const vows = require('vows')
 const Fuse = require('../dist/fuse')
 const books = require('./fixtures/books.json')
 
-const verbose = false
+const verbose = true
 
 vows.describe('Flat list of strings: ["Apple", "Orange", "Banana"]').addBatch({
   'Flat:': {
@@ -1180,6 +1180,33 @@ vows.describe('Averaged search results').addBatch({
         assert.deepEqual(result[0].title, 'The Code of the Wooster')
         assert.deepEqual(result[1].title, 'Right Ho Jeeves')
         assert.deepEqual(result[2].title, 'Thank You Jeeves')
+      }
+    }
+  }
+}).export(module)
+
+vows.describe('Searching through a large nested object data').addBatch({
+  'Options:': {
+    topic: function () {
+      var o = {}
+      o.o = o
+
+      var fuse = new Fuse(o, {
+        includeMatches: true,
+        minMatchCharLength: 2,
+        verbose: verbose
+      })
+      return fuse
+    },
+    'When we are working with long nest JSON data structures': {
+      topic: function (fuse) {
+        var resultThunk = function () {
+          return fuse._format(fuse)
+        }
+        return resultThunk
+      },
+      'we should get no JSON circular TypeError': function (resultThunk) {
+        assert.doesNotThrow(resultThunk)
       }
     }
   }

@@ -96,7 +96,7 @@ class Fuse {
     if (this.options.shouldSort) {
       this._sort(results)
     }
-    
+
     if (opts.limit && typeof opts.limit === 'number') {
       results = results.slice(0, opts.limit)
     }
@@ -344,7 +344,19 @@ class Fuse {
     const finalOutput = []
 
     if (this.options.verbose) {
-      this._log('\n\nOutput:\n\n', JSON.stringify(results))
+      let cache = []
+      this._log('\n\nOutput:\n\n', JSON.stringify(results, function (key, value) {
+        if (typeof value === 'object' && value !== null) {
+          if (cache.indexOf(value) !== -1) {
+            // Circular reference found, discard key
+            return
+          }
+          // Store value in our collection
+          cache.push(value)
+        }
+        return value
+      }))
+      cache = null // Enable garbage collection
     }
 
     let transformers = []
