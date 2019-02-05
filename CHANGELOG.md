@@ -1,3 +1,7 @@
+# Version 3.3.1
+
+- Fixed the circular JSON TypeError #197. Thanks @ThinkTankShark, and my apologies on the delay getting your fix in!
+
 # Version 3.2.1
 
 - Fixed issue in which more fuzzy matches would weaken a score instead of strengthening it (#233)
