@@ -14,7 +14,12 @@ let copyright = fs.readFileSync('COPYRIGHT.txt', 'UTF8')
 module.exports = (env, argv) => {
   const isProd = argv.mode === 'production'
 
-  let plugins = [
+  let plugins = []
+  if (isProd) {
+    plugins.push(new MinifyPlugin())
+  }
+  plugins = [
+    ...plugins,
     new webpack.BannerPlugin({
       banner: copyright
         .replace('{VERSION}', `v${VERSION}`)
@@ -23,10 +28,6 @@ module.exports = (env, argv) => {
       entryOnly: true
     })
   ]
-
-  if (isProd) {
-    plugins.push(new MinifyPlugin())
-  }
 
   return {
     entry: path.resolve(__dirname, 'src/index.js'),
