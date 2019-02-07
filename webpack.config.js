@@ -1,45 +1,42 @@
 const webpack = require('webpack')
 const path = require('path')
 const fs = require('fs')
-const package = require('./package.json')
+const pckg = require('./package.json')
+const MinifyPlugin = require('babel-minify-webpack-plugin')
 
 const LIBRARY_NAME = 'fuse'
-const VERSION = package.version
-const AUTHOR = package.author
-const HOMEPAGE = package.homepage
-
-// const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin
+const VERSION = pckg.version
+const AUTHOR = pckg.author
+const HOMEPAGE = pckg.homepage
 
 let copyright = fs.readFileSync('COPYRIGHT.txt', 'UTF8')
-let outputFile
-let plugins = [
-  new webpack.BannerPlugin({
-    banner: copyright
-      .replace('{VERSION}', `v${VERSION}`)
-      .replace('{AUTHOR_URL}', `${AUTHOR.url}`)
-      .replace('{HOMEPAGE}', `${HOMEPAGE}`),
-    entryOnly: true
-  })
-]
-
 
 module.exports = (env, argv) => {
-  if (argv.mode === 'production') {
-    // plugins.push(new UglifyJsPlugin({ minimize: true }))
-    outputFile = `${LIBRARY_NAME}.min.js`
-  } else {
-    outputFile = `${LIBRARY_NAME}.js`
+  const isProd = argv.mode === 'production'
+
+  let plugins = [
+    new webpack.BannerPlugin({
+      banner: copyright
+        .replace('{VERSION}', `v${VERSION}`)
+        .replace('{AUTHOR_URL}', `${AUTHOR.url}`)
+        .replace('{HOMEPAGE}', `${HOMEPAGE}`),
+      entryOnly: true
+    })
+  ]
+
+  if (isProd) {
+    plugins.push(new MinifyPlugin())
   }
 
   return {
-    entry: __dirname + './src/index.js',
-    entry: './src',
+    entry: path.resolve(__dirname, 'src/index.js'),
     output: {
-      path: __dirname + '/dist',
-      filename: outputFile,
+      path: path.resolve(__dirname, 'dist'),
+      filename: `${LIBRARY_NAME}${isProd ? '.min' : ''}.js`,
       library: 'Fuse',
       libraryTarget: 'umd',
-      umdNamedDefine: true
+      umdNamedDefine: true,
+      globalObject: 'this'
     },
     module: {
       rules: [{
@@ -48,6 +45,6 @@ module.exports = (env, argv) => {
         exclude: /(node_modules)/
       }]
     },
-    plugins: plugins
+    plugins
   }
 }
