@@ -7,15 +7,23 @@ interface SearchOpts {
   limit?: number
 }
 
-declare class Fuse<T> {
-  constructor(list: ReadonlyArray<T>, options?: Fuse.FuseOptions<T>)
-  search(pattern: string, opts?: SearchOpts): T[];
+declare class Fuse<T, O extends Fuse.FuseOptions<T> = Fuse.FuseOptions<T>> {
+  constructor(list: ReadonlyArray<T>, options?: O)
+  search(pattern: string, opts?: SearchOpts): O extends { id: keyof T } ?
+    O extends ({ includeMatches: true; } | { includeScore: true; }) ? Fuse.FuseResult<string>[] : string[] :
+    O extends ({ includeMatches: true; } | { includeScore: true; }) ? Fuse.FuseResult<T>[] : T[];
+
   setCollection(list: ReadonlyArray<T>): ReadonlyArray<T>;
 }
 
 declare namespace Fuse {
+  export interface FuseResult<T> {
+    item: T,
+    matches?: any;
+    score?: number;
+  }
   export interface FuseOptions<T> {
-    id?: string;
+    id?: keyof T;
     caseSensitive?: boolean;
     includeMatches?: boolean;
     includeScore?: boolean;
