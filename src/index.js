@@ -356,7 +356,7 @@ class Fuse {
         }
         return value
       }))
-      cache = null // Enable garbage collection
+      cache = null
     }
 
     let transformers = []

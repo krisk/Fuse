@@ -22,16 +22,17 @@
   "main": "dist/fuse.js",
   "scripts": {
     "test": "vows test/**.js",
-    "build": "WEBPACK_ENV=build webpack && WEBPACK_ENV=dev webpack",
-    "dev": "WEBPACK_ENV=dev webpack --progress --colors --watch"
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --progress --colors --watch"
   },
   "devDependencies": {
-    "babel-core": "^6.24.1",
-    "babel-loader": "^6.4.1",
+    "babel-core": "^6.26.3",
+    "babel-loader": "7",
     "babel-plugin-add-module-exports": "0.2.1",
-    "babel-preset-es2015": "6.24.1",
-    "babel-preset-stage-2": "6.24.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "vows": "0.5.x",
-    "webpack": "^2.4.1"
+    "webpack": "^4.29.2",
+    "webpack-cli": "^3.2.3"
   }
 }
