@@ -21,7 +21,7 @@
   "main": "dist/fuse.js",
   "scripts": {
     "test": "vows test/**.js",
-    "build": "webpack --mode development && webpack --mode production",
+    "build": "webpack --mode production && webpack --mode production --minify",
     "dev": "webpack --mode development --progress --colors --watch"
   },
   "devDependencies": {
