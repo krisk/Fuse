@@ -39,6 +39,7 @@ module.exports = (env, argv) => {
       umdNamedDefine: true,
       globalObject: 'this'
     },
+    devtool: false,
     module: {
       rules: [{
         test: /(\.js)$/,
