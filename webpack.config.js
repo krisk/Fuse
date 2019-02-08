@@ -12,10 +12,10 @@ const HOMEPAGE = pckg.homepage
 let copyright = fs.readFileSync('COPYRIGHT.txt', 'UTF8')
 
 module.exports = (env, argv) => {
-  const isMin = !!argv.minify
+  const isProd = argv.mode === 'production'
 
   let plugins = []
-  if (isMin) {
+  if (isProd) {
     plugins.push(new MinifyPlugin())
   }
   plugins = [
@@ -33,7 +33,7 @@ module.exports = (env, argv) => {
     entry: path.resolve(__dirname, 'src/index.js'),
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: `${LIBRARY_NAME}${isMin ? '.min' : ''}.js`,
+      filename: `${LIBRARY_NAME}${isProd ? '.min' : ''}.js`,
       library: 'Fuse',
       libraryTarget: 'umd',
       umdNamedDefine: true,
