@@ -104,6 +104,11 @@
         <!-- Page Content  -->
         <div id="content">
 
+            <!-- <div class="conversation">
+              <span>Fuse.js</span> + <img src="assets/images/Slack_RGB.png" />
+            </div>
+            <a href="https://join.slack.com/t/fusejs/shared_invite/enQtNTQ0ODA1NDY3NjU0LTNhMGU1ZDE2YTJlZDE1ZTMzYTM0NGZjN2EzMmI5MDc0NTI4MzdhZmJjN2E5N2Y3ZjczZGE2NzI4NGEyMjZmMWY">Join Fuse.js on Slack.</a> -->
+
             <!-- <nav id="newsletter-bar">
                 <form action='https://javascriptexpert.curated.co/email_subscribers' id='embedded-subscribe-form' method='post'>
                   <p>Become a JavaScript expert with the free <strong>JavaScript Expert Weekly</strong> newsletter</p>
@@ -542,9 +547,9 @@
 
               <script>
                 // Auto-update CDN link
-                $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse' ).done( function( json ) {
-                  $( '#cdn-link' ).attr( 'href', json.results[0].latest )
-                } )
+                $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse' ).done(function (json) {
+                  $('#cdn-link').attr( 'href', json.results[0].latest)
+                })
               </script>
 
               <h3>NPM</h3>
@@ -564,7 +569,7 @@ $ npm install fuse.js
                       Examples
                     </h2>
 
-                    <h3>Searching by ID</h3>
+                    <h3 id="searching-by-id">Searching by ID</h3>
 
                     <div class="row">
                       <div class="col-md-4">
@@ -597,7 +602,7 @@ fuse.search('old')</code></pre>
                   </div>
 
 
-                    <h3>Weighted search</h3>
+                    <h3 id="weighted-search">Weighted search</h3>
 
                     <div class="row" >
                       <div class="col-md-4">
@@ -641,7 +646,7 @@ fuse.search('Man')</code></pre>
                     </div>
 
 
-                    <h3>Searching in arrays of strings</h3>
+                    <h3 id="searching-in-arrays-of-strings">Searching in arrays of strings</h3>
 
                     <div class="row" >
                       <div class="col-md-4">
@@ -675,7 +680,7 @@ fuse.search('tion')</code></pre>
                     </div>
 
 
-                    <h3>Searching in arrays of objects</h3>
+                    <h3 id="searching-in-arrays-of-objects">Searching in arrays of objects</h3>
 
 
                     <div class="row" >
@@ -773,7 +778,7 @@ fuse.search('engsh')</code></pre>
                   <a class="headline-link" href="#contact">#</a>
                   Contact
                 </h2>
-                <p>Fuse.js is created and maintained by <a href="https://kiro.me">Kiro Risk</a></p>
+                <p>Fuse.js is created and maintained by <a href="https://kiro.me">Kiro Risk</a>.</p>
             </div>
         </div>
     </div>
@@ -795,6 +800,7 @@ fuse.search('engsh')</code></pre>
           var $sidebar = $("#sidebar")
           var $body = $('html, body')
           var $menu = $('#menu')
+          var $sections = $('.section')
 
           $sidebar.mCustomScrollbar({
               theme: "minimal"
@@ -809,7 +815,7 @@ fuse.search('engsh')</code></pre>
           //   $current.addClass('active')
           // }
 
-          $menu.find('a[href*="#"]:not([href="#"])').click(function() {
+          function onAnchorClick(cb) {
             // On-page links
             if (
               location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '')
@@ -827,10 +833,9 @@ fuse.search('engsh')</code></pre>
               target = target.length ? target : $('[name=' + hash + ']');
               // Does a scroll target exist?
               if (target.length) {
-                gtag('event', 'change', {
-                  'event_category': 'Navigation',
-                  'event_label': hash
-                })
+                if (cb) {
+                  cb(hash)
+                }
                 // Only prevent default if animation is actually gonna happen
                 event.preventDefault();
                 $body.stop().animate({
@@ -844,6 +849,21 @@ fuse.search('engsh')</code></pre>
                 })
               }
             }
+          }
+
+          function onNavigationChange (hash) {
+            gtag('event', 'change', {
+              'event_category': 'Navigation',
+              'event_label': hash
+            })
+          }
+
+          $menu.find('a[href*="#"]:not([href="#"])').click(function () {
+            _.bind(onAnchorClick, this)(onNavigationChange)
+          })
+
+          $sections.find('a[href*="#"]:not([href="#"])').click(function () {
+            _.bind(onAnchorClick, this)()
           })
         });
     </script>

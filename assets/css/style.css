@@ -232,6 +232,7 @@ a.article:hover {
     overflow: hidden;
     color: #745fb5;
     font-size: 19px;
+    line-height: 1.3;
 }
 
 .section h3::after {
@@ -485,6 +486,20 @@ iframe {
     cursor: pointer;
     font-weight: 800;
     display: inline-block;
+}
+
+/* ---------------------------------------------------
+    CONVERSATION
+----------------------------------------------------- */
+
+.conversation {
+
+}
+.conversation span {
+    font-size: 25px;
+}
+.conversation img {
+    width: 125px;
 }
 
 /* ---------------------------------------------------

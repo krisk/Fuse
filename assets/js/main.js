@@ -23,7 +23,7 @@
 //   document.cookie = name + '=; Max-Age=-99999999;'
 // }
 
-(function (window, $, _, Fiber, hljs, gtag) {
+(function (window, $, _, Fiber, Fuse, hljs, gtag) {
   $(function (window) {
   // function handleExperiments () {
   //   // Define JavaScript for each page variation of this experiment.
@@ -371,7 +371,16 @@
           arr.push('  distance: ' + this.options.data.distance + ',')
           arr.push('  maxPatternLength: ' + this.options.data.maxPatternLength + ',')
           arr.push('  minMatchCharLength: ' + this.options.data.minMatchCharLength + ',')
-          arr.push('  keys: ' + JSON.stringify(this.options.data.keys, null, '    '))
+          if (this.options.data.keys) {
+            arr.push('  keys: [')
+            var len = this.options.data.keys.length
+            var i = 0
+            _.each(this.options.data.keys, function (value) {
+              arr.push('    "' + value + (i === len - 1 ? '"' : '",'))
+              i += 1
+            })
+            arr.push('  ]')
+          }
           arr.push('};')
           arr.push('var fuse = new Fuse(list, options); // "list" is the item array')
           arr.push('var result = fuse.search("' + this.pattern + '");')
@@ -382,4 +391,4 @@
       }
     }))()
   })
-})(window, $, _, Fiber, hljs, gtag)
+})(window, $, _, Fiber, Fuse, hljs, gtag)
