@@ -1,3 +1,15 @@
+# Version 3.4.2
+
+- Fixed #288
+
+# Version 3.4.1
+
+- Ensured `dist/` content is production ready (both full and min versions) #283
+
+# Version 3.4.0
+
+- Upgraded build tool to Webpack 4. New `dist/` output.
+
 # Version 3.3.1
 
 - Fixed the circular JSON TypeError (#197). Thanks [ThinkTankShark](https://github.com/ThinkTankShark)!
