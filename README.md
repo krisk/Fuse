@@ -1,4 +1,4 @@
-# Fuse.js
+# [Fuse.js](https://fusejs.io)
 
 <p align="center">
   <a alt="npm version" href="https://www.npmjs.com/package/fuse.js"><img src="https://badge.fury.io/js/fuse.js.svg"/></a>
