@@ -1,9 +1,11 @@
-# [Fuse.js](https://fusejs.io)
+
+
+<h1 align="center">Fuse.js</h1>
 
 <p align="center">
   <a alt="npm version" href="https://www.npmjs.com/package/fuse.js"><img src="https://badge.fury.io/js/fuse.js.svg"/></a>
   <a alt="Build Status" href="http://travis-ci.org/krisk/Fuse"><img src="https://secure.travis-ci.org/krisk/Fuse.svg?branch=master" /></a>
-  <a alt="Join the chat" href="https://gitter.im/fuselib/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"><img src="https://badges.gitter.im/fuselib/Lobby.svg"/></a>
+  <a href="https://npmcharts.com/compare/fuse.js?minimal=true"><img src="https://img.shields.io/npm/dm/fuse.js.svg" alt="Downloads">
 </p>
 
 <h2 align="center">Supporting Fuse.js</h2>
