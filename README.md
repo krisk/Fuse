@@ -1,6 +1,6 @@
 
 
-<h1 align="center">Fuse.js</h1>
+<p align="center"><a href="https://fusejs.io" target="_blank" rel="noopener noreferrer"><img width="100" src="https://fusejs.io/assets/images/logo.png" alt="Fuse.js logo"></a></p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/fuse.js"><img src="https://img.shields.io/npm/v/fuse.js.svg" alt="Version"/></a>
