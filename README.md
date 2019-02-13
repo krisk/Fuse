@@ -22,7 +22,7 @@ If you'd like to join the list of these awesome [backers](https://github.com/kri
 <!--special start-->
 
 <p align="center">
-  [Your company name here]
+  <i>Have your company name here</i>
 </p>
   
 <!--special end-->
