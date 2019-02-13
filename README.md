@@ -22,7 +22,9 @@ If you'd like to join the list of these awesome [backers](https://github.com/kri
 
 Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
 
-Check out the [demo & usage](https://fusejs.io/)
+## Documentation
+
+To checkout out [live examples](https://fusejs.io) and docs, visit [fusejs.io](https://fusejs.io).
 
 ## Contributing
 
