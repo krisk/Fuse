@@ -16,6 +16,16 @@ If you'd like to join the list of these awesome [backers](https://github.com/kri
 
 - [Become a backer or sponsor on Patreon](https://www.patreon.com/fusejs).
 - [One-time donation via PayPal](https://www.paypal.me/kirorisk)
+
+
+<h3 align="center">Special Sponsors</h3>
+<!--special start-->
+
+<p align="center">
+  [Your company name here]
+</p>
+  
+<!--special end-->
 ---
 
 ## Introduction
