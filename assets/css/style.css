@@ -325,12 +325,16 @@ a.article:hover {
 #support-container > div {
     margin-top: 40px;
 }
+.support-description {
+    display: block;
+    margin-top: 5px;
+}
 
 /* ---------------------------------------------------
     SOCIAL
 ----------------------------------------------------- */
 
-iframe {
+.social-share iframe {
     max-width: 100px !important;
     height: 20px !important;
     border: none;
