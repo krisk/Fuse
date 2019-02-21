@@ -316,7 +316,7 @@ a.article:hover {
     color: #42b983;
 }
 #support-container img {
-    width: 120px;
+    height: 40px;
     margin-bottom: 5px;
 }
 #support-container a:hover {
