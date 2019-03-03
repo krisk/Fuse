@@ -28,5 +28,5 @@ module.exports = {
     libraryTarget: 'umd',
     umdNamedDefine: true,
     globalObject: 'this'
-  },
-};
+  }
+}
