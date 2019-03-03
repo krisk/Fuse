@@ -1,3 +1,10 @@
+# Version 3.4.3
+
+- Fixed #261
+- Rewrote tests to Jest framework
+- Wrote tests for TypeScript typings
+- Cleanup build
+
 # Version 3.4.2
 
 - Fixed #288

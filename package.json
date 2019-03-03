@@ -5,7 +5,7 @@
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "types": "./index.d.ts",
@@ -43,6 +43,9 @@
     "webpack": "^4.29.2",
     "webpack-cli": "^3.2.3",
     "webpack-merge": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=6"
   },
   "files": [
     "dist/"
