@@ -8,7 +8,6 @@
   "version": "3.4.3",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
-  "types": "./index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/krisk/Fuse.git"
@@ -19,7 +18,7 @@
     "bitap"
   ],
   "main": "dist/fuse.js",
-  "typings": "dist/fuse.d.ts",
+  "types": "dist/fuse.d.ts",
   "scripts": {
     "clean": "rimraf ./dist",
     "pretest": "npm run build",
