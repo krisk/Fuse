@@ -1,5 +1,8 @@
 node_modules/
 npm-debug.log
 .DS_Store
-.idea
+.idea/
+.vs/
+.vscode/
 runner.js
+package-lock.json

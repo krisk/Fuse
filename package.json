@@ -19,22 +19,32 @@
     "bitap"
   ],
   "main": "dist/fuse.js",
+  "typings": "dist/fuse.d.ts",
   "scripts": {
-    "test": "vows test/**.js",
-    "build": "webpack --mode development && webpack --mode production",
-    "dev": "webpack --mode development --progress --colors --watch"
+    "clean": "rimraf ./dist",
+    "pretest": "npm run build",
+    "test": "jest",
+    "prebuild": "npm run clean",
+    "build": "webpack --config ./configs/webpack.prod.js",
+    "predev": "npm run clean",
+    "dev": "webpack --progress --colors --watch --config ./configs/webpack.dev.js"
   },
   "devDependencies": {
     "@babel/cli": "7.2.3",
-    "@babel/core": "7.2.2",
+    "@babel/core": "^7.3.4",
     "@babel/preset-env": "^7.3.1",
-    "@babel/preset-es2015": "7.0.0-beta.53",
-    "@babel/preset-stage-2": "7.0.0",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.9",
     "babel-loader": "^8.0.5",
-    "babel-minify-webpack-plugin": "^0.3.1",
-    "babel-plugin-add-module-exports": "0.2.1",
-    "vows": "0.5.x",
+    "copy-webpack-plugin": "^5.0.0",
+    "jest": "^24.1.0",
+    "rimraf": "^2.6.3",
+    "terser-webpack-plugin": "^1.2.3",
     "webpack": "^4.29.2",
-    "webpack-cli": "^3.2.3"
-  }
+    "webpack-cli": "^3.2.3",
+    "webpack-merge": "^4.2.1"
+  },
+  "files": [
+    "dist/"
+  ]
 }
