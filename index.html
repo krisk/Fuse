@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -664,8 +664,8 @@ fuse.search('tion')</code></pre>
                     <h3 id="searching-in-arrays-of-objects">Searching in arrays of objects</h3>
 
 
-                    <div class="row" >
-                      <div class="col-md-4">
+                <div class="row" >
+                    <div class="col-md-4">
 <pre><code>var books = [{
   'title': "Old Man's War",
   'author': {
@@ -684,8 +684,8 @@ fuse.search('tion')</code></pre>
   }
 }]</code></pre>
                         <div class="operation">+</div>
-                      </div>
-                      <div class="col-md-4">
+                    </div>
+                    <div class="col-md-4">
 <pre><code>var options = {
   keys: ['author.tags.value'],
 };
@@ -693,8 +693,8 @@ var fuse = new Fuse(books, options)
 
 fuse.search('engsh')</code></pre>
                         <div class="operation">=</div>
-                      </div>
-                      <div class="col-md-4">
+                    </div>
+                    <div class="col-md-4">
 <pre><code>[{
   "title": "The Lock Artist",
   "author": {
@@ -703,8 +703,67 @@ fuse.search('engsh')</code></pre>
     }]
   }
 }]</code></pre>
-                      </div>
                     </div>
+                </div>
+
+                <h3 id="using-in-typescript">Using in TypeScript</h3>
+
+
+                <div class="row" >
+                    <div class="col-md-4">
+<pre><code>// Requires --esModuleInterop compiler flag!
+// import * as Fuse with '--allowSyntheticDefaultImport'
+// or import Fuse = require('fuse.js') with neither
+import Fuse from 'fuse.js';
+
+type SimpleBookFuse = {
+    title: string;
+    author: {
+        firstName: string;
+        lastName: string;
+    };
+    tags: string[]
+};
+
+const books: SimpleBookFuse[] = [{
+  'title': "Old Man's War",
+  'author': 'John Scalzi',
+  'tags': ['fiction']
+}, {
+  'title': 'The Lock Artist',
+  'author': 'Steve',
+  'tags': ['thriller']
+}]
+
+</code></pre>
+                        <div class="operation">+</div>
+                    </div>
+                    <div class="col-md-4">
+<pre><code>const options: Fuse.FuseOptions&lt;SimpleBookFuse&gt; = {
+  keys: ['author', 'tags'],
+};
+const fuse = new Fuse(books, options)
+
+const results = fuse.search('tion')
+</code></pre>
+                        <div class="operation">=</div>
+                    </div>
+                    <div class="col-md-4">
+<pre><code>[{
+  "title": "The Lock Artist",
+  "author": {
+    "tags": [{
+      "value": "English"
+    }]
+  }
+}]
+
+// IDE's will show full IntelliSense support
+// for example when using
+results[0].ti... => suggested to expand to title
+</code></pre>
+                    </div>
+                </div>
 
             </div>
 
