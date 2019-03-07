@@ -23,7 +23,8 @@ const defaultOptions = {
   matchAllTokens: false,
   includeMatches: false,
   includeScore: false,
-verbose}
+  verbose
+}
 
 const setup = (itemList, overwriteOptions) => {
   const list = itemList || defaultList
