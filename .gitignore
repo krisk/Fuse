@@ -1,5 +1,17 @@
+# Filter node stuff
 node_modules/
-npm-debug.log
+*.log
+
+# Filter MacOS folder store
 .DS_Store
-.idea
+
+# Filter IDE settings
+.idea/
+.vs/
+.vscode/
+
+# Only publish 1 type of lockfile
+package-lock.json
+
+# Filter test runner
 runner.js
