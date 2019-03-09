@@ -1,4 +1,5 @@
-// Type definitions for Fuse.js 3.2.0
+// Type definitions for Fuse.js 3.4
+// TypeScript Version: 3.1
 
 export = Fuse;
 export as namespace Fuse;
