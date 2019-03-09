@@ -12,6 +12,18 @@ const copyright = fs.readFileSync(path.resolve(__dirname, '../COPYRIGHT.txt'), '
 
 module.exports = {
   entry: path.resolve(__dirname, '../src/index.js'),
+  module: {
+    rules: [{
+      test: /\.?(j|t)s$/,
+      exclude: /(node_modules|bower_components)/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env', '@babel/preset-typescript']
+        }
+      }
+    }],
+  },
   plugins: [
     new webpack.BannerPlugin({
       banner: copyright
