@@ -5,7 +5,7 @@
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
-  "version": "3.4.3",
+  "version": "3.4.4",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {
@@ -33,10 +33,10 @@
     "@babel/core": "^7.3.4",
     "@babel/preset-env": "7.3.4",
     "@babel/preset-typescript": "^7.3.3",
-    "@types/jest": "^24.0.9",
+    "@types/jest": "^24.0.11",
     "babel-loader": "^8.0.5",
     "copy-webpack-plugin": "^5.0.0",
-    "jest": "^24.1.0",
+    "jest": "^24.3.1",
     "rimraf": "^2.6.3",
     "terser-webpack-plugin": "^1.2.3",
     "webpack": "^4.29.2",

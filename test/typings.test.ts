@@ -1,8 +1,8 @@
-import Fuse from '../dist/fuse';
+import Fuse, { FuseOptions } from '../dist/fuse';
 import { BattlePokedex, PokeAliases } from './fixtures/pokedex';
 import { IPokeDexAliases, PokedexType } from './fixtures/types';
 
-const defaultOptions: Fuse.FuseOptions<PokedexType & IPokeDexAliases> = {
+const defaultOptions: FuseOptions<PokedexType & IPokeDexAliases> = {
     keys: ['alias', 'species', 'name', 'num'],
     threshold: 0.2
 };
