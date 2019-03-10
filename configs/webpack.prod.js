@@ -7,6 +7,9 @@ const CopyPlugin = require('copy-webpack-plugin')
 module.exports = merge(common, {
   mode: 'production',
   devtool: false,
+  module: {
+    rules: [{ test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' }]
+  },
   plugins: [
     new CopyPlugin([{
       from: path.resolve(__dirname, '../src/typings.d.ts'),
