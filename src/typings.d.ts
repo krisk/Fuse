@@ -20,7 +20,12 @@ declare class Fuse<T, O extends Fuse.FuseOptions<any> = Fuse.FuseOptions<any>> {
 declare namespace Fuse {
   export interface FuseResult<T> {
     item: T,
-    matches?: any;
+    matches?: {
+      indices: [number, number][];
+      value: string;
+      key: string;
+      arrayIndex: number;
+    }[];
     score?: number;
   }
   export interface FuseOptions<T> {
