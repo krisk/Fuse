@@ -89,16 +89,13 @@ class Fuse {
       fullSearcher
     } = this._prepareSearchers(pattern)
 
-    let { weights, results } = this._search(tokenSearchers, fullSearcher)
+    const limit = typeof opts.limit === 'number' && opts.limit
+    let { weights, results } = this._search(tokenSearchers, fullSearcher, limit)
 
     this._computeScore(weights, results)
 
     if (this.options.shouldSort) {
       this._sort(results)
-    }
-
-    if (opts.limit && typeof opts.limit === 'number') {
-      results = results.slice(0, opts.limit)
     }
 
     return this._format(results)
@@ -120,7 +117,7 @@ class Fuse {
     return { tokenSearchers, fullSearcher }
   }
 
-  _search (tokenSearchers = [], fullSearcher) {
+  _search (tokenSearchers = [], fullSearcher, limit) {
     const list = this.list
     const resultMap = {}
     const results = []
@@ -140,7 +137,11 @@ class Fuse {
           results,
           tokenSearchers,
           fullSearcher
-        })
+        }, limit)
+
+        if (limit && results.length === limit) {
+          break
+        }
       }
 
       return { weights: null, results }
@@ -178,14 +179,22 @@ class Fuse {
           results,
           tokenSearchers,
           fullSearcher
-        })
+        }, limit)
+
+        if (limit && results.length === limit) {
+          return { weights, results }
+        }
       }
     }
 
     return { weights, results }
   }
 
-  _analyze ({ key, arrayIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] }) {
+  _analyze (
+    { key, arrayIndex = -1, value, record, index },
+    { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] },
+    limit
+  ) {
     // Check if the texvaluet can be searched
     if (value === undefined || value === null) {
       return
@@ -302,6 +311,10 @@ class Fuse {
           tokenSearchers,
           fullSearcher
         })
+
+        if (limit && results.length === limit) {
+          break
+        }
       }
     }
   }

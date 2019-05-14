@@ -92,7 +92,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose values represent the indices of ["Banana", "Orange"]', () => {
-      expect(result[0]).toBe(2)
+      expect(result[0]).toBe(1)
     })
   })
 })
