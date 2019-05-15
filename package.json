@@ -1,16 +1,16 @@
 {
-  "name": "@riim/fuse.js",
+  "name": "fuse.js",
   "author": {
     "name": "Kirollos Risk",
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
-  "version": "3.4.5",
+  "version": "3.4.4",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Riim/Fuse.git"
+    "url": "https://github.com/krisk/Fuse.git"
   },
   "homepage": "http://fusejs.io",
   "keywords": [
