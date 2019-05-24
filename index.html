@@ -727,11 +727,17 @@ type SimpleBookFuse = {
 
 const books: SimpleBookFuse[] = [{
   'title': "Old Man's War",
-  'author': 'John Scalzi',
+  'author': {
+    'firstName': 'John',
+    'lastName': 'Scalzi'
+  },
   'tags': ['fiction']
 }, {
   'title': 'The Lock Artist',
-  'author': 'Steve',
+  'author': {
+    'firstName': 'Steve',
+    'lastName': 'Hamilton'
+  },
   'tags': ['thriller']
 }]
 
