@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js 3.4
+// Type definitions for Fuse.js v3.4.5
 // TypeScript Version: 3.1
 
 export = Fuse;
@@ -31,7 +31,7 @@ declare namespace Fuse {
     shouldSort?: boolean;
     sortFn?: (a: { score: number }, b: { score: number }) => number;
     getFn?: (obj: any, path: string) => any;
-    keys?: (keyof T)[] | { name: keyof T; weight: number }[];
+    keys?: (keyof T)[] | T[keyof T] | { name: keyof T; weight: number }[];
     verbose?: boolean;
     tokenize?: boolean;
     tokenSeparator?: RegExp;

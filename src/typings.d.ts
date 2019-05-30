@@ -1,4 +1,3 @@
-// Type definitions for Fuse.js 3.4
 // TypeScript Version: 3.1
 
 export = Fuse;
