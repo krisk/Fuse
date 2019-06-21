@@ -22,6 +22,10 @@ declare namespace Fuse {
     matches?: any;
     score?: number;
   }
+  export type FuseKey<T> =
+    | keyof T
+    | { name: keyof T; weight: number }
+    | { name: string, weight?: number, getFn: (obj: T) => string }
   export interface FuseOptions<T> {
     id?: keyof T;
     caseSensitive?: boolean;
@@ -30,9 +34,7 @@ declare namespace Fuse {
     shouldSort?: boolean;
     sortFn?: (a: { score: number }, b: { score: number }) => number;
     getFn?: (obj: any, path: string) => any;
-    keys?: (keyof T)[] |
-      ({ name: keyof T; weight: number }
-        | { name: string, weight: number, getfn: (a: T) => string | null | undefined })[];
+    keys?: FuseKey<T>[];
     verbose?: boolean;
     tokenize?: boolean;
     tokenSeparator?: RegExp;
