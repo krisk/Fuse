@@ -153,24 +153,25 @@ class Fuse {
     const weights = {}
     const keys = []
     for (let j = 0, keysLen = this.options.keys.length; j < keysLen; j += 1) {
-      let key = this.options.keys[j]
-      let nkey = {name: '', getFn: null }
-
-      if (typeof key !== 'string') {
-        weights[key.name] = {
-          weight: (1 - key.weight) || 1
-        }
-        if (key.weight <= 0 || key.weight > 1) {
-          throw new Error('Key weight has to be > 0 and <= 1')
-        }
-        nkey.name = key.name
-        nkey.getFn = key.getFn
-      } else {
-        nkey.name = key
-        weights[key] = {
-          weight: 1
-        }
+      const originalKey = this.options.keys[j]
+      const keyOverrides = typeof originalKey === 'string' ? {name: originalKey} : originalKey
+      const key = {
+        weight: 1,
+        getFn: obj => this.options.getFn(obj, key.name),
+        ...keyOverrides
       }
+      const {name, weight, getFn} = key;
+
+      if (typeof getFn !== 'function') {
+        throw new Error('Key getFn must be a function')
+      }
+      if (weight <= 0 || weight > 1) {
+        throw new Error('Key weight has to be > 0 and <= 1')
+      }
+      weights[name] = {
+        weight: (1 - weight) || 1
+      }
+      keys.push(key)
     }
 
     // And analyse all the items.
@@ -178,9 +179,10 @@ class Fuse {
       let item = list[i]
 
       for (let j = 0, keysLen = keys.length; j < keysLen; j += 1) {
+        const key = keys[j]
         this._analyze({
           key: key.name,
-          value: key.getFn ? key.getFn(item) : this.options.getFn(item, key.name),
+          value: key.getFn(item),
           record: item,
           index: i
         }, {
