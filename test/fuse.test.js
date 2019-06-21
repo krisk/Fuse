@@ -989,3 +989,35 @@ describe('Searching through a deeply nested object', () => {
     })
   })
 })
+
+describe('Searching with functional keys', () => {
+  const customList = [
+    {names: {first: 'Bob', last: 'Smith'}},
+    {names: {first: 'Agent', last: 'Smith'}}
+  ]
+
+  const search = (pattern, getFn) => {
+    const fuse = setup(customList, {threshold: 0, keys: [{name: 'getFn', getFn}]})
+    return fuse.search(pattern)
+  }
+
+  describe('When using a nested field getter', () => {
+    let result
+    beforeEach(() => result = search('smith', item => item.names.last))
+
+    test('we should get multiple matches', () => {
+      expect(result.length).toBe(2)
+      expect(result).toContain(customList[0])
+      expect(result).toContain(customList[1])
+    })
+  })
+  describe('When using a derived field getter', () => {
+    let result
+    beforeEach(() => result = search('bob smith', item => `${item.names.first} ${item.names.last}`))
+
+    test('we should get a single match', () => {
+      expect(result.length).toBe(1)
+      expect(result).toContain(customList[0])
+    })
+  })
+})
