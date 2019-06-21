@@ -148,14 +148,14 @@ class Fuse {
 
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
-    
+
     // Start by computing all the keys and their weights
     const weights = {}
     const keys = []
     for (let j = 0, keysLen = this.options.keys.length; j < keysLen; j += 1) {
       let key = this.options.keys[j]
-      let nkey = {name: '', getfn: null }
-      
+      let nkey = {name: '', getFn: null }
+
       if (typeof key !== 'string') {
         weights[key.name] = {
           weight: (1 - key.weight) || 1
@@ -164,7 +164,7 @@ class Fuse {
           throw new Error('Key weight has to be > 0 and <= 1')
         }
         nkey.name = key.name
-        nkey.getfn = key.getfn
+        nkey.getFn = key.getFn
       } else {
         nkey.name = key
         weights[key] = {
@@ -172,15 +172,15 @@ class Fuse {
         }
       }
     }
-    
+
     // And analyse all the items.
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
-      
+
       for (let j = 0, keysLen = keys.length; j < keysLen; j += 1) {
         this._analyze({
           key: key.name,
-          value: key.getfn ? key.getfn(item) : this.options.getFn(item, key.name),
+          value: key.getFn ? key.getFn(item) : this.options.getFn(item, key.name),
           record: item,
           index: i
         }, {
