@@ -47,5 +47,5 @@ Code should be run through [Standard Format](https://www.npmjs.com/package/stand
 
 ### Testing
 
-Before submitting a pull request, please add relevant tests in `test/index.js`, and execute them via `npm test`.
+Before submitting a pull request, please add relevant tests in `test/fuse.test.js`, and execute them via `npm test`.
 
