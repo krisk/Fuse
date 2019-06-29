@@ -7,7 +7,7 @@ interface SearchOpts {
   limit?: number
 }
 
-declare class Fuse<T, O extends Fuse.FuseOptions<any> = Fuse.FuseOptions<any>> {
+declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
   constructor(list: ReadonlyArray<T>, options?: O)
   search(pattern: string, opts?: SearchOpts): O extends { id: keyof T } ?
     O extends ({ includeMatches: true; } | { includeScore: true; }) ? Fuse.FuseResult<string>[] : string[] :
