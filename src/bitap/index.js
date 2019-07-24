@@ -45,7 +45,7 @@ class Bitap {
     }
   }
 
-  search (text) {
+  search (text, extraOptions = {}) {
     if (!this.options.isCaseSensitive) {
       text = text.toLowerCase()
     }
@@ -66,7 +66,7 @@ class Bitap {
     }
 
     // Otherwise, use Bitap algorithm
-    const { location, distance, threshold, findAllMatches, minMatchCharLength } = this.options
+    const { location, distance, threshold, findAllMatches, minMatchCharLength } = { ...this.options, ...extraOptions };
     return bitapSearch(text, this.pattern, this.patternAlphabet, {
       location,
       distance,

@@ -51,6 +51,9 @@ class Fuse {
 
     // Will print to the console. Useful for debugging.
     verbose = false
+
+    // Item options
+    itemOptions = []
   }) {
     this.options = {
       location,
@@ -70,7 +73,8 @@ class Fuse {
       sortFn,
       verbose,
       tokenize,
-      matchAllTokens
+      matchAllTokens,
+      itemOptions
     }
 
     this.setCollection(list)
@@ -198,7 +202,8 @@ class Fuse {
     if (typeof value === 'string') {
       this._log(`\nKey: ${key === '' ? '-' : key}`)
 
-      let mainSearchResult = fullSearcher.search(value)
+      let itemOptions = this._getItemOptions(index)
+      let mainSearchResult = fullSearcher.search(value, itemOptions)
       this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
 
       if (this.options.tokenize) {
@@ -424,6 +429,12 @@ class Fuse {
     if (this.options.verbose) {
       console.log(...arguments)
     }
+  }
+
+  _getItemOptions (index = 0) {
+    const { itemOptions } = this.options;
+
+    return index >= 0 && index < itemOptions.length ? itemOptions[i] : {};
   }
 }
 
