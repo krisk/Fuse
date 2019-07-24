@@ -52,7 +52,8 @@ class Fuse {
     // Will print to the console. Useful for debugging.
     verbose = false,
 
-    // Item options
+    // Allow to specify extra options for items separately.
+    // Usefull if you want to specify different `threshold` foreach items.
     itemsOptions = []
   }) {
     this.options = {
