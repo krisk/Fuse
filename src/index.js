@@ -434,7 +434,7 @@ class Fuse {
   _getItemOptions (index = 0) {
     const { itemOptions } = this.options;
 
-    return index >= 0 && index < itemOptions.length ? itemOptions[i] : {};
+    return index >= 0 && index < itemOptions.length ? itemOptions[index] : {};
   }
 }
 
