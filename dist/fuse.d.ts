@@ -42,6 +42,6 @@ declare namespace Fuse {
     maxPatternLength?: number;
     minMatchCharLength?: number;
     findAllMatches?: boolean;
-    itemOptions?: Omit<FuseOptions<T>, 'itemOptions'>;
+    itemOptions?: Omit<FuseOptions<T>, 'itemOptions'>[];
   }
 }
