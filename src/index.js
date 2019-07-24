@@ -53,7 +53,7 @@ class Fuse {
     verbose = false,
 
     // Item options
-    itemOptions = []
+    itemsOptions = []
   }) {
     this.options = {
       location,
@@ -74,7 +74,7 @@ class Fuse {
       verbose,
       tokenize,
       matchAllTokens,
-      itemOptions
+      itemsOptions
     }
 
     this.setCollection(list)
@@ -202,8 +202,8 @@ class Fuse {
     if (typeof value === 'string') {
       this._log(`\nKey: ${key === '' ? '-' : key}`)
 
-      let itemOptions = this._getItemOptions(index)
-      let mainSearchResult = fullSearcher.search(value, itemOptions)
+      let itemsOptions = this._getitemsOptions(index)
+      let mainSearchResult = fullSearcher.search(value, itemsOptions)
       this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
 
       if (this.options.tokenize) {
@@ -431,10 +431,10 @@ class Fuse {
     }
   }
 
-  _getItemOptions (index = 0) {
-    const { itemOptions } = this.options;
+  _getitemsOptions (index = 0) {
+    const { itemsOptions } = this.options;
 
-    return index >= 0 && index < itemOptions.length ? itemOptions[index] : {};
+    return index >= 0 && index < itemsOptions.length ? itemsOptions[index] : {};
   }
 }
 

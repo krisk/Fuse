@@ -989,3 +989,41 @@ describe('Searching through a deeply nested object', () => {
     })
   })
 })
+
+describe('Options', () => {
+  const items = ['batman', 'apple', 'things']
+  let fuse
+
+  describe('When performing search with itemsOptions', () => {
+    let result
+
+    beforeEach(() => {
+      const itemsOptions = [0, 1, 0].map(t => ({ threshold: t }))
+      fuse = setup(items, { itemsOptions })
+    })
+
+    test('we should have no matches', () => {
+      const results = fuse.search('ddddddd')
+      expect(results).toHaveLength(0)
+    })
+
+    test('we should only have one match (match anything)', () => {
+      const results = fuse.search('azertyuiop')
+      expect(results).toHaveLength(1)
+      expect(results[0]).toBe(1)
+    })
+
+    test('we should only have one match (specific)', () => {
+      const results = fuse.search('things')
+      expect(results).toHaveLength(1)
+      expect(results[0]).toBe(2)
+    })
+
+    test('we should only have two matches (match anything + specific)', () => {
+      const results = fuse.search('batman')
+      expect(results).toHaveLength(2)
+      expect(results[0]).toBe(0)
+      expect(results[1]).toBe(1)
+    })
+  })
+})
