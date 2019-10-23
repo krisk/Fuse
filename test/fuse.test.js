@@ -989,3 +989,37 @@ describe('Searching through a deeply nested object', () => {
     })
   })
 })
+
+describe.only('Searching using string large strings', () => {
+
+  const list = [{
+    text: 'pizza'
+  }, {
+    text: 'feast'
+  }, {
+    text: 'super+large+much+unique+36+very+wow+'
+  }]
+  const options = {
+    include: ['score', 'matches'],
+    shouldSort: true,
+    threshold: 0.5,
+    location: 0,
+    distance: 0,
+    maxPatternLength: 50,
+    minMatchCharLength: 4,
+    keys: [
+      'text'
+    ]
+  }
+  const fuse = new Fuse(list, options)
+
+  test('finds no matches when string is exactly 32 characters', () => {
+    expect(fuse.search('this-string-is-exactly-32-chars-')).toStrictEqual([])
+  })
+  test('finds no matches when string is larger than 32 characters', () => {
+    expect(fuse.search('this-string-is-more-than-32-chars')).toStrictEqual([])
+  })
+  test('should find one match that is larger than 32 characters', () => {
+    expect(fuse.search('super+large+much+unique+36+very+wow+')[0].text).toBe('super+large+much+unique+36+very+wow+')
+  })
+})
