@@ -1,5 +1,6 @@
 # Filter node stuff
 node_modules/
+dist/
 *.log
 
 # Filter MacOS folder store
