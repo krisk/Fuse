@@ -48,7 +48,7 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
   let finalScore = 1
   let binMax = patternLen + textLen
 
-  const mask = 1 << (patternLen - 1)
+  const mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30)
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -135,7 +135,7 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
       distance
     })
 
-    // console.log('score', score, finalScore)
+    //console.log('score', score, finalScore)
 
     if (score > currentThreshold) {
       break
@@ -144,7 +144,7 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
     lastBitArr = bitArr
   }
 
-  // console.log('FINAL SCORE', finalScore)
+  //console.log('FINAL SCORE', finalScore)
 
   // Count exact matches (those with a score of 0) to be "almost" exact
   return {

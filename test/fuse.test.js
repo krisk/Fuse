@@ -990,7 +990,7 @@ describe('Searching through a deeply nested object', () => {
   })
 })
 
-describe.only('Searching using string large strings', () => {
+describe('Searching using string large strings', () => {
 
   const list = [{
     text: 'pizza'
@@ -1013,6 +1013,15 @@ describe.only('Searching using string large strings', () => {
   }
   const fuse = new Fuse(list, options)
 
+  test('finds delicious pizza', () => {
+    expect(fuse.search('pizza')[0].text).toBe('pizza')
+  })
+  test('finds pizza when clumbsy', () => {
+    expect(fuse.search('pizze')[0].text).toBe('pizza')
+  })
+  test('finds no matches when string is exactly 31 characters', () => {
+    expect(fuse.search('this-string-is-exactly-31-chars')).toStrictEqual([])
+  })
   test('finds no matches when string is exactly 32 characters', () => {
     expect(fuse.search('this-string-is-exactly-32-chars-')).toStrictEqual([])
   })
