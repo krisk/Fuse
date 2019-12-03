@@ -11,23 +11,6 @@
 <!--   <a href="https://discord.gg/QF4B9sf"><img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg" alt="Chat"></a> -->
 </p>
 
-<h2 align="center">Supporting Fuse.js</h2>
-
-Fuse.js is an Apache License open source project. Maintaining and updating it takes up a good chunk of time, and there's still plenty of work to do. To be able to provide the project with the attention it deserves, I decided to experiment with sponsorship and/or support. If this works out, I can route the chunk of time that is usually spent on lucrative endeavors to this project.
-
-If you'd like to join the list of these awesome [backers](https://github.com/krisk/Fuse/blob/master/backers.md), please consider:
-
-- [Become a backer or sponsor on Patreon](https://www.patreon.com/fusejs).
-- [One-time donation via PayPal](https://www.paypal.me/kirorisk)
-
-
-<h3 align="center">Special Sponsors</h3>
-<!--special start-->
-
-<p align="center">
-  <i>[Get your company name here]</i>
-</p>
-  
 <!--special end-->
 ---
 
