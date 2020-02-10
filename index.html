@@ -536,7 +536,7 @@
 
               <script>
                 // Auto-update CDN link
-                $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse' ).done(function (json) {
+                $.getJSON( 'https://api.cdnjs.com/libraries?search=fuse.js' ).done(function (json) {
                   $('#cdn-link').attr( 'href', json.results[0].latest)
                 })
               </script>
