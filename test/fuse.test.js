@@ -42,6 +42,10 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
     expect(fuse).toMatchObject(expected)
   })
 
+  it('should have the list property', () => {
+    expect(fuse.list).toBe(defaultList)
+  })
+
   describe('When searching for the term "Apple"', () => {
     let result
     beforeEach(() => result = fuse.search('Apple'))
