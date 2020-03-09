@@ -12,6 +12,16 @@ done < package.json;
 
 echo $version;
 
+on_master_branch () {
+  [[ $(git symbolic-ref --short -q HEAD) == "master" ]] && return 0
+  return 1
+}
+
+if ! on_master_branch; then
+  echo -e "\033[0;31mRefusing to release from non master branch.\033[0m"
+  exit 1
+fi
+
 read -e -p "Are you sure you want to release? " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then

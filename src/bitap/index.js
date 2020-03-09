@@ -3,7 +3,7 @@ const bitapSearch = require('./bitap_search')
 const patternAlphabet = require('./bitap_pattern_alphabet')
 
 class Bitap {
-  constructor (pattern, {
+  constructor(pattern, {
     // Approximately where in the text is the pattern expected to be found?
     location = 0,
     // Determines how close the match must be to the fuzzy location (specified above).
@@ -48,7 +48,7 @@ class Bitap {
     }
   }
 
-  search (text) {
+  search(text) {
     const { isCaseSensitive, includeMatches } = this.options
 
     if (!isCaseSensitive) {

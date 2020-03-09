@@ -19,7 +19,7 @@ module.exports = (matchmask = [], minMatchCharLength = 1) => {
 
   // (i-1 - start) + 1 => i - start
   if (matchmask[i - 1] && (i - start) >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1])
+    matchedIndices.push([start, i - 1]);
   }
 
   return matchedIndices
