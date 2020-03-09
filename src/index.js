@@ -1,9 +1,8 @@
 const Bitap = require('./bitap')
-const deepValue = require('./helpers/deep_value')
-const isArray = require('./helpers/is_array')
+const { get, deepValue, isArray } = require('./utils')
 
 class Fuse {
-  constructor (list, {
+  constructor(list, {
     // Approximately where in the text is the pattern expected to be found?
     location = 0,
     // Determines how close the match must be to the fuzzy location (specified above).
@@ -35,7 +34,7 @@ class Fuse {
     shouldSort = true,
     // The get function to use when fetching an object's properties.
     // The default will search nested paths *ie foo.bar.baz*
-    getFn = deepValue,
+    getFn = get,
     // Default sort function
     sortFn = (a, b) => (a.score - b.score),
     // When true, the search algorithm will search individual words **and** the full string,
@@ -76,12 +75,12 @@ class Fuse {
     this.setCollection(list)
   }
 
-  setCollection (list) {
+  setCollection(list) {
     this.list = list
     return list
   }
 
-  search (pattern, opts = { limit: false }) {
+  search(pattern, opts = { limit: false }) {
     this._log(`---------\nSearch pattern: "${pattern}"`)
 
     const {
@@ -89,9 +88,13 @@ class Fuse {
       fullSearcher
     } = this._prepareSearchers(pattern)
 
+    //console.time('Search');
     let { weights, results } = this._search(tokenSearchers, fullSearcher)
+    //console.timeEnd('Search');
 
+    //console.time('_computeScore');
     this._computeScore(weights, results)
+    //console.timeEnd('_computeScore');
 
     if (this.options.shouldSort) {
       this._sort(results)
@@ -104,7 +107,7 @@ class Fuse {
     return this._format(results)
   }
 
-  _prepareSearchers (pattern = '') {
+  _prepareSearchers(pattern = '') {
     const tokenSearchers = []
 
     if (this.options.tokenize) {
@@ -115,12 +118,14 @@ class Fuse {
       }
     }
 
+    //console.time('_prepareSearchers')
     let fullSearcher = new Bitap(pattern, this.options)
+    //console.timeEnd('_prepareSearchers')
 
     return { tokenSearchers, fullSearcher }
   }
 
-  _search (tokenSearchers = [], fullSearcher) {
+  _search(tokenSearchers = [], fullSearcher) {
     const list = this.list
     const resultMap = {}
     const results = []
@@ -142,12 +147,12 @@ class Fuse {
           fullSearcher
         })
       }
-
       return { weights: null, results }
     }
 
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
+    //console.time('_search');
     const weights = {}
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
@@ -155,17 +160,13 @@ class Fuse {
       for (let j = 0, keysLen = this.options.keys.length; j < keysLen; j += 1) {
         let key = this.options.keys[j]
         if (typeof key !== 'string') {
-          weights[key.name] = {
-            weight: (1 - key.weight) || 1
-          }
+          weights[key.name] = key.weight//(1 - key.weight) || 1
           if (key.weight <= 0 || key.weight > 1) {
             throw new Error('Key weight has to be > 0 and <= 1')
           }
           key = key.name
         } else {
-          weights[key] = {
-            weight: 1
-          }
+          weights[key] = 1
         }
 
         this._analyze({
@@ -182,165 +183,158 @@ class Fuse {
       }
     }
 
+    //console.timeEnd('_search');
+
     return { weights, results }
   }
 
-  _analyze ({ key, arrayIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher = [], resultMap = {}, results = [] }) {
-    // Check if the texvaluet can be searched
-    if (value === undefined || value === null) {
-      return
-    }
+  _analyze({ key, arrayIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher, resultMap = {}, results = [] }) {
+    // Internal search function for cleanless and speed up.
+    const search = (arrayIndex, value, record, index) => {
+      // Check if the texvaluet can be searched
+      if (value === undefined || value === null) {
+        return
+      }
 
-    let exists = false
-    let averageScore = -1
-    let numTextMatches = 0
+      if (typeof value === 'string') {
+        let exists = false
+        let averageScore = -1
+        let numTextMatches = 0
 
-    if (typeof value === 'string') {
-      this._log(`\nKey: ${key === '' ? '-' : key}`)
+        this._log(`\nKey: ${key === '' ? '--' : key}`)
 
-      let mainSearchResult = fullSearcher.search(value)
-      this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
+        // //console.time('_fullSearcher.search');
+        let mainSearchResult = fullSearcher.search(value)
+        // //console.timeEnd('_fullSearcher.search');
 
-      if (this.options.tokenize) {
-        let words = value.split(this.options.tokenSeparator)
-        let scores = []
+        this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
 
-        for (let i = 0; i < tokenSearchers.length; i += 1) {
-          let tokenSearcher = tokenSearchers[i]
+        // TODO: revisit this to take into account term frequency
+        if (this.options.tokenize) {
+          let words = value.split(this.options.tokenSeparator)
+          let wordsLen = words.length
+          let scores = []
 
-          this._log(`\nPattern: "${tokenSearcher.pattern}"`)
+          for (let i = 0, tokenSearchersLen = tokenSearchers.length; i < tokenSearchersLen; i += 1) {
+            let tokenSearcher = tokenSearchers[i]
 
-          // let tokenScores = []
-          let hasMatchInText = false
+            this._log(`\nPattern: "${tokenSearcher.pattern}"`)
 
-          for (let j = 0; j < words.length; j += 1) {
-            let word = words[j]
-            let tokenSearchResult = tokenSearcher.search(word)
-            let obj = {}
-            if (tokenSearchResult.isMatch) {
-              obj[word] = tokenSearchResult.score
-              exists = true
-              hasMatchInText = true
-              scores.push(tokenSearchResult.score)
-            } else {
-              obj[word] = 1
-              if (!this.options.matchAllTokens) {
-                scores.push(1)
+            let hasMatchInText = false
+
+            for (let j = 0; j < wordsLen; j += 1) {
+              let word = words[j]
+              let tokenSearchResult = tokenSearcher.search(word)
+              let obj = {}
+              if (tokenSearchResult.isMatch) {
+                obj[word] = tokenSearchResult.score
+                exists = true
+                hasMatchInText = true
+                scores.push(tokenSearchResult.score)
+              } else {
+                obj[word] = 1
+                if (!this.options.matchAllTokens) {
+                  scores.push(1)
+                }
               }
+              this._log(`Token: "${word}", score: ${obj[word]}`)
             }
-            this._log(`Token: "${word}", score: ${obj[word]}`)
-            // tokenScores.push(obj)
+
+            if (hasMatchInText) {
+              numTextMatches += 1
+            }
           }
 
-          if (hasMatchInText) {
-            numTextMatches += 1
+          averageScore = scores[0]
+          let scoresLen = scores.length
+          for (let i = 1; i < scoresLen; i += 1) {
+            averageScore += scores[i]
           }
+          averageScore = averageScore / scoresLen
+
+          this._log('Token score average:', averageScore)
         }
 
-        averageScore = scores[0]
-        let scoresLen = scores.length
-        for (let i = 1; i < scoresLen; i += 1) {
-          averageScore += scores[i]
+        let finalScore = mainSearchResult.score
+        if (averageScore > -1) {
+          finalScore = (finalScore + averageScore) / 2
         }
-        averageScore = averageScore / scoresLen
 
-        this._log('Token score average:', averageScore)
-      }
+        this._log('Score average:', finalScore)
 
-      let finalScore = mainSearchResult.score
-      if (averageScore > -1) {
-        finalScore = (finalScore + averageScore) / 2
-      }
+        let checkTextMatches = (this.options.tokenize && this.options.matchAllTokens) ? numTextMatches >= tokenSearchers.length : true
 
-      this._log('Score average:', finalScore)
+        this._log(`\nCheck Matches: ${checkTextMatches}`)
 
-      let checkTextMatches = (this.options.tokenize && this.options.matchAllTokens) ? numTextMatches >= tokenSearchers.length : true
-
-      this._log(`\nCheck Matches: ${checkTextMatches}`)
-
-      // If a match is found, add the item to <rawResults>, including its score
-      if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
-        // Check if the item already exists in our results
-        let existingResult = resultMap[index]
-        if (existingResult) {
-          // Use the lowest score
-          // existingResult.score, bitapResult.score
-          existingResult.output.push({
+        // If a match is found, add the item to <rawResults>, including its score
+        if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
+          let _searchResult = {
             key,
             arrayIndex,
             value,
-            score: finalScore,
-            matchedIndices: mainSearchResult.matchedIndices
-          })
-        } else {
-          // Add it to the raw result list
-          resultMap[index] = {
-            item: record,
-            output: [{
-              key,
-              arrayIndex,
-              value,
-              score: finalScore,
-              matchedIndices: mainSearchResult.matchedIndices
-            }]
+            score: finalScore
           }
 
-          results.push(resultMap[index])
+          if (this.options.includeMatches) {
+            _searchResult.matchedIndices = mainSearchResult.matchedIndices
+          }
+
+          // Check if the item already exists in our results
+          let existingResult = resultMap[index]
+          if (existingResult) {
+            existingResult.output.push(_searchResult)
+          } else {
+            resultMap[index] = {
+              item: record,
+              output: [_searchResult]
+            }
+
+            results.push(resultMap[index])
+          }
+        }
+      } else if (isArray(value)) {
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          search(i, value[i], record, index)
         }
       }
-    } else if (isArray(value)) {
-      for (let i = 0, len = value.length; i < len; i += 1) {
-        this._analyze({
-          key,
-          arrayIndex: i,
-          value: value[i],
-          record,
-          index
-        }, {
-          resultMap,
-          results,
-          tokenSearchers,
-          fullSearcher
-        })
-      }
     }
+
+    search(arrayIndex, value, record, index)
   }
 
-  _computeScore (weights, results) {
+  _computeScore(weights, results) {
     this._log('\n\nComputing score:\n')
 
     for (let i = 0, len = results.length; i < len; i += 1) {
-      const output = results[i].output
+      const result = results[i]
+      const output = result.output
       const scoreLen = output.length
 
-      let currScore = 1
-      let bestScore = 1
+      let totalWeightedScore = 1
 
       for (let j = 0; j < scoreLen; j += 1) {
-        let weight = weights ? weights[output[j].key].weight : 1
-        let score = weight === 1 ? output[j].score : (output[j].score || 0.001)
-        let nScore = score * weight
+        const item = output[j]
+        const key = item.key
+        const weight = weights ? weights[key] : 1
+        const score = item.score === 0 && weights && weights[key] > 0
+          ? Number.EPSILON
+          : item.score
 
-        if (weight !== 1) {
-          bestScore = Math.min(bestScore, nScore)
-        } else {
-          output[j].nScore = nScore
-          currScore *= nScore
-        }
+        totalWeightedScore *= Math.pow(score, weight)
       }
 
-      results[i].score = bestScore === 1 ? currScore : bestScore
+      result.score = totalWeightedScore
 
-      this._log(results[i])
+      this._log(result)
     }
   }
 
-  _sort (results) {
+  _sort(results) {
     this._log('\n\nSorting....')
     results.sort(this.options.sortFn)
   }
 
-  _format (results) {
+  _format(results) {
     const finalOutput = []
 
     if (this.options.verbose) {
@@ -420,7 +414,7 @@ class Fuse {
     return finalOutput
   }
 
-  _log () {
+  _log() {
     if (this.options.verbose) {
       console.log(...arguments)
     }

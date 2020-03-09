@@ -15,6 +15,7 @@
   "homepage": "http://fusejs.io",
   "keywords": [
     "fuzzy",
+    "search",
     "bitap"
   ],
   "main": "dist/fuse.js",
@@ -48,5 +49,6 @@
   },
   "files": [
     "dist/"
-  ]
+  ],
+  "dependencies": {}
 }

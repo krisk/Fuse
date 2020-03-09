@@ -1,7 +1,7 @@
 const bitapScore = require('./bitap_score')
 const matchedIndices = require('./bitap_matched_indices')
 
-module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1 }) => {
+module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1, includeMatches = false }) => {
   const expectedLocation = location
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length
@@ -135,8 +135,6 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
       distance
     })
 
-    //console.log('score', score, finalScore)
-
     if (score > currentThreshold) {
       break
     }
@@ -144,12 +142,15 @@ module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100
     lastBitArr = bitArr
   }
 
-  //console.log('FINAL SCORE', finalScore)
-
   // Count exact matches (those with a score of 0) to be "almost" exact
-  return {
+  let _res = {
     isMatch: bestLocation >= 0,
     score: finalScore === 0 ? 0.001 : finalScore,
-    matchedIndices: matchedIndices(matchMask, minMatchCharLength)
   }
+
+  if (includeMatches) {
+    _res.matchedIndices = matchedIndices(matchMask, minMatchCharLength)
+  }
+
+  return _res
 }

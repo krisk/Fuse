@@ -29,6 +29,7 @@ declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
       )
 
   setCollection(list: ReadonlyArray<T>): ReadonlyArray<T>;
+  list: ReadonlyArray<T>
 }
 
 declare namespace Fuse {

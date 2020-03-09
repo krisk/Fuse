@@ -1,6 +1,6 @@
 const Fuse = require('../dist/fuse')
 const books = require('./fixtures/books.json')
-const deepValue = require('../src/helpers/deep_value')
+const { get } = require('../src/utils')
 
 const verbose = false
 
@@ -17,7 +17,7 @@ const defaultOptions = {
   id: null,
   keys: [],
   shouldSort: true,
-  getFn: deepValue,
+  getFn: get,
   sortFn: (a, b) => (a.score - b.score),
   tokenize: false,
   matchAllTokens: false,
@@ -763,9 +763,9 @@ describe('Weighted search', () => {
   describe('When searching for the term "War", where tags are weighted higher than all other keys', () => {
     const customOptions = {
       keys: [
-        {name: 'title', weight: 0.8},
-        {name: 'author', weight: 0.3},
-        {name: 'tags', weight: 0.9}
+        {name: 'title', weight: 0.4},
+        {name: 'author', weight: 0.1},
+        {name: 'tags', weight: 0.5}
       ]
     }
     let fuse

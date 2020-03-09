@@ -25,7 +25,9 @@ class Bitap {
     // match is found before the end of the same input.
     findAllMatches = false,
     // Minimum number of characters that must be matched before a result is considered a match
-    minMatchCharLength = 1
+    minMatchCharLength = 1,
+
+    includeMatches = false
   }) {
     this.options = {
       location,
@@ -35,10 +37,11 @@ class Bitap {
       isCaseSensitive,
       tokenSeparator,
       findAllMatches,
+      includeMatches,
       minMatchCharLength
     }
 
-    this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
 
     if (this.pattern.length <= maxPatternLength) {
       this.patternAlphabet = patternAlphabet(this.pattern)
@@ -46,20 +49,27 @@ class Bitap {
   }
 
   search (text) {
-    if (!this.options.isCaseSensitive) {
+    const { isCaseSensitive, includeMatches } = this.options
+
+    if (!isCaseSensitive) {
       text = text.toLowerCase()
     }
 
     // Exact match
     if (this.pattern === text) {
-      return {
+      let result = {
         isMatch: true,
-        score: 0,
-        matchedIndices: [[0, text.length - 1]]
+        score: 0
       }
+
+      if (includeMatches) {
+        result.matchedIndices = [[0, text.length - 1]]
+      }
+
+      return result
     }
 
-    // When pattern length is greater than the machine word length, just do a a regex comparison
+    // When pattern length is greater than the machine word length, just do a regex comparison
     const { maxPatternLength, tokenSeparator } = this.options
     if (this.pattern.length > maxPatternLength) {
       return bitapRegexSearch(text, this.pattern, tokenSeparator)
@@ -72,13 +82,10 @@ class Bitap {
       distance,
       threshold,
       findAllMatches,
-      minMatchCharLength
+      minMatchCharLength,
+      includeMatches
     })
   }
 }
-
-// let x = new Bitap("od mn war", {})
-// let result = x.search("Old Man's War")
-// console.log(result)
 
 module.exports = Bitap
