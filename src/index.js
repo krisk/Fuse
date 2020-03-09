@@ -73,6 +73,7 @@ class Fuse {
     }
 
     this.setCollection(list)
+    this._processKeys(keys)
   }
 
   setCollection(list) {
@@ -80,20 +81,76 @@ class Fuse {
     return list
   }
 
+  _processKeys(keys) {
+    this._keyWeights = {}
+    this._keyNames = []
+
+    // Iterate over every key
+    if (keys.length && typeof keys[0] == 'string') {
+      for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
+        const key = keys[i]
+        this._keyWeights[key] = 1
+        this._keyNames.push(key)
+      }
+    } else {
+      let lowest = null
+      let highest = null
+      let weightsTotal = 0
+
+      for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
+        const key = keys[i]
+
+        if (!key.hasOwnProperty('name')) {
+          throw new Error('Missing "name" property in key object')
+        }
+
+        const keyName = key.name
+        this._keyNames.push(keyName)
+
+        if (!key.hasOwnProperty('weight')) {
+          throw new Error('Missing "weight" property in key object')
+        }
+
+        const keyWeight = key.weight
+
+        if (keyWeight < 0 || keyWeight > 1) {
+          throw new Error('"weight" property in key must bein the range of [0, 1)')
+        }
+
+        if (highest == null) {
+          highest = keyWeight
+        } else {
+          highest = Math.max(highest, keyWeight)
+        }
+
+        if (lowest == null) {
+          lowest = keyWeight
+        } else {
+          lowest = Math.min(lowest, keyWeight)
+        }
+
+        this._keyWeights[keyName] = keyWeight
+
+        weightsTotal += keyWeight
+      }
+
+      if (weightsTotal > 1) {
+        throw new Error('Total of weights cannot exceed 1')
+      }
+    }
+  }
+
   search(pattern, opts = { limit: false }) {
     this._log(`---------\nSearch pattern: "${pattern}"`)
 
-    const {
-      tokenSearchers,
-      fullSearcher
-    } = this._prepareSearchers(pattern)
+    const { tokenSearchers, fullSearcher } = this._prepareSearchers(pattern)
 
     //console.time('Search');
-    let { weights, results } = this._search(tokenSearchers, fullSearcher)
+    let results = this._search(tokenSearchers, fullSearcher)
     //console.timeEnd('Search');
 
     //console.time('_computeScore');
-    this._computeScore(weights, results)
+    this._computeScore(results)
     //console.timeEnd('_computeScore');
 
     if (this.options.shouldSort) {
@@ -147,27 +204,17 @@ class Fuse {
           fullSearcher
         })
       }
-      return { weights: null, results }
+      return results
     }
 
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
-    //console.time('_search');
-    const weights = {}
+    console.time('_search');
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
       // Iterate over every key
-      for (let j = 0, keysLen = this.options.keys.length; j < keysLen; j += 1) {
-        let key = this.options.keys[j]
-        if (typeof key !== 'string') {
-          weights[key.name] = key.weight//(1 - key.weight) || 1
-          if (key.weight <= 0 || key.weight > 1) {
-            throw new Error('Key weight has to be > 0 and <= 1')
-          }
-          key = key.name
-        } else {
-          weights[key] = 1
-        }
+      for (let j = 0, keysLen = this._keyNames.length; j < keysLen; j += 1) {
+        let key = this._keyNames[j]
 
         this._analyze({
           key,
@@ -183,9 +230,9 @@ class Fuse {
       }
     }
 
-    //console.timeEnd('_search');
+    console.timeEnd('_search');
 
-    return { weights, results }
+    return results
   }
 
   _analyze({ key, arrayIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher, resultMap = {}, results = [] }) {
@@ -302,8 +349,11 @@ class Fuse {
     search(arrayIndex, value, record, index)
   }
 
-  _computeScore(weights, results) {
+  _computeScore(results) {
     this._log('\n\nComputing score:\n')
+
+    const weights = this._keyWeights
+    const hasWeights = !!Object.keys(weights).length
 
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
@@ -315,7 +365,7 @@ class Fuse {
       for (let j = 0; j < scoreLen; j += 1) {
         const item = output[j]
         const key = item.key
-        const weight = weights ? weights[key] : 1
+        const weight = hasWeights ? weights[key] : 1
         const score = item.score === 0 && weights && weights[key] > 0
           ? Number.EPSILON
           : item.score
@@ -349,7 +399,7 @@ class Fuse {
           cache.push(value)
         }
         return value
-      }))
+      }, 2))
       cache = null
     }
 
