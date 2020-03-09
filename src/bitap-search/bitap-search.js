@@ -1,5 +1,5 @@
-const bitapScore = require('./bitap_score')
-const matchedIndices = require('./bitap_matched_indices')
+const bitapScore = require('./bitap-score')
+const matchedIndices = require('./bitap-matched-indices')
 
 module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1, includeMatches = false }) => {
   const expectedLocation = location

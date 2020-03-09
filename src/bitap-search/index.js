@@ -1,8 +1,8 @@
-const bitapRegexSearch = require('./bitap_regex_search')
-const bitapSearch = require('./bitap_search')
-const patternAlphabet = require('./bitap_pattern_alphabet')
+const bitapRegexSearch = require('./bitap-regex-search')
+const bitapSearch = require('./bitap-search')
+const patternAlphabet = require('./bitap-pattern-alphabet')
 
-class Bitap {
+class BitapSearch {
   constructor(pattern, {
     // Approximately where in the text is the pattern expected to be found?
     location = 0,
@@ -88,4 +88,4 @@ class Bitap {
   }
 }
 
-module.exports = Bitap
+module.exports = BitapSearch

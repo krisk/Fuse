@@ -1,5 +1,6 @@
-const Bitap = require('./bitap')
-const { get, deepValue, isArray } = require('./utils')
+const BitapSearch = require('./bitap-search')
+const EntendedSearch = require('./extended-search')
+const { get, isArray } = require('./utils')
 
 class Fuse {
   constructor(list, {
@@ -37,16 +38,15 @@ class Fuse {
     getFn = get,
     // Default sort function
     sortFn = (a, b) => (a.score - b.score),
-    // When true, the search algorithm will search individual words **and** the full string,
-    // computing the final score as a function of both. Note that when `tokenize` is `true`,
-    // the `threshold`, `distance`, and `location` are inconsequential for individual tokens.
-    tokenize = false,
     // When true, the result set will only include records that match all tokens. Will only work
     // if `tokenize` is also true.
     matchAllTokens = false,
 
     includeMatches = false,
     includeScore = false,
+
+    // Enabled extended-searching
+    useExtendedSearch = false,
 
     // Will print to the console. Useful for debugging.
     verbose = false
@@ -68,8 +68,8 @@ class Fuse {
       getFn,
       sortFn,
       verbose,
-      tokenize,
-      matchAllTokens
+      matchAllTokens,
+      useExtendedSearch
     }
 
     this.setCollection(list)
@@ -143,11 +143,19 @@ class Fuse {
   search(pattern, opts = { limit: false }) {
     this._log(`---------\nSearch pattern: "${pattern}"`)
 
-    const { tokenSearchers, fullSearcher } = this._prepareSearchers(pattern)
+    const options = this.options
 
-    //console.time('Search');
-    let results = this._search(tokenSearchers, fullSearcher)
-    //console.timeEnd('Search');
+    let searcher = null
+
+    if (this.options.useExtendedSearch) {
+      searcher = new EntendedSearch(pattern, options)
+    } else {
+      searcher = new BitapSearch(pattern, options)
+    }
+
+    //console.time('_search');
+    let results = this._search(searcher)
+    //console.timeEnd('_search');
 
     //console.time('_computeScore');
     this._computeScore(results)
@@ -164,25 +172,7 @@ class Fuse {
     return this._format(results)
   }
 
-  _prepareSearchers(pattern = '') {
-    const tokenSearchers = []
-
-    if (this.options.tokenize) {
-      // Tokenize on the separator
-      const tokens = pattern.split(this.options.tokenSeparator)
-      for (let i = 0, len = tokens.length; i < len; i += 1) {
-        tokenSearchers.push(new Bitap(tokens[i], this.options))
-      }
-    }
-
-    //console.time('_prepareSearchers')
-    let fullSearcher = new Bitap(pattern, this.options)
-    //console.timeEnd('_prepareSearchers')
-
-    return { tokenSearchers, fullSearcher }
-  }
-
-  _search(tokenSearchers = [], fullSearcher) {
+  _search(searcher) {
     const list = this.list
     const resultMap = {}
     const results = []
@@ -200,8 +190,7 @@ class Fuse {
         }, {
           resultMap,
           results,
-          tokenSearchers,
-          fullSearcher
+          searcher
         })
       }
       return results
@@ -209,7 +198,6 @@ class Fuse {
 
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
-    // console.time('_search');
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
       // Iterate over every key
@@ -224,17 +212,15 @@ class Fuse {
         }, {
           resultMap,
           results,
-          tokenSearchers,
-          fullSearcher
+          searcher
         })
       }
     }
-    // console.timeEnd('_search');
 
     return results
   }
 
-  _analyze({ key, arrayIndex = -1, value, record, index }, { tokenSearchers = [], fullSearcher, resultMap = {}, results = [] }) {
+  _analyze({ key, arrayIndex = -1, value, record, index }, { searcher, resultMap = {}, results = [] }) {
     // Internal search function for cleanless and speed up.
     const search = (arrayIndex, value, record, index) => {
       // Check if the texvaluet can be searched
@@ -245,61 +231,12 @@ class Fuse {
       if (typeof value === 'string') {
         let exists = false
         let averageScore = -1
-        let numTextMatches = 0
 
         this._log(`\nKey: ${key === '' ? '--' : key}`)
 
-        // //console.time('_fullSearcher.search');
-        let mainSearchResult = fullSearcher.search(value)
-        // //console.timeEnd('_fullSearcher.search');
+        let mainSearchResult = searcher.search(value)
 
         this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
-
-        // TODO: revisit this to take into account term frequency
-        if (this.options.tokenize) {
-          let words = value.split(this.options.tokenSeparator)
-          let wordsLen = words.length
-          let scores = []
-
-          for (let i = 0, tokenSearchersLen = tokenSearchers.length; i < tokenSearchersLen; i += 1) {
-            let tokenSearcher = tokenSearchers[i]
-
-            this._log(`\nPattern: "${tokenSearcher.pattern}"`)
-
-            let hasMatchInText = false
-
-            for (let j = 0; j < wordsLen; j += 1) {
-              let word = words[j]
-              let tokenSearchResult = tokenSearcher.search(word)
-              let obj = {}
-              if (tokenSearchResult.isMatch) {
-                obj[word] = tokenSearchResult.score
-                exists = true
-                hasMatchInText = true
-                scores.push(tokenSearchResult.score)
-              } else {
-                obj[word] = 1
-                if (!this.options.matchAllTokens) {
-                  scores.push(1)
-                }
-              }
-              this._log(`Token: "${word}", score: ${obj[word]}`)
-            }
-
-            if (hasMatchInText) {
-              numTextMatches += 1
-            }
-          }
-
-          averageScore = scores[0]
-          let scoresLen = scores.length
-          for (let i = 1; i < scoresLen; i += 1) {
-            averageScore += scores[i]
-          }
-          averageScore = averageScore / scoresLen
-
-          this._log('Token score average:', averageScore)
-        }
 
         let finalScore = mainSearchResult.score
         if (averageScore > -1) {
@@ -308,12 +245,8 @@ class Fuse {
 
         this._log('Score average:', finalScore)
 
-        let checkTextMatches = (this.options.tokenize && this.options.matchAllTokens) ? numTextMatches >= tokenSearchers.length : true
-
-        this._log(`\nCheck Matches: ${checkTextMatches}`)
-
         // If a match is found, add the item to <rawResults>, including its score
-        if ((exists || mainSearchResult.isMatch) && checkTextMatches) {
+        if (exists || mainSearchResult.isMatch) {
           let _searchResult = {
             key,
             arrayIndex,
@@ -361,6 +294,8 @@ class Fuse {
 
       let totalWeightedScore = 1
 
+      let bestScore = -1
+
       for (let j = 0; j < scoreLen; j += 1) {
         const item = output[j]
         const key = item.key
@@ -369,10 +304,13 @@ class Fuse {
           ? Number.EPSILON
           : item.score
 
+        bestScore = bestScore == -1 ? item.score : Math.min(bestScore, item.score)
+
         totalWeightedScore *= Math.pow(score, weight)
       }
 
       result.score = totalWeightedScore
+      result.$score = bestScore
 
       this._log(result)
     }
