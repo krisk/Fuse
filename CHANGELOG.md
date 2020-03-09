@@ -1,3 +1,7 @@
+# Version 3.5.0
+- Fixed #341, adjusting weights into the calculation
+- Improved performance by ~10% (really can only be seen when you have 10k+ items)
+
 # Version 3.4.3
 
 - Fixed #261
