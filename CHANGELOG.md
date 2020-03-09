@@ -1,6 +1,6 @@
 # Version 3.6.0
 
-- Imprved error handling for keys
+- Improved error handling for keys
 
 # Version 3.5.0
 
