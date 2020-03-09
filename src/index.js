@@ -209,7 +209,7 @@ class Fuse {
 
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
-    console.time('_search');
+    // console.time('_search');
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
       // Iterate over every key
@@ -229,8 +229,7 @@ class Fuse {
         })
       }
     }
-
-    console.timeEnd('_search');
+    // console.timeEnd('_search');
 
     return results
   }
