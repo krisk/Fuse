@@ -1,18 +1,7 @@
-# Version 4.0.0
+# Version 4.0.0-beta
 
-- Added extended search:
-
-| Token       | Match type                 | Description                            |
-| ----------- | -------------------------- | -------------------------------------- |
-| `jscript`   | fuzzy-match                | Items that match `jscript`             |
-| `'python`   | exact-match                | Items that include `python`            |
-| `!ruby`     | inverse-exact-match        | Items that do not include `ruby`       |
-| `^java`     | prefix-exact-match         | Items that start with `java`           |
-| `!^earlang` | inverse-prefix-exact-match | Items that do not start with `earlang` |
-| `.js$`      | suffix-exact-match         | Items that end with `.js`              |
-| `!.go$`     | inverse-suffix-exact-match | Items that do not end with `.go`       |
-
-- Removed tokenization
+- Added extended search [Discussion](https://github.com/krisk/Fuse/issues/356)
+- Removed tokenization [Discussion](https://github.com/krisk/Fuse/issues/355)
 
 # Version 3.6.0
 
