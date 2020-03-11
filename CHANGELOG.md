@@ -1,3 +1,7 @@
+# Version 4.0.2-beta
+
+- Added missing tests
+
 # Version 4.0.1-beta
 
 - Removed unused codepath
