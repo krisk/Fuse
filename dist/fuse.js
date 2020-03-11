@@ -1,7 +1,7 @@
 /*!
  * Fuse.js v4.0.0-beta - Lightweight fuzzy-search (http://fusejs.io)
  * 
- * Copyright (c) 2012-2017 Kirollos Risk (http://kiro.me)
+ * Copyright (c) 2012-2020 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  * 
  * http://www.apache.org/licenses/LICENSE-2.0
