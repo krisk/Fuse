@@ -1,3 +1,9 @@
+# Version 4.0.1-beta
+
+- Removed unused codepath
+- Fixed case sensititivity check
+- Upgraded dev dependencies
+
 # Version 4.0.0-beta
 
 - Added extended search [Discussion](https://github.com/krisk/Fuse/issues/356)

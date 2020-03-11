@@ -1,4 +1,4 @@
-const Fuse = require('../dist/fuse')
+const Fuse = require('./base')
 const books = require('./fixtures/books.json')
 const { get } = require('../src/utils')
 

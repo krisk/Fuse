@@ -156,9 +156,9 @@ class Fuse {
       searcher = new BitapSearch(pattern, options)
     }
 
-    //console.time('_search');
-    let results = this._search(searcher)
-    //console.timeEnd('_search');
+    // console.time('_search');
+    let results = this._search({ searcher })
+    // console.timeEnd('_search');
 
     //console.time('_computeScore');
     this._computeScore(results)
@@ -175,7 +175,7 @@ class Fuse {
     return this._format(results)
   }
 
-  _search(searcher) {
+  _search({ searcher }) {
     const list = this.list
     const resultMap = {}
     const results = []
@@ -199,17 +199,21 @@ class Fuse {
       return results
     }
 
+    const getFn = this.options.getFn
+    const keyNames = this._keyNames
+    const keysLen = keyNames.length
+
     // Otherwise, the first item is an Object (hopefully), and thus the searching
     // is done on the values of the keys of each item.
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
       // Iterate over every key
-      for (let j = 0, keysLen = this._keyNames.length; j < keysLen; j += 1) {
-        let key = this._keyNames[j]
+      for (let j = 0; j < keysLen; j += 1) {
+        let key = keyNames[j]
 
         this._analyze({
           key,
-          value: this.options.getFn(item, key),
+          value: getFn(item, key),
           record: item,
           index: i
         }, {
@@ -225,6 +229,8 @@ class Fuse {
 
   _analyze({ key, arrayIndex = -1, value, record, index }, { searcher, resultMap = {}, results = [] }) {
     // Internal search function for cleanless and speed up.
+    const { includeMatches } = this.options
+
     const search = (arrayIndex, value, record, index) => {
       // Check if the texvaluet can be searched
       if (value === undefined || value === null) {
@@ -232,49 +238,36 @@ class Fuse {
       }
 
       if (typeof value === 'string') {
-        let exists = false
-        let averageScore = -1
-
         this._log(`\nKey: ${key === '' ? '--' : key}`)
+        let searchResult = searcher.search(value)
 
-        let mainSearchResult = searcher.search(value)
+        const { isMatch, score } = searchResult
 
-        this._log(`Full text: "${value}", score: ${mainSearchResult.score}`)
+        this._log(`Full text: "${value}", score: ${score}`)
 
-        let finalScore = mainSearchResult.score
-        if (averageScore > -1) {
-          finalScore = (finalScore + averageScore) / 2
+        if (!isMatch) {
+          return
         }
 
-        this._log('Score average:', finalScore)
+        let _searchResult = { key, arrayIndex, value, score }
 
-        // If a match is found, add the item to <rawResults>, including its score
-        if (exists || mainSearchResult.isMatch) {
-          let _searchResult = {
-            key,
-            arrayIndex,
-            value,
-            score: finalScore
+        if (includeMatches) {
+          _searchResult.matchedIndices = searchResult.matchedIndices
+        }
+
+        // Check if the item already exists in our results
+        let existingResult = resultMap[index]
+        if (existingResult) {
+          existingResult.output.push(_searchResult)
+        } else {
+          resultMap[index] = {
+            item: record,
+            output: [_searchResult]
           }
-
-          if (this.options.includeMatches) {
-            _searchResult.matchedIndices = mainSearchResult.matchedIndices
-          }
-
-          // Check if the item already exists in our results
-          let existingResult = resultMap[index]
-          if (existingResult) {
-            existingResult.output.push(_searchResult)
-          } else {
-            resultMap[index] = {
-              item: record,
-              output: [_searchResult]
-            }
-
-            results.push(resultMap[index])
-          }
+          results.push(resultMap[index])
         }
       } else if (isArray(value)) {
+        // Recursive search on nested array
         for (let i = 0, len = value.length; i < len; i += 1) {
           search(i, value[i], record, index)
         }

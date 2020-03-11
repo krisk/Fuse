@@ -5,7 +5,7 @@
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
-  "version": "4.0.0-beta",
+  "version": "4.0.1-beta",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {
@@ -36,13 +36,13 @@
     "@babel/preset-typescript": "^7.3.3",
     "@types/jest": "^24.0.11",
     "babel-loader": "^8.0.5",
-    "copy-webpack-plugin": "^5.0.0",
-    "jest": "^24.3.1",
-    "rimraf": "^2.6.3",
-    "terser-webpack-plugin": "^1.2.3",
-    "webpack": "^4.29.2",
-    "webpack-cli": "^3.2.3",
-    "webpack-merge": "^4.2.1"
+    "copy-webpack-plugin": "5.1.1",
+    "jest": "25.1.0",
+    "rimraf": "3.0.2",
+    "terser-webpack-plugin": "2.3.5",
+    "webpack": "4.42.0",
+    "webpack-cli": "3.3.11",
+    "webpack-merge": "4.2.2"
   },
   "engines": {
     "node": ">=6"

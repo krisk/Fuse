@@ -13,7 +13,7 @@ node_modules/
 # Only publish 1 type of lockfile
 package-lock.json
 
-# Filter test runner
+# Filter misc
 runner.js
-
-perf/
+playground/
+Makefile

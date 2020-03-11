@@ -1,5 +1,3 @@
-
-
 <p align="center"><a href="https://fusejs.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://fusejs.io/assets/images/logo.png" alt="Fuse.js logo"></a></p>
 
 <p align="center">
@@ -11,8 +9,7 @@
 <!--   <a href="https://discord.gg/QF4B9sf"><img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg" alt="Chat"></a> -->
 </p>
 
-<!--special end-->
----
+## <!--special end-->
 
 ## Introduction
 
@@ -24,16 +21,16 @@ To checkout out [live examples](https://fusejs.io) and docs, visit [fusejs.io](h
 
 ## Installation
 
-__NPM__
+**NPM**
 
 NPM is the recommended installation method. It pairs nicely with a CommonJS module bundler such as [Webpack](http://webpack.github.io/) or [Browserify](http://browserify.org/).
 
 ```sh
-# latest stable
+# latest
 $ npm install --save fuse.js
 ```
 
-__CDN__
+**CDN**
 
 Available on [cdnjs](https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.4.5/fuse.min.js) (see the latest version on [the Releases page](https://github.com/krisk/Fuse/releases)).
 
@@ -46,4 +43,3 @@ Code should be run through [Standard Format](https://www.npmjs.com/package/stand
 ### Testing
 
 Before submitting a pull request, please add relevant tests in `test/index.js`, and execute them via `npm test`.
-
