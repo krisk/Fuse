@@ -40,22 +40,24 @@ const queryfy = (pattern) => pattern.split('|').map(item => item.trim().split(/ 
  */
 class EntendedSearch {
   constructor(pattern, options) {
+    const { isCaseSensitive } = options
     this.options = options
-    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
     this.query = queryfy(this.pattern)
     // A <pattern>:<BitapSearch> key-value pair for optimizing searching
     this._fuzzyCache = {}
   }
+
   search(text) {
     const query = this.query
+    text = this.options.isCaseSensitive ? text : text.toLowerCase()
 
     let matchFound = false
 
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
 
-      let parts = query[i]
+      const parts = query[i]
       let result = null
-
       matchFound = true
 
       for (let j = 0, pLen = parts.length; j < pLen; j += 1) {
@@ -80,6 +82,7 @@ class EntendedSearch {
       score: 1
     }
   }
+
   _search(pattern, text) {
     if (exactMatch.isForPattern(pattern)) {
       return exactMatch.match(pattern, text)

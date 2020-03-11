@@ -1,4 +1,4 @@
-module.exports = (pattern) => {
+module.exports = pattern => {
   let mask = {}
   let len = pattern.length
 

@@ -93,9 +93,12 @@ class Fuse {
         this._keyNames.push(key)
       }
     } else {
-      let lowest = null
-      let highest = null
       let weightsTotal = 0
+
+      // let lowestWeight = -1
+      // let highestWeight = -1
+
+      // console.log("------------------------------")
 
       for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
         const key = keys[i]
@@ -112,27 +115,27 @@ class Fuse {
         }
 
         const keyWeight = key.weight
+        this._keyWeights[keyName] = keyWeight
 
         if (keyWeight < 0 || keyWeight > 1) {
           throw new Error('"weight" property in key must bein the range of [0, 1)')
         }
 
-        if (highest == null) {
-          highest = keyWeight
-        } else {
-          highest = Math.max(highest, keyWeight)
-        }
-
-        if (lowest == null) {
-          lowest = keyWeight
-        } else {
-          lowest = Math.min(lowest, keyWeight)
-        }
-
-        this._keyWeights[keyName] = keyWeight
 
         weightsTotal += keyWeight
+
+        // lowestWeight = lowestWeight == -1 ? keyWeight : Math.min(lowestWeight, keyWeight)
+        // highestWeight = highestWeight == -1 ? keyWeight : Math.max(highestWeight, keyWeight)
       }
+
+      // for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
+      //   const key = keys[i]
+      //   const keyName = key.name
+      //   let keyWeight = this._keyWeights[keyName]
+      //   this._keyWeights[keyName] = (keyWeight - lowestWeight) / (highestWeight - lowestWeight)
+      // }
+
+      // console.log(this._keyWeights, lowestWeight, highestWeight)
 
       if (weightsTotal > 1) {
         throw new Error('Total of weights cannot exceed 1')
