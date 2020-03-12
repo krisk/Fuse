@@ -1,5 +1,9 @@
 # Version 4.0.2-beta
 
+- Incrased Node version
+
+# Version 4.0.2-beta
+
 - Added missing tests
 
 # Version 4.0.1-beta
