@@ -1,6 +1,10 @@
-# Version 4.0.2-beta
+# Version 4.0.4-beta
 
-- Incrased Node version
+- Re-added license information
+
+# Version 4.0.3-beta
+
+- Increased Node version
 
 # Version 4.0.2-beta
 
