@@ -32,8 +32,6 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   git tag -a v$version -m "Version $version"
   git push origin master
   git push --tags
-
-  npm publish
 else
   echo -e "\033[0;31mCancelling...\033[0m"
 fi

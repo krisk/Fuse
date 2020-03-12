@@ -1,3 +1,7 @@
+# Version 4.1.0-beta
+
+- Perf optimization on nested array search
+
 # Version 4.0.4-beta
 
 - Re-added license information
