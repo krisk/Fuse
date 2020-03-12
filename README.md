@@ -1,7 +1,6 @@
 <p align="center"><a href="https://fusejs.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://fusejs.io/assets/images/logo.png" alt="Fuse.js logo"></a></p>
 
 <p align="center">
-  <a alt="Build Status" href="http://travis-ci.org/krisk/Fuse"><img src="https://secure.travis-ci.org/krisk/Fuse.svg?branch=master" /></a>
   <a href="https://www.npmjs.com/package/fuse.js"><img src="https://img.shields.io/npm/v/fuse.js.svg" alt="Version"/></a>
   <a href="https://npmcharts.com/compare/fuse.js?minimal=true"><img src="https://img.shields.io/npm/dm/fuse.js.svg" alt="Downloads" /></a>
     <a href="https://github.com/krisk/Fuse/graphs/contributors"><img src="https://img.shields.io/github/contributors/krisk/fuse.svg" alt="Contributors" /></a>

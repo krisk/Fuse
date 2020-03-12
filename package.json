@@ -22,7 +22,6 @@
   "types": "dist/fuse.d.ts",
   "scripts": {
     "clean": "rimraf ./dist",
-    "pretest": "npm run build",
     "test": "jest",
     "prebuild": "npm run clean",
     "build": "webpack --config ./configs/webpack.prod.js",
@@ -37,6 +36,7 @@
     "@types/jest": "^24.0.11",
     "babel-loader": "^8.0.5",
     "copy-webpack-plugin": "5.1.1",
+    "faker": "4.1.0",
     "jest": "25.1.0",
     "rimraf": "3.0.2",
     "terser-webpack-plugin": "2.3.5",
