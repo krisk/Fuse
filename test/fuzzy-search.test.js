@@ -36,11 +36,6 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
   let fuse
   beforeEach(() => fuse = setup())
 
-  it('should have the correct configuration', () => {
-    const expected = { list: defaultList, options: defaultOptions }
-    expect(fuse).toMatchObject(expected)
-  })
-
   it('should have the list property', () => {
     expect(fuse.list).toBe(defaultList)
   })
@@ -111,11 +106,6 @@ describe('Deep key search, with ["title", "author.firstName"]', () => {
   let fuse
   beforeEach(() => fuse = setup(customBookList, { keys: ['title', 'author.firstName'] }))
 
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, keys: ['title', 'author.firstName'] } }
-    expect(fuse).toMatchObject(expected)
-  })
-
   describe('When searching for the term "Stve"', () => {
     let result
     beforeEach(() => result = fuse.search('Stve'))
@@ -174,11 +164,6 @@ describe('Custom search function, with ["title", "author.firstName"]', () => {
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
 
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
-
   describe('When searching for the term "Hmlt"', () => {
     let result
     beforeEach(() => result = fuse.search('Hmlt'))
@@ -208,11 +193,6 @@ describe('Custom search function, with ["title", "author.firstName"]', () => {
 describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
   let fuse
   beforeEach(() => fuse = setup(defaultList, { includeScore: true }))
-
-  it('should have the correct configuration', () => {
-    const expected = { list: defaultList, options: { ...defaultOptions, includeScore: true } }
-    expect(fuse).toMatchObject(expected)
-  })
 
   describe('When searching for the term "Apple"', () => {
     let result
@@ -262,11 +242,6 @@ describe('Only include ID in result list, with "ISBN"', () => {
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
 
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
-
   describe('When searching for the term "Stve"', () => {
     let result
     beforeEach(() => result = fuse.search('Stve'))
@@ -298,11 +273,6 @@ describe('Include both ID and score in results list', () => {
   }
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
-
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
 
   describe('When searching for the term "Stve"', () => {
     let result
@@ -339,11 +309,6 @@ describe('Search when IDs are numbers', () => {
   }
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
-
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
 
   describe('When searching for the term "Stve"', () => {
     let result
@@ -388,11 +353,6 @@ describe('Recurse into arrays', () => {
   }
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
-
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
 
   describe('When searching for the tag "nonfiction"', () => {
     let result
@@ -455,11 +415,6 @@ describe('Recurse into objects in arrays', () => {
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
 
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
-
   describe('When searching for the author tag "British"', () => {
     let result
     beforeEach(() => result = fuse.search('British'))
@@ -490,11 +445,6 @@ describe('Searching by ID', () => {
   }
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
-
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
 
   describe('When searching for the term "Stve"', () => {
     let result
@@ -528,11 +478,6 @@ describe('Searching by nested ID', () => {
   let fuse
   beforeEach(() => fuse = setup(customBookList, customOptions))
 
-  it('should have the correct configuration', () => {
-    const expected = { list: customBookList, options: { ...defaultOptions, ...customOptions } }
-    expect(fuse).toMatchObject(expected)
-  })
-
   describe('When searching for the term "Stve"', () => {
     let result
     beforeEach(() => result = fuse.search('Stve'))
@@ -555,11 +500,6 @@ describe('Set new list on Fuse', () => {
     fuse = setup()
     fuse.setCollection(vegetables)
     return fuse
-  })
-
-  it('should have the correct configuration', () => {
-    const expected = { list: vegetables, options: defaultOptions }
-    expect(fuse).toMatchObject(expected)
   })
 
   describe('When searching for the term "Lettuce"', () => {

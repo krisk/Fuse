@@ -1,6 +1,7 @@
 const BitapSearch = require('./bitap-search')
 const EntendedSearch = require('./extended-search')
 const { get, isArray } = require('./utils')
+const { withMatches, withScore } = require('./transformers')
 
 class Fuse {
   constructor(list, {
@@ -78,6 +79,7 @@ class Fuse {
 
   setCollection(list) {
     this.list = list
+    this.listIsStringArray = typeof list[0] == 'string'
     return list
   }
 
@@ -94,11 +96,6 @@ class Fuse {
       }
     } else {
       let weightsTotal = 0
-
-      // let lowestWeight = -1
-      // let highestWeight = -1
-
-      // console.log("------------------------------")
 
       for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
         const key = keys[i]
@@ -123,19 +120,7 @@ class Fuse {
 
 
         weightsTotal += keyWeight
-
-        // lowestWeight = lowestWeight == -1 ? keyWeight : Math.min(lowestWeight, keyWeight)
-        // highestWeight = highestWeight == -1 ? keyWeight : Math.max(highestWeight, keyWeight)
       }
-
-      // for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
-      //   const key = keys[i]
-      //   const keyName = key.name
-      //   let keyWeight = this._keyWeights[keyName]
-      //   this._keyWeights[keyName] = (keyWeight - lowestWeight) / (highestWeight - lowestWeight)
-      // }
-
-      // console.log(this._keyWeights, lowestWeight, highestWeight)
 
       if (weightsTotal > 1) {
         throw new Error('Total of weights cannot exceed 1')
@@ -180,61 +165,62 @@ class Fuse {
     const resultMap = {}
     const results = []
 
-    // Check the first item in the list, if it's a string, then we assume
-    // that every item in the list is also a string, and thus it's a flattened array.
-    if (typeof list[0] === 'string') {
-      // Iterate over every item
+    // List is Array<String>
+    if (this.listIsStringArray) {
+      // Iterate over every string in the list
       for (let i = 0, len = list.length; i < len; i += 1) {
-        this._analyze({
+        this._analyze(searcher, {
           key: '',
           value: list[i],
           record: i,
           index: i
         }, {
           resultMap,
-          results,
-          searcher
+          results
         })
       }
-      return results
-    }
 
-    const getFn = this.options.getFn
-    const keyNames = this._keyNames
-    const keysLen = keyNames.length
+    } else {
+      // List is Array<Object>
 
-    // Otherwise, the first item is an Object (hopefully), and thus the searching
-    // is done on the values of the keys of each item.
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      let item = list[i]
-      // Iterate over every key
-      for (let j = 0; j < keysLen; j += 1) {
-        let key = keyNames[j]
+      const getFn = this.options.getFn
+      const keyNames = this._keyNames
+      const keysLen = keyNames.length
 
-        this._analyze({
-          key,
-          value: getFn(item, key),
-          record: item,
-          index: i
-        }, {
-          resultMap,
-          results,
-          searcher
-        })
+      for (let i = 0, len = list.length; i < len; i += 1) {
+        let item = list[i]
+        // Iterate over every key (i.e, path), and fetch the value at that key
+        for (let j = 0; j < keysLen; j += 1) {
+          let key = keyNames[j]
+
+          this._analyze(searcher, {
+            key,
+            value: getFn(item, key),
+            record: item,
+            index: i
+          }, {
+            resultMap,
+            results
+          })
+        }
       }
     }
 
     return results
   }
 
-  _analyze({ key, arrayIndex = -1, value, record, index }, { searcher, resultMap = {}, results = [] }) {
+  _analyze(searcher, { key, value, record, index }, { resultMap = {}, results = [] }) {
     // Internal search function for cleanless and speed up.
     const { includeMatches } = this.options
 
-    const search = (arrayIndex, value, record, index) => {
-      // Check if the texvaluet can be searched
+    // initialize stack with the first entry
+    const stack = [{ arrayIndex: -1, value, record, index }]
+
+    while (stack.length) {
+      const { arrayIndex, value, record, index } = stack.pop()
+
       if (value === undefined || value === null) {
-        return
+        continue
       }
 
       if (typeof value === 'string') {
@@ -246,7 +232,7 @@ class Fuse {
         this._log(`Full text: "${value}", score: ${score}`)
 
         if (!isMatch) {
-          return
+          continue
         }
 
         let _searchResult = { key, arrayIndex, value, score }
@@ -267,14 +253,17 @@ class Fuse {
           results.push(resultMap[index])
         }
       } else if (isArray(value)) {
-        // Recursive search on nested array
         for (let i = 0, len = value.length; i < len; i += 1) {
-          search(i, value[i], record, index)
+          stack.push({
+            arrayIndex: i,
+            value: value[i],
+            record,
+            index
+          })
         }
       }
     }
 
-    search(arrayIndex, value, record, index)
   }
 
   _computeScore(results) {
@@ -300,6 +289,8 @@ class Fuse {
           ? Number.EPSILON
           : item.score
 
+        // Keep track of the best score.. just in case
+        // Actually, we're not really using it.. but need to think of a way to incorporate this
         bestScore = bestScore == -1 ? item.score : Math.min(bestScore, item.score)
 
         totalWeightedScore *= Math.pow(score, weight)
@@ -320,9 +311,17 @@ class Fuse {
   _format(results) {
     const finalOutput = []
 
-    if (this.options.verbose) {
+    const {
+      includeMatches,
+      includeScore,
+      id,
+      getFn,
+      verbose
+    } = this.options
+
+    if (verbose) {
       let cache = []
-      this._log('\n\nOutput:\n\n', JSON.stringify(results, function (key, value) {
+      this._log('\n\nOutput:\n\n', JSON.stringify(results, (key, value) => {
         if (typeof value === 'object' && value !== null) {
           if (cache.indexOf(value) !== -1) {
             // Circular reference found, discard key
@@ -338,44 +337,14 @@ class Fuse {
 
     let transformers = []
 
-    if (this.options.includeMatches) {
-      transformers.push((result, data) => {
-        const output = result.output
-        data.matches = []
-
-        for (let i = 0, len = output.length; i < len; i += 1) {
-          let item = output[i]
-
-          if (item.matchedIndices.length === 0) {
-            continue
-          }
-
-          let obj = {
-            indices: item.matchedIndices,
-            value: item.value
-          }
-          if (item.key) {
-            obj.key = item.key
-          }
-          if (item.hasOwnProperty('arrayIndex') && item.arrayIndex > -1) {
-            obj.arrayIndex = item.arrayIndex
-          }
-          data.matches.push(obj)
-        }
-      })
-    }
-
-    if (this.options.includeScore) {
-      transformers.push((result, data) => {
-        data.score = result.score
-      })
-    }
+    if (includeMatches) transformers.push(withMatches)
+    if (includeScore) transformers.push(withScore)
 
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
 
-      if (this.options.id) {
-        result.item = this.options.getFn(result.item, this.options.id)[0]
+      if (id) {
+        result.item = getFn(result.item, id)[0]
       }
 
       if (!transformers.length) {
