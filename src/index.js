@@ -1,7 +1,7 @@
 const BitapSearch = require('./bitap-search')
-const EntendedSearch = require('./extended-search')
+const ExtendedSearch = require('./extended-search')
 const { get, isArray } = require('./utils')
-const { withMatches, withScore } = require('./transformers')
+const { withMatches, withScore } = require('./formatters')
 
 class Fuse {
   constructor(list, {
@@ -136,7 +136,7 @@ class Fuse {
     let searcher = null
 
     if (this.options.useExtendedSearch) {
-      searcher = new EntendedSearch(pattern, options)
+      searcher = new ExtendedSearch(pattern, options)
     } else {
       searcher = new BitapSearch(pattern, options)
     }
