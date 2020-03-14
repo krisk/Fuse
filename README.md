@@ -24,22 +24,16 @@ Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
 
 ## Documentation
 
-To checkout out [live examples](https://fusejs.io) and docs, visit [fusejs.io](https://fusejs.io).
+To checkout out live examples and docs, visit [fusejs.io](https://fusejs.io).
 
 ## Installation
 
 **NPM**
 
-NPM is the recommended installation method. It pairs nicely with a CommonJS module bundler such as [Webpack](http://webpack.github.io/) or [Browserify](http://browserify.org/).
-
 ```sh
 # latest
 $ npm install --save fuse.js
 ```
-
-**CDN**
-
-Available on [cdnjs](https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.4.5/fuse.min.js) (see the latest version on [the Releases page](https://github.com/krisk/Fuse/releases)).
 
 ## Contributing
 
@@ -49,4 +43,4 @@ Code should be run through [Standard Format](https://www.npmjs.com/package/stand
 
 ### Testing
 
-Before submitting a pull request, please add relevant tests in `test/index.js`, and execute them via `npm test`.
+Before submitting a pull request, please add the relevant tests in the `test/` directory, and execute them via `npm test`.
