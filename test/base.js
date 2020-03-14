@@ -1,3 +1,5 @@
-// const Fuse = require('../dist/fuse')
-const Fuse = require('../src')
-module.exports = Fuse
+if (process.env.MODE === 'dev') {
+  module.exports = require('../src')
+} else {
+  module.exports = require('../dist/fuse')
+}

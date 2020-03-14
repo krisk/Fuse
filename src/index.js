@@ -1,4 +1,4 @@
-const util = require('util')
+
 const BitapSearch = require('./bitap-search')
 const ExtendedSearch = require('./extended-search')
 const NGramSearch = require('./ngram-search')
@@ -11,20 +11,21 @@ const { MAX_BITS } = require('./bitap-search/constants')
 function debug() {
   if (Fuse.verbose) {
     console.log(...arguments)
+    // const util = require('util')
     // console.log(util.inspect(...arguments, false, null, true /* enable colors */))
   }
 }
 
 function debugTime(value) {
-  // if (Fuse.verbose) {
-  console.time(value)
-  // }
+  if (Fuse.verbose) {
+    console.time(value)
+  }
 }
 
 function debugTimeEnd(value) {
-  // if (Fuse.verbose) {
-  console.timeEnd(value)
-  // }
+  if (Fuse.verbose) {
+    console.timeEnd(value)
+  }
 }
 
 class Fuse {
@@ -299,15 +300,15 @@ class Fuse {
           continue
         }
 
-        let res = { score, value: text }
+        let match = { score, value: text }
 
         if (includeMatches) {
-          res.indices = searchResult.matchedIndices
+          match.indices = searchResult.matchedIndices
         }
 
         results.push({
           item: list[i],
-          matches: [res]
+          matches: [match]
         })
       }
 
@@ -356,18 +357,13 @@ class Fuse {
                 continue
               }
 
-              let res = {
-                score,
-                key,
-                value: text,
-                refIndex,
-              }
+              let match = { score, key, value: text, refIndex }
 
               if (includeMatches) {
-                res.indices = searchResult.matchedIndices
+                match.indices = searchResult.matchedIndices
               }
 
-              matches.push(res)
+              matches.push(match)
             }
           } else {
             let text = value.v
@@ -380,17 +376,13 @@ class Fuse {
               continue
             }
 
-            let res = {
-              score,
-              key,
-              value: text
-            }
+            let match = { score, key, value: text }
 
             if (includeMatches) {
-              res.indices = searchResult.matchedIndices
+              match.indices = searchResult.matchedIndices
             }
 
-            matches.push(res)
+            matches.push(match)
           }
         }
 
