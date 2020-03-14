@@ -6,7 +6,7 @@ description = "krisk-Fuse is a Hugo Module"
 [module.hugoVersion]
   min = "0.65.3"
 
-  [[modules.mounts]]
+  [[module.mounts]]
     source = "."
     target = "assets/js/krisk-Fuse"
 
