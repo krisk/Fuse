@@ -55,7 +55,6 @@ declare namespace Fuse {
     location?: number
     distance?: number
     threshold?: number
-    maxPatternLength?: number
     minMatchCharLength?: number
     findAllMatches?: boolean
     useExtendedSearch?: boolean

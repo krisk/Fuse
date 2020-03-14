@@ -9,6 +9,7 @@ const sanitize = pattern => pattern.substr(1)
 const match = (pattern, text) => {
   const sanitizedPattern = sanitize(pattern)
   const isMatch = text.indexOf(sanitizedPattern) === -1
+
   return {
     isMatch,
     score: 0

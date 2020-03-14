@@ -9,7 +9,6 @@ const defaultOptions = {
   location: 0,
   distance: 100,
   threshold: 0.6,
-  maxPatternLength: 32,
   isCaseSensitive: false,
   tokenSeparator: / +/g,
   findAllMatches: false,
@@ -50,7 +49,6 @@ describe('Searching using plugins', () => {
     threshold: 0.5,
     location: 0,
     distance: 0,
-    maxPatternLength: 50,
     minMatchCharLength: 4,
     keys: [
       'text'

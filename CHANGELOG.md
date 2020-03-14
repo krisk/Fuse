@@ -1,3 +1,8 @@
+# Version 5.0.0-beta
+
+- Added ability to search patterns longer > 32 characters
+- Removed `maxPatternLength` option
+
 # Version 4.1.0-beta
 
 - Perf optimization on nested array search

@@ -9,7 +9,6 @@ const defaultOptions = {
   location: 0,
   distance: 100,
   threshold: 0.6,
-  maxPatternLength: 32,
   isCaseSensitive: false,
   tokenSeparator: / +/g,
   findAllMatches: false,
@@ -686,13 +685,6 @@ describe('Searching with default options', () => {
       expect(result[0].matches[0].indices[0][1]).toBe(0)
     })
   })
-
-  test('When the seach pattern is longer than maxPatternLength and contains RegExp special characters', () => {
-    const resultThunk = jest.fn(() => fuse.search('searching with a sufficiently long string sprinkled with ([ )] *+^$ etc.'))
-    resultThunk()
-    expect(resultThunk).toHaveBeenCalledTimes(1)
-    expect(resultThunk).not.toThrow()
-  })
 })
 
 describe('Searching with findAllMatches', () => {
@@ -814,37 +806,23 @@ describe('Searching using string large strings', () => {
   }, {
     text: 'feast'
   }, {
-    text: 'super+large+much+unique+36+very+wow+'
+    text: 'where in the world is carmen san diego'
   }]
+
   const options = {
     shouldSort: true,
-    threshold: 0.5,
-    location: 0,
-    distance: 0,
-    maxPatternLength: 50,
-    minMatchCharLength: 4,
+    // includeScore: true,
+    threshold: 0.6,
     keys: [
       'text'
     ]
   }
   const fuse = new Fuse(list, options)
 
-  test('finds delicious pizza', () => {
-    expect(fuse.search('pizza')[0].text).toBe('pizza')
-  })
-  test('finds pizza when clumbsy', () => {
-    expect(fuse.search('pizze')[0].text).toBe('pizza')
-  })
-  test('finds no matches when string is exactly 31 characters', () => {
-    expect(fuse.search('this-string-is-exactly-31-chars')).toStrictEqual([])
-  })
-  test('finds no matches when string is exactly 32 characters', () => {
-    expect(fuse.search('this-string-is-exactly-32-chars-')).toStrictEqual([])
-  })
   test('finds no matches when string is larger than 32 characters', () => {
-    expect(fuse.search('this-string-is-more-than-32-chars')).toStrictEqual([])
-  })
-  test('should find one match that is larger than 32 characters', () => {
-    expect(fuse.search('super+large+much+unique+36+very+wow+')[0].text).toBe('super+large+much+unique+36+very+wow+')
+    let pattern = 'where exctly is carmen in the world san diego'
+    let result = fuse.search(pattern)
+    expect(result.length).toBe(1)
+    expect(result[0].text).toBe(list[2].text)
   })
 })

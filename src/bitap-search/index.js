@@ -1,6 +1,6 @@
-const bitapRegexSearch = require('./bitap-regex-search')
 const bitapSearch = require('./bitap-search')
 const patternAlphabet = require('./bitap-pattern-alphabet')
+const { MAX_BITS } = require('./constants')
 
 class BitapSearch {
   constructor(pattern, {
@@ -15,8 +15,6 @@ class BitapSearch {
     // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
     // (of both letters and location), a threshold of '1.0' would match anything.
     threshold = 0.6,
-    // Machine word size
-    maxPatternLength = 32,
     // Indicates whether comparisons should be case sensitive.
     isCaseSensitive = false,
     // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
@@ -33,7 +31,6 @@ class BitapSearch {
       location,
       distance,
       threshold,
-      maxPatternLength,
       isCaseSensitive,
       tokenSeparator,
       findAllMatches,
@@ -41,14 +38,15 @@ class BitapSearch {
       minMatchCharLength
     }
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-
-    if (this.pattern.length <= maxPatternLength) {
-      this.patternAlphabet = patternAlphabet(this.pattern)
+    if (pattern.length > MAX_BITS) {
+      throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`);
     }
+
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.patternAlphabet = patternAlphabet(this.pattern)
   }
 
-  search(text) {
+  searchIn(text) {
     const { isCaseSensitive, includeMatches } = this.options
 
     if (!isCaseSensitive) {
@@ -67,12 +65,6 @@ class BitapSearch {
       }
 
       return result
-    }
-
-    // When pattern length is greater than the machine word length, just do a regex comparison
-    const { maxPatternLength, tokenSeparator } = this.options
-    if (this.pattern.length > maxPatternLength) {
-      return bitapRegexSearch(text, this.pattern, tokenSeparator)
     }
 
     // Otherwise, use Bitap algorithm

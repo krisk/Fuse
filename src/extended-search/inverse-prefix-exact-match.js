@@ -9,6 +9,7 @@ const sanitize = pattern => pattern.substr(2)
 const match = (pattern, text) => {
   const sanitizedPattern = sanitize(pattern)
   const isMatch = !text.startsWith(sanitizedPattern)
+
   return {
     isMatch,
     score: 0

@@ -48,7 +48,7 @@ class EntendedSearch {
     this._fuzzyCache = {}
   }
 
-  search(text) {
+  searchIn(text) {
     const query = this.query
     text = this.options.isCaseSensitive ? text : text.toLowerCase()
 

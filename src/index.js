@@ -1,7 +1,9 @@
 const BitapSearch = require('./bitap-search')
 const ExtendedSearch = require('./extended-search')
+const NGramSearch = require('./ngram-search')
 const { get, isArray } = require('./utils')
 const { withMatches, withScore } = require('./formatters')
+const { MAX_BITS } = require('./bitap-search/constants')
 
 class Fuse {
   constructor(list, {
@@ -16,8 +18,6 @@ class Fuse {
     // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
     // (of both letters and location), a threshold of '1.0' would match anything.
     threshold = 0.6,
-    // Machine word size
-    maxPatternLength = 32,
     // Indicates whether comparisons should be case sensitive.
     caseSensitive = false,
     // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
@@ -56,7 +56,6 @@ class Fuse {
       location,
       distance,
       threshold,
-      maxPatternLength,
       isCaseSensitive: caseSensitive,
       tokenSeparator,
       findAllMatches,
@@ -131,25 +130,27 @@ class Fuse {
   search(pattern, opts = { limit: false }) {
     this._log(`---------\nSearch pattern: "${pattern}"`)
 
-    const options = this.options
+    const { useExtendedSearch, shouldSort } = this.options
 
     let searcher = null
 
-    if (this.options.useExtendedSearch) {
-      searcher = new ExtendedSearch(pattern, options)
+    if (useExtendedSearch) {
+      searcher = new ExtendedSearch(pattern, this.options)
+    } else if (pattern.length > MAX_BITS) {
+      searcher = new NGramSearch(pattern, this.options)
     } else {
-      searcher = new BitapSearch(pattern, options)
+      searcher = new BitapSearch(pattern, this.options)
     }
 
     // console.time('_search');
-    let results = this._search({ searcher })
+    let results = this._searchUsing(searcher)
     // console.timeEnd('_search');
 
     //console.time('_computeScore');
     this._computeScore(results)
     //console.timeEnd('_computeScore');
 
-    if (this.options.shouldSort) {
+    if (shouldSort) {
       this._sort(results)
     }
 
@@ -160,7 +161,7 @@ class Fuse {
     return this._format(results)
   }
 
-  _search({ searcher }) {
+  _searchUsing(searcher) {
     const list = this.list
     const resultMap = {}
     const results = []
@@ -225,7 +226,7 @@ class Fuse {
 
       if (typeof value === 'string') {
         this._log(`\nKey: ${key === '' ? '--' : key}`)
-        let searchResult = searcher.search(value)
+        let searchResult = searcher.searchIn(value)
 
         const { isMatch, score } = searchResult
 

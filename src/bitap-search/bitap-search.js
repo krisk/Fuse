@@ -2,15 +2,15 @@ const bitapScore = require('./bitap-score')
 const matchedIndices = require('./bitap-matched-indices')
 
 module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1, includeMatches = false }) => {
-  const expectedLocation = location
+  const patternLen = pattern.length
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length
+  // Handle the case when location > text.length
+  const expectedLocation = Math.max(0, Math.min(location, textLen))
   // Highest score beyond which we give up.
   let currentThreshold = threshold
   // Is there a nearby exact match? (speedup)
   let bestLocation = text.indexOf(pattern, expectedLocation)
-
-  const patternLen = pattern.length
 
   // a mask of the matches
   const matchMask = []

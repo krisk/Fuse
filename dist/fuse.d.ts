@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v4.1.0-beta
+// Type definitions for Fuse.js v5.0.0-beta
 // TypeScript Version: 3.1
 
 export = Fuse
@@ -56,7 +56,6 @@ declare namespace Fuse {
     location?: number
     distance?: number
     threshold?: number
-    maxPatternLength?: number
     minMatchCharLength?: number
     findAllMatches?: boolean
     useExtendedSearch?: boolean
