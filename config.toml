@@ -1,0 +1,16 @@
+
+description = "krisk-Fuse is a Hugo Module"
+
+[module]
+
+[module.hugoVersion]
+  min = "0.65.3"
+
+  [[modules.mounts]]
+    source = "."
+    target = "assets/js/krisk-Fuse"
+
+[author]
+  name = "Daniel F. Dickinson"
+  homepage = "https://www.thecshore.com"
+  copyright = "© 2020 Daniel F. Dickinson"
