@@ -10,7 +10,6 @@ const defaultOptions = {
   distance: 100,
   threshold: 0.6,
   isCaseSensitive: false,
-  tokenSeparator: / +/g,
   findAllMatches: false,
   minMatchCharLength: 1,
   id: null,

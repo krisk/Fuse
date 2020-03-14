@@ -11,6 +11,13 @@
 
 ## <!--special end-->
 
+#### _What's new in v5.0.0-beta_
+
+- _Added ability to search patterns longer longer than 32 characters_
+- _Added [enhanced searching](https://fusejs.io/#extended-search)_
+
+---
+
 ## Introduction
 
 Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.

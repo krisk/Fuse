@@ -9,7 +9,7 @@ module.exports = (arr1, arr2) => {
     let item2 = arr2[j]
 
     if (item1 == item2) {
-      result[result.length] = item1
+      result.push(item1)
       i += 1
       j += 1
     } else if (item1 < item2) {

@@ -20,8 +20,6 @@ class Fuse {
     threshold = 0.6,
     // Indicates whether comparisons should be case sensitive.
     caseSensitive = false,
-    // Regex used to separate words when searching. Only applicable when `tokenize` is `true`.
-    tokenSeparator = / +/g,
     // When true, the algorithm continues searching to the end of the input even if a perfect
     // match is found before the end of the same input.
     findAllMatches = false,
@@ -57,7 +55,6 @@ class Fuse {
       distance,
       threshold,
       isCaseSensitive: caseSensitive,
-      tokenSeparator,
       findAllMatches,
       minMatchCharLength,
       id,
