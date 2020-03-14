@@ -1,20 +1,18 @@
-
 const ngram = require('./ngram')
 const { jaccardDistance } = require('./distance')
-
-const NGRAM_LEN = 3
-
-const sortedNgrams = (text, n = NGRAM_LEN, pad = true) => ngram(text, n, pad).sort((a, b) => a == b ? 0 : a < b ? -1 : 1)
 
 class NGramSearch {
   constructor(pattern) {
     // Create the ngram, and sort it
-    console.log(pattern)
-    this.patternNgram = sortedNgrams(pattern)
+    this.patternNgram = ngram(pattern, { sort: true })
   }
-  searchIn(text) {
-    let textNgram = sortedNgrams(text)
-    // let tverskyRsult = tverskyIndex(this.patternNgram, textNgram, { alpha: 0.5 })
+  searchIn(value) {
+    let textNgram = value.ng
+    if (!textNgram) {
+      textNgram = ngram(value.v, { sort: true })
+      value.ng = textNgram
+    }
+
     let jacardResult = jaccardDistance(this.patternNgram, textNgram)
 
     return {

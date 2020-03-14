@@ -46,7 +46,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose value is the index 0, representing ["Apple"]', () => {
-      expect(result[0]).toBe(0)
+      expect(result[0].refIndex).toBe(0)
     })
   })
 
@@ -59,8 +59,8 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose values represent the indices of ["Orange", "Banana"]', () => {
-      expect(result[0]).toBe(1)
-      expect(result[1]).toBe(2)
+      expect(result[0].refIndex).toBe(1)
+      expect(result[1].refIndex).toBe(2)
     })
   })
 
@@ -73,8 +73,8 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose values represent the indices of ["Banana", "Orange"]', () => {
-      expect(result[0]).toBe(2)
-      expect(result[1]).toBe(1)
+      expect(result[0].refIndex).toBe(2)
+      expect(result[1].refIndex).toBe(1)
     })
   })
 
@@ -87,7 +87,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose values represent the indices of ["Banana", "Orange"]', () => {
-      expect(result[0]).toBe(2)
+      expect(result[0].refIndex).toBe(2)
     })
   })
 })
@@ -112,7 +112,7 @@ describe('Deep key search, with ["title", "author.firstName"]', () => {
     })
 
     test('and the first item has the matching key/value pairs', () => {
-      expect(result[0]).toMatchObject({
+      expect(result[0].item).toMatchObject({
         title: 'The Lock Artist',
         author: { firstName: 'Steve', lastName: 'Hamilton' }
       })
@@ -128,7 +128,7 @@ describe('Deep key search, with ["title", "author.firstName"]', () => {
     })
 
     test('whose value matches', () => {
-      expect(result[0]).toMatchObject({
+      expect(result[0].item).toMatchObject({
         title: 'A History of England',
         author: { firstName: 1066, lastName: 'Hastings' }
       })
@@ -170,7 +170,7 @@ describe('Custom search function, with ["title", "author.firstName"]', () => {
     })
 
     test('and the first item has the matching key/value pairs', () => {
-      expect(result[0]).toMatchObject({
+      expect(result[0].item).toMatchObject({
         title: 'The Lock Artist',
         author: { firstName: 'Steve', lastName: 'Hamilton' }
       })
@@ -200,7 +200,7 @@ describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose value is the index 0, representing ["Apple"]', () => {
-      expect(result[0].item).toBe(0)
+      expect(result[0].refIndex).toBe(0)
       expect(result[0].score).toBe(0)
     })
   })
@@ -214,44 +214,44 @@ describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
     })
 
     test('whose values represent the indices, and have non-zero scores', () => {
-      expect(result[0].item).toBe(1)
+      expect(result[0].refIndex).toBe(1)
       expect(result[0].score).not.toBe(0)
-      expect(result[1].item).toBe(2)
+      expect(result[1].refIndex).toBe(2)
       expect(result[1].score).not.toBe(0)
     })
   })
 })
 
-describe('Only include ID in result list, with "ISBN"', () => {
-  const customBookList = [{
-    ISBN: '0765348276',
-    title: "Old Man's War",
-    author: 'John Scalzi'
-  }, {
-    ISBN: '0312696957',
-    title: 'The Lock Artist',
-    author: 'Steve Hamilton'
-  }]
-  const customOptions = {
-    keys: ['title', 'author'],
-    id: 'ISBN'
-  }
-  let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
+// // describe('Only include ID in result list, with "ISBN"', () => {
+// //   const customBookList = [{
+// //     ISBN: '0765348276',
+// //     title: "Old Man's War",
+// //     author: 'John Scalzi'
+// //   }, {
+// //     ISBN: '0312696957',
+// //     title: 'The Lock Artist',
+// //     author: 'Steve Hamilton'
+// //   }]
+// //   const customOptions = {
+// //     keys: ['title', 'author'],
+// //     id: 'ISBN'
+// //   }
+// //   let fuse
+// //   beforeEach(() => fuse = setup(customBookList, customOptions))
 
-  describe('When searching for the term "Stve"', () => {
-    let result
-    beforeEach(() => result = fuse.search('Stve'))
+// //   describe('When searching for the term "Stve"', () => {
+// //     let result
+// //     beforeEach(() => result = fuse.search('Stve'))
 
-    test('we get a list containing exactly 1 item', () => {
-      expect(result).toHaveLength(1)
-    })
+// //     test('we get a list containing exactly 1 item', () => {
+// //       expect(result).toHaveLength(1)
+// //     })
 
-    test('whose value is the ISBN of the book', () => {
-      expect(result[0]).toBe('0312696957')
-    })
-  })
-})
+// //     test('whose value is the ISBN of the book', () => {
+// //       expect(result[0].item.ISBN).toBe('0312696957')
+// //     })
+// //   })
+// // })
 
 describe('Include both ID and score in results list', () => {
   const customBookList = [{
@@ -265,7 +265,6 @@ describe('Include both ID and score in results list', () => {
   }]
   const customOptions = {
     keys: ['title', 'author'],
-    id: 'ISBN',
     includeScore: true
   }
   let fuse
@@ -280,7 +279,7 @@ describe('Include both ID and score in results list', () => {
     })
 
     test('whose value is the ISBN of the book', () => {
-      expect(result[0].item).toBe('0312696957')
+      expect(result[0].item.ISBN).toBe('0312696957')
     })
 
     test('and has a score that is not zero', () => {
@@ -316,7 +315,7 @@ describe('Search when IDs are numbers', () => {
     })
 
     test('whose value is the ISBN of the book', () => {
-      expect(result[0].item).toBe('2222')
+      expect(result[0].item.ISBN).toBe(2222)
     })
 
     test('and has a score that is not zero', () => {
@@ -344,7 +343,6 @@ describe('Recurse into arrays', () => {
   }]
   const customOptions = {
     keys: ['tags'],
-    id: 'ISBN',
     threshold: 0,
     includeMatches: true
   }
@@ -360,16 +358,16 @@ describe('Recurse into arrays', () => {
     })
 
     test('whose value is the ISBN of the book', () => {
-      expect(result[0].item).toBe('0321784421')
+      expect(result[0].item.ISBN).toBe('0321784421')
     })
 
     test('with matched tag provided', () => {
       const { matches } = result[0]
       expect(matches[0]).toMatchObject({
-        key: 'tags',
-        arrayIndex: 1,
+        indices: [[0, 9]],
         value: 'nonfiction',
-        indices: [[0, 9]]
+        key: 'tags',
+        refIndex: 1
       })
     })
   })
@@ -406,7 +404,6 @@ describe('Recurse into objects in arrays', () => {
   }]
   const customOptions = {
     keys: ['author.tags.value'],
-    id: 'ISBN',
     threshold: 0
   }
   let fuse
@@ -421,71 +418,7 @@ describe('Recurse into objects in arrays', () => {
     })
 
     test('whose value is the ISBN of the book', () => {
-      expect(result[0]).toBe('0321784421')
-    })
-  })
-})
-
-describe('Searching by ID', () => {
-  const customBookList = [{
-    'ISBN': 'A',
-    'title': "Old Man's War",
-    'author': 'John Scalzi'
-  }, {
-    'ISBN': 'B',
-    'title': 'The Lock Artist',
-    'author': 'Steve Hamilton'
-  }]
-  const customOptions = {
-    keys: ['title', 'author'],
-    id: 'ISBN'
-  }
-  let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
-
-  describe('When searching for the term "Stve"', () => {
-    let result
-    beforeEach(() => result = fuse.search('Stve'))
-
-    test('we get a list containing exactly 1 item', () => {
-      expect(result).toHaveLength(1)
-    })
-
-    test('whose value is the ISBN of the book', () => {
-      expect(typeof result[0]).toBe('string')
-      expect(result[0]).toBe('B')
-    })
-  })
-})
-
-describe('Searching by nested ID', () => {
-  const customBookList = [{
-    'ISBN': { 'name': 'A' },
-    'title': "Old Man's War",
-    'author': 'John Scalzi'
-  }, {
-    'ISBN': { 'name': 'B' },
-    'title': 'The Lock Artist',
-    'author': 'Steve Hamilton'
-  }]
-  const customOptions = {
-    keys: ['title', 'author'],
-    id: 'ISBN.name'
-  }
-  let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
-
-  describe('When searching for the term "Stve"', () => {
-    let result
-    beforeEach(() => result = fuse.search('Stve'))
-
-    test('we get a list containing exactly 1 item', () => {
-      expect(result).toHaveLength(1)
-    })
-
-    test('whose value is the ISBN of the book', () => {
-      expect(typeof result[0]).toBe('string')
-      expect(result[0]).toBe('B')
+      expect(result[0].item.ISBN).toBe('0321784421')
     })
   })
 })
@@ -508,7 +441,7 @@ describe('Set new list on Fuse', () => {
     })
 
     test('whose value is the index 0, representing ["Apple"]', () => {
-      expect(result[0]).toBe(1)
+      expect(result[0].refIndex).toBe(1)
     })
   })
 })
@@ -552,7 +485,14 @@ describe('Weighted search', () => {
     })
 
     test('We get the the exactly matching object', () => {
-      expect(result[0]).toMatchObject({ title: 'The life of Jane', author: 'John Smith', tags: ['john', 'smith'] })
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'The life of Jane',
+          author: 'John Smith',
+          tags: ['john', 'smith']
+        },
+        refIndex: 2
+      })
     })
   })
 
@@ -571,7 +511,14 @@ describe('Weighted search', () => {
     })
 
     test('We get the the exactly matching object', () => {
-      expect(result[0]).toMatchObject({ title: 'John Smith', author: 'Steve Pearson', tags: ['steve', 'pearson'] })
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'John Smith',
+          author: 'Steve Pearson',
+          tags: ['steve', 'pearson']
+        },
+        refIndex: 3
+      })
     })
   })
 
@@ -590,7 +537,14 @@ describe('Weighted search', () => {
     })
 
     test('We get the the exactly matching object', () => {
-      expect(result[0]).toMatchObject({ title: 'Right Ho Jeeves', author: 'P.D. Mans', tags: ['fiction', 'war'] })
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'Right Ho Jeeves',
+          author: 'P.D. Mans',
+          tags: ['fiction', 'war']
+        },
+        refIndex: 1
+      })
     })
   })
 
@@ -609,7 +563,14 @@ describe('Weighted search', () => {
     })
 
     test('We get the the exactly matching object', () => {
-      expect(result[0]).toMatchObject({ title: "Old Man's War fiction", author: 'John X', tags: ['war'] })
+      expect(result[0]).toMatchObject({
+        item: {
+          title: "Old Man's War fiction",
+          author: 'John X',
+          tags: ['war']
+        },
+        refIndex: 0
+      })
     })
   })
 
@@ -629,7 +590,14 @@ describe('Weighted search', () => {
     })
 
     test('We get the the exactly matching object', () => {
-      expect(result[0]).toMatchObject({ title: "Old Man's War fiction", author: 'John X', tags: ['war'] })
+      expect(result[0]).toMatchObject({
+        item: {
+          title: "Old Man's War fiction",
+          author: 'John X',
+          tags: ['war']
+        },
+        refIndex: 0
+      })
     })
   })
 })
@@ -764,9 +732,9 @@ describe('Sorted search results', () => {
     beforeEach(() => result = fuse.search('wood'))
 
     test('We get the properly ordered results', () => {
-      expect(result[0].title).toBe('The Code of the Wooster')
-      expect(result[1].title).toBe('Right Ho Jeeves')
-      expect(result[2].title).toBe('Thank You Jeeves')
+      expect(result[0].item.title).toBe('The Code of the Wooster')
+      expect(result[1].item.title).toBe('Right Ho Jeeves')
+      expect(result[2].item.title).toBe('Thank You Jeeves')
     })
   })
 })
@@ -821,6 +789,6 @@ describe('Searching using string large strings', () => {
     let pattern = 'where exctly is carmen in the world san diego'
     let result = fuse.search(pattern)
     expect(result.length).toBe(1)
-    expect(result[0].text).toBe(list[2].text)
+    expect(result[0].item.text).toBe(list[2].text)
   })
 })

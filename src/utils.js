@@ -21,8 +21,11 @@ const isString = value => typeof value === 'string'
 
 const isNum = value => typeof value === 'number'
 
+const isDefined = value => value !== undefined && value !== null
+
 const get = (obj, path) => {
   let list = []
+  let arr = false
 
   const _get = (obj, path) => {
     if (!path) {
@@ -45,6 +48,7 @@ const get = (obj, path) => {
         if (!remaining && (isString(value) || isNum(value))) {
           list.push(toString(value))
         } else if (isArray(value)) {
+          arr = true
           // Search each item in the array.
           for (let i = 0, len = value.length; i < len; i += 1) {
             _get(value[i], remaining)
@@ -59,11 +63,16 @@ const get = (obj, path) => {
 
   _get(obj, path)
 
-  return list
+  if (arr) {
+    return list
+  }
+
+  return list[0]
 }
 
 module.exports = {
   get,
+  isDefined,
   isArray,
   isString,
   isNum,

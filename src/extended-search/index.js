@@ -38,7 +38,7 @@ const queryfy = (pattern) => pattern.split('|').map(item => item.trim().split(/ 
  * ^core go$ | rb$ | py$
  * ```
  */
-class EntendedSearch {
+class ExtendedSearch {
   constructor(pattern, options) {
     const { isCaseSensitive } = options
     this.options = options
@@ -48,7 +48,9 @@ class EntendedSearch {
     this._fuzzyCache = {}
   }
 
-  searchIn(text) {
+  searchIn(value) {
+    let text = value.v
+
     const query = this.query
     text = this.options.isCaseSensitive ? text : text.toLowerCase()
 
@@ -107,4 +109,4 @@ class EntendedSearch {
   }
 }
 
-module.exports = EntendedSearch
+module.exports = ExtendedSearch

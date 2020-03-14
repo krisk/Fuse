@@ -43,7 +43,9 @@ class BitapSearch {
     this.patternAlphabet = patternAlphabet(this.pattern)
   }
 
-  searchIn(text) {
+  searchIn(value) {
+    let text = value.v
+
     const { isCaseSensitive, includeMatches } = this.options
 
     if (!isCaseSensitive) {

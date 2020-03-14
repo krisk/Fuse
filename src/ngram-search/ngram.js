@@ -1,4 +1,6 @@
-const create = (text, n = 3, pad = true) => {
+const NGRAM_LEN = 3
+
+module.exports = (text, { n = NGRAM_LEN, pad = true, sort = false }) => {
   let nGrams = []
 
   if (text === null || text === undefined) {
@@ -19,7 +21,9 @@ const create = (text, n = 3, pad = true) => {
     nGrams[index] = text.substr(index, n)
   }
 
+  if (sort) {
+    nGrams.sort((a, b) => a == b ? 0 : a < b ? -1 : 1)
+  }
+
   return nGrams
 }
-
-module.exports = create

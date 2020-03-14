@@ -1,9 +1,31 @@
+const util = require('util')
 const BitapSearch = require('./bitap-search')
 const ExtendedSearch = require('./extended-search')
 const NGramSearch = require('./ngram-search')
-const { get, isArray } = require('./utils')
+const ngram = require('./ngram-search/ngram')
+const { get, isArray, isDefined } = require('./utils')
 const { withMatches, withScore } = require('./formatters')
 const { MAX_BITS } = require('./bitap-search/constants')
+
+// Will print to the console. Useful for debugging.
+function debug() {
+  if (Fuse.verbose) {
+    console.log(...arguments)
+    // console.log(util.inspect(...arguments, false, null, true /* enable colors */))
+  }
+}
+
+function debugTime(value) {
+  // if (Fuse.verbose) {
+  console.time(value)
+  // }
+}
+
+function debugTimeEnd(value) {
+  // if (Fuse.verbose) {
+  console.timeEnd(value)
+  // }
+}
 
 class Fuse {
   constructor(list, {
@@ -37,18 +59,12 @@ class Fuse {
     getFn = get,
     // Default sort function
     sortFn = (a, b) => (a.score - b.score),
-    // When true, the result set will only include records that match all tokens. Will only work
-    // if `tokenize` is also true.
-    matchAllTokens = false,
 
     includeMatches = false,
     includeScore = false,
 
     // Enabled extended-searching
     useExtendedSearch = false,
-
-    // Will print to the console. Useful for debugging.
-    verbose = false
   }) {
     this.options = {
       location,
@@ -64,18 +80,17 @@ class Fuse {
       shouldSort,
       getFn,
       sortFn,
-      verbose,
-      matchAllTokens,
       useExtendedSearch
     }
 
-    this.setCollection(list)
     this._processKeys(keys)
+    this.setCollection(list)
   }
 
   setCollection(list) {
     this.list = list
     this.listIsStringArray = typeof list[0] == 'string'
+    this._processList()
     return list
   }
 
@@ -124,8 +139,109 @@ class Fuse {
     }
   }
 
+  _processList() {
+    const list = this.list
+    this._processedList = []
+
+    const { isCaseSensitive } = this.options
+
+    // List is Array<String>
+    if (this.listIsStringArray) {
+      // Iterate over every string in the list
+      for (let i = 0, len = list.length; i < len; i += 1) {
+        const value = list[i]
+
+        if (isDefined(value)) {
+          // if (!isCaseSensitive) {
+          //   value = value.toLowerCase()
+          // }
+
+          this._processedList.push({
+            v: value,
+            refIndex: i,
+            // ng: ngram(value, { sort: true })
+          })
+        }
+      }
+
+    } else {
+      // List is Array<Object>
+
+      const getFn = this.options.getFn
+      const keyNames = this._keyNames
+      const keysLen = keyNames.length
+
+      for (let i = 0, len = list.length; i < len; i += 1) {
+        let item = list[i]
+
+        let entry = {
+          refIndex: i
+        }
+
+        // Iterate over every key (i.e, path), and fetch the value at that key
+        for (let j = 0; j < keysLen; j += 1) {
+          let key = keyNames[j]
+          let value = getFn(item, key)
+
+          if (!isDefined(value)) {
+            continue
+          }
+
+          if (isArray(value)) {
+            let entries = []
+            const stack = [{ arrayIndex: -1, value }]
+
+            while (stack.length) {
+              const { arrayIndex, value } = stack.pop()
+
+              if (value === undefined || value === null) {
+                continue
+              }
+
+              if (typeof value === 'string') {
+
+                let v = value
+                // if (!isCaseSensitive) {
+                //   v = v.toLowerCase()
+                // }
+
+                entries.push({
+                  v,
+                  i: arrayIndex,
+                  // ng: ngram(value, { sort: true })
+                })
+              } else if (isArray(value)) {
+                for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
+                  stack.push({
+                    arrayIndex: k,
+                    value: value[k],
+                  })
+                }
+              }
+            }
+            entry[key] = entries
+          } else {
+            // if (!isCaseSensitive) {
+            //   value = value.toLowerCase()
+            // }
+
+            entry[key] = {
+              v: value,
+              // ng: ngram(value, { sort: true })
+            }
+          }
+        }
+
+        this._processedList.push(entry)
+      }
+    }
+
+    debug('Processed List')
+    debug(this._processedList)
+  }
+
   search(pattern, opts = { limit: false }) {
-    this._log(`---------\nSearch pattern: "${pattern}"`)
+    debug(`--------- Search pattern: "${pattern}"`)
 
     const { useExtendedSearch, shouldSort } = this.options
 
@@ -139,13 +255,13 @@ class Fuse {
       searcher = new BitapSearch(pattern, this.options)
     }
 
-    // console.time('_search');
+    debugTime('Search time');
     let results = this._searchUsing(searcher)
-    // console.timeEnd('_search');
+    debugTimeEnd('Search time');
 
-    //console.time('_computeScore');
+    debugTime('Compute score time');
     this._computeScore(results)
-    //console.timeEnd('_computeScore');
+    debugTimeEnd('Compute score time');
 
     if (shouldSort) {
       this._sort(results)
@@ -159,128 +275,158 @@ class Fuse {
   }
 
   _searchUsing(searcher) {
-    const list = this.list
+    const list = this._processedList
     const resultMap = {}
     const results = []
+    const { includeMatches } = this.options
 
     // List is Array<String>
     if (this.listIsStringArray) {
       // Iterate over every string in the list
       for (let i = 0, len = list.length; i < len; i += 1) {
-        this._analyze(searcher, {
-          key: '',
-          value: list[i],
-          record: i,
-          index: i
-        }, {
-          resultMap,
-          results
-        })
-      }
+        let value = list[i]
+        let text = value.v
 
-    } else {
-      // List is Array<Object>
-
-      const getFn = this.options.getFn
-      const keyNames = this._keyNames
-      const keysLen = keyNames.length
-
-      for (let i = 0, len = list.length; i < len; i += 1) {
-        let item = list[i]
-        // Iterate over every key (i.e, path), and fetch the value at that key
-        for (let j = 0; j < keysLen; j += 1) {
-          let key = keyNames[j]
-
-          this._analyze(searcher, {
-            key,
-            value: getFn(item, key),
-            record: item,
-            index: i
-          }, {
-            resultMap,
-            results
-          })
+        if (!isDefined(text)) {
+          continue
         }
-      }
-    }
 
-    return results
-  }
-
-  _analyze(searcher, { key, value, record, index }, { resultMap = {}, results = [] }) {
-    // Internal search function for cleanless and speed up.
-    const { includeMatches } = this.options
-
-    // initialize stack with the first entry
-    const stack = [{ arrayIndex: -1, value, record, index }]
-
-    while (stack.length) {
-      const { arrayIndex, value, record, index } = stack.pop()
-
-      if (value === undefined || value === null) {
-        continue
-      }
-
-      if (typeof value === 'string') {
-        this._log(`\nKey: ${key === '' ? '--' : key}`)
         let searchResult = searcher.searchIn(value)
 
         const { isMatch, score } = searchResult
-
-        this._log(`Full text: "${value}", score: ${score}`)
 
         if (!isMatch) {
           continue
         }
 
-        let _searchResult = { key, arrayIndex, value, score }
+        let res = { score, value: text }
 
         if (includeMatches) {
-          _searchResult.matchedIndices = searchResult.matchedIndices
+          res.indices = searchResult.matchedIndices
         }
 
-        // Check if the item already exists in our results
-        let existingResult = resultMap[index]
-        if (existingResult) {
-          existingResult.output.push(_searchResult)
-        } else {
-          resultMap[index] = {
-            item: record,
-            output: [_searchResult]
-          }
-          results.push(resultMap[index])
+        results.push({
+          item: list[i],
+          matches: [res]
+        })
+      }
+
+    } else {
+      // List is Array<Object>
+      const keyNames = this._keyNames
+      const keysLen = keyNames.length
+
+      for (let i = 0, len = list.length; i < len; i += 1) {
+        let item = list[i]
+
+        if (!isDefined(item)) {
+          continue
         }
-      } else if (isArray(value)) {
-        for (let i = 0, len = value.length; i < len; i += 1) {
-          stack.push({
-            arrayIndex: i,
-            value: value[i],
-            record,
-            index
+
+        let matches = []
+
+        // Iterate over every key (i.e, path), and fetch the value at that key
+        for (let j = 0; j < keysLen; j += 1) {
+          let key = keyNames[j]
+          let value = item[key]
+
+          debug(` Key: ${key === '' ? '--' : key}`)
+
+          if (!isDefined(value)) {
+            continue
+          }
+
+          if (isArray(value)) {
+            for (let k = 0, len = value.length; k < len; k += 1) {
+              let arrItem = value[k]
+              let text = arrItem.v
+              let refIndex = arrItem.i
+
+              if (!isDefined(text)) {
+                continue
+              }
+
+              let searchResult = searcher.searchIn(arrItem)
+
+              const { isMatch, score } = searchResult
+
+              debug(`Full text: "${text}", score: ${score}`)
+
+              if (!isMatch) {
+                continue
+              }
+
+              let res = {
+                score,
+                key,
+                value: text,
+                refIndex,
+              }
+
+              if (includeMatches) {
+                res.indices = searchResult.matchedIndices
+              }
+
+              matches.push(res)
+            }
+          } else {
+            let text = value.v
+            let searchResult = searcher.searchIn(value)
+            const { isMatch, score } = searchResult
+
+            debug(`Full text: "${text}", score: ${score}`)
+
+            if (!isMatch) {
+              continue
+            }
+
+            let res = {
+              score,
+              key,
+              value: text
+            }
+
+            if (includeMatches) {
+              res.indices = searchResult.matchedIndices
+            }
+
+            matches.push(res)
+          }
+        }
+
+        if (matches.length) {
+          results.push({
+            item,
+            matches
           })
         }
       }
     }
 
+    debug("--------- RESULTS -----------")
+    debug(results)
+    debug("-----------------------------")
+
+    return results
   }
 
   _computeScore(results) {
-    this._log('\n\nComputing score:\n')
+    debug('Computing score: ')
 
     const weights = this._keyWeights
     const hasWeights = !!Object.keys(weights).length
 
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
-      const output = result.output
-      const scoreLen = output.length
+      const matches = result.matches
+      const scoreLen = matches.length
 
       let totalWeightedScore = 1
 
       let bestScore = -1
 
       for (let j = 0; j < scoreLen; j += 1) {
-        const item = output[j]
+        const item = matches[j]
         const key = item.key
         const weight = hasWeights ? weights[key] : 1
         const score = item.score === 0 && weights && weights[key] > 0
@@ -297,12 +443,12 @@ class Fuse {
       result.score = totalWeightedScore
       result.$score = bestScore
 
-      this._log(result)
+      debug(result)
     }
   }
 
   _sort(results) {
-    this._log('\n\nSorting....')
+    debug('Sorting....')
     results.sort(this.options.sortFn)
   }
 
@@ -313,13 +459,12 @@ class Fuse {
       includeMatches,
       includeScore,
       id,
-      getFn,
-      verbose
+      getFn
     } = this.options
 
-    if (verbose) {
+    if (Fuse.verbose) {
       let cache = []
-      this._log('\n\nOutput:\n\n', JSON.stringify(results, (key, value) => {
+      debug('Output:', JSON.stringify(results, (key, value) => {
         if (typeof value === 'object' && value !== null) {
           if (cache.indexOf(value) !== -1) {
             // Circular reference found, discard key
@@ -338,37 +483,40 @@ class Fuse {
     if (includeMatches) transformers.push(withMatches)
     if (includeScore) transformers.push(withScore)
 
+    debug("============")
+    debug(results)
+    debug("============")
+
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
 
-      if (id) {
-        result.item = getFn(result.item, id)[0]
-      }
+      debug('result', result)
 
-      if (!transformers.length) {
-        finalOutput.push(result.item)
-        continue
-      }
+      // if (id) {
+      //   result.item = getFn(result.item, id)
+      // }
+
+      const { refIndex } = result.item
 
       const data = {
-        item: result.item
+        item: this.list[refIndex],
+        refIndex
       }
 
-      for (let j = 0, len = transformers.length; j < len; j += 1) {
-        transformers[j](result, data)
+      if (transformers.length) {
+        for (let j = 0, len = transformers.length; j < len; j += 1) {
+          transformers[j](result, data)
+        }
       }
+
 
       finalOutput.push(data)
     }
 
     return finalOutput
   }
-
-  _log() {
-    if (this.options.verbose) {
-      console.log(...arguments)
-    }
-  }
 }
+
+Fuse.verbose = false
 
 module.exports = Fuse

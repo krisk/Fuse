@@ -49,7 +49,6 @@ declare namespace Fuse {
     sortFn?: (a: { score: number }, b: { score: number }) => number
     getFn?: (obj: any, path: string) => any
     keys?: (keyof T | string)[] | { name: keyof T | string; weight: number }[]
-    verbose?: boolean
     location?: number
     distance?: number
     threshold?: number
