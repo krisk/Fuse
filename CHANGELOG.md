@@ -1,3 +1,7 @@
+# Version 5.0.1-beta
+
+- Removed `matchAllTokens` option.
+
 # Version 5.0.0-beta
 
 - Added ability to search patterns longer > 32 characters

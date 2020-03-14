@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v5.0.0-beta
+// Type definitions for Fuse.js v5.0.1-beta
 // TypeScript Version: 3.1
 
 export = Fuse
@@ -51,7 +51,6 @@ declare namespace Fuse {
     getFn?: (obj: any, path: string) => any
     keys?: (keyof T | string)[] | { name: keyof T | string; weight: number }[]
     verbose?: boolean
-    matchAllTokens?: boolean
     location?: number
     distance?: number
     threshold?: number

@@ -11,9 +11,9 @@
 
 ## <!--special end-->
 
-#### _What's new in v5.0.0-beta_
+#### _What's new in v5 (beta)_
 
-- _Added ability to search patterns longer longer than 32 characters_
+- _Added ability to search patterns longer than 32 characters_
 - _Added [enhanced searching](https://fusejs.io/#extended-search)_
 
 ---

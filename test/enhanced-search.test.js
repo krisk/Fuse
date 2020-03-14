@@ -17,7 +17,6 @@ const defaultOptions = {
   shouldSort: true,
   getFn: get,
   sortFn: (a, b) => (a.score - b.score),
-  matchAllTokens: false,
   includeMatches: false,
   includeScore: false,
   useExtendedSearch: true,

@@ -50,7 +50,6 @@ declare namespace Fuse {
     getFn?: (obj: any, path: string) => any
     keys?: (keyof T | string)[] | { name: keyof T | string; weight: number }[]
     verbose?: boolean
-    matchAllTokens?: boolean
     location?: number
     distance?: number
     threshold?: number
