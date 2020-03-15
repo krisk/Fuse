@@ -2,28 +2,35 @@
 const BitapSearch = require('./bitap-search')
 const ExtendedSearch = require('./extended-search')
 const NGramSearch = require('./ngram-search')
-const ngram = require('./ngram-search/ngram')
-const { get, isArray, isDefined } = require('./utils')
+// const ngram = require('./ngram-search/ngram')
+const {
+  get,
+  isArray,
+  isDefined,
+  isString,
+  isNumber,
+  isObject
+} = require('./utils')
 const { withMatches, withScore } = require('./formatters')
 const { MAX_BITS } = require('./bitap-search/constants')
 
 // Will print to the console. Useful for debugging.
 function debug() {
   if (Fuse.verbose) {
-    console.log(...arguments)
-    // const util = require('util')
-    // console.log(util.inspect(...arguments, false, null, true /* enable colors */))
+    // console.log(...arguments)
+    const util = require('util')
+    console.log(util.inspect(...arguments, false, null, true /* enable colors */))
   }
 }
 
 function debugTime(value) {
-  if (Fuse.verbose) {
+  if (Fuse.verboseTime) {
     console.time(value)
   }
 }
 
 function debugTimeEnd(value) {
-  if (Fuse.verbose) {
+  if (Fuse.verboseTime) {
     console.timeEnd(value)
   }
 }
@@ -48,9 +55,6 @@ class Fuse {
     findAllMatches = false,
     // Minimum number of characters that must be matched before a result is considered a match
     minMatchCharLength = 1,
-    // The name of the identifier property. If specified, the returned result will be a list
-    // of the items' dentifiers, otherwise it will be a list of the items.
-    id = null,
     // List of properties that will be searched. This also supports nested properties.
     keys = [],
     // Whether to sort the result list, by score
@@ -74,7 +78,6 @@ class Fuse {
       isCaseSensitive: caseSensitive,
       findAllMatches,
       minMatchCharLength,
-      id,
       keys,
       includeMatches,
       includeScore,
@@ -84,14 +87,16 @@ class Fuse {
       useExtendedSearch
     }
 
+    debugTime('Constructing')
     this._processKeys(keys)
     this.setCollection(list)
+    debugTimeEnd('Constructing')
   }
 
   setCollection(list) {
     this.list = list
-    this.listIsStringArray = typeof list[0] == 'string'
-    this._processList()
+    this.listIsStringArray = isString(list[0])
+    this._buildIndexedList()
     return list
   }
 
@@ -100,7 +105,7 @@ class Fuse {
     this._keyNames = []
 
     // Iterate over every key
-    if (keys.length && typeof keys[0] == 'string') {
+    if (keys.length && isString(keys[0])) {
       for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
         const key = keys[i]
         this._keyWeights[key] = 1
@@ -140,9 +145,9 @@ class Fuse {
     }
   }
 
-  _processList() {
+  _buildIndexedList() {
     const list = this.list
-    this._processedList = []
+    this._indexedList = []
 
     const { isCaseSensitive } = this.options
 
@@ -157,9 +162,9 @@ class Fuse {
           //   value = value.toLowerCase()
           // }
 
-          this._processedList.push({
-            v: value,
-            refIndex: i,
+          this._indexedList.push({
+            $: value,
+            idx: i,
             // ng: ngram(value, { sort: true })
           })
         }
@@ -167,7 +172,6 @@ class Fuse {
 
     } else {
       // List is Array<Object>
-
       const getFn = this.options.getFn
       const keyNames = this._keyNames
       const keysLen = keyNames.length
@@ -176,7 +180,8 @@ class Fuse {
         let item = list[i]
 
         let entry = {
-          refIndex: i
+          idx: i,
+          $: {}
         }
 
         // Iterate over every key (i.e, path), and fetch the value at that key
@@ -195,20 +200,20 @@ class Fuse {
             while (stack.length) {
               const { arrayIndex, value } = stack.pop()
 
-              if (value === undefined || value === null) {
+              if (!isDefined(value)) {
                 continue
               }
 
-              if (typeof value === 'string') {
+              if (isString(value)) {
 
-                let v = value
+                let $ = value
                 // if (!isCaseSensitive) {
                 //   v = v.toLowerCase()
                 // }
 
                 entries.push({
-                  v,
-                  i: arrayIndex,
+                  $,
+                  idx: arrayIndex,
                   // ng: ngram(value, { sort: true })
                 })
               } else if (isArray(value)) {
@@ -220,25 +225,25 @@ class Fuse {
                 }
               }
             }
-            entry[key] = entries
+            entry.$[key] = entries
           } else {
             // if (!isCaseSensitive) {
             //   value = value.toLowerCase()
             // }
 
-            entry[key] = {
-              v: value,
+            entry.$[key] = {
+              $: value,
               // ng: ngram(value, { sort: true })
             }
           }
         }
 
-        this._processedList.push(entry)
+        this._indexedList.push(entry)
       }
     }
 
     debug('Processed List')
-    debug(this._processedList)
+    debug(this._indexedList)
   }
 
   search(pattern, opts = { limit: false }) {
@@ -268,7 +273,7 @@ class Fuse {
       this._sort(results)
     }
 
-    if (opts.limit && typeof opts.limit === 'number') {
+    if (opts.limit && isNumber(opts.limit)) {
       results = results.slice(0, opts.limit)
     }
 
@@ -276,7 +281,7 @@ class Fuse {
   }
 
   _searchUsing(searcher) {
-    const list = this._processedList
+    const list = this._indexedList
     const resultMap = {}
     const results = []
     const { includeMatches } = this.options
@@ -286,7 +291,7 @@ class Fuse {
       // Iterate over every string in the list
       for (let i = 0, len = list.length; i < len; i += 1) {
         let value = list[i]
-        let text = value.v
+        let { $: text, idx } = value
 
         if (!isDefined(text)) {
           continue
@@ -307,7 +312,8 @@ class Fuse {
         }
 
         results.push({
-          item: list[i],
+          item: text,
+          idx,
           matches: [match]
         })
       }
@@ -318,7 +324,7 @@ class Fuse {
       const keysLen = keyNames.length
 
       for (let i = 0, len = list.length; i < len; i += 1) {
-        let item = list[i]
+        let { $: item, idx } = list[i]
 
         if (!isDefined(item)) {
           continue
@@ -340,8 +346,8 @@ class Fuse {
           if (isArray(value)) {
             for (let k = 0, len = value.length; k < len; k += 1) {
               let arrItem = value[k]
-              let text = arrItem.v
-              let refIndex = arrItem.i
+              let text = arrItem.$
+              let idx = arrItem.idx
 
               if (!isDefined(text)) {
                 continue
@@ -357,7 +363,7 @@ class Fuse {
                 continue
               }
 
-              let match = { score, key, value: text, refIndex }
+              let match = { score, key, value: text, idx }
 
               if (includeMatches) {
                 match.indices = searchResult.matchedIndices
@@ -366,7 +372,7 @@ class Fuse {
               matches.push(match)
             }
           } else {
-            let text = value.v
+            let text = value.$
             let searchResult = searcher.searchIn(value)
             const { isMatch, score } = searchResult
 
@@ -388,6 +394,7 @@ class Fuse {
 
         if (matches.length) {
           results.push({
+            idx,
             item,
             matches
           })
@@ -447,17 +454,12 @@ class Fuse {
   _format(results) {
     const finalOutput = []
 
-    const {
-      includeMatches,
-      includeScore,
-      id,
-      getFn
-    } = this.options
+    const { includeMatches, includeScore, } = this.options
 
     if (Fuse.verbose) {
       let cache = []
       debug('Output:', JSON.stringify(results, (key, value) => {
-        if (typeof value === 'object' && value !== null) {
+        if (isObject(value) && isDefined(value)) {
           if (cache.indexOf(value) !== -1) {
             // Circular reference found, discard key
             return
@@ -475,24 +477,20 @@ class Fuse {
     if (includeMatches) transformers.push(withMatches)
     if (includeScore) transformers.push(withScore)
 
-    debug("============")
+    debug("===== RESULTS ======")
     debug(results)
-    debug("============")
+    debug("====================")
 
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
 
       debug('result', result)
 
-      // if (id) {
-      //   result.item = getFn(result.item, id)
-      // }
-
-      const { refIndex } = result.item
+      const { idx } = result
 
       const data = {
-        item: this.list[refIndex],
-        refIndex
+        item: this.list[idx],
+        refIndex: idx
       }
 
       if (transformers.length) {
@@ -510,5 +508,6 @@ class Fuse {
 }
 
 Fuse.verbose = false
+Fuse.verboseTime = false
 
 module.exports = Fuse

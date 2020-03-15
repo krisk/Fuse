@@ -49,7 +49,7 @@ class ExtendedSearch {
   }
 
   searchIn(value) {
-    let text = value.v
+    let text = value.$
 
     const query = this.query
     text = this.options.isCaseSensitive ? text : text.toLowerCase()

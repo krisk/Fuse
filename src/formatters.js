@@ -3,23 +3,23 @@ const withMatches = (result, data) => {
   data.matches = []
 
   for (let i = 0, len = matches.length; i < len; i += 1) {
-    let item = matches[i]
+    let match = matches[i]
 
-    if (item.indices.length === 0) {
+    if (match.indices.length === 0) {
       continue
     }
 
     let obj = {
-      indices: item.indices,
-      value: item.value
+      indices: match.indices,
+      value: match.value
     }
 
-    if (item.key) {
-      obj.key = item.key
+    if (match.key) {
+      obj.key = match.key
     }
 
-    if (item.refIndex > -1) {
-      obj.refIndex = item.refIndex
+    if (match.idx > -1) {
+      obj.refIndex = match.idx
     }
 
     data.matches.push(obj)

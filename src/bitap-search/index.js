@@ -44,7 +44,7 @@ class BitapSearch {
   }
 
   searchIn(value) {
-    let text = value.v
+    let text = value.$
 
     const { isCaseSensitive, includeMatches } = this.options
 

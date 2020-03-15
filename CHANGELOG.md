@@ -1,3 +1,11 @@
+# Version 5.0.2-beta
+
+- Added automatic indexing for increased performance over large lists
+- **Breaking changes:**
+  - Removed `id` option
+  - Changed format of the search results
+  - Updated TypeScript definitions
+
 # Version 5.0.1-beta
 
 - Removed `matchAllTokens` option.

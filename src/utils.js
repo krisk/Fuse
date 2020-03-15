@@ -19,7 +19,9 @@ const toString = value => value == null ? '' : baseToString(value);
 
 const isString = value => typeof value === 'string'
 
-const isNum = value => typeof value === 'number'
+const isNumber = value => typeof value === 'number'
+
+const isObject = value => typeof value === 'object'
 
 const isDefined = value => value !== undefined && value !== null
 
@@ -44,8 +46,8 @@ const get = (obj, path) => {
 
       const value = obj[key]
 
-      if (value !== null && value !== undefined) {
-        if (!remaining && (isString(value) || isNum(value))) {
+      if (isDefined(value)) {
+        if (!remaining && (isString(value) || isNumber(value))) {
           list.push(toString(value))
         } else if (isArray(value)) {
           arr = true
@@ -75,6 +77,7 @@ module.exports = {
   isDefined,
   isArray,
   isString,
-  isNum,
+  isNumber,
+  isObject,
   toString
 }

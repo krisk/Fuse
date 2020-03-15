@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v5.0.1-beta
+// Type definitions for Fuse.js v5.0.2-beta
 // TypeScript Version: 3.1
 
 export = Fuse
@@ -12,7 +12,7 @@ declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
   constructor(list: ReadonlyArray<T>, options?: O)
   search<
     /** Type of item of return */
-    R = O extends { id: string } ? string : T,
+    R = T,
     /** include score (boolean) */
     S = O['includeScore'],
     /** include matches (boolean) */
@@ -33,16 +33,23 @@ declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
 }
 
 declare namespace Fuse {
+  export interface FuseResultMatch {
+    indices: ReadonlyArray<number>[]
+    value?: string
+    key?: string
+    refIndex?: number
+  }
   export interface FuseResultWithScore<T> {
     item: T
+    refIndex: number
     score: number
   }
   export interface FuseResultWithMatches<T> {
     item: T
-    matches: any
+    refIndex: number
+    matches: ReadonlyArray<FuseResultMatch>
   }
   export interface FuseOptions<T> {
-    id?: keyof T | string
     caseSensitive?: boolean
     includeMatches?: boolean
     includeScore?: boolean

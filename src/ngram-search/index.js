@@ -9,7 +9,7 @@ class NGramSearch {
   searchIn(value) {
     let textNgram = value.ng
     if (!textNgram) {
-      textNgram = ngram(value.v, { sort: true })
+      textNgram = ngram(value.$, { sort: true })
       value.ng = textNgram
     }
 

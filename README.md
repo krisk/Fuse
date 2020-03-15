@@ -15,6 +15,7 @@
 
 - _Added ability to search patterns longer than 32 characters_
 - _Added [enhanced searching](https://fusejs.io/#extended-search)_
+- _Improved search performance_
 
 ---
 
