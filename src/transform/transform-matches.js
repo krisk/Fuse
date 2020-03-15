@@ -1,4 +1,4 @@
-const withMatches = (result, data) => {
+module.exports = (result, data) => {
   const matches = result.matches
   data.matches = []
 
@@ -24,13 +24,4 @@ const withMatches = (result, data) => {
 
     data.matches.push(obj)
   }
-}
-
-const withScore = (result, data) => {
-  data.score = result.score
-}
-
-module.exports = {
-  withMatches,
-  withScore
 }

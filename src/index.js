@@ -1,25 +1,28 @@
 
-const BitapSearch = require('./bitap-search')
-const ExtendedSearch = require('./extended-search')
-const NGramSearch = require('./ngram-search')
-// const ngram = require('./ngram-search/ngram')
+const { BitapSearch, ExtendedSearch, NGramSearch } = require('./search')
+
 const {
-  get,
   isArray,
   isDefined,
   isString,
   isNumber,
   isObject
-} = require('./utils')
-const { withMatches, withScore } = require('./formatters')
-const { MAX_BITS } = require('./bitap-search/constants')
+} = require('./helpers/type-checkers')
+
+const get = require('./helpers/get')
+
+const { buildIndex, KeyStore } = require('./tools')
+
+const { transformMatches, transformScore } = require('./transform')
+
+const { MAX_BITS } = require('./search/bitap-search/constants')
 
 // Will print to the console. Useful for debugging.
 function debug() {
   if (Fuse.verbose) {
-    // console.log(...arguments)
-    const util = require('util')
-    console.log(util.inspect(...arguments, false, null, true /* enable colors */))
+    console.log(...arguments)
+    // const util = require('util')
+    // console.log(util.inspect(...arguments, false, null, true /* enable colors */))
   }
 }
 
@@ -100,150 +103,25 @@ class Fuse {
     return list
   }
 
+  setIndex(listIndex) {
+    this._indexedList = listIndex
+  }
+
   _processKeys(keys) {
-    this._keyWeights = {}
-    this._keyNames = []
+    this._keyStore = new KeyStore(keys)
 
-    // Iterate over every key
-    if (keys.length && isString(keys[0])) {
-      for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
-        const key = keys[i]
-        this._keyWeights[key] = 1
-        this._keyNames.push(key)
-      }
-    } else {
-      let weightsTotal = 0
-
-      for (let i = 0, keysLen = keys.length; i < keysLen; i += 1) {
-        const key = keys[i]
-
-        if (!key.hasOwnProperty('name')) {
-          throw new Error('Missing "name" property in key object')
-        }
-
-        const keyName = key.name
-        this._keyNames.push(keyName)
-
-        if (!key.hasOwnProperty('weight')) {
-          throw new Error('Missing "weight" property in key object')
-        }
-
-        const keyWeight = key.weight
-        this._keyWeights[keyName] = keyWeight
-
-        if (keyWeight < 0 || keyWeight > 1) {
-          throw new Error('"weight" property in key must bein the range of [0, 1)')
-        }
-
-
-        weightsTotal += keyWeight
-      }
-
-      if (weightsTotal > 1) {
-        throw new Error('Total of weights cannot exceed 1')
-      }
-    }
+    debug('Processed Keys')
+    debug(this._keyStore.toJSON())
   }
 
   _buildIndexedList() {
-    const list = this.list
-    this._indexedList = []
-
-    const { isCaseSensitive } = this.options
-
-    // List is Array<String>
-    if (this.listIsStringArray) {
-      // Iterate over every string in the list
-      for (let i = 0, len = list.length; i < len; i += 1) {
-        const value = list[i]
-
-        if (isDefined(value)) {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
-
-          this._indexedList.push({
-            $: value,
-            idx: i,
-            // ng: ngram(value, { sort: true })
-          })
-        }
-      }
-
-    } else {
-      // List is Array<Object>
-      const getFn = this.options.getFn
-      const keyNames = this._keyNames
-      const keysLen = keyNames.length
-
-      for (let i = 0, len = list.length; i < len; i += 1) {
-        let item = list[i]
-
-        let entry = {
-          idx: i,
-          $: {}
-        }
-
-        // Iterate over every key (i.e, path), and fetch the value at that key
-        for (let j = 0; j < keysLen; j += 1) {
-          let key = keyNames[j]
-          let value = getFn(item, key)
-
-          if (!isDefined(value)) {
-            continue
-          }
-
-          if (isArray(value)) {
-            let entries = []
-            const stack = [{ arrayIndex: -1, value }]
-
-            while (stack.length) {
-              const { arrayIndex, value } = stack.pop()
-
-              if (!isDefined(value)) {
-                continue
-              }
-
-              if (isString(value)) {
-
-                let $ = value
-                // if (!isCaseSensitive) {
-                //   v = v.toLowerCase()
-                // }
-
-                entries.push({
-                  $,
-                  idx: arrayIndex,
-                  // ng: ngram(value, { sort: true })
-                })
-              } else if (isArray(value)) {
-                for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
-                  stack.push({
-                    arrayIndex: k,
-                    value: value[k],
-                  })
-                }
-              }
-            }
-            entry.$[key] = entries
-          } else {
-            // if (!isCaseSensitive) {
-            //   value = value.toLowerCase()
-            // }
-
-            entry.$[key] = {
-              $: value,
-              // ng: ngram(value, { sort: true })
-            }
-          }
-        }
-
-        this._indexedList.push(entry)
-      }
-    }
+    const listIndex = buildIndex(this._keyStore.keys(), this.list, {
+      getFn: this.options.getFn
+    })
+    this.setIndex(listIndex)
 
     debug('Processed List')
-    debug(this._indexedList)
+    debug(listIndex)
   }
 
   search(pattern, opts = { limit: false }) {
@@ -282,7 +160,6 @@ class Fuse {
 
   _searchUsing(searcher) {
     const list = this._indexedList
-    const resultMap = {}
     const results = []
     const { includeMatches } = this.options
 
@@ -320,8 +197,8 @@ class Fuse {
 
     } else {
       // List is Array<Object>
-      const keyNames = this._keyNames
-      const keysLen = keyNames.length
+      const keyNames = this._keyStore.keys()
+      const keysLen = this._keyStore.count()
 
       for (let i = 0, len = list.length; i < len; i += 1) {
         let { $: item, idx } = list[i]
@@ -412,35 +289,32 @@ class Fuse {
   _computeScore(results) {
     debug('Computing score: ')
 
-    const weights = this._keyWeights
-    const hasWeights = !!Object.keys(weights).length
-
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
       const matches = result.matches
       const scoreLen = matches.length
 
       let totalWeightedScore = 1
-
-      let bestScore = -1
+      // let bestScore = -1
 
       for (let j = 0; j < scoreLen; j += 1) {
         const item = matches[j]
         const key = item.key
-        const weight = hasWeights ? weights[key] : 1
-        const score = item.score === 0 && weights && weights[key] > 0
+        const keyWeight = this._keyStore.get(key, 'weight')
+        const weight = keyWeight || 1
+        const score = item.score === 0 && keyWeight && keyWeight > 0
           ? Number.EPSILON
           : item.score
 
+        totalWeightedScore *= Math.pow(score, weight)
+
         // Keep track of the best score.. just in case
         // Actually, we're not really using it.. but need to think of a way to incorporate this
-        bestScore = bestScore == -1 ? item.score : Math.min(bestScore, item.score)
-
-        totalWeightedScore *= Math.pow(score, weight)
+        // bestScore = bestScore == -1 ? item.score : Math.min(bestScore, item.score)
       }
 
       result.score = totalWeightedScore
-      result.$score = bestScore
+      // result.$score = bestScore
 
       debug(result)
     }
@@ -474,8 +348,8 @@ class Fuse {
 
     let transformers = []
 
-    if (includeMatches) transformers.push(withMatches)
-    if (includeScore) transformers.push(withScore)
+    if (includeMatches) transformers.push(transformMatches)
+    if (includeScore) transformers.push(transformScore)
 
     debug("===== RESULTS ======")
     debug(results)
