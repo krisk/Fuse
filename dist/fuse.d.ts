@@ -4,12 +4,22 @@
 export = Fuse
 export as namespace Fuse
 
-interface SearchOpts {
+interface SearchOpt {
   limit?: number
 }
 
+// TODO: Needs more work to actually make sense in TypeScript
+interface FuseIndexRecord {
+  idx: number
+  $: any
+}
+
 declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
-  constructor(list: ReadonlyArray<T>, options?: O)
+  constructor(
+    list: ReadonlyArray<T>,
+    options?: O,
+    index?: ReadonlyArray<FuseIndexRecord>,
+  )
   search<
     /** Type of item of return */
     R = T,
@@ -19,7 +29,7 @@ declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
     M = O['includeMatches']
   >(
     pattern: string,
-    opts?: SearchOpts,
+    opts?: SearchOpt,
   ): S extends true
     ? M extends true
       ? (Fuse.FuseResultWithMatches<R> & Fuse.FuseResultWithScore<R>)[]
@@ -28,16 +38,20 @@ declare class Fuse<T, O extends Fuse.FuseOptions<T>> {
     ? Fuse.FuseResultWithMatches<R>[]
     : R[]
 
-  setCollection(list: ReadonlyArray<T>): ReadonlyArray<T>
-  list: ReadonlyArray<T>
+  setCollection(
+    list: ReadonlyArray<T>,
+    index?: ReadonlyArray<FuseIndexRecord>,
+  ): void
+
+  setIndex(index: ReadonlyArray<FuseIndexRecord>): void
 }
 
 declare namespace Fuse {
   export interface FuseResultMatch {
     indices: ReadonlyArray<number>[]
-    value?: string
     key?: string
     refIndex?: number
+    value?: string
   }
   export interface FuseResultWithScore<T> {
     item: T
@@ -51,17 +65,17 @@ declare namespace Fuse {
   }
   export interface FuseOptions<T> {
     caseSensitive?: boolean
+    distance?: number
+    findAllMatches?: boolean
+    getFn?: (obj: any, path: string) => any
     includeMatches?: boolean
     includeScore?: boolean
-    shouldSort?: boolean
-    sortFn?: (a: { score: number }, b: { score: number }) => number
-    getFn?: (obj: any, path: string) => any
     keys?: (keyof T | string)[] | { name: keyof T | string; weight: number }[]
     location?: number
-    distance?: number
-    threshold?: number
     minMatchCharLength?: number
-    findAllMatches?: boolean
+    shouldSort?: boolean
+    sortFn?: (a: { score: number }, b: { score: number }) => number
+    threshold?: number
     useExtendedSearch?: boolean
   }
 }

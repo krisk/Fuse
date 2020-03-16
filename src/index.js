@@ -1,132 +1,114 @@
 
 const { BitapSearch, ExtendedSearch, NGramSearch } = require('./search')
-
-const {
-  isArray,
-  isDefined,
-  isString,
-  isNumber,
-  isObject
-} = require('./helpers/type-checkers')
-
+const { isArray, isDefined, isString, isNumber, isObject } = require('./helpers/type-checkers')
 const get = require('./helpers/get')
-
-const { buildIndex, KeyStore } = require('./tools')
-
+const { createIndex, KeyStore } = require('./tools')
 const { transformMatches, transformScore } = require('./transform')
-
 const { MAX_BITS } = require('./search/bitap-search/constants')
 
-// Will print to the console. Useful for debugging.
-function debug() {
-  if (Fuse.verbose) {
-    console.log(...arguments)
-    // const util = require('util')
-    // console.log(util.inspect(...arguments, false, null, true /* enable colors */))
-  }
-}
+// // Will print to the console. Useful for debugging.
+// function debug() {
+//   if (Fuse.verbose) {
+//     console.log(...arguments)
+//     // const util = require('util')
+//     // console.log(util.inspect(...arguments, false, null, true /* enable colors */))
+//   }
+// }
 
-function debugTime(value) {
-  if (Fuse.verboseTime) {
-    console.time(value)
-  }
-}
+// function debugTime(value) {
+//   if (Fuse.verboseTime) {
+//     console.time(value)
+//   }
+// }
 
-function debugTimeEnd(value) {
-  if (Fuse.verboseTime) {
-    console.timeEnd(value)
-  }
+// function debugTimeEnd(value) {
+//   if (Fuse.verboseTime) {
+//     console.timeEnd(value)
+//   }
+// }
+
+let FuseOptions = {
+  // When true, the algorithm continues searching to the end of the input even if a perfect
+  // match is found before the end of the same input.
+  isCaseSensitive: false,
+  // Determines how close the match must be to the fuzzy location (specified above).
+  // An exact letter match which is 'distance' characters away from the fuzzy location
+  // would score as a complete mismatch. A distance of '0' requires the match be at
+  // the exact location specified, a threshold of '1000' would require a perfect match
+  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+  distance: 100,
+  // Minimum number of characters that must be matched before a result is considered a match
+  findAllMatches: false,
+  // The get function to use when fetching an object's properties.
+  // The default will search nested paths *ie foo.bar.baz*
+  getFn: get,
+  includeMatches: false,
+  includeScore: false,
+  // List of properties that will be searched. This also supports nested properties.
+  keys: [],
+  // Approximately where in the text is the pattern expected to be found?
+  location: 0,
+  // Minimum number of characters that must be matched before a result is considered a match
+  minMatchCharLength: 1,
+  // Whether to sort the result list, by score
+  shouldSort: true,
+  // Default sort function
+  sortFn: (a, b) => (a.score - b.score),
+  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+  // (of both letters and location), a threshold of '1.0' would match anything.
+  threshold: 0.6,
+  // Enabled extended-searching
+  useExtendedSearch: false
 }
 
 class Fuse {
-  constructor(list, {
-    // Approximately where in the text is the pattern expected to be found?
-    location = 0,
-    // Determines how close the match must be to the fuzzy location (specified above).
-    // An exact letter match which is 'distance' characters away from the fuzzy location
-    // would score as a complete mismatch. A distance of '0' requires the match be at
-    // the exact location specified, a threshold of '1000' would require a perfect match
-    // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-    distance = 100,
-    // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-    // (of both letters and location), a threshold of '1.0' would match anything.
-    threshold = 0.6,
-    // Indicates whether comparisons should be case sensitive.
-    caseSensitive = false,
-    // When true, the algorithm continues searching to the end of the input even if a perfect
-    // match is found before the end of the same input.
-    findAllMatches = false,
-    // Minimum number of characters that must be matched before a result is considered a match
-    minMatchCharLength = 1,
-    // List of properties that will be searched. This also supports nested properties.
-    keys = [],
-    // Whether to sort the result list, by score
-    shouldSort = true,
-    // The get function to use when fetching an object's properties.
-    // The default will search nested paths *ie foo.bar.baz*
-    getFn = get,
-    // Default sort function
-    sortFn = (a, b) => (a.score - b.score),
+  constructor(list, options = FuseOptions, index = null) {
+    this.options = { ...FuseOptions, ...options }
+    // `caseSensitive` is deprecated, use `isCaseSensitive` instead
+    this.options.isCaseSensitive = options.caseSensitive
+    delete this.options.caseSensitive
 
-    includeMatches = false,
-    includeScore = false,
-
-    // Enabled extended-searching
-    useExtendedSearch = false,
-  }) {
-    this.options = {
-      location,
-      distance,
-      threshold,
-      isCaseSensitive: caseSensitive,
-      findAllMatches,
-      minMatchCharLength,
-      keys,
-      includeMatches,
-      includeScore,
-      shouldSort,
-      getFn,
-      sortFn,
-      useExtendedSearch
-    }
-
-    debugTime('Constructing')
-    this._processKeys(keys)
-    this.setCollection(list)
-    debugTimeEnd('Constructing')
+    // debugTime('Constructing')
+    this._processKeys(this.options.keys)
+    this.setCollection(list, index)
+    // debugTimeEnd('Constructing')
   }
 
-  setCollection(list) {
+  setCollection(list, index = null) {
     this.list = list
     this.listIsStringArray = isString(list[0])
-    this._buildIndexedList()
-    return list
+
+    if (index) {
+      this.setIndex(index)
+    } else {
+      // debugTime('Process index')
+      this.setIndex(this._createIndex())
+      // debugTimeEnd('Process index')
+    }
   }
 
   setIndex(listIndex) {
     this._indexedList = listIndex
+    // debug(listIndex)
   }
 
   _processKeys(keys) {
     this._keyStore = new KeyStore(keys)
 
-    debug('Processed Keys')
-    debug(this._keyStore.toJSON())
+    // debug('Process Keys')
+    if (Fuse.verbose) {
+      // debug(this._keyStore.toJSON())
+    }
   }
 
-  _buildIndexedList() {
-    const listIndex = buildIndex(this._keyStore.keys(), this.list, {
+  _createIndex() {
+    return createIndex(this._keyStore.keys(), this.list, {
       getFn: this.options.getFn
     })
-    this.setIndex(listIndex)
-
-    debug('Processed List')
-    debug(listIndex)
   }
 
   search(pattern, opts = { limit: false }) {
-    debug(`--------- Search pattern: "${pattern}"`)
-
+    // debug(`--------- Search pattern: "${pattern}"`)
     const { useExtendedSearch, shouldSort } = this.options
 
     let searcher = null
@@ -139,13 +121,13 @@ class Fuse {
       searcher = new BitapSearch(pattern, this.options)
     }
 
-    debugTime('Search time');
+    // debugTime('Search time');
     let results = this._searchUsing(searcher)
-    debugTimeEnd('Search time');
+    // debugTimeEnd('Search time');
 
-    debugTime('Compute score time');
+    // debugTime('Compute score time');
     this._computeScore(results)
-    debugTimeEnd('Compute score time');
+    // debugTimeEnd('Compute score time');
 
     if (shouldSort) {
       this._sort(results)
@@ -214,7 +196,7 @@ class Fuse {
           let key = keyNames[j]
           let value = item[key]
 
-          debug(` Key: ${key === '' ? '--' : key}`)
+          // debug(` Key: ${key === '' ? '--' : key}`)
 
           if (!isDefined(value)) {
             continue
@@ -234,7 +216,7 @@ class Fuse {
 
               const { isMatch, score } = searchResult
 
-              debug(`Full text: "${text}", score: ${score}`)
+              // debug(`Full text: "${text}", score: ${score}`)
 
               if (!isMatch) {
                 continue
@@ -251,9 +233,10 @@ class Fuse {
           } else {
             let text = value.$
             let searchResult = searcher.searchIn(value)
+
             const { isMatch, score } = searchResult
 
-            debug(`Full text: "${text}", score: ${score}`)
+            // debug(`Full text: "${text}", score: ${score}`)
 
             if (!isMatch) {
               continue
@@ -279,15 +262,15 @@ class Fuse {
       }
     }
 
-    debug("--------- RESULTS -----------")
-    debug(results)
-    debug("-----------------------------")
+    // debug("--------- RESULTS -----------")
+    // debug(results)
+    // debug("-----------------------------")
 
     return results
   }
 
   _computeScore(results) {
-    debug('Computing score: ')
+    // debug('Computing score: ')
 
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
@@ -316,12 +299,12 @@ class Fuse {
       result.score = totalWeightedScore
       // result.$score = bestScore
 
-      debug(result)
+      // debug(result)
     }
   }
 
   _sort(results) {
-    debug('Sorting....')
+    // debug('Sorting....')
     results.sort(this.options.sortFn)
   }
 
@@ -330,35 +313,35 @@ class Fuse {
 
     const { includeMatches, includeScore, } = this.options
 
-    if (Fuse.verbose) {
-      let cache = []
-      debug('Output:', JSON.stringify(results, (key, value) => {
-        if (isObject(value) && isDefined(value)) {
-          if (cache.indexOf(value) !== -1) {
-            // Circular reference found, discard key
-            return
-          }
-          // Store value in our collection
-          cache.push(value)
-        }
-        return value
-      }, 2))
-      cache = null
-    }
+    // if (Fuse.verbose) {
+    //   let cache = []
+    //   debug('Output:', JSON.stringify(results, (key, value) => {
+    //     if (isObject(value) && isDefined(value)) {
+    //       if (cache.indexOf(value) !== -1) {
+    //         // Circular reference found, discard key
+    //         return
+    //       }
+    //       // Store value in our collection
+    //       cache.push(value)
+    //     }
+    //     return value
+    //   }, 2))
+    //   cache = null
+    // }
 
     let transformers = []
 
     if (includeMatches) transformers.push(transformMatches)
     if (includeScore) transformers.push(transformScore)
 
-    debug("===== RESULTS ======")
-    debug(results)
-    debug("====================")
+    // debug("===== RESULTS ======")
+    // debug(results)
+    // debug("====================")
 
     for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
 
-      debug('result', result)
+      // debug('result', result)
 
       const { idx } = result
 
@@ -381,7 +364,6 @@ class Fuse {
   }
 }
 
-Fuse.verbose = false
-Fuse.verboseTime = false
+Fuse.createIndex = createIndex
 
 module.exports = Fuse

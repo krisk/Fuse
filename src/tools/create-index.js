@@ -1,14 +1,8 @@
-const {
-  isArray,
-  isDefined,
-  isString
-} = require('../helpers/type-checkers')
-
+const { isArray, isDefined, isString } = require('../helpers/type-checkers')
 const get = require('../helpers/get')
-
 const ngram = require('../search/ngram-search/ngram')
 
-module.exports = (keys, list, { getFn = get, ngrams = false }) => {
+module.exports = (keys, list, { getFn = get, ngrams = false } = {}) => {
   let indexedList = []
 
   // List is Array<String>

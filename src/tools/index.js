@@ -1,4 +1,4 @@
 module.exports = {
-  buildIndex: require('./index-builder'),
+  createIndex: require('./create-index'),
   KeyStore: require('./key-store')
 }
