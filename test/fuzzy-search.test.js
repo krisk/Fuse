@@ -705,6 +705,29 @@ describe('Searching with minCharLength', () => {
   })
 })
 
+describe('Searching with minCharLength and pattern larger than machine word size', () => {
+  const customList = ['Apple pie is a tasty treat that is always best made by mom! But we love store bought too.', 'Banana splits are what you want from DQ on a hot day.  But a parfait is even better.', 'Orange sorbet is just a strange yet satisfying snack.  Chocolate seems to be more of a favourite though.']
+  let fuse
+
+  beforeEach(() => fuse = new Fuse(customList, { includeMatches: true, findAllMatches: true, includeScore: true, minMatchCharLength: 20, threshold: 0.8, distance: 30 }))
+
+  describe('When searching for the term "American as apple pie is odd treatment of something made by mom"', () => {
+    let result
+
+    beforeEach(() => result = fuse.search('American as apple pie is odd treatment of something made by mom'))
+
+    test('We get exactly 3 results', () => {
+      expect(result).toHaveLength(3)
+    })
+
+    test('And we get no matches', () => {
+      expect(result[0].matches).toHaveLength(0)
+      expect(result[1].matches).toHaveLength(0)
+      expect(result[2].matches).toHaveLength(0)
+    })
+  })
+})
+
 describe('Sorted search results', () => {
   const customList = [
     {
