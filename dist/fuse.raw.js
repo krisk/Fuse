@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v5.0.2-beta - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.0.3-beta - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2020 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1756,16 +1756,27 @@ module.exports = {
 
 /***/ }),
 /* 28 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+var _require = __webpack_require__(22),
+    isArray = _require.isArray,
+    isDefined = _require.isDefined,
+    isString = _require.isString,
+    isNumber = _require.isNumber,
+    isObject = _require.isObject;
 
 module.exports = function (result, data) {
   var matches = result.matches;
   data.matches = [];
 
+  if (!isDefined(matches)) {
+    return;
+  }
+
   for (var i = 0, len = matches.length; i < len; i += 1) {
     var match = matches[i];
 
-    if (match.indices.length === 0) {
+    if (!isDefined(match.indices) || match.indices.length === 0) {
       continue;
     }
 

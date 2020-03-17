@@ -1,3 +1,9 @@
+# Version 5.0.3-beta
+
+- A couple of fixes, courtesy of [Daniel Dickinson](https://github.com/cshoredaniel):
+  - Generate multiple targets with webpack (#359)
+  - Fixed TypeError (#360)
+
 # Version 5.0.2-beta
 
 - Added indexing for increased performance over large lists
