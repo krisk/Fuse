@@ -9,5 +9,8 @@ module.exports = merge(common, {
     minimizer: [new TerserPlugin({
       extractComments: false
     })]
+  },
+  output: {
+    filename: `${LIBRARY_NAME}.js`
   }
 })

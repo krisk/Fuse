@@ -24,7 +24,7 @@
     "clean": "rimraf ./dist",
     "test": "jest",
     "prebuild": "npm run clean",
-    "build": "webpack --config ./configs/webpack.prod.js",
+    "build": "webpack --config ./configs/webpack.output.js",
     "predev": "npm run clean",
     "dev": "webpack --progress --colors --watch --config ./configs/webpack.dev.js"
   },

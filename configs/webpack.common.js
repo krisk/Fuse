@@ -15,6 +15,8 @@ const banner = copyright
   .replace('{AUTHOR_URL}', `${AUTHOR.url}`)
   .replace('{HOMEPAGE}', `${HOMEPAGE}`)
 
+global.LIBRARY_NAME = LIBRARY_NAME
+
 module.exports = {
   entry: path.resolve(__dirname, '../src/index.js'),
   module: {
