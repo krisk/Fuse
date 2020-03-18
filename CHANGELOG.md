@@ -1,3 +1,7 @@
+# Version 5.0.6-beta
+
+- Fixed (#357)
+
 # Version 5.0.3-beta
 
 - A couple of fixes, courtesy of [Daniel Dickinson](https://github.com/cshoredaniel):
