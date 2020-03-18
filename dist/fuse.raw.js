@@ -123,7 +123,7 @@ var _require = __webpack_require__(1),
     ExtendedSearch = _require.ExtendedSearch,
     NGramSearch = _require.NGramSearch;
 
-var _require2 = __webpack_require__(22),
+var _require2 = __webpack_require__(15),
     isArray = _require2.isArray,
     isDefined = _require2.isDefined,
     isString = _require2.isString,
@@ -521,7 +521,7 @@ module.exports = Fuse;
 module.exports = {
   BitapSearch: __webpack_require__(2),
   ExtendedSearch: __webpack_require__(8),
-  NGramSearch: __webpack_require__(15)
+  NGramSearch: __webpack_require__(16)
 };
 
 /***/ }),
@@ -901,7 +901,10 @@ var suffixExactMatch = __webpack_require__(13);
 
 var inverseSuffixExactMatch = __webpack_require__(14);
 
-var BitapSearch = __webpack_require__(2); // Return a 2D array representation of the query, for simpler parsing.
+var BitapSearch = __webpack_require__(2);
+
+var _require = __webpack_require__(15),
+    isString = _require.isString; // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 
@@ -945,18 +948,30 @@ var ExtendedSearch = /*#__PURE__*/function () {
     _classCallCheck(this, ExtendedSearch);
 
     var isCaseSensitive = options.isCaseSensitive;
-    this.options = options;
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.query = queryfy(this.pattern); // A <pattern>:<BitapSearch> key-value pair for optimizing searching
+    this.query = null;
+    this.options = options; // A <pattern>:<BitapSearch> key-value pair for optimizing searching
 
     this._fuzzyCache = {};
+
+    if (isString(pattern) && pattern.trim().length > 0) {
+      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.query = queryfy(this.pattern);
+    }
   }
 
   _createClass(ExtendedSearch, [{
     key: "searchIn",
     value: function searchIn(value) {
-      var text = value.$;
       var query = this.query;
+
+      if (!this.query) {
+        return {
+          isMatch: false,
+          score: 1
+        };
+      }
+
+      var text = value.$;
       text = this.options.isCaseSensitive ? text : text.toLowerCase();
       var matchFound = false;
 
@@ -1204,202 +1219,6 @@ module.exports = {
 
 /***/ }),
 /* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var ngram = __webpack_require__(16);
-
-var _require = __webpack_require__(17),
-    jaccardDistance = _require.jaccardDistance;
-
-var NGramSearch = /*#__PURE__*/function () {
-  function NGramSearch(pattern) {
-    _classCallCheck(this, NGramSearch);
-
-    // Create the ngram, and sort it
-    this.patternNgram = ngram(pattern, {
-      sort: true
-    });
-  }
-
-  _createClass(NGramSearch, [{
-    key: "searchIn",
-    value: function searchIn(value) {
-      var textNgram = value.ng;
-
-      if (!textNgram) {
-        textNgram = ngram(value.$, {
-          sort: true
-        });
-        value.ng = textNgram;
-      }
-
-      var jacardResult = jaccardDistance(this.patternNgram, textNgram);
-      return {
-        score: jacardResult,
-        isMatch: jacardResult < 1
-      };
-    }
-  }]);
-
-  return NGramSearch;
-}();
-
-module.exports = NGramSearch;
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports) {
-
-var NGRAM_LEN = 3;
-
-module.exports = function (text, _ref) {
-  var _ref$n = _ref.n,
-      n = _ref$n === void 0 ? NGRAM_LEN : _ref$n,
-      _ref$pad = _ref.pad,
-      pad = _ref$pad === void 0 ? true : _ref$pad,
-      _ref$sort = _ref.sort,
-      sort = _ref$sort === void 0 ? false : _ref$sort;
-  var nGrams = [];
-
-  if (text === null || text === undefined) {
-    return nGrams;
-  }
-
-  text = text.toLowerCase();
-
-  if (pad) {
-    text = " ".concat(text, " ");
-  }
-
-  var index = text.length - n + 1;
-
-  if (index < 1) {
-    return nGrams;
-  }
-
-  while (index--) {
-    nGrams[index] = text.substr(index, n);
-  }
-
-  if (sort) {
-    nGrams.sort(function (a, b) {
-      return a == b ? 0 : a < b ? -1 : 1;
-    });
-  }
-
-  return nGrams;
-};
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = {
-  jaccardDistance: __webpack_require__(18)
-};
-
-/***/ }),
-/* 18 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var _require = __webpack_require__(19),
-    union = _require.union,
-    intersection = _require.intersection;
-
-module.exports = function (nGram1, nGram2) {
-  var nGramUnion = union(nGram1, nGram2);
-  var nGramIntersection = intersection(nGram1, nGram2);
-  return 1 - nGramIntersection.length / nGramUnion.length;
-};
-
-/***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = {
-  union: __webpack_require__(20),
-  intersection: __webpack_require__(21)
-};
-
-/***/ }),
-/* 20 */
-/***/ (function(module, exports) {
-
-// Assumes arrays are sorted
-module.exports = function (arr1, arr2) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    var item1 = arr1[i];
-    var item2 = arr2[j];
-
-    if (item1 < item2) {
-      result.push(item1);
-      i += 1;
-    } else if (item2 < item1) {
-      result.push(item2);
-      j += 1;
-    } else {
-      result.push(item2);
-      i += 1;
-      j += 1;
-    }
-  }
-
-  while (i < arr1.length) {
-    result.push(arr1[i]);
-    i += 1;
-  }
-
-  while (j < arr2.length) {
-    result.push(arr2[j]);
-    j += 1;
-  }
-
-  return result;
-};
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports) {
-
-// Assumes arrays are sorted
-module.exports = function (arr1, arr2) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    var item1 = arr1[i];
-    var item2 = arr2[j];
-
-    if (item1 == item2) {
-      result.push(item1);
-      i += 1;
-      j += 1;
-    } else if (item1 < item2) {
-      i += 1;
-    } else if (item1 > item2) {
-      j += 1;
-    } else {
-      i += 1;
-      j += 1;
-    }
-  }
-
-  return result;
-};
-
-/***/ }),
-/* 22 */
 /***/ (function(module, exports) {
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -1452,10 +1271,206 @@ module.exports = {
 };
 
 /***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var ngram = __webpack_require__(17);
+
+var _require = __webpack_require__(18),
+    jaccardDistance = _require.jaccardDistance;
+
+var NGramSearch = /*#__PURE__*/function () {
+  function NGramSearch(pattern) {
+    _classCallCheck(this, NGramSearch);
+
+    // Create the ngram, and sort it
+    this.patternNgram = ngram(pattern, {
+      sort: true
+    });
+  }
+
+  _createClass(NGramSearch, [{
+    key: "searchIn",
+    value: function searchIn(value) {
+      var textNgram = value.ng;
+
+      if (!textNgram) {
+        textNgram = ngram(value.$, {
+          sort: true
+        });
+        value.ng = textNgram;
+      }
+
+      var jacardResult = jaccardDistance(this.patternNgram, textNgram);
+      return {
+        score: jacardResult,
+        isMatch: jacardResult < 1
+      };
+    }
+  }]);
+
+  return NGramSearch;
+}();
+
+module.exports = NGramSearch;
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports) {
+
+var NGRAM_LEN = 3;
+
+module.exports = function (text, _ref) {
+  var _ref$n = _ref.n,
+      n = _ref$n === void 0 ? NGRAM_LEN : _ref$n,
+      _ref$pad = _ref.pad,
+      pad = _ref$pad === void 0 ? true : _ref$pad,
+      _ref$sort = _ref.sort,
+      sort = _ref$sort === void 0 ? false : _ref$sort;
+  var nGrams = [];
+
+  if (text === null || text === undefined) {
+    return nGrams;
+  }
+
+  text = text.toLowerCase();
+
+  if (pad) {
+    text = " ".concat(text, " ");
+  }
+
+  var index = text.length - n + 1;
+
+  if (index < 1) {
+    return nGrams;
+  }
+
+  while (index--) {
+    nGrams[index] = text.substr(index, n);
+  }
+
+  if (sort) {
+    nGrams.sort(function (a, b) {
+      return a == b ? 0 : a < b ? -1 : 1;
+    });
+  }
+
+  return nGrams;
+};
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = {
+  jaccardDistance: __webpack_require__(19)
+};
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var _require = __webpack_require__(20),
+    union = _require.union,
+    intersection = _require.intersection;
+
+module.exports = function (nGram1, nGram2) {
+  var nGramUnion = union(nGram1, nGram2);
+  var nGramIntersection = intersection(nGram1, nGram2);
+  return 1 - nGramIntersection.length / nGramUnion.length;
+};
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = {
+  union: __webpack_require__(21),
+  intersection: __webpack_require__(22)
+};
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports) {
+
+// Assumes arrays are sorted
+module.exports = function (arr1, arr2) {
+  var result = [];
+  var i = 0;
+  var j = 0;
+
+  while (i < arr1.length && j < arr2.length) {
+    var item1 = arr1[i];
+    var item2 = arr2[j];
+
+    if (item1 < item2) {
+      result.push(item1);
+      i += 1;
+    } else if (item2 < item1) {
+      result.push(item2);
+      j += 1;
+    } else {
+      result.push(item2);
+      i += 1;
+      j += 1;
+    }
+  }
+
+  while (i < arr1.length) {
+    result.push(arr1[i]);
+    i += 1;
+  }
+
+  while (j < arr2.length) {
+    result.push(arr2[j]);
+    j += 1;
+  }
+
+  return result;
+};
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports) {
+
+// Assumes arrays are sorted
+module.exports = function (arr1, arr2) {
+  var result = [];
+  var i = 0;
+  var j = 0;
+
+  while (i < arr1.length && j < arr2.length) {
+    var item1 = arr1[i];
+    var item2 = arr2[j];
+
+    if (item1 == item2) {
+      result.push(item1);
+      i += 1;
+      j += 1;
+    } else if (item1 < item2) {
+      i += 1;
+    } else if (item1 > item2) {
+      j += 1;
+    } else {
+      i += 1;
+      j += 1;
+    }
+  }
+
+  return result;
+};
+
+/***/ }),
 /* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var _require = __webpack_require__(22),
+var _require = __webpack_require__(15),
     isDefined = _require.isDefined,
     isString = _require.isString,
     isNumber = _require.isNumber,
@@ -1521,14 +1536,14 @@ module.exports = {
 /* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var _require = __webpack_require__(22),
+var _require = __webpack_require__(15),
     isArray = _require.isArray,
     isDefined = _require.isDefined,
     isString = _require.isString;
 
 var get = __webpack_require__(23);
 
-var ngram = __webpack_require__(16);
+var ngram = __webpack_require__(17);
 
 module.exports = function (keys, list) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
@@ -1660,7 +1675,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var _require = __webpack_require__(22),
+var _require = __webpack_require__(15),
     isString = _require.isString;
 
 var KeyStore = /*#__PURE__*/function () {
@@ -1758,7 +1773,7 @@ module.exports = {
 /* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var _require = __webpack_require__(22),
+var _require = __webpack_require__(15),
     isArray = _require.isArray,
     isDefined = _require.isDefined,
     isString = _require.isString,

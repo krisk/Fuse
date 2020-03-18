@@ -6,6 +6,8 @@ const suffixExactMatch = require('./suffix-exact-match')
 const inverseSuffixExactMatch = require('./inverse-suffix-exact-match')
 const BitapSearch = require('../bitap-search')
 
+const { isString } = require('../../helpers/type-checkers')
+
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
@@ -41,17 +43,29 @@ const queryfy = (pattern) => pattern.split('|').map(item => item.trim().split(/ 
 class ExtendedSearch {
   constructor(pattern, options) {
     const { isCaseSensitive } = options
+    this.query = null
     this.options = options
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-    this.query = queryfy(this.pattern)
     // A <pattern>:<BitapSearch> key-value pair for optimizing searching
     this._fuzzyCache = {}
+
+    if (isString(pattern) && pattern.trim().length > 0) {
+      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+      this.query = queryfy(this.pattern)
+    }
   }
 
   searchIn(value) {
+    const query = this.query
+
+    if (!this.query) {
+      return {
+        isMatch: false,
+        score: 1
+      }
+    }
+
     let text = value.$
 
-    const query = this.query
     text = this.options.isCaseSensitive ? text : text.toLowerCase()
 
     let matchFound = false
