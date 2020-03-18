@@ -441,8 +441,8 @@ var Fuse = /*#__PURE__*/function () {
 
           var keyWeight = this._keyStore.get(key, 'weight');
 
-          var weight = keyWeight || 1;
-          var score = item.score === 0 && keyWeight && keyWeight > 0 ? Number.EPSILON : item.score;
+          var weight = keyWeight > -1 ? keyWeight : 1;
+          var score = item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
           totalWeightedScore *= Math.pow(score, weight); // Keep track of the best score.. just in case
           // Actually, we're not really using it.. but need to think of a way to incorporate this
           // bestScore = bestScore == -1 ? item.score : Math.min(bestScore, item.score)
@@ -1690,8 +1690,7 @@ var KeyStore = /*#__PURE__*/function () {
 
     this._keys = {};
     this._keyNames = [];
-    this._length = keys.length;
-    this._hasWeights = false; // Iterate over every key
+    this._length = keys.length; // Iterate over every key
 
     if (keys.length && isString(keys[0])) {
       for (var i = 0; i < this._length; i += 1) {
@@ -1703,7 +1702,7 @@ var KeyStore = /*#__PURE__*/function () {
         this._keyNames.push(key);
       }
     } else {
-      var keyWeightsTotal = 0;
+      var totalWeight = 0;
 
       for (var _i = 0; _i < this._length; _i += 1) {
         var _key = keys[_i];
@@ -1720,21 +1719,23 @@ var KeyStore = /*#__PURE__*/function () {
           throw new Error('Missing "weight" property in key object');
         }
 
-        var keyWeight = _key.weight;
+        var weight = _key.weight;
 
-        if (keyWeight <= 0 || keyWeight >= 1) {
+        if (weight <= 0 || weight >= 1) {
           throw new Error('"weight" property in key must bein the range of (0, 1)');
         }
 
         this._keys[keyName] = {
-          weight: keyWeight
+          weight: weight
         };
-        keyWeightsTotal += keyWeight;
-        this._hasWeights = true;
-      }
+        totalWeight += weight;
+      } // Normalize weights so that their sum is equal to 1
 
-      if (keyWeightsTotal > 1) {
-        throw new Error('Total of keyWeights cannot exceed 1');
+
+      for (var _i2 = 0; _i2 < this._length; _i2 += 1) {
+        var _keyName = this._keyNames[_i2];
+        var keyWeight = this._keys[_keyName].weight;
+        this._keys[_keyName].weight = keyWeight / totalWeight;
       }
     }
   }
@@ -1742,7 +1743,7 @@ var KeyStore = /*#__PURE__*/function () {
   _createClass(KeyStore, [{
     key: "get",
     value: function get(key, name) {
-      return this._keys[key] ? this._keys[key][name] : null;
+      return this._keys[key] ? this._keys[key][name] : -1;
     }
   }, {
     key: "keys",

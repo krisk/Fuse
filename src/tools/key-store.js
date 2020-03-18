@@ -5,7 +5,6 @@ class KeyStore {
     this._keys = {}
     this._keyNames = []
     this._length = keys.length
-    this._hasWeights = false
 
     // Iterate over every key
     if (keys.length && isString(keys[0])) {
@@ -17,7 +16,7 @@ class KeyStore {
         this._keyNames.push(key)
       }
     } else {
-      let keyWeightsTotal = 0
+      let totalWeight = 0
 
       for (let i = 0; i < this._length; i += 1) {
         const key = keys[i]
@@ -33,28 +32,29 @@ class KeyStore {
           throw new Error('Missing "weight" property in key object')
         }
 
-        const keyWeight = key.weight
+        const weight = key.weight
 
-        if (keyWeight <= 0 || keyWeight >= 1) {
+        if (weight <= 0 || weight >= 1) {
           throw new Error('"weight" property in key must bein the range of (0, 1)')
         }
 
         this._keys[keyName] = {
-          weight: keyWeight
+          weight
         }
 
-        keyWeightsTotal += keyWeight
-
-        this._hasWeights = true
+        totalWeight += weight
       }
 
-      if (keyWeightsTotal > 1) {
-        throw new Error('Total of keyWeights cannot exceed 1')
+      // Normalize weights so that their sum is equal to 1
+      for (let i = 0; i < this._length; i += 1) {
+        const keyName = this._keyNames[i]
+        const keyWeight = this._keys[keyName].weight
+        this._keys[keyName].weight = keyWeight / totalWeight
       }
     }
   }
   get(key, name) {
-    return this._keys[key] ? this._keys[key][name] : null
+    return this._keys[key] ? this._keys[key][name] : -1
   }
   keys() {
     return this._keyNames

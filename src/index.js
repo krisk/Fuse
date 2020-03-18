@@ -284,8 +284,8 @@ class Fuse {
         const item = matches[j]
         const key = item.key
         const keyWeight = this._keyStore.get(key, 'weight')
-        const weight = keyWeight || 1
-        const score = item.score === 0 && keyWeight && keyWeight > 0
+        const weight = keyWeight > -1 ? keyWeight : 1
+        const score = item.score === 0 && keyWeight > -1
           ? Number.EPSILON
           : item.score
 
