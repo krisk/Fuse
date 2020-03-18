@@ -5,7 +5,7 @@
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
-  "version": "5.0.4-beta",
+  "version": "5.0.5-beta",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {

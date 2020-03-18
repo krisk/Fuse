@@ -1,5 +1,5 @@
 /*!
- * Fuse.js v5.0.4-beta - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.0.5-beta - Lightweight fuzzy-search (http://fusejs.io)
  * 
  * Copyright (c) 2012-2020 Kirollos Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1287,9 +1287,14 @@ var _require = __webpack_require__(18),
 
 var NGramSearch = /*#__PURE__*/function () {
   function NGramSearch(pattern) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+      threshold: 0.6
+    };
+
     _classCallCheck(this, NGramSearch);
 
     // Create the ngram, and sort it
+    this.options = options;
     this.patternNgram = ngram(pattern, {
       sort: true
     });
@@ -1308,9 +1313,10 @@ var NGramSearch = /*#__PURE__*/function () {
       }
 
       var jacardResult = jaccardDistance(this.patternNgram, textNgram);
+      var isMatch = jacardResult < this.options.threshold;
       return {
-        score: jacardResult,
-        isMatch: jacardResult < 1
+        score: isMatch ? jacardResult : 1,
+        isMatch: isMatch
       };
     }
   }]);
