@@ -2,8 +2,9 @@ const ngram = require('./ngram')
 const { jaccardDistance } = require('./distance')
 
 class NGramSearch {
-  constructor(pattern) {
+  constructor(pattern, options = { threshold: 0.6 }) {
     // Create the ngram, and sort it
+    this.options = options
     this.patternNgram = ngram(pattern, { sort: true })
   }
   searchIn(value) {
@@ -15,9 +16,11 @@ class NGramSearch {
 
     let jacardResult = jaccardDistance(this.patternNgram, textNgram)
 
+    const isMatch = jacardResult < this.options.threshold
+
     return {
-      score: jacardResult,
-      isMatch: jacardResult < 1
+      score: isMatch ? jacardResult : 1,
+      isMatch
     }
   }
 }
