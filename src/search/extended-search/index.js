@@ -118,7 +118,7 @@ class ExtendedSearch {
         searcher = new BitapSearch(pattern, this.options)
         this._fuzzyCache[pattern] = searcher
       }
-      return searcher.search(text)
+      return searcher.searchInString(text)
     }
   }
 }

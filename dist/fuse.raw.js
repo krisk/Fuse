@@ -582,6 +582,11 @@ var BitapSearch = /*#__PURE__*/function () {
     key: "searchIn",
     value: function searchIn(value) {
       var text = value.$;
+      return this.searchInString(text);
+    }
+  }, {
+    key: "searchInString",
+    value: function searchInString(text) {
       var _this$options = this.options,
           isCaseSensitive = _this$options.isCaseSensitive,
           includeMatches = _this$options.includeMatches;
@@ -1026,7 +1031,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
           this._fuzzyCache[pattern] = searcher;
         }
 
-        return searcher.search(text);
+        return searcher.searchInString(text);
       }
     }
   }]);
