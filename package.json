@@ -18,31 +18,36 @@
     "search",
     "bitap"
   ],
-  "main": "dist/fuse.js",
+  "main": "dist/fuse.min.js",
   "types": "dist/fuse.d.ts",
+  "module": "dist/fuse.es6.min.js",
   "scripts": {
     "clean": "rimraf ./dist",
     "test": "jest",
     "prebuild": "npm run clean",
-    "build": "webpack --config ./configs/webpack.output.js",
+    "build": "rollup -c",
     "predev": "npm run clean",
-    "dev": "webpack --progress --colors --watch --config ./configs/webpack.dev.js"
+    "dev": "rollup -c --environment 'MODE:dev' --watch"
   },
   "devDependencies": {
     "@babel/cli": "7.2.3",
     "@babel/core": "^7.3.4",
     "@babel/preset-env": "7.3.4",
-    "@babel/preset-typescript": "^7.3.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "@rollup/plugin-commonjs": "^11.0.2",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "@rollup/plugin-typescript": "^4.0.0",
     "@types/jest": "^24.0.11",
-    "babel-loader": "^8.0.5",
-    "copy-webpack-plugin": "5.1.1",
     "faker": "4.1.0",
     "jest": "25.1.0",
     "rimraf": "3.0.2",
-    "terser-webpack-plugin": "2.3.5",
-    "webpack": "4.42.0",
-    "webpack-cli": "3.3.11",
-    "webpack-merge": "4.2.2"
+    "rollup": "^1.20.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "tsconfig": "^7.0.0",
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
   },
   "engines": {
     "node": ">=10"
