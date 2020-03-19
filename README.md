@@ -51,7 +51,7 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 
 ## 🔥 Issues
 
-This repository serves as [the main issue tracker](https://github.com/opencollective/opencollective/issues). When creating issues, it's important to follow common guidelines to make them extra clear. Here is a few links to help you achieve that:
+This repository serves as [the main issue tracker](https://github.com/krisk/Fuse/issues). When creating issues, it's important to follow common guidelines to make them extra clear. Here is a few links to help you achieve that:
 
 - [GitHub Guides: Mastering Issues](https://guides.github.com/features/issues/)
 - [Wiredcraft: How We Write Github Issues](https://wiredcraft.com/blog/how-we-write-our-github-issues/)
