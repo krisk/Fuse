@@ -19,15 +19,15 @@
 
 ---
 
-## Introduction
+## 👋 Introduction
 
 Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
 
-## Documentation
+## 📄 Documentation
 
 To checkout out live examples and docs, visit [fusejs.io](https://fusejs.io).
 
-## Installation
+## 📥 Installation
 
 **NPM**
 
@@ -41,7 +41,7 @@ $ npm install --save fuse.js
 $ yarn add fuse.js
 ```
 
-## Support Fuse.js
+## 💰 Support Fuse.js
 
 Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. Also, you will be recognized as a beacon of support to open-source developers.
 
@@ -49,7 +49,7 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 - [PayPal](https://www.paypal.me/kirorisk)
 - [Patreon](https://patreon.com/fusejs)
 
-## Issues
+## 🔥 Issues
 
 This repository serves as [the main issue tracker](https://github.com/opencollective/opencollective/issues). When creating issues, it's important to follow common guidelines to make them extra clear. Here is a few links to help you achieve that:
 
