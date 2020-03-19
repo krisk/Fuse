@@ -1,3 +1,7 @@
+# Version 5.0.7-beta
+
+- Fixed (#363)
+
 # Version 5.0.6-beta
 
 - Fixed (#357)
