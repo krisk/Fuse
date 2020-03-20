@@ -11,7 +11,7 @@
 
 ## <!--special end-->
 
-#### Supporting Fuse.js
+## Supporting Fuse.js
 
 Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. Also, you will be recognized as a beacon of support to open-source developers.
 
