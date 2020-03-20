@@ -11,11 +11,13 @@
 
 ## <!--special end-->
 
-#### _What's new in v5 (beta)_
+### Supporting Fuse.js
 
-- _Added ability to search patterns longer than 32 characters_
-- _Added [enhanced searching](https://fusejs.io/#extended-search)_
-- _Added [indexing](https://fusejs.io/#indexing) for increased performance over large lists_
+Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. Also, you will be recognized as a beacon of support to open-source developers.
+
+- [Become a backer or sponsor on **GitHub**.](https://github.com/sponsors/krisk)
+- [Become a backer or sponsor on **Patreon**.](https://patreon.com/fusejs)
+- [One-time donation via **PayPal**.](https://www.paypal.me/kirorisk)
 
 ---
 
@@ -40,14 +42,6 @@ $ npm install --save fuse.js
 ```sh
 $ yarn add fuse.js
 ```
-
-## Support Fuse.js
-
-Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. Also, you will be recognized as a beacon of support to open-source developers.
-
-- [GitHub Sponsor](https://github.com/sponsors/krisk)
-- [PayPal](https://www.paypal.me/kirorisk)
-- [Patreon](https://patreon.com/fusejs)
 
 ## Issues
 
