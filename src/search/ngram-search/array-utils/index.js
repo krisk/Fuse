@@ -1,4 +1,7 @@
-module.exports = {
-  union: require('./union'),
-  intersection: require('./intersection')
+import union from './union'
+import intersection from './intersection'
+
+export {
+  union,
+  intersection,
 }

@@ -1,4 +1,4 @@
-module.exports = pattern => {
+export default function patternAlphabet(pattern) {
   let mask = {}
   let len = pattern.length
 

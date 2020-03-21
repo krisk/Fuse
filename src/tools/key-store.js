@@ -1,6 +1,6 @@
-const { isString } = require('../helpers/type-checkers')
+import { isString } from '../helpers/type-checkers'
 
-class KeyStore {
+export default class KeyStore {
   constructor(keys) {
     this._keys = {}
     this._keyNames = []
@@ -66,5 +66,3 @@ class KeyStore {
     return JSON.stringify(this._keys)
   }
 }
-
-module.exports = KeyStore

@@ -1,7 +1,7 @@
-const bitapScore = require('./bitap-score')
-const matchedIndices = require('./bitap-matched-indices')
+import bitapScore from './bitap-score'
+import matchedIndices from './bitap-matched-indices'
 
-module.exports = (text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1, includeMatches = false }) => {
+export default function bitapSearch(text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1, includeMatches = false }) {
   const patternLen = pattern.length
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length

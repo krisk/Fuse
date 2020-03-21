@@ -1,7 +1,7 @@
-const ngram = require('./ngram')
-const { jaccardDistance } = require('./distance')
+import ngram from './ngram'
+import { jaccardDistance } from './distance/index'
 
-class NGramSearch {
+export default class NGramSearch {
   constructor(pattern, options = { threshold: 0.6 }) {
     // Create the ngram, and sort it
     this.options = options
@@ -24,5 +24,3 @@ class NGramSearch {
     }
   }
 }
-
-module.exports = NGramSearch

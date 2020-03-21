@@ -1,4 +1,4 @@
-import Fuse, { FuseOptions } from './base.t'
+import Fuse, { FuseOptions } from '../types'
 import { BattlePokedex, PokeAliases } from './fixtures/pokedex'
 import { IPokeDexAliases, PokedexType } from './fixtures/types'
 

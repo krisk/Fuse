@@ -1,8 +1,8 @@
-const bitapSearch = require('./bitap-search')
-const patternAlphabet = require('./bitap-pattern-alphabet')
-const { MAX_BITS } = require('./constants')
+import bitapSearch from './bitap-search'
+import patternAlphabet from './bitap-pattern-alphabet'
+import { MAX_BITS } from './constants'
 
-class BitapSearch {
+export default class BitapSearch {
   constructor(pattern, {
     // Approximately where in the text is the pattern expected to be found?
     location = 0,
@@ -81,5 +81,3 @@ class BitapSearch {
     })
   }
 }
-
-module.exports = BitapSearch

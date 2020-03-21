@@ -1,3 +1,5 @@
-module.exports = {
-  jaccardDistance: require('./jaccard-distance')
+import jaccardDistance from './jaccard-distance'
+
+export {
+  jaccardDistance
 }

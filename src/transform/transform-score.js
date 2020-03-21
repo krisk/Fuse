@@ -1,3 +1,3 @@
-module.exports = (result, data) => {
+export default function transformScore(result, data) {
   data.score = result.score
 }
