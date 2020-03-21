@@ -13,7 +13,8 @@
   "files": [
     "dist",
     "types/index.d.ts",
-    "types/fuse.d.ts"
+    "types/fuse.d.ts",
+    "types/options.d.ts"
   ],
   "version": "5.0.7-beta",
   "description": "Lightweight fuzzy-search",
@@ -34,8 +35,7 @@
     "test": "jest",
     "prebuild": "npm run clean",
     "build": "node build/build.main.js",
-    "predev": "npm run clean",
-    "dev": "webpack --progress --colors --watch --config ./configs/webpack.dev.js"
+    "predev": "npm run clean"
   },
   "devDependencies": {
     "@babel/cli": "7.2.3",
