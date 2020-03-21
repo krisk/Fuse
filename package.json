@@ -30,6 +30,7 @@
   ],
   "scripts": {
     "clean": "rimraf ./dist",
+    "dev:dist": "rollup -wm -c build/rollup.dev.config.js",
     "test": "jest",
     "prebuild": "npm run clean",
     "build": "node build/build.main.js",

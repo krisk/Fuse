@@ -1,4 +1,4 @@
-const Fuse = require('../dist/fuse')
+const Fuse = require('../dist/fuse.common')
 const { get } = require('../src/helpers/get')
 
 const verbose = false

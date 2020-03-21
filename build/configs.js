@@ -26,28 +26,28 @@ const banner = `/**
 const resolve = _path => path.resolve(__dirname, '../', _path)
 
 const builds = {
-  // UMD build (Browser)
-  'web-runtime-dev': {
+  // UMD build
+  'umd-dev': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.js`),
     format: 'umd',
     env: 'development'
   },
-  // UMD production build (Browser)
-  'web-runtime-prod': {
+  // UMD production build
+  'umd-prod': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.min.js`),
     format: 'umd',
     env: 'production'
   },
   // CommonJS build
-  'web-compiler': {
+  'commonjs': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.common.js`),
     format: 'cjs'
   },
   // ES modules build (for bundlers)
-  'web-runtime-esm': {
+  'esm': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es'
