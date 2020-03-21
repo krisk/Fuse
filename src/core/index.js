@@ -1,9 +1,9 @@
 
-import { BitapSearch, ExtendedSearch, NGramSearch } from '../search/index'
+import { BitapSearch, ExtendedSearch, NGramSearch } from '../search'
 import { isArray, isDefined, isString, isNumber, isObject } from '../helpers/type-checkers'
 import get from '../helpers/get'
-import { createIndex as createIdx, KeyStore } from '../tools/index'
-import { transformMatches, transformScore } from '../transform/index'
+import { createIndex as createIdx, KeyStore } from '../tools'
+import { transformMatches, transformScore } from '../transform'
 import { MAX_BITS } from '../search/bitap-search/constants'
 
 let FuseOptions = {

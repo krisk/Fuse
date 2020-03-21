@@ -1,6 +1,6 @@
-import BitapSearch from './bitap-search/index'
-import ExtendedSearch from './extended-search/index'
-import NGramSearch from './ngram-search/index'
+import BitapSearch from './bitap-search'
+import ExtendedSearch from './extended-search'
+import NGramSearch from './ngram-search'
 
 export {
   BitapSearch,

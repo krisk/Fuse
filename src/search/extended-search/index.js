@@ -4,7 +4,7 @@ import prefixExactMatch from './prefix-exact-match'
 import inversePrefixExactMatch from './inverse-prefix-exact-match'
 import suffixExactMatch from './suffix-exact-match'
 import inverseSuffixExactMatch from './inverse-suffix-exact-match'
-import BitapSearch from '../bitap-search/index'
+import BitapSearch from '../bitap-search'
 
 import { isString } from '../../helpers/type-checkers'
 

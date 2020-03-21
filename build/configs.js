@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const buble = require('@rollup/plugin-buble')
 const replace = require('@rollup/plugin-replace')
+const node = require('@rollup/plugin-node-resolve')
 const babel = require('rollup-plugin-babel')
 const featureFlags = require('./feature-flags')
 const pckg = require('../package.json')
@@ -79,6 +80,7 @@ function genConfig(options) {
   const config = {
     input: options.entry,
     plugins: [
+      node(),
       replace({
         '__VERSION__': version
       })

@@ -1,4 +1,4 @@
-import { union, intersection } from '../array-utils/index'
+import { union, intersection } from '../array-utils'
 
 export default function jaccardDistance(nGram1, nGram2) {
   let nGramUnion = union(nGram1, nGram2)

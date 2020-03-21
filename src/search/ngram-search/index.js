@@ -1,5 +1,5 @@
 import ngram from './ngram'
-import { jaccardDistance } from './distance/index'
+import { jaccardDistance } from './distance'
 
 export default class NGramSearch {
   constructor(pattern, options = { threshold: 0.6 }) {
