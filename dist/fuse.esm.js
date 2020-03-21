@@ -1451,9 +1451,8 @@ var Fuse = /*#__PURE__*/function () {
 
   return Fuse;
 }();
-var createIndex$1 = createIndex;
 
 Fuse.version = '5.0.7-beta';
-Fuse.createIndex = createIndex$1;
+Fuse.createIndex = createIndex;
 
 export default Fuse;

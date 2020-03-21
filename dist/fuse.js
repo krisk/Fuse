@@ -1457,10 +1457,9 @@
 
     return Fuse;
   }();
-  var createIndex$1 = createIndex;
 
   Fuse.version = '5.0.7-beta';
-  Fuse.createIndex = createIndex$1;
+  Fuse.createIndex = createIndex;
 
   return Fuse;
 

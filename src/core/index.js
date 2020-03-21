@@ -282,5 +282,3 @@ export default class Fuse {
     return finalOutput
   }
 }
-
-export const createIndex = createIdx
