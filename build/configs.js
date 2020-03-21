@@ -18,7 +18,7 @@ const HOMEPAGE = pckg.homepage
 const banner = `/**
  * Fuse.js v${VERSION} - Lightweight fuzzy-search (${HOMEPAGE})
  *
- * Copyright (c) ${new Date().getFullYear()} Kiro Risk (${AUTHOR.url})
+ * Copyright (c) ${new Date().getFullYear()} ${AUTHOR.name} (${AUTHOR.url})
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
