@@ -7,6 +7,5 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "strict": true
-  },
-  "include": ["*.d.ts"]
+  }
 }

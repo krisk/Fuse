@@ -1,17 +1,14 @@
-const fs = require('fs')
 const path = require('path')
 const buble = require('@rollup/plugin-buble')
 const replace = require('@rollup/plugin-replace')
 const node = require('@rollup/plugin-node-resolve')
 const babel = require('rollup-plugin-babel')
+const copy = require('rollup-plugin-copy')
 const featureFlags = require('./feature-flags')
 const pckg = require('../package.json')
 
-const LIBRARY_NAME = 'Fuse.js'
 const FILENAME = 'fuse'
-
-const version = process.env.VERSION || pckg.version
-const VERSION = pckg.version
+const VERSION = process.env.VERSION || pckg.version
 const AUTHOR = pckg.author
 const HOMEPAGE = pckg.homepage
 
@@ -32,26 +29,36 @@ const builds = {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.js`),
     format: 'umd',
-    env: 'development'
+    env: 'development',
+    plugins: [copy({
+      targets: [{
+        src: resolve('src/index.d.ts'),
+        dest: resolve('dist'),
+        rename: `${FILENAME}.d.ts`,
+        transform: (content) => {
+          return `// Type definitions for Fuse.js v${VERSION}\n${content}`
+        }
+      }]
+    })]
   },
   // UMD production build
   'umd-prod': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.min.js`),
     format: 'umd',
-    env: 'production'
+    env: 'production',
   },
   // CommonJS build
   'commonjs': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.common.js`),
-    format: 'cjs'
+    format: 'cjs',
   },
   // ES modules build (for bundlers)
   'esm': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.esm.js`),
-    format: 'es'
+    format: 'es',
   },
   // ES modules build (for direct import in browser)
   'esm-browser-dev': {
@@ -59,7 +66,7 @@ const builds = {
     dest: resolve(`dist/${FILENAME}.esm.browser.js`),
     format: 'es',
     env: 'development',
-    transpile: false
+    transpile: false,
   },
   // ES modules production build (for direct import in browser)
   'esm-browser-prod': {
@@ -67,13 +74,12 @@ const builds = {
     dest: resolve(`dist/${FILENAME}.esm.browser.min.js`),
     format: 'es',
     env: 'production',
-    transpile: false
-  }
+    transpile: false,
+  },
 }
-
 // built-in vars
 const vars = {
-  __VERSION__: version
+  __VERSION__: VERSION
 }
 
 function genConfig(options) {
@@ -81,9 +87,7 @@ function genConfig(options) {
     input: options.entry,
     plugins: [
       node(),
-      replace({
-        '__VERSION__': version
-      })
+      ...options.plugins || [],
     ],
     output: {
       banner,

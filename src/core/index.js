@@ -1,8 +1,8 @@
 
 import { BitapSearch, ExtendedSearch, NGramSearch } from '../search'
-import { isArray, isDefined, isString, isNumber, isObject } from '../helpers/type-checkers'
+import { isArray, isDefined, isString, isNumber } from '../helpers/type-checkers'
 import get from '../helpers/get'
-import { createIndex as createIdx, KeyStore } from '../tools'
+import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
 import { MAX_BITS } from '../search/bitap-search/constants'
 
@@ -71,7 +71,7 @@ export default class Fuse {
   }
 
   _createIndex() {
-    return createIdx(this._keyStore.keys(), this.list, {
+    return createIndex(this._keyStore.keys(), this.list, {
       getFn: this.options.getFn
     })
   }
