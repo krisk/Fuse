@@ -6,7 +6,7 @@ import { createIndex as createIdx, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
 import { MAX_BITS } from '../search/bitap-search/constants'
 
-let FuseOptions = {
+const FuseOptions = {
   // When true, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,

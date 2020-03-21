@@ -958,7 +958,7 @@ function transformScore(result, data) {
   data.score = result.score;
 }
 
-let FuseOptions = {
+const FuseOptions = {
   // When true, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
