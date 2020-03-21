@@ -12,42 +12,47 @@ if (!fs.existsSync('dist')) {
 build(Object.keys(configs).map(key => configs[key]))
 
 function build(builds) {
-  let built = 0
   const total = builds.length
-  const next = () => {
-    buildEntry(builds[built]).then(() => {
-      built++
-      if (built < total) {
-        next()
+  const next = async num => {
+    try {
+      await buildEntry(builds[num++])
+      if (num < total) {
+        next(num)
       }
-    }).catch(logError)
+    } catch (err) {
+      logError(err)
+    }
   }
 
-  next()
+  next(0)
 }
 
-function buildEntry(config) {
+async function buildEntry(config) {
   const output = config.output
   const { file, banner } = output
   const isProd = /(min|prod)\.js$/.test(file)
-  return rollup.rollup(config)
-    .then(bundle => bundle.generate(output))
-    .then(({ output: [{ code }] }) => {
-      if (isProd) {
-        const minified = (banner ? banner + '\n' : '') + terser.minify(code, {
-          toplevel: true,
-          output: {
-            ascii_only: true
-          },
-          compress: {
-            pure_funcs: ['makeMap']
-          }
-        }).code
-        return write(file, minified, true)
-      } else {
-        return write(file, code)
-      }
-    })
+
+  try {
+    let bundle = await rollup.rollup(config)
+    let { output: [{ code }] } = await bundle.generate(output)
+
+    if (isProd) {
+      const minified = (banner ? banner + '\n' : '') + terser.minify(code, {
+        toplevel: true,
+        output: {
+          ascii_only: true
+        },
+        compress: {
+          pure_funcs: ['makeMap']
+        }
+      }).code
+      return write(file, minified, true)
+    } else {
+      return write(file, code)
+    }
+  } catch (err) {
+    throw new Error(err)
+  }
 }
 
 function write(dest, code, zip) {
@@ -62,7 +67,7 @@ function write(dest, code, zip) {
       if (zip) {
         zlib.gzip(code, (err, zipped) => {
           if (err) return reject(err)
-          report(' (gzipped: ' + getSize(zipped) + ')')
+          report(` (gzipped: ${getSize(zipped)})`)
         })
       } else {
         report()
@@ -80,5 +85,5 @@ function logError(e) {
 }
 
 function blue(str) {
-  return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
+  return `\x1b[1m\x1b[34m${str}\x1b[39m\x1b[22m`
 }
