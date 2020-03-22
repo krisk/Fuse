@@ -134,4 +134,8 @@ function mapValues(obj, fn) {
   return res
 }
 
-module.exports = mapValues(builds, genConfig)
+if (process.env.TARGET) {
+  module.exports = genConfig(builds[process.env.TARGET])
+} else {
+  module.exports = mapValues(builds, genConfig)
+}

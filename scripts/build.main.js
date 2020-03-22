@@ -4,13 +4,10 @@ const zlib = require('zlib')
 const terser = require('terser')
 const rollup = require('rollup')
 const configs = require('./configs')
-const rimraf = require('rimraf')
 
-// if (!fs.existsSync('dist')) {
-//   fs.mkdirSync('dist')
-// } else {
-rimraf.sync('dist/*.map')
-// }
+if (!fs.existsSync('dist')) {
+  fs.mkdirSync('dist')
+}
 
 build(Object.keys(configs).map(key => configs[key]))
 
