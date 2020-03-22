@@ -79,6 +79,9 @@ export default function createIndex(keys, list, { getFn = get, ngrams = false } 
                   value: value[k],
                 })
               }
+            } else {
+              // If we're here, the `path` is either incorrect, or pointing to a non-string.
+              // console.error(new Error(`Path "${key}" points to a non-string value. Received: ${value}`))
             }
           }
           record.$[key] = subRecords

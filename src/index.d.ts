@@ -7,6 +7,24 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     options?: O,
     index?: ReadonlyArray<Fuse.FuseIndexRecord>,
   )
+  /**
+   * Search function for the Fuse instance.
+   *
+   * ```typescript
+   * const myTypeList = [myType1, myType2, etc...]
+
+   * const options: Fuse.IFuseOptions<MyType> = {
+   *  keys: ['key1', 'key2']
+   * }
+   *
+   * const myFuse = new Fuse(myTypeList, options)
+   * let result = myFuse.search('pattern')
+   * ```
+   *
+   * @param pattern The pattern to search
+   * @param options `Fuse.FuseSearchOptions`
+   * @returns An array of search results
+   */
   search<R = T>(
     pattern: string,
     options?: Fuse.FuseSearchOptions,
@@ -18,9 +36,59 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
   ): void
 
   setIndex(index: ReadonlyArray<Fuse.FuseIndexRecord>): void
+
+  /**
+   * Return the current version
+   */
+  static version: string
+
+  /**
+   * Use this method to pre-generate the index from the list, and pass it
+   * directly into the Fuse instance.
+   *
+   * _Note that Fuse will automatically index the table if one isn't provided
+   * during instantiation._
+   *
+   * ```typescript
+   * // List of `MyType` objects
+   * const myTypeList = [myType1, myType2, etc...]
+   *
+   * // Create an index
+   * const myTypeIndex = Fuse.createIndex<MyType>(
+   *  keys: ['key1', 'key2']
+   *  list: myTypeList
+   * )
+   *
+   * // Now use it
+   * const options: Fuse.IFuseOptions<MyType> = {
+   *  keys: ['key1', 'key2']
+   * }
+   *
+   * const myFuse = new Fuse(myTypeList, options, myTypeIndex)
+   * ```
+   * @param keys    The keys to index
+   * @param list    The list from which to create an index
+   * @param options?
+   * @returns An indexed list
+   */
+  static createIndex<U>(
+    keys: Fuse.FuseOptionKeyObject[] | string[],
+    list: ReadonlyArray<U>,
+    options?: Fuse.FuseIndexOptions<U>,
+  ): ReadonlyArray<Fuse.FuseIndexRecord>
 }
 
 declare namespace Fuse {
+  type FuseGetFunction<T> = (
+    obj: T,
+    path: string,
+  ) => ReadonlyArray<string> | string
+
+  export type FuseIndexOptions<T> = {
+    getFn: FuseGetFunction<T>
+    ngrams: boolean
+  }
+
   // {
   //   title: { '$': "Old Man's War" },
   //   'author.firstName': { '$': 'Codenar' }
@@ -34,7 +102,7 @@ declare namespace Fuse {
   //     { $: 'web development', idx: 0 },
   //   ]
   // }
-  type FuseSortFunctionItem = {
+  export type FuseSortFunctionItem = {
     [key: string]: { $: string } | { $: string; idx: number }[]
   }
 
@@ -44,7 +112,7 @@ declare namespace Fuse {
   //   value: 'Codenar',
   //   indices: [ [ 0, 3 ] ]
   // }
-  type FuseSortFunctionMatch = {
+  export type FuseSortFunctionMatch = {
     score: number
     key: string
     value: string
@@ -58,9 +126,11 @@ declare namespace Fuse {
   //   idx: 1,
   //   indices: [ [ 0, 9 ] ]
   // }
-  type FuseSortFunctionMatchList = FuseSortFunctionMatch & { idx: number }
+  export type FuseSortFunctionMatchList = FuseSortFunctionMatch & {
+    idx: number
+  }
 
-  type FuseSortFunctionArg = {
+  export type FuseSortFunctionArg = {
     idx: number
     item: FuseSortFunctionItem
     score: number
@@ -78,10 +148,12 @@ declare namespace Fuse {
     $: any
   }
 
-  export type FuseOptionKey<T> = keyof T | string
-
-  export type FuseOptionComplexKey<T> = {
-    name: FuseOptionKey<T>
+  // {
+  //   name: 'title',
+  //   weight: 0.7
+  // }
+  export type FuseOptionKeyObject = {
+    name: string
     weight: number
   }
 
@@ -89,10 +161,10 @@ declare namespace Fuse {
     caseSensitive?: boolean
     distance?: number
     findAllMatches?: boolean
-    getFn?: (obj: any, path: string) => any
+    getFn?: FuseGetFunction<T>
     includeMatches?: boolean
     includeScore?: boolean
-    keys?: FuseOptionComplexKey<T>[] | FuseOptionKey<T>[]
+    keys?: FuseOptionKeyObject[] | string[]
     location?: number
     minMatchCharLength?: number
     shouldSort?: boolean
@@ -101,15 +173,20 @@ declare namespace Fuse {
     useExtendedSearch?: boolean
   }
 
+  // Here just to make it more understandable
+  type Start = number
+  type End = number
+
   export type FuseResultMatch = {
-    indices: ReadonlyArray<number>[]
+    // indices: [ [ 0, 9 ] ]
+    indices: ReadonlyArray<[Start, End]>[]
     key?: string
     refIndex?: number
     value?: string
   }
 
   export type FuseSearchOptions = {
-    limit?: number
+    limit: number
   }
 
   export type FuseResult<T> = {
