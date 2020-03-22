@@ -20,7 +20,7 @@ const banner = `/**
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- */`
+ */\n`
 
 const resolve = _path => path.resolve(__dirname, '../', _path)
 
@@ -50,9 +50,16 @@ const builds = {
     env: 'production',
   },
   // CommonJS build
-  'commonjs': {
+  'commonjs-dev': {
     entry: resolve('src/index.js'),
-    dest: resolve(`dist/${FILENAME}.common.js`),
+    dest: resolve(`dist/${FILENAME}.common.dev.js`),
+    env: 'development',
+    format: 'cjs',
+  },
+  'commonjs-prod': {
+    entry: resolve('src/index.js'),
+    dest: resolve(`dist/${FILENAME}.common.prod.js`),
+    env: 'production',
     format: 'cjs',
   },
   // ES modules build (for bundlers)
@@ -60,6 +67,7 @@ const builds = {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es',
+    env: 'development',
   },
   // ES modules build (for direct import in browser)
   'esm-browser-dev': {

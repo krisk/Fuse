@@ -53,12 +53,7 @@ Available on CDN via [jsDelivr](https://cdn.jsdelivr.net/npm/fuse.js/dist/).
 
 ### Explanation of Different Builds
 
-In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an overview of the difference between them:
-
-|                       | UMD         | CommonJS       | ES Module (for bundlers) | ES Module (for browsers) |
-| --------------------- | ----------- | -------------- | ------------------------ | ------------------------ |
-| **Full**              | fuse.js     | fuse.common.js | fuse.esm.js              | fuse.esm.browser.js      |
-| **Full (production)** | fuse.min.js | -              | -                        | fuse.esm.browser.min.js  |
+In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](dist/README.md) of the difference between them.
 
 ## Issues
 

@@ -4,27 +4,24 @@ const zlib = require('zlib')
 const terser = require('terser')
 const rollup = require('rollup')
 const configs = require('./configs')
+const rimraf = require('rimraf')
 
-if (!fs.existsSync('dist')) {
-  fs.mkdirSync('dist')
-}
+// if (!fs.existsSync('dist')) {
+//   fs.mkdirSync('dist')
+// } else {
+rimraf.sync('dist/*.map')
+// }
 
 build(Object.keys(configs).map(key => configs[key]))
 
-function build(builds) {
-  const total = builds.length
-  const next = async num => {
+async function build(builds) {
+  for (const entry of builds) {
     try {
-      await buildEntry(builds[num++])
-      if (num < total) {
-        next(num)
-      }
+      await buildEntry(entry)
     } catch (err) {
       logError(err)
     }
   }
-
-  next(0)
 }
 
 async function buildEntry(config) {
@@ -37,7 +34,7 @@ async function buildEntry(config) {
     let { output: [{ code }] } = await bundle.generate(output)
 
     if (isProd) {
-      const minified = (banner ? banner + '\n' : '') + terser.minify(code, {
+      const minified = (banner || '') + terser.minify(code, {
         toplevel: true,
         output: {
           ascii_only: true
@@ -81,7 +78,7 @@ function getSize(code) {
 }
 
 function logError(e) {
-  console.log(e)
+  console.error(e)
 }
 
 function blue(str) {

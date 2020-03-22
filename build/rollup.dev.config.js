@@ -1,1 +1,1 @@
-module.exports = require('./configs')['commonjs']
+module.exports = require('./configs')['umd-dev']
