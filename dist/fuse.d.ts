@@ -12,13 +12,13 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
    * Search function for the Fuse instance.
    *
    * ```typescript
-   * const myTypeList = [myType1, myType2, etc...]
+   * const list: MyType[] = [myType1, myType2, etc...]
 
    * const options: Fuse.IFuseOptions<MyType> = {
    *  keys: ['key1', 'key2']
    * }
    *
-   * const myFuse = new Fuse(myTypeList, options)
+   * const myFuse = new Fuse(list, options)
    * let result = myFuse.search('pattern')
    * ```
    *
@@ -51,21 +51,18 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
    * during instantiation._
    *
    * ```typescript
-   * // List of `MyType` objects
-   * const myTypeList = [myType1, myType2, etc...]
+   * const list: MyType[] = [myType1, myType2, etc...]
    *
-   * // Create an index
-   * const myTypeIndex = Fuse.createIndex<MyType>(
+   * const index = Fuse.createIndex<MyType>(
    *  keys: ['key1', 'key2']
-   *  list: myTypeList
+   *  list: list
    * )
    *
-   * // Now use it
    * const options: Fuse.IFuseOptions<MyType> = {
    *  keys: ['key1', 'key2']
    * }
    *
-   * const myFuse = new Fuse(myTypeList, options, myTypeIndex)
+   * const myFuse = new Fuse(list, options, index)
    * ```
    * @param keys    The keys to index
    * @param list    The list from which to create an index
