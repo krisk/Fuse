@@ -139,10 +139,36 @@ declare namespace Fuse {
     b: FuseSortFunctionArg,
   ) => number
 
-  // TODO: Needs more work to actually make sense in TypeScript
-  export type FuseIndexRecord = {
+  // title: {
+  //   '$': "Old Man's War",
+  //   ng: [
+  //     ' ma', ' ol', ' wa',
+  //     "'s ", "an'", 'ar ',
+  //     'd m', 'ld ', 'man',
+  //     "n's", 'old', 's w',
+  //     'war'
+  //   ]
+  // }
+  type RecordEntryObject = { $: string; ng?: ReadonlyArray<string> }
+
+  // 'author.tags.name': [{
+  //   '$': 'pizza lover',
+  //   idx: 2,
+  //   ng: [
+  //     ' lo', ' pi', 'a l',
+  //     'er ', 'izz', 'lov',
+  //     'ove', 'piz', 'ver',
+  //     'za ', 'zza'
+  //   ]
+  // }
+  type RecordEntryArrayItem = ReadonlyArray<RecordEntryObject & { idx: number }>
+
+  // TODO: this makes it difficult to infer the type. Need to think more about this
+  type RecordEntry = { [key: string]: RecordEntryObject | RecordEntryArrayItem }
+
+  type FuseIndexRecord = {
     idx: number
-    $: any
+    $: RecordEntry
   }
 
   // {
@@ -170,13 +196,13 @@ declare namespace Fuse {
     useExtendedSearch?: boolean
   }
 
-  // Here just to make it more understandable
-  type Start = number
-  type End = number
+  // Denotes the start/end indices of a match
+  //                 start    end
+  //                   ↓       ↓
+  type RangeTuple = [number, number]
 
   export type FuseResultMatch = {
-    // indices: [ [ 0, 9 ] ]
-    indices: ReadonlyArray<[Start, End]>[]
+    indices: ReadonlyArray<RangeTuple>[]
     key?: string
     refIndex?: number
     value?: string

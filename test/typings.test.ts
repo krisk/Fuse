@@ -16,6 +16,11 @@ describe('Search with typings', () => {
 
     const poke: PokedexType = firstSearch[0].item
 
+    // let x = Fuse.createIndex<PokedexType>(
+    //   ['alias', 'species', 'name', 'num'],
+    //   BattlePokedex,
+    // )
+
     const expected = {
       num: 2,
       species: 'Ivysaur',
