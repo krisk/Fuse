@@ -11,9 +11,10 @@ const FILENAME = 'fuse'
 const VERSION = process.env.VERSION || pckg.version
 const AUTHOR = pckg.author
 const HOMEPAGE = pckg.homepage
+const DESCRIPTION = pckg.description
 
 const banner = `/**
- * Fuse.js v${VERSION} - Lightweight fuzzy-search (${HOMEPAGE})
+ * Fuse.js v${VERSION} - ${DESCRIPTION} (${HOMEPAGE})
  *
  * Copyright (c) ${new Date().getFullYear()} ${AUTHOR.name} (${AUTHOR.url})
  * All Rights Reserved. Apache Software License 2.0
