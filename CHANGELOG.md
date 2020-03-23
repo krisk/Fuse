@@ -1,3 +1,7 @@
+# Version 5.0.9-beta
+
+- Fixed Fuse global name. Erroenously set as 'Fuse.js'
+
 # Version 5.0.8-beta
 
 - Changed bundler to Rollup.
