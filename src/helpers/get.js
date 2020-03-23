@@ -1,12 +1,12 @@
-const {
+import {
   isDefined,
   isString,
   isNumber,
   isArray,
   toString
-} = require('./type-checkers')
+} from './type-checkers'
 
-module.exports = (obj, path) => {
+export default function get(obj, path) {
   let list = []
   let arr = false
 

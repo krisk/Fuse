@@ -49,6 +49,6 @@ export type PokedexType = {
   otherFormes?: string[]
 }
 
-export interface IPokeDexAliases extends PokeAliasType {
-  name: string
-}
+// export interface IPokeDexAliases extends PokeAliasType, PokedexType {
+//   name: string
+// }

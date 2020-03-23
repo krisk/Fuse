@@ -1,12 +1,12 @@
-const exactMatch = require('./exact-match')
-const inverseExactMatch = require('./inverse-exact-match')
-const prefixExactMatch = require('./prefix-exact-match')
-const inversePrefixExactMatch = require('./inverse-prefix-exact-match')
-const suffixExactMatch = require('./suffix-exact-match')
-const inverseSuffixExactMatch = require('./inverse-suffix-exact-match')
-const BitapSearch = require('../bitap-search')
+import exactMatch from './exact-match'
+import inverseExactMatch from './inverse-exact-match'
+import prefixExactMatch from './prefix-exact-match'
+import inversePrefixExactMatch from './inverse-prefix-exact-match'
+import suffixExactMatch from './suffix-exact-match'
+import inverseSuffixExactMatch from './inverse-suffix-exact-match'
+import BitapSearch from '../bitap-search'
 
-const { isString } = require('../../helpers/type-checkers')
+import { isString } from '../../helpers/type-checkers'
 
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
@@ -40,7 +40,7 @@ const queryfy = (pattern) => pattern.split('|').map(item => item.trim().split(/ 
  * ^core go$ | rb$ | py$
  * ```
  */
-class ExtendedSearch {
+export default class ExtendedSearch {
   constructor(pattern, options) {
     const { isCaseSensitive } = options
     this.query = null
@@ -122,5 +122,3 @@ class ExtendedSearch {
     }
   }
 }
-
-module.exports = ExtendedSearch

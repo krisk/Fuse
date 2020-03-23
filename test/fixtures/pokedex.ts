@@ -1,4 +1,4 @@
-import { IPokeDexAliases, PokedexType } from './types'
+import { PokedexType } from './types'
 
 export const BattlePokedex: PokedexType[] = [
   {
@@ -61,9 +61,9 @@ export const BattlePokedex: PokedexType[] = [
   },
 ]
 
-export const PokeAliases: IPokeDexAliases[] = [
-  { alias: 'megavenu', name: 'Venusaur-Mega' },
-  { alias: 'megasaur', name: 'Venusaur-Mega' },
-  { alias: 'venu', name: 'Venusaur' },
-  { alias: 'bulbapedia', name: 'Bulbasaur' },
-]
+// export const PokeAliases: IPokeDexAliases[] = [
+//   { alias: 'megavenu', name: 'Venusaur-Mega' },
+//   { alias: 'megasaur', name: 'Venusaur-Mega' },
+//   { alias: 'venu', name: 'Venusaur' },
+//   { alias: 'bulbapedia', name: 'Bulbasaur' },
+// ]

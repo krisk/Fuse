@@ -1,10 +1,18 @@
 {
   "name": "fuse.js",
   "author": {
-    "name": "Kirollos Risk",
+    "name": "Kiro Risk",
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
+  "main": "./dist/fuse.common.js",
+  "module": "./dist/fuse.esm.js",
+  "unpkg": "./dist/fuse.js",
+  "jsdelivr": "./dist/fuse.js",
+  "typings": "./dist/fuse.d.ts",
+  "files": [
+    "dist"
+  ],
   "version": "5.0.7-beta",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
@@ -18,37 +26,38 @@
     "search",
     "bitap"
   ],
-  "main": "dist/fuse.js",
-  "types": "dist/fuse.d.ts",
   "scripts": {
-    "clean": "rimraf ./dist",
+    "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev",
+    "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs",
+    "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm",
+    "build": "node scripts/build.main.js",
     "test": "jest",
-    "prebuild": "npm run clean",
-    "build": "webpack --config ./configs/webpack.output.js",
-    "predev": "npm run clean",
-    "dev": "webpack --progress --colors --watch --config ./configs/webpack.dev.js"
+    "release": "bash scripts/release.sh"
   },
   "devDependencies": {
     "@babel/cli": "7.2.3",
     "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-object-rest-spread": "7.9.0",
     "@babel/preset-env": "7.3.4",
-    "@babel/preset-typescript": "^7.3.3",
-    "@types/jest": "^24.0.11",
+    "@babel/preset-typescript": "7.9.0",
+    "@rollup/plugin-buble": "0.21.1",
+    "@rollup/plugin-node-resolve": "7.1.1",
+    "@rollup/plugin-replace": "2.3.1",
+    "@types/jest": "25.1.4",
     "babel-loader": "^8.0.5",
-    "copy-webpack-plugin": "5.1.1",
     "faker": "4.1.0",
     "jest": "25.1.0",
     "rimraf": "3.0.2",
+    "rollup": "2.1.0",
+    "rollup-plugin-babel": "4.4.0",
+    "rollup-plugin-copy": "3.3.0",
     "terser-webpack-plugin": "2.3.5",
+    "typescript": "3.8.3",
     "webpack": "4.42.0",
-    "webpack-cli": "3.3.11",
-    "webpack-merge": "4.2.2"
+    "webpack-cli": "3.3.11"
   },
   "engines": {
     "node": ">=10"
   },
-  "files": [
-    "dist/"
-  ],
   "dependencies": {}
 }

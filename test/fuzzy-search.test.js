@@ -1,5 +1,4 @@
-const Fuse = require('./base')
-const books = require('./fixtures/books.json')
+const Fuse = require('../dist/fuse')
 const { get } = require('../src/helpers/get')
 
 const verbose = false

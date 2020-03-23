@@ -16,7 +16,7 @@ const match = (pattern, text) => {
   }
 }
 
-module.exports = {
+export default {
   isForPattern,
   sanitize,
   match

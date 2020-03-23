@@ -1,8 +1,8 @@
-const { isArray, isDefined, isString } = require('../helpers/type-checkers')
-const get = require('../helpers/get')
-const ngram = require('../search/ngram-search/ngram')
+import { isArray, isDefined, isString } from '../helpers/type-checkers'
+import get from '../helpers/get'
+import ngram from '../search/ngram-search/ngram'
 
-module.exports = (keys, list, { getFn = get, ngrams = false } = {}) => {
+export default function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
   let indexedList = []
 
   // List is Array<String>
@@ -79,6 +79,9 @@ module.exports = (keys, list, { getFn = get, ngrams = false } = {}) => {
                   value: value[k],
                 })
               }
+            } else {
+              // If we're here, the `path` is either incorrect, or pointing to a non-string.
+              // console.error(new Error(`Path "${key}" points to a non-string value. Received: ${value}`))
             }
           }
           record.$[key] = subRecords

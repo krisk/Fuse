@@ -1,4 +1,3 @@
-// Type definitions for Fuse.js v5.0.7-beta
 export = Fuse
 export as namespace Fuse
 

@@ -1,5 +1,5 @@
 // Assumes arrays are sorted
-module.exports = (arr1, arr2) => {
+export default function intersection(arr1, arr2) {
   let result = []
   let i = 0
   let j = 0

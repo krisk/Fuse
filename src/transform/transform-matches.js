@@ -1,6 +1,6 @@
-const { isArray, isDefined, isString, isNumber, isObject } = require('../helpers/type-checkers')
+import { isDefined } from '../helpers/type-checkers'
 
-module.exports = (result, data) => {
+export default function transformMatches(result, data) {
   const matches = result.matches
   data.matches = []
 

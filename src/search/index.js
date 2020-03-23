@@ -1,5 +1,9 @@
-module.exports = {
-  BitapSearch: require('./bitap-search'),
-  ExtendedSearch: require('./extended-search'),
-  NGramSearch: require('./ngram-search')
+import BitapSearch from './bitap-search'
+import ExtendedSearch from './extended-search'
+import NGramSearch from './ngram-search'
+
+export {
+  BitapSearch,
+  ExtendedSearch,
+  NGramSearch
 }

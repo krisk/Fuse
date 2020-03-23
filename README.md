@@ -25,6 +25,10 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 
 Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
 
+### Browser Compatibility
+
+Fuse.js supports all browsers that are ES5-compliant (IE8 and below are not supported).
+
 ## Documentation
 
 To checkout out live examples and docs, visit [fusejs.io](https://fusejs.io).
@@ -42,6 +46,14 @@ $ npm install --save fuse.js
 ```sh
 $ yarn add fuse.js
 ```
+
+**CDN**
+
+Available on CDN via [jsDelivr](https://cdn.jsdelivr.net/npm/fuse.js/dist/).
+
+### Explanation of Different Builds
+
+In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](dist/README.md) of the difference between them.
 
 ## Issues
 

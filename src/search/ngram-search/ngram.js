@@ -1,6 +1,6 @@
-const NGRAM_LEN = 3
+export const NGRAM_LEN = 3
 
-module.exports = (text, { n = NGRAM_LEN, pad = true, sort = false }) => {
+export default function ngram(text, { n = NGRAM_LEN, pad = true, sort = false }) {
   let nGrams = []
 
   if (text === null || text === undefined) {
