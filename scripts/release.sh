@@ -31,7 +31,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   git commit -a -m "Build version $VERSION"
 
   # tag version
-  git tag -a v$version -m "Version $VERSION"
+  git tag -a v$VERSION -m "Version $VERSION"
   git push origin master
   git push --tags
 
