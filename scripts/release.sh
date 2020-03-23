@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
-
-VERSION='';
-re="\"(version)\": \"([^\"]*)\"";
-
-while read -r l; do
-  if [[ $l =~ $re ]]; then
-    value="${BASH_REMATCH[2]}";
-    VERSION="$value";
-  fi
-done < package.json;
-
-echo $VERSION;
+set -e
 
 on_master_branch () {
   [[ $(git symbolic-ref --short -q HEAD) == "master" ]] && return 0
@@ -22,20 +11,32 @@ if ! on_master_branch; then
   exit 1
 fi
 
-read -e -p "Are you sure you want to release? " -n 1 -r
+if [[ -z $1 ]]; then
+  echo "Enter new version: "
+  read -r VERSION
+else
+  VERSION=$1
+fi
+
+read -p "Releasing $VERSION - are you sure? (y/n) " -n 1 -r
 echo
+
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  echo -e "\033[0;32mReleasing...\033[0m"
+  echo -e "\033[0;32mReleasing $VERSION...\033[0m"
   echo
-  yarn build
+  # Build
+  VERSION=$VERSION npm run build
+
   git commit -a -m "Build version $VERSION"
 
   # tag version
-  git tag -a v$VERSION -m "Version $VERSION"
-  git push origin master
+  npm version "$VERSION" --message "build: release $VERSION"
   git push origin refs/tags/v"$VERSION"
 
-  # publish
+  # Push to repo
+  git push
+
+  # Publish
   npm publish
 else
   echo -e "\033[0;31mCancelling...\033[0m"
