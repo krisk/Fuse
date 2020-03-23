@@ -1,4 +1,6 @@
-// Type definitions for Fuse.js v5.0.7-beta
+// Type definitions for Fuse.js v5.0.8-beta
+// TypeScript v3.8.3
+
 export = Fuse
 export as namespace Fuse
 

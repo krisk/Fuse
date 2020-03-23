@@ -1,3 +1,13 @@
+# Version 5.0.8-beta
+
+- Changed bundler to Rollup.
+- Added ES6 modules for bundlers and browsers (`fuse.esm.js`) (fixed #262)
+- Added CommonJS builds (`fuse.common.js`)
+
+## Breaking Changes
+
+- The minimified version is finally actually called `fuse.min.js`
+
 # Version 5.0.7-beta
 
 - Fixed (#363)
@@ -16,10 +26,12 @@
 
 - Added indexing for increased performance over large lists
   - Added `Fuse.createIndex`, which created and returns an index. This function can be used to pre-generate the index, which you can then save, and ultimately pass to the `Fuse` instance.
-- **Breaking changes:**
-  - Removed `id` option
-  - Changed format of the search results
-  - Updated TypeScript definitions
+
+## Breaking Changes
+
+- Removed `id` option
+- Changed format of the search results
+- Updated TypeScript definitions
 
 # Version 5.0.1-beta
 

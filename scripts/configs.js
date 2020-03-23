@@ -6,6 +6,7 @@ const babel = require('rollup-plugin-babel')
 const copy = require('rollup-plugin-copy')
 const featureFlags = require('./feature-flags')
 const pckg = require('../package.json')
+const typescript = require('typescript')
 
 const FILENAME = 'fuse'
 const VERSION = process.env.VERSION || pckg.version
@@ -37,7 +38,7 @@ const builds = {
         dest: resolve('dist'),
         rename: `${FILENAME}.d.ts`,
         transform: (content) => {
-          return `// Type definitions for Fuse.js v${VERSION}\n${content}`
+          return `// Type definitions for Fuse.js v${VERSION}\n// TypeScript v${typescript.version}\n\n${content}`
         }
       }]
     })]
