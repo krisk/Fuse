@@ -33,7 +33,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   # tag version
   git tag -a v$VERSION -m "Version $VERSION"
   git push origin master
-  git push --tags
+  git push origin refs/tags/v"$VERSION"
 
   # publish
   npm publish
