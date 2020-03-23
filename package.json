@@ -28,8 +28,8 @@
   ],
   "scripts": {
     "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev",
-    "dev:cjs": "rollup -w -c scripts/config.js --environment TARGET:commonjs-dev",
-    "dev:esm": "rollup -w -c scripts/config.js --environment TARGET:esm",
+    "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs",
+    "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm",
     "build": "node scripts/build.main.js",
     "test": "jest",
     "release": "bash scripts/release.sh"
