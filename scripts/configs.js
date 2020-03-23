@@ -82,7 +82,7 @@ function genConfig(options) {
       banner,
       file: options.dest,
       format: options.format,
-      name: 'Fuse.js'
+      name: 'Fuse'
     }
   }
 
