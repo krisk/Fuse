@@ -50,16 +50,10 @@ const builds = {
     env: 'production',
   },
   // CommonJS build
-  'commonjs-dev': {
+  'commonjs': {
     entry: resolve('src/index.js'),
-    dest: resolve(`dist/${FILENAME}.common.dev.js`),
+    dest: resolve(`dist/${FILENAME}.common.js`),
     env: 'development',
-    format: 'cjs',
-  },
-  'commonjs-prod': {
-    entry: resolve('src/index.js'),
-    dest: resolve(`dist/${FILENAME}.common.prod.js`),
-    env: 'production',
     format: 'cjs',
   },
   // ES modules build (for bundlers)
@@ -68,23 +62,8 @@ const builds = {
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es',
     env: 'development',
-  },
-  // ES modules build (for direct import in browser)
-  'esm-browser-dev': {
-    entry: resolve('src/index.js'),
-    dest: resolve(`dist/${FILENAME}.esm.browser.js`),
-    format: 'es',
-    env: 'development',
     transpile: false,
-  },
-  // ES modules production build (for direct import in browser)
-  'esm-browser-prod': {
-    entry: resolve('src/index.js'),
-    dest: resolve(`dist/${FILENAME}.esm.browser.min.js`),
-    format: 'es',
-    env: 'production',
-    transpile: false,
-  },
+  }
 }
 // built-in vars
 const vars = {
