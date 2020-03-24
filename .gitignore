@@ -1,18 +1,18 @@
-# Filter node stuff
 node_modules/
 *.log
 
-# Filter MacOS folder store
 .DS_Store
-
-# Filter IDE settings
 .idea/
+
 .vs/
 .vscode/
 
-# Only publish 1 type of lockfile
 package-lock.json
 
-# Filter misc
+dist/*.js
+dist/*.ts
+dist/*.map
+RELEASE_NOTE*.md
+
 playground/
 Makefile
