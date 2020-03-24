@@ -1,4 +1,3 @@
-
 import { BitapSearch, ExtendedSearch, NGramSearch } from '../search'
 import { isArray, isDefined, isString, isNumber } from '../helpers/type-checkers'
 import get from '../helpers/get'
@@ -254,7 +253,7 @@ export default class Fuse {
   _format(results) {
     const finalOutput = []
 
-    const { includeMatches, includeScore, } = this.options
+    const { includeMatches, includeScore } = this.options
 
     let transformers = []
 

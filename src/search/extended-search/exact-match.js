@@ -13,7 +13,7 @@ const match = (pattern, text) => {
 
   return {
     isMatch,
-    score: 0,
+    score: 0
   }
 }
 

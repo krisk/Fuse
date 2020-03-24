@@ -3,5 +3,5 @@ import intersection from './intersection'
 
 export {
   union,
-  intersection,
+  intersection
 }

@@ -145,7 +145,7 @@ export default function bitapSearch(text, pattern, patternAlphabet, { location =
   let result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
-    score: !finalScore ? 0.001 : finalScore,
+    score: !finalScore ? 0.001 : finalScore
   }
 
   if (includeMatches) {

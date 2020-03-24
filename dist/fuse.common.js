@@ -1046,7 +1046,7 @@ var KeyStore = /*#__PURE__*/function () {
       for (var _i = 0; _i < this._length; _i += 1) {
         var _key = keys[_i];
 
-        if (!_key.hasOwnProperty('name')) {
+        if (!Object.prototype.hasOwnProperty.call(_key, 'name')) {
           throw new Error('Missing "name" property in key object');
         }
 
@@ -1054,7 +1054,7 @@ var KeyStore = /*#__PURE__*/function () {
 
         this._keyNames.push(keyName);
 
-        if (!_key.hasOwnProperty('weight')) {
+        if (!Object.prototype.hasOwnProperty.call(_key, 'weight')) {
           throw new Error('Missing "weight" property in key object');
         }
 

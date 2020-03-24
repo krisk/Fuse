@@ -21,14 +21,14 @@ export default class KeyStore {
       for (let i = 0; i < this._length; i += 1) {
         const key = keys[i]
 
-        if (!key.hasOwnProperty('name')) {
+        if (!Object.prototype.hasOwnProperty.call(key, 'name')) {
           throw new Error('Missing "name" property in key object')
         }
 
         const keyName = key.name
         this._keyNames.push(keyName)
 
-        if (!key.hasOwnProperty('weight')) {
+        if (!Object.prototype.hasOwnProperty.call(key, 'weight')) {
           throw new Error('Missing "weight" property in key object')
         }
 

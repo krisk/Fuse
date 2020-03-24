@@ -76,7 +76,7 @@ export default function createIndex(keys, list, { getFn = get, ngrams = false } 
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
                 stack.push({
                   arrayIndex: k,
-                  value: value[k],
+                  value: value[k]
                 })
               }
             } else {

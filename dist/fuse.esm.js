@@ -190,7 +190,7 @@ function bitapSearch(text, pattern, patternAlphabet, { location = 0, distance = 
   let result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
-    score: !finalScore ? 0.001 : finalScore,
+    score: !finalScore ? 0.001 : finalScore
   };
 
   if (includeMatches) {
@@ -313,7 +313,7 @@ const match = (pattern, text) => {
 
   return {
     isMatch,
-    score: 0,
+    score: 0
   }
 };
 
@@ -828,7 +828,7 @@ function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
                 stack.push({
                   arrayIndex: k,
-                  value: value[k],
+                  value: value[k]
                 });
               }
             }
@@ -877,14 +877,14 @@ class KeyStore {
       for (let i = 0; i < this._length; i += 1) {
         const key = keys[i];
 
-        if (!key.hasOwnProperty('name')) {
+        if (!Object.prototype.hasOwnProperty.call(key, 'name')) {
           throw new Error('Missing "name" property in key object')
         }
 
         const keyName = key.name;
         this._keyNames.push(keyName);
 
-        if (!key.hasOwnProperty('weight')) {
+        if (!Object.prototype.hasOwnProperty.call(key, 'weight')) {
           throw new Error('Missing "weight" property in key object')
         }
 
@@ -1207,7 +1207,7 @@ class Fuse {
   _format(results) {
     const finalOutput = [];
 
-    const { includeMatches, includeScore, } = this.options;
+    const { includeMatches, includeScore } = this.options;
 
     let transformers = [];
 

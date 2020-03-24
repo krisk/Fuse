@@ -29,6 +29,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
   ## Run tests
   echo -e "\033[0;32mRunning tests...\033[0m"
+  npm run lint
   npm run test
 
   # commit
