@@ -51,6 +51,8 @@ $ yarn add fuse.js
 
 Available on CDN via [jsDelivr](https://cdn.jsdelivr.net/npm/fuse.js/dist/).
 
+> Note: it takes some time for the CDNs to sync with the latest version
+
 ### Explanation of Different Builds
 
 In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](dist/README.md) of the difference between them.
