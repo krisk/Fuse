@@ -202,7 +202,7 @@ declare namespace Fuse {
   type RangeTuple = [number, number]
 
   export type FuseResultMatch = {
-    indices: ReadonlyArray<RangeTuple>[]
+    indices: ReadonlyArray<RangeTuple>
     key?: string
     refIndex?: number
     value?: string

@@ -1,33 +1,4 @@
 const Fuse = require('../dist/fuse')
-const { get } = require('../src/helpers/get')
-
-const verbose = false
-
-const defaultList = ['Apple', 'Orange', 'Banana']
-const defaultOptions = {
-  location: 0,
-  distance: 100,
-  threshold: 0.6,
-  isCaseSensitive: false,
-  findAllMatches: false,
-  minMatchCharLength: 1,
-  id: null,
-  keys: [],
-  shouldSort: true,
-  getFn: get,
-  sortFn: (a, b) => (a.score - b.score),
-  includeMatches: false,
-  includeScore: false,
-  useExtendedSearch: true,
-  verbose
-}
-
-const setup = (itemList, overwriteOptions) => {
-  const list = itemList || defaultList
-  const options = { ...defaultOptions, ...overwriteOptions }
-
-  return new Fuse(list, options)
-}
 
 describe('Searching using plugins', () => {
   const list = [{

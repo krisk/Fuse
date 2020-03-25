@@ -41,3 +41,32 @@ describe('Search with typings', () => {
     expect(poke).toMatchObject(expected)
   })
 })
+
+describe('Search results with indices', () => {
+  test('When searching by number', () => {
+    interface Board {
+      readonly name: string
+    }
+    const list: Array<Board> = [
+      {
+        name: 'Arduino Duemilanove or Diecimila',
+      },
+    ]
+    const options: Fuse.IFuseOptions<Board> = {
+      includeMatches: true,
+      minMatchCharLength: 1,
+      keys: ['name'],
+    }
+
+    const fuse = new Fuse(list, options)
+    const results = fuse.search(`ar due di`)
+
+    expect(results.length).toBe(1)
+
+    const matches = results[0].matches
+
+    expect(matches.length).toBe(1)
+    expect(matches[0].indices.length).toBe(9)
+    expect(matches[0].indices[0]).toMatchObject([0, 4])
+  })
+})

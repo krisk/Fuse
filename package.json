@@ -33,7 +33,9 @@
     "build": "node scripts/build.main.js",
     "test": "jest",
     "lint": "eslint src scripts test",
-    "release": "bash scripts/release.sh"
+    "release": "bash scripts/release.sh",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
   },
   "devDependencies": {
     "@babel/cli": "7.2.3",
@@ -56,6 +58,7 @@
     "rollup-plugin-copy": "3.3.0",
     "terser-webpack-plugin": "2.3.5",
     "typescript": "3.8.3",
+    "vuepress": "1.4.0",
     "webpack": "4.42.0",
     "webpack-cli": "3.3.11"
   },

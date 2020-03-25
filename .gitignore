@@ -9,10 +9,11 @@ node_modules/
 
 package-lock.json
 
+dist/*.d.ts
 dist/*.js
-dist/*.ts
 dist/*.map
 RELEASE_NOTE*.md
 
 playground/
 Makefile
+docs/
