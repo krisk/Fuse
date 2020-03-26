@@ -30,9 +30,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   ## Run tests
   echo -e "\033[0;32mRunning tests...\033[0m"
   npm run lint
-  npm test
+  npm test 2>/dev/null
 
   # commit
+  echo -e "\033[0;32mCommitting...\033[0m"
   git add -A
   git add -f dist/*.js dist/*.ts
   git commit -m "Build $VERSION"
