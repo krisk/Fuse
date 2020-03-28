@@ -1,5 +1,10 @@
 import { BitapSearch, ExtendedSearch, NGramSearch } from '../search'
-import { isArray, isDefined, isString, isNumber } from '../helpers/type-checkers'
+import {
+  isArray,
+  isDefined,
+  isString,
+  isNumber
+} from '../helpers/type-checkers'
 import get from '../helpers/get'
 import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
@@ -31,7 +36,7 @@ const FuseOptions = {
   // Whether to sort the result list, by score
   shouldSort: true,
   // Default sort function
-  sortFn: (a, b) => (a.score - b.score),
+  sortFn: (a, b) => a.score - b.score,
   // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
   // (of both letters and location), a threshold of '1.0' would match anything.
   threshold: 0.6,
@@ -139,7 +144,6 @@ export default class Fuse {
           matches: [match]
         })
       }
-
     } else {
       // List is Array<Object>
       const keyNames = this._keyStore.keys()
@@ -235,9 +239,8 @@ export default class Fuse {
         const key = item.key
         const keyWeight = this._keyStore.get(key, 'weight')
         const weight = keyWeight > -1 ? keyWeight : 1
-        const score = item.score === 0 && keyWeight > -1
-          ? Number.EPSILON
-          : item.score
+        const score =
+          item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score
 
         totalWeightedScore *= Math.pow(score, weight)
       }

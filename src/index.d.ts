@@ -5,7 +5,7 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
   constructor(
     list: ReadonlyArray<T>,
     options?: O,
-    index?: ReadonlyArray<Fuse.FuseIndexRecord>,
+    index?: ReadonlyArray<Fuse.FuseIndexRecord>
   )
   /**
    * Search function for the Fuse instance.
@@ -27,12 +27,12 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
    */
   search<R = T>(
     pattern: string,
-    options?: Fuse.FuseSearchOptions,
+    options?: Fuse.FuseSearchOptions
   ): Fuse.FuseResult<R>[]
 
   setCollection(
     list: ReadonlyArray<T>,
-    index?: ReadonlyArray<Fuse.FuseIndexRecord>,
+    index?: ReadonlyArray<Fuse.FuseIndexRecord>
   ): void
 
   setIndex(index: ReadonlyArray<Fuse.FuseIndexRecord>): void
@@ -71,14 +71,14 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
   static createIndex<U>(
     keys: Fuse.FuseOptionKeyObject[] | string[],
     list: ReadonlyArray<U>,
-    options?: Fuse.FuseIndexOptions<U>,
+    options?: Fuse.FuseIndexOptions<U>
   ): ReadonlyArray<Fuse.FuseIndexRecord>
 }
 
 declare namespace Fuse {
   type FuseGetFunction<T> = (
     obj: T,
-    path: string,
+    path: string
   ) => ReadonlyArray<string> | string
 
   export type FuseIndexOptions<T> = {
@@ -136,7 +136,7 @@ declare namespace Fuse {
 
   export type FuseSortFunction = (
     a: FuseSortFunctionArg,
-    b: FuseSortFunctionArg,
+    b: FuseSortFunctionArg
   ) => number
 
   // title: {

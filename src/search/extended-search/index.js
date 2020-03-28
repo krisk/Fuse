@@ -11,7 +11,8 @@ import { isString } from '../../helpers/type-checkers'
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-const queryfy = (pattern) => pattern.split('|').map(item => item.trim().split(/ +/g))
+const queryfy = (pattern) =>
+  pattern.split('|').map((item) => item.trim().split(/ +/g))
 
 /**
  * Command-like searching
@@ -71,7 +72,6 @@ export default class ExtendedSearch {
     let matchFound = false
 
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
-
       const parts = query[i]
       let result = null
       matchFound = true

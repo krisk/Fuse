@@ -9,7 +9,7 @@ if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist')
 }
 
-build(Object.keys(configs).map(key => configs[key]))
+build(Object.keys(configs).map((key) => configs[key]))
 
 async function build(builds) {
   for (const entry of builds) {
@@ -28,18 +28,22 @@ async function buildEntry(config) {
 
   try {
     let bundle = await rollup.rollup(config)
-    let { output: [{ code }] } = await bundle.generate(output)
+    let {
+      output: [{ code }]
+    } = await bundle.generate(output)
 
     if (isProd) {
-      const minified = (banner || '') + terser.minify(code, {
-        toplevel: true,
-        output: {
-          ascii_only: true
-        },
-        compress: {
-          pure_funcs: ['makeMap']
-        }
-      }).code
+      const minified =
+        (banner || '') +
+        terser.minify(code, {
+          toplevel: true,
+          output: {
+            ascii_only: true
+          },
+          compress: {
+            pure_funcs: ['makeMap']
+          }
+        }).code
       return write(file, minified, true)
     } else {
       return write(file, code)
@@ -52,11 +56,16 @@ async function buildEntry(config) {
 function write(dest, code, zip) {
   return new Promise((resolve, reject) => {
     function report(extra) {
-      console.log(blue(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''))
+      console.log(
+        blue(path.relative(process.cwd(), dest)) +
+          ' ' +
+          getSize(code) +
+          (extra || '')
+      )
       resolve()
     }
 
-    fs.writeFile(dest, code, err => {
+    fs.writeFile(dest, code, (err) => {
       if (err) return reject(err)
       if (zip) {
         zlib.gzip(code, (err, zipped) => {

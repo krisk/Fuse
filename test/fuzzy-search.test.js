@@ -15,7 +15,7 @@ const defaultOptions = {
   keys: [],
   shouldSort: true,
   getFn: get,
-  sortFn: (a, b) => (a.score - b.score),
+  sortFn: (a, b) => a.score - b.score,
   includeMatches: false,
   includeScore: false,
   verbose
@@ -30,7 +30,7 @@ const setup = (itemList, overwriteOptions) => {
 
 describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
   let fuse
-  beforeEach(() => fuse = setup())
+  beforeEach(() => (fuse = setup()))
 
   it('should have the list property', () => {
     expect(fuse.list).toBe(defaultList)
@@ -38,7 +38,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
 
   describe('When searching for the term "Apple"', () => {
     let result
-    beforeEach(() => result = fuse.search('Apple'))
+    beforeEach(() => (result = fuse.search('Apple')))
 
     test('we get a list of exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -51,7 +51,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
 
   describe('When performing a fuzzy search for the term "ran"', () => {
     let result
-    beforeEach(() => result = fuse.search('ran'))
+    beforeEach(() => (result = fuse.search('ran')))
 
     test('we get a list of containing 2 items', () => {
       expect(result).toHaveLength(2)
@@ -65,7 +65,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
 
   describe('When performing a fuzzy search for the term "nan"', () => {
     let result
-    beforeEach(() => result = fuse.search('nan'))
+    beforeEach(() => (result = fuse.search('nan')))
 
     test('we get a list of containing 2 items', () => {
       expect(result).toHaveLength(2)
@@ -79,7 +79,7 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
 
   describe('When performing a fuzzy search for the term "nan" with a limit of 1 result', () => {
     let result
-    beforeEach(() => result = fuse.search('nan', { limit: 1 }))
+    beforeEach(() => (result = fuse.search('nan', { limit: 1 })))
 
     test('we get a list of containing 1 item: [2]', () => {
       expect(result).toHaveLength(1)
@@ -92,19 +92,30 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
 })
 
 describe('Deep key search, with ["title", "author.firstName"]', () => {
-  const customBookList = [{
-    title: "Old Man's War",
-    author: { firstName: 'John', lastName: 'Scalzi' }
-  }, {
-    title: 'The Lock Artist',
-    author: { firstName: 'Steve', lastName: 'Hamilton' }
-  }, { title: 'HTML5' }, { title: 'A History of England', author: { firstName: 1066, lastName: 'Hastings' } }]
+  const customBookList = [
+    {
+      title: "Old Man's War",
+      author: { firstName: 'John', lastName: 'Scalzi' }
+    },
+    {
+      title: 'The Lock Artist',
+      author: { firstName: 'Steve', lastName: 'Hamilton' }
+    },
+    { title: 'HTML5' },
+    {
+      title: 'A History of England',
+      author: { firstName: 1066, lastName: 'Hastings' }
+    }
+  ]
   let fuse
-  beforeEach(() => fuse = setup(customBookList, { keys: ['title', 'author.firstName'] }))
+  beforeEach(
+    () =>
+      (fuse = setup(customBookList, { keys: ['title', 'author.firstName'] }))
+  )
 
   describe('When searching for the term "Stve"', () => {
     let result
-    beforeEach(() => result = fuse.search('Stve'))
+    beforeEach(() => (result = fuse.search('Stve')))
 
     test('we get a list containing at least 1 item', () => {
       expect(result.length).toBeGreaterThanOrEqual(1)
@@ -120,7 +131,7 @@ describe('Deep key search, with ["title", "author.firstName"]', () => {
 
   describe('When searching for the term "106"', () => {
     let result
-    beforeEach(() => result = fuse.search('106'))
+    beforeEach(() => (result = fuse.search('106')))
 
     test('we get a list of exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -136,19 +147,22 @@ describe('Deep key search, with ["title", "author.firstName"]', () => {
 })
 
 describe('Custom search function, with ["title", "author.firstName"]', () => {
-  const customBookList = [{
-    title: "Old Man's War",
-    author: {
-      firstName: 'John',
-      lastName: 'Scalzi'
+  const customBookList = [
+    {
+      title: "Old Man's War",
+      author: {
+        firstName: 'John',
+        lastName: 'Scalzi'
+      }
+    },
+    {
+      title: 'The Lock Artist',
+      author: {
+        firstName: 'Steve',
+        lastName: 'Hamilton'
+      }
     }
-  }, {
-    title: 'The Lock Artist',
-    author: {
-      firstName: 'Steve',
-      lastName: 'Hamilton'
-    }
-  }]
+  ]
   const customOptions = {
     keys: ['title', 'author.firstName'],
     getFn: (obj) => {
@@ -158,11 +172,11 @@ describe('Custom search function, with ["title", "author.firstName"]', () => {
     }
   }
   let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
 
   describe('When searching for the term "Hmlt"', () => {
     let result
-    beforeEach(() => result = fuse.search('Hmlt'))
+    beforeEach(() => (result = fuse.search('Hmlt')))
 
     test('we get a list containing at least 1 item', () => {
       expect(result.length).toBeGreaterThanOrEqual(1)
@@ -178,7 +192,7 @@ describe('Custom search function, with ["title", "author.firstName"]', () => {
 
   describe('When searching for the term "Stve"', () => {
     let result
-    beforeEach(() => result = fuse.search('Stve'))
+    beforeEach(() => (result = fuse.search('Stve')))
 
     test('we get a list of exactly 0 items', () => {
       expect(result).toHaveLength(0)
@@ -188,11 +202,11 @@ describe('Custom search function, with ["title", "author.firstName"]', () => {
 
 describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
   let fuse
-  beforeEach(() => fuse = setup(defaultList, { includeScore: true }))
+  beforeEach(() => (fuse = setup(defaultList, { includeScore: true })))
 
   describe('When searching for the term "Apple"', () => {
     let result
-    beforeEach(() => result = fuse.search('Apple'))
+    beforeEach(() => (result = fuse.search('Apple')))
 
     test('we get a list of exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -206,7 +220,7 @@ describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
 
   describe('When performing a fuzzy search for the term "ran"', () => {
     let result
-    beforeEach(() => result = fuse.search('ran'))
+    beforeEach(() => (result = fuse.search('ran')))
 
     test('we get a list of containing 2 items', () => {
       expect(result).toHaveLength(2)
@@ -253,25 +267,28 @@ describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
 // // })
 
 describe('Include both ID and score in results list', () => {
-  const customBookList = [{
-    ISBN: '0765348276',
-    title: "Old Man's War",
-    author: 'John Scalzi'
-  }, {
-    ISBN: '0312696957',
-    title: 'The Lock Artist',
-    author: 'Steve Hamilton'
-  }]
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi'
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: 'Steve Hamilton'
+    }
+  ]
   const customOptions = {
     keys: ['title', 'author'],
     includeScore: true
   }
   let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
 
   describe('When searching for the term "Stve"', () => {
     let result
-    beforeEach(() => result = fuse.search('Stve'))
+    beforeEach(() => (result = fuse.search('Stve')))
 
     test('we get a list containing exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -288,26 +305,29 @@ describe('Include both ID and score in results list', () => {
 })
 
 describe('Search when IDs are numbers', () => {
-  const customBookList = [{
-    ISBN: 1111,
-    title: "Old Man's War",
-    author: 'John Scalzi'
-  }, {
-    ISBN: 2222,
-    title: 'The Lock Artist',
-    author: 'Steve Hamilton'
-  }]
+  const customBookList = [
+    {
+      ISBN: 1111,
+      title: "Old Man's War",
+      author: 'John Scalzi'
+    },
+    {
+      ISBN: 2222,
+      title: 'The Lock Artist',
+      author: 'Steve Hamilton'
+    }
+  ]
   const customOptions = {
     keys: ['title', 'author'],
     id: 'ISBN',
     includeScore: true
   }
   let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
 
   describe('When searching for the term "Stve"', () => {
     let result
-    beforeEach(() => result = fuse.search('Stve'))
+    beforeEach(() => (result = fuse.search('Stve')))
 
     test('we get a list containing exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -324,33 +344,37 @@ describe('Search when IDs are numbers', () => {
 })
 
 describe('Recurse into arrays', () => {
-  const customBookList = [{
-    'ISBN': '0765348276',
-    'title': "Old Man's War",
-    'author': 'John Scalzi',
-    'tags': ['fiction']
-  }, {
-    'ISBN': '0312696957',
-    'title': 'The Lock Artist',
-    'author': 'Steve Hamilton',
-    'tags': ['fiction']
-  }, {
-    'ISBN': '0321784421',
-    'title': 'HTML5',
-    'author': 'Remy Sharp',
-    'tags': ['web development', 'nonfiction']
-  }]
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction']
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: 'Steve Hamilton',
+      tags: ['fiction']
+    },
+    {
+      ISBN: '0321784421',
+      title: 'HTML5',
+      author: 'Remy Sharp',
+      tags: ['web development', 'nonfiction']
+    }
+  ]
   const customOptions = {
     keys: ['tags'],
     threshold: 0,
     includeMatches: true
   }
   let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
 
   describe('When searching for the tag "nonfiction"', () => {
     let result
-    beforeEach(() => result = fuse.search('nonfiction'))
+    beforeEach(() => (result = fuse.search('nonfiction')))
 
     test('we get a list containing exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -373,44 +397,54 @@ describe('Recurse into arrays', () => {
 })
 
 describe('Recurse into objects in arrays', () => {
-  const customBookList = [{
-    'ISBN': '0765348276',
-    'title': "Old Man's War",
-    'author': {
-      'name': 'John Scalzi',
-      'tags': [{
-        value: 'American'
-      }]
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: {
+        name: 'John Scalzi',
+        tags: [
+          {
+            value: 'American'
+          }
+        ]
+      }
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: {
+        name: 'Steve Hamilton',
+        tags: [
+          {
+            value: 'American'
+          }
+        ]
+      }
+    },
+    {
+      ISBN: '0321784421',
+      title: 'HTML5',
+      author: {
+        name: 'Remy Sharp',
+        tags: [
+          {
+            value: 'British'
+          }
+        ]
+      }
     }
-  }, {
-    'ISBN': '0312696957',
-    'title': 'The Lock Artist',
-    'author': {
-      'name': 'Steve Hamilton',
-      'tags': [{
-        value: 'American'
-      }]
-    }
-  }, {
-    'ISBN': '0321784421',
-    'title': 'HTML5',
-    'author': {
-      'name': 'Remy Sharp',
-      'tags': [{
-        value: 'British'
-      }]
-    }
-  }]
+  ]
   const customOptions = {
     keys: ['author.tags.value'],
     threshold: 0
   }
   let fuse
-  beforeEach(() => fuse = setup(customBookList, customOptions))
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
 
   describe('When searching for the author tag "British"', () => {
     let result
-    beforeEach(() => result = fuse.search('British'))
+    beforeEach(() => (result = fuse.search('British')))
 
     test('we get a list containing exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -433,7 +467,7 @@ describe('Set new list on Fuse', () => {
 
   describe('When searching for the term "Lettuce"', () => {
     let result
-    beforeEach(() => result = fuse.search('Lettuce'))
+    beforeEach(() => (result = fuse.search('Lettuce')))
 
     test('we get a list of exactly 1 item', () => {
       expect(result).toHaveLength(1)
@@ -480,7 +514,7 @@ describe('Weighted search', () => {
     let result
     beforeEach(() => {
       fuse = setup(customBookList, customOptions)
-      return result = fuse.search('John Smith')
+      return (result = fuse.search('John Smith'))
     })
 
     test('We get the the exactly matching object', () => {
@@ -506,7 +540,7 @@ describe('Weighted search', () => {
     let result
     beforeEach(() => {
       fuse = setup(customBookList, customOptions)
-      return result = fuse.search('John Smith')
+      return (result = fuse.search('John Smith'))
     })
 
     test('We get the the exactly matching object', () => {
@@ -532,7 +566,7 @@ describe('Weighted search', () => {
     let result
     beforeEach(() => {
       fuse = setup(customBookList, customOptions)
-      return result = fuse.search('Man')
+      return (result = fuse.search('Man'))
     })
 
     test('We get the the exactly matching object', () => {
@@ -558,7 +592,7 @@ describe('Weighted search', () => {
     let result
     beforeEach(() => {
       fuse = setup(customBookList, customOptions)
-      return result = fuse.search('Man')
+      return (result = fuse.search('Man'))
     })
 
     test('We get the the exactly matching object', () => {
@@ -585,7 +619,7 @@ describe('Weighted search', () => {
     let result
     beforeEach(() => {
       fuse = setup(customBookList, customOptions)
-      return result = fuse.search('War')
+      return (result = fuse.search('War'))
     })
 
     test('We get the the exactly matching object', () => {
@@ -610,14 +644,14 @@ describe('Search location', () => {
   }
   let fuse
 
-  beforeEach(() => fuse = setup(customList, customOptions))
+  beforeEach(() => (fuse = setup(customList, customOptions)))
 
   describe('When searching for the term "wor"', () => {
     let result
     let matches
     beforeEach(() => {
       result = fuse.search('wor')
-      return matches = result[0].matches
+      return (matches = result[0].matches)
     })
 
     test('We get a list whose indices are found', () => {
@@ -635,11 +669,11 @@ describe('Searching with default options', () => {
   const customList = ['t te tes test tes te t']
   let fuse
 
-  beforeEach(() => fuse = new Fuse(customList, { includeMatches: true }))
+  beforeEach(() => (fuse = new Fuse(customList, { includeMatches: true })))
 
   describe('When searching for the term "test"', () => {
     let result
-    beforeEach(() => result = fuse.search('test'))
+    beforeEach(() => (result = fuse.search('test')))
 
     test('We get a match containing 4 indices', () => {
       expect(result[0].matches[0].indices).toHaveLength(4)
@@ -656,11 +690,17 @@ describe('Searching with findAllMatches', () => {
   const customList = ['t te tes test tes te t']
   let fuse
 
-  beforeEach(() => fuse = new Fuse(customList, { includeMatches: true, findAllMatches: true }))
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        findAllMatches: true
+      }))
+  )
 
   describe('When searching for the term "test"', () => {
     let result
-    beforeEach(() => result = fuse.search('test'))
+    beforeEach(() => (result = fuse.search('test')))
 
     test('We get a match containing 7 indices', () => {
       expect(result[0].matches[0].indices).toHaveLength(7)
@@ -677,11 +717,17 @@ describe('Searching with minCharLength', () => {
   const customList = ['t te tes test tes te t']
   let fuse
 
-  beforeEach(() => fuse = new Fuse(customList, { includeMatches: true, minMatchCharLength: 2 }))
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        minMatchCharLength: 2
+      }))
+  )
 
   describe('When searching for the term "test"', () => {
     let result
-    beforeEach(() => result = fuse.search('test'))
+    beforeEach(() => (result = fuse.search('test')))
 
     test('We get a match containing 3 indices', () => {
       expect(result[0].matches[0].indices).toHaveLength(3)
@@ -695,7 +741,7 @@ describe('Searching with minCharLength', () => {
 
   describe('When searching for a string shorter than minMatchCharLength', () => {
     let result
-    beforeEach(() => result = fuse.search('t'))
+    beforeEach(() => (result = fuse.search('t')))
 
     test('We get a result with no matches', () => {
       expect(result).toHaveLength(1)
@@ -713,19 +759,27 @@ describe('Searching with minCharLength and pattern larger than machine word size
 
   let fuse
 
-  beforeEach(() => fuse = new Fuse(customList, {
-    includeMatches: true,
-    findAllMatches: true,
-    includeScore: true,
-    minMatchCharLength: 20,
-    threshold: 0.8,
-    distance: 30
-  }))
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        findAllMatches: true,
+        includeScore: true,
+        minMatchCharLength: 20,
+        threshold: 0.8,
+        distance: 30
+      }))
+  )
 
   describe('When searching for the term "American as apple pie is odd treatment of something made by mom"', () => {
     let result
 
-    beforeEach(() => result = fuse.search('American as apple pie is odd treatment of something made by mom'))
+    beforeEach(
+      () =>
+        (result = fuse.search(
+          'American as apple pie is odd treatment of something made by mom'
+        ))
+    )
 
     test('We get exactly 1 result', () => {
       expect(result).toHaveLength(1)
@@ -758,11 +812,11 @@ describe('Sorted search results', () => {
   }
   let fuse
 
-  beforeEach(() => fuse = new Fuse(customList, customOptions))
+  beforeEach(() => (fuse = new Fuse(customList, customOptions)))
 
   describe('When searching for the term "wood"', () => {
     let result
-    beforeEach(() => result = fuse.search('wood'))
+    beforeEach(() => (result = fuse.search('wood')))
 
     test('We get the properly ordered results', () => {
       expect(result[0].item.title).toBe('The Code of the Wooster')
@@ -782,7 +836,7 @@ describe('Searching through a deeply nested object', () => {
 
   customList.o = customList
 
-  beforeEach(() => fuse = new Fuse(customList, customOptions))
+  beforeEach(() => (fuse = new Fuse(customList, customOptions)))
 
   describe('When working with a deeply nested JSON data structure', () => {
     let resultThunk
@@ -799,22 +853,23 @@ describe('Searching through a deeply nested object', () => {
 })
 
 describe('Searching using string large strings', () => {
-
-  const list = [{
-    text: 'pizza'
-  }, {
-    text: 'feast'
-  }, {
-    text: 'where in the world is carmen san diego'
-  }]
+  const list = [
+    {
+      text: 'pizza'
+    },
+    {
+      text: 'feast'
+    },
+    {
+      text: 'where in the world is carmen san diego'
+    }
+  ]
 
   const options = {
     shouldSort: true,
     // includeScore: true,
     threshold: 0.6,
-    keys: [
-      'text'
-    ]
+    keys: ['text']
   }
   const fuse = new Fuse(list, options)
 

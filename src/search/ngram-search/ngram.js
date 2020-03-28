@@ -1,6 +1,9 @@
 export const NGRAM_LEN = 3
 
-export default function ngram(text, { n = NGRAM_LEN, pad = true, sort = false }) {
+export default function ngram(
+  text,
+  { n = NGRAM_LEN, pad = true, sort = false }
+) {
   let nGrams = []
 
   if (text === null || text === undefined) {
@@ -22,7 +25,7 @@ export default function ngram(text, { n = NGRAM_LEN, pad = true, sort = false })
   }
 
   if (sort) {
-    nGrams.sort((a, b) => a == b ? 0 : a < b ? -1 : 1)
+    nGrams.sort((a, b) => (a == b ? 0 : a < b ? -1 : 1))
   }
 
   return nGrams

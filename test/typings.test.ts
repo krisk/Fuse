@@ -4,7 +4,7 @@ import { PokedexType } from './fixtures/types'
 
 const defaultOptions: Fuse.IFuseOptions<PokedexType> = {
   keys: ['alias', 'species', 'name', 'num'],
-  threshold: 0.2,
+  threshold: 0.2
 }
 
 describe('Search with typings', () => {
@@ -34,7 +34,7 @@ describe('Search with typings', () => {
       prevo: 'bulbasaur',
       evos: ['venusaur'],
       evoLevel: 16,
-      eggGroups: ['Monster', 'Grass'],
+      eggGroups: ['Monster', 'Grass']
     }
 
     expect(poke.species).toBe('Ivysaur')
@@ -49,13 +49,13 @@ describe('Search results with indices', () => {
     }
     const list: Array<Board> = [
       {
-        name: 'Arduino Duemilanove or Diecimila',
-      },
+        name: 'Arduino Duemilanove or Diecimila'
+      }
     ]
     const options: Fuse.IFuseOptions<Board> = {
       includeMatches: true,
       minMatchCharLength: 1,
-      keys: ['name'],
+      keys: ['name']
     }
 
     const fuse = new Fuse(list, options)

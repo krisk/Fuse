@@ -12,8 +12,8 @@ cp ../../../dist/fuse.min.js assets/js/fuse.min.js
 
 echo 'fusejs.io' > CNAME
 
-git init
-git add -A
-git commit -m 'deploy'
+# git init
+# git add -A
+# git commit -m 'deploy'
 
-git push -f git@github.com:krisk/fuse.git master:gh-pages-v2
+# git push -f git@github.com:krisk/fuse.git master:gh-pages

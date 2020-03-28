@@ -7,7 +7,10 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-function bitapScore(pattern, { errors = 0, currentLocation = 0, expectedLocation = 0, distance = 100 }) {
+function bitapScore(
+  pattern,
+  { errors = 0, currentLocation = 0, expectedLocation = 0, distance = 100 }
+) {
   const accuracy = errors / pattern.length;
   const proximity = Math.abs(expectedLocation - currentLocation);
 
@@ -16,7 +19,7 @@ function bitapScore(pattern, { errors = 0, currentLocation = 0, expectedLocation
     return proximity ? 1.0 : accuracy
   }
 
-  return accuracy + (proximity / distance)
+  return accuracy + proximity / distance
 }
 
 function matchedIndiced(matchmask = [], minMatchCharLength = 1) {
@@ -31,7 +34,7 @@ function matchedIndiced(matchmask = [], minMatchCharLength = 1) {
       start = i;
     } else if (!match && start !== -1) {
       end = i - 1;
-      if ((end - start) + 1 >= minMatchCharLength) {
+      if (end - start + 1 >= minMatchCharLength) {
         matchedIndices.push([start, end]);
       }
       start = -1;
@@ -39,14 +42,26 @@ function matchedIndiced(matchmask = [], minMatchCharLength = 1) {
   }
 
   // (i-1 - start) + 1 => i - start
-  if (matchmask[i - 1] && (i - start) >= minMatchCharLength) {
+  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
     matchedIndices.push([start, i - 1]);
   }
 
   return matchedIndices
 }
 
-function bitapSearch(text, pattern, patternAlphabet, { location = 0, distance = 100, threshold = 0.6, findAllMatches = false, minMatchCharLength = 1, includeMatches = false }) {
+function bitapSearch(
+  text,
+  pattern,
+  patternAlphabet,
+  {
+    location = 0,
+    distance = 100,
+    threshold = 0.6,
+    findAllMatches = false,
+    minMatchCharLength = 1,
+    includeMatches = false
+  }
+) {
   const patternLen = pattern.length;
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length;
@@ -123,7 +138,9 @@ function bitapSearch(text, pattern, patternAlphabet, { location = 0, distance = 
     binMax = binMid;
 
     let start = Math.max(1, expectedLocation - binMid + 1);
-    let finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
+    let finish = findAllMatches
+      ? textLen
+      : Math.min(expectedLocation + binMid, textLen) + patternLen;
 
     // Initialize the bit array
     let bitArr = Array(finish + 2);
@@ -143,7 +160,8 @@ function bitapSearch(text, pattern, patternAlphabet, { location = 0, distance = 
 
       // Subsequent passes: fuzzy match
       if (i !== 0) {
-        bitArr[j] |= (((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1) | lastBitArr[j + 1];
+        bitArr[j] |=
+          ((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1 | lastBitArr[j + 1];
       }
 
       if (bitArr[j] & mask) {
@@ -219,28 +237,31 @@ function patternAlphabet(pattern) {
 const MAX_BITS = 32;
 
 class BitapSearch {
-  constructor(pattern, {
-    // Approximately where in the text is the pattern expected to be found?
-    location = 0,
-    // Determines how close the match must be to the fuzzy location (specified above).
-    // An exact letter match which is 'distance' characters away from the fuzzy location
-    // would score as a complete mismatch. A distance of '0' requires the match be at
-    // the exact location specified, a threshold of '1000' would require a perfect match
-    // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-    distance = 100,
-    // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-    // (of both letters and location), a threshold of '1.0' would match anything.
-    threshold = 0.6,
-    // Indicates whether comparisons should be case sensitive.
-    isCaseSensitive = false,
-    // When true, the algorithm continues searching to the end of the input even if a perfect
-    // match is found before the end of the same input.
-    findAllMatches = false,
-    // Minimum number of characters that must be matched before a result is considered a match
-    minMatchCharLength = 1,
+  constructor(
+    pattern,
+    {
+      // Approximately where in the text is the pattern expected to be found?
+      location = 0,
+      // Determines how close the match must be to the fuzzy location (specified above).
+      // An exact letter match which is 'distance' characters away from the fuzzy location
+      // would score as a complete mismatch. A distance of '0' requires the match be at
+      // the exact location specified, a threshold of '1000' would require a perfect match
+      // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+      distance = 100,
+      // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+      // (of both letters and location), a threshold of '1.0' would match anything.
+      threshold = 0.6,
+      // Indicates whether comparisons should be case sensitive.
+      isCaseSensitive = false,
+      // When true, the algorithm continues searching to the end of the input even if a perfect
+      // match is found before the end of the same input.
+      findAllMatches = false,
+      // Minimum number of characters that must be matched before a result is considered a match
+      minMatchCharLength = 1,
 
-    includeMatches = false
-  }) {
+      includeMatches = false
+    }
+  ) {
     this.options = {
       location,
       distance,
@@ -252,7 +273,7 @@ class BitapSearch {
     };
 
     if (pattern.length > MAX_BITS) {
-      throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`);
+      throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
     }
 
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
@@ -286,7 +307,13 @@ class BitapSearch {
     }
 
     // Otherwise, use Bitap algorithm
-    const { location, distance, threshold, findAllMatches, minMatchCharLength } = this.options;
+    const {
+      location,
+      distance,
+      threshold,
+      findAllMatches,
+      minMatchCharLength
+    } = this.options;
     return bitapSearch(text, this.pattern, this.patternAlphabet, {
       location,
       distance,
@@ -302,9 +329,9 @@ class BitapSearch {
 // Match type: exact-match
 // Description: Items that include `file`
 
-const isForPattern = pattern => pattern.charAt(0) == "'";
+const isForPattern = (pattern) => pattern.charAt(0) == "'";
 
-const sanitize = pattern => pattern.substr(1);
+const sanitize = (pattern) => pattern.substr(1);
 
 const match = (pattern, text) => {
   const sanitizedPattern = sanitize(pattern);
@@ -327,9 +354,9 @@ var exactMatch = {
 // Match type: inverse-exact-match
 // Description: Items that do not include `fire`
 
-const isForPattern$1 = pattern => pattern.charAt(0) == '!';
+const isForPattern$1 = (pattern) => pattern.charAt(0) == '!';
 
-const sanitize$1 = pattern => pattern.substr(1);
+const sanitize$1 = (pattern) => pattern.substr(1);
 
 const match$1 = (pattern, text) => {
   const sanitizedPattern = sanitize$1(pattern);
@@ -351,9 +378,9 @@ var inverseExactMatch = {
 // Match type: prefix-exact-match
 // Description: Items that start with `file`
 
-const isForPattern$2 = pattern => pattern.charAt(0) == '^';
+const isForPattern$2 = (pattern) => pattern.charAt(0) == '^';
 
-const sanitize$2 = pattern => pattern.substr(1);
+const sanitize$2 = (pattern) => pattern.substr(1);
 
 const match$2 = (pattern, text) => {
   const sanitizedPattern = sanitize$2(pattern);
@@ -375,9 +402,10 @@ var prefixExactMatch = {
 // Match type: inverse-prefix-exact-match
 // Description: Items that do not start with `fire`
 
-const isForPattern$3 = pattern => pattern.charAt(0) == '!' && pattern.charAt(1) == '^';
+const isForPattern$3 = (pattern) =>
+  pattern.charAt(0) == '!' && pattern.charAt(1) == '^';
 
-const sanitize$3 = pattern => pattern.substr(2);
+const sanitize$3 = (pattern) => pattern.substr(2);
 
 const match$3 = (pattern, text) => {
   const sanitizedPattern = sanitize$3(pattern);
@@ -399,9 +427,9 @@ var inversePrefixExactMatch = {
 // Match type: suffix-exact-match
 // Description: Items that end with `.file`
 
-const isForPattern$4 = pattern => pattern.charAt(pattern.length - 1) == '$';
+const isForPattern$4 = (pattern) => pattern.charAt(pattern.length - 1) == '$';
 
-const sanitize$4 = pattern => pattern.substr(0, pattern.length - 1);
+const sanitize$4 = (pattern) => pattern.substr(0, pattern.length - 1);
 
 const match$4 = (pattern, text) => {
   const sanitizedPattern = sanitize$4(pattern);
@@ -423,9 +451,10 @@ var suffixExactMatch = {
 // Match type: inverse-suffix-exact-match
 // Description: Items that do not end with `.file`
 
-const isForPattern$5 = pattern => pattern.charAt(0) == '!' && pattern.charAt(pattern.length - 1) == '$';
+const isForPattern$5 = (pattern) =>
+  pattern.charAt(0) == '!' && pattern.charAt(pattern.length - 1) == '$';
 
-const sanitize$5 = pattern => pattern.substring(1, pattern.length - 1);
+const sanitize$5 = (pattern) => pattern.substring(1, pattern.length - 1);
 
 const match$5 = (pattern, text) => {
   const sanitizedPattern = sanitize$5(pattern);
@@ -445,33 +474,35 @@ var inverseSuffixExactMatch = {
 
 const INFINITY = 1 / 0;
 
-const isArray = value => !Array.isArray
-  ? Object.prototype.toString.call(value) === '[object Array]'
-  : Array.isArray(value);
+const isArray = (value) =>
+  !Array.isArray
+    ? Object.prototype.toString.call(value) === '[object Array]'
+    : Array.isArray(value);
 
 // Adapted from:
 // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-const baseToString = value => {
+const baseToString = (value) => {
   // Exit early for strings to avoid a performance hit in some environments.
   if (typeof value == 'string') {
-    return value;
+    return value
   }
-  let result = (value + '');
-  return (result == '0' && (1 / value) == -INFINITY) ? '-0' : result;
+  let result = value + '';
+  return result == '0' && 1 / value == -INFINITY ? '-0' : result
 };
 
-const toString = value => value == null ? '' : baseToString(value);
+const toString = (value) => (value == null ? '' : baseToString(value));
 
-const isString = value => typeof value === 'string';
+const isString = (value) => typeof value === 'string';
 
-const isNumber = value => typeof value === 'number';
+const isNumber = (value) => typeof value === 'number';
 
-const isDefined = value => value !== undefined && value !== null;
+const isDefined = (value) => value !== undefined && value !== null;
 
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-const queryfy = (pattern) => pattern.split('|').map(item => item.trim().split(/ +/g));
+const queryfy = (pattern) =>
+  pattern.split('|').map((item) => item.trim().split(/ +/g));
 
 /**
  * Command-like searching
@@ -531,7 +562,6 @@ class ExtendedSearch {
     let matchFound = false;
 
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
-
       const parts = query[i];
       let result = null;
       matchFound = true;
@@ -585,7 +615,10 @@ class ExtendedSearch {
 
 const NGRAM_LEN = 3;
 
-function ngram(text, { n = NGRAM_LEN, pad = true, sort = false }) {
+function ngram(
+  text,
+  { n = NGRAM_LEN, pad = true, sort = false }
+) {
   let nGrams = [];
 
   if (text === null || text === undefined) {
@@ -607,7 +640,7 @@ function ngram(text, { n = NGRAM_LEN, pad = true, sort = false }) {
   }
 
   if (sort) {
-    nGrams.sort((a, b) => a == b ? 0 : a < b ? -1 : 1);
+    nGrams.sort((a, b) => (a == b ? 0 : a < b ? -1 : 1));
   }
 
   return nGrams
@@ -646,7 +679,7 @@ function union (arr1, arr2) {
     j += 1;
   }
 
-  return result;
+  return result
 }
 
 // Assumes arrays are sorted
@@ -673,7 +706,7 @@ function intersection(arr1, arr2) {
     }
   }
 
-  return result;
+  return result
 }
 
 function jaccardDistance(nGram1, nGram2) {
@@ -754,7 +787,11 @@ function get(obj, path) {
   return list[0]
 }
 
-function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
+function createIndex(
+  keys,
+  list,
+  { getFn = get, ngrams = false } = {}
+) {
   let indexedList = [];
 
   // List is Array<String>
@@ -780,7 +817,6 @@ function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
         indexedList.push(record);
       }
     }
-
   } else {
     // List is Array<Object>
     const keysLen = keys.length;
@@ -811,7 +847,6 @@ function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
             }
 
             if (isString(value)) {
-
               // if (!isCaseSensitive) {
               //   v = v.toLowerCase()
               // }
@@ -823,7 +858,6 @@ function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
               }
 
               subRecords.push(subRecord);
-
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
                 stack.push({
@@ -891,7 +925,9 @@ class KeyStore {
         const weight = key.weight;
 
         if (weight <= 0 || weight >= 1) {
-          throw new Error('"weight" property in key must bein the range of (0, 1)')
+          throw new Error(
+            '"weight" property in key must be in the range of (0, 1)'
+          )
         }
 
         this._keys[keyName] = {
@@ -985,7 +1021,7 @@ const FuseOptions = {
   // Whether to sort the result list, by score
   shouldSort: true,
   // Default sort function
-  sortFn: (a, b) => (a.score - b.score),
+  sortFn: (a, b) => a.score - b.score,
   // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
   // (of both letters and location), a threshold of '1.0' would match anything.
   threshold: 0.6,
@@ -1093,7 +1129,6 @@ class Fuse {
           matches: [match]
         });
       }
-
     } else {
       // List is Array<Object>
       const keyNames = this._keyStore.keys();
@@ -1189,9 +1224,8 @@ class Fuse {
         const key = item.key;
         const keyWeight = this._keyStore.get(key, 'weight');
         const weight = keyWeight > -1 ? keyWeight : 1;
-        const score = item.score === 0 && keyWeight > -1
-          ? Number.EPSILON
-          : item.score;
+        const score =
+          item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
 
         totalWeightedScore *= Math.pow(score, weight);
       }

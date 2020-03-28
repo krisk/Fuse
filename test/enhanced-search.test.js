@@ -1,15 +1,20 @@
 const Fuse = require('../dist/fuse')
 
 describe('Searching using plugins', () => {
-  const list = [{
-    text: 'hello word'
-  }, {
-    text: 'how are you'
-  }, {
-    text: 'indeed fine hello foo'
-  }, {
-    text: 'I am fine'
-  }]
+  const list = [
+    {
+      text: 'hello word'
+    },
+    {
+      text: 'how are you'
+    },
+    {
+      text: 'indeed fine hello foo'
+    },
+    {
+      text: 'I am fine'
+    }
+  ]
 
   const options = {
     useExtendedSearch: true,
@@ -18,9 +23,7 @@ describe('Searching using plugins', () => {
     location: 0,
     distance: 0,
     minMatchCharLength: 4,
-    keys: [
-      'text'
-    ]
+    keys: ['text']
   }
   const fuse = new Fuse(list, options)
 
@@ -31,34 +34,34 @@ describe('Searching using plugins', () => {
   })
 
   test('Search: prefix-exact-match', () => {
-    let result = fuse.search("^hello")
+    let result = fuse.search('^hello')
     expect(result.length).toBe(1)
     expect(result[0].item.text).toBe('hello word')
   })
 
   test('Search: suffix-exact-match', () => {
-    let result = fuse.search("fine$")
+    let result = fuse.search('fine$')
     expect(result.length).toBe(1)
     expect(result[0].item.text).toBe('I am fine')
   })
 
   test('Search: inverse-exact-match', () => {
-    let result = fuse.search("!indeed")
+    let result = fuse.search('!indeed')
     expect(result.length).toBe(3)
   })
 
   test('Search: inverse-prefix-exact-match', () => {
-    let result = fuse.search("!^hello")
+    let result = fuse.search('!^hello')
     expect(result.length).toBe(3)
   })
 
   test('Search: inverse-suffix-exact-match', () => {
-    let result = fuse.search("!foo$")
+    let result = fuse.search('!foo$')
     expect(result.length).toBe(3)
   })
 
   test('Search: all', () => {
-    let result = fuse.search("!foo$ !^how")
+    let result = fuse.search('!foo$ !^how')
     expect(result.length).toBe(2)
   })
 })

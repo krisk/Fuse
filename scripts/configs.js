@@ -23,7 +23,7 @@ const banner = `/**
  * http://www.apache.org/licenses/LICENSE-2.0
  */\n`
 
-const resolve = _path => path.resolve(__dirname, '../', _path)
+const resolve = (_path) => path.resolve(__dirname, '../', _path)
 
 const builds = {
   // UMD build
@@ -32,38 +32,42 @@ const builds = {
     dest: resolve(`dist/${FILENAME}.js`),
     format: 'umd',
     env: 'development',
-    plugins: [copy({
-      targets: [{
-        src: resolve('src/index.d.ts'),
-        dest: resolve('dist'),
-        rename: `${FILENAME}.d.ts`,
-        transform: (content) => {
-          return `// Type definitions for Fuse.js v${VERSION}\n// TypeScript v${typescript.version}\n\n${content}`
-        }
-      }]
-    })]
+    plugins: [
+      copy({
+        targets: [
+          {
+            src: resolve('src/index.d.ts'),
+            dest: resolve('dist'),
+            rename: `${FILENAME}.d.ts`,
+            transform: (content) => {
+              return `// Type definitions for Fuse.js v${VERSION}\n// TypeScript v${typescript.version}\n\n${content}`
+            }
+          }
+        ]
+      })
+    ]
   },
   // UMD production build
   'umd-prod': {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.min.js`),
     format: 'umd',
-    env: 'production',
+    env: 'production'
   },
   // CommonJS build
-  'commonjs': {
+  commonjs: {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.common.js`),
     env: 'development',
-    format: 'cjs',
+    format: 'cjs'
   },
   // ES modules build (for bundlers)
-  'esm': {
+  esm: {
     entry: resolve('src/index.js'),
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es',
     env: 'development',
-    transpile: false,
+    transpile: false
   }
 }
 // built-in vars
@@ -74,10 +78,7 @@ const vars = {
 function genConfig(options) {
   const config = {
     input: options.entry,
-    plugins: [
-      node(),
-      ...options.plugins || [],
-    ],
+    plugins: [node(), ...(options.plugins || [])],
     output: {
       banner,
       file: options.dest,
@@ -92,7 +93,7 @@ function genConfig(options) {
   }
 
   // feature flags
-  Object.keys(featureFlags).forEach(key => {
+  Object.keys(featureFlags).forEach((key) => {
     vars[`process.env.${key}`] = featureFlags[key]
   })
 
@@ -108,7 +109,7 @@ function genConfig(options) {
 
 function mapValues(obj, fn) {
   const res = {}
-  Object.keys(obj).forEach(key => {
+  Object.keys(obj).forEach((key) => {
     res[key] = fn(obj[key], key)
   })
   return res

@@ -35,7 +35,9 @@ export default class KeyStore {
         const weight = key.weight
 
         if (weight <= 0 || weight >= 1) {
-          throw new Error('"weight" property in key must bein the range of (0, 1)')
+          throw new Error(
+            '"weight" property in key must be in the range of (0, 1)'
+          )
         }
 
         this._keys[keyName] = {

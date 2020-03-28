@@ -12,7 +12,7 @@ export const BattlePokedex: PokedexType[] = [
     weightkg: 6.9,
     color: 'Green',
     evos: ['ivysaur'],
-    eggGroups: ['Monster', 'Grass'],
+    eggGroups: ['Monster', 'Grass']
   },
   {
     num: 2,
@@ -27,7 +27,7 @@ export const BattlePokedex: PokedexType[] = [
     prevo: 'bulbasaur',
     evos: ['venusaur'],
     evoLevel: 16,
-    eggGroups: ['Monster', 'Grass'],
+    eggGroups: ['Monster', 'Grass']
   },
   {
     num: 3,
@@ -42,7 +42,7 @@ export const BattlePokedex: PokedexType[] = [
     prevo: 'ivysaur',
     evoLevel: 32,
     eggGroups: ['Monster', 'Grass'],
-    otherFormes: ['venusaurmega'],
+    otherFormes: ['venusaurmega']
   },
   {
     num: 3,
@@ -57,8 +57,8 @@ export const BattlePokedex: PokedexType[] = [
     heightm: 2.4,
     weightkg: 155.5,
     color: 'Green',
-    eggGroups: ['Monster', 'Grass'],
-  },
+    eggGroups: ['Monster', 'Grass']
+  }
 ]
 
 // export const PokeAliases: IPokeDexAliases[] = [

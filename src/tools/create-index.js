@@ -2,7 +2,11 @@ import { isArray, isDefined, isString } from '../helpers/type-checkers'
 import get from '../helpers/get'
 import ngram from '../search/ngram-search/ngram'
 
-export default function createIndex(keys, list, { getFn = get, ngrams = false } = {}) {
+export default function createIndex(
+  keys,
+  list,
+  { getFn = get, ngrams = false } = {}
+) {
   let indexedList = []
 
   // List is Array<String>
@@ -28,7 +32,6 @@ export default function createIndex(keys, list, { getFn = get, ngrams = false } 
         indexedList.push(record)
       }
     }
-
   } else {
     // List is Array<Object>
     const keysLen = keys.length
@@ -59,7 +62,6 @@ export default function createIndex(keys, list, { getFn = get, ngrams = false } 
             }
 
             if (isString(value)) {
-
               // if (!isCaseSensitive) {
               //   v = v.toLowerCase()
               // }
@@ -71,7 +73,6 @@ export default function createIndex(keys, list, { getFn = get, ngrams = false } 
               }
 
               subRecords.push(subRecord)
-
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
                 stack.push({

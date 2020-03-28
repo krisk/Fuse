@@ -1,13 +1,11 @@
-<p align="center"><a href="https://fusejs.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://fusejs.io/assets/images/logo.png" alt="Fuse.js logo"></a></p>
+<p><a href="https://fusejs.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://fusejs.io/assets/images/logo.png" alt="Fuse.js logo"></a></p>
 
-<p align="center">
-  <img src="https://github.com/krisk/Fuse/workflows/Node.js%20CI/badge.svg" alt="Node.js CI"/>
-  <a href="https://www.npmjs.com/package/fuse.js"><img src="https://img.shields.io/npm/v/fuse.js.svg" alt="Version"/></a>
-  <a href="https://npmcharts.com/compare/fuse.js?minimal=true"><img src="https://img.shields.io/npm/dm/fuse.js.svg" alt="Downloads" /></a>
-    <a href="https://github.com/krisk/Fuse/graphs/contributors"><img src="https://img.shields.io/github/contributors/krisk/fuse.svg" alt="Contributors" /></a>
-  <a href="https://www.npmjs.com/package/fuse.js"><img src="https://img.shields.io/npm/l/fuse.js.svg" alt="License"></a>
-<!--   <a href="https://discord.gg/QF4B9sf"><img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg" alt="Chat"></a> -->
-</p>
+![Node.js CI](https://github.com/krisk/Fuse/workflows/Node.js%20CI/badge.svg)
+[![Version](https://img.shields.io/npm/v/fuse.js.svg)](https://www.npmjs.com/package/fuse.js)
+[![Downloads](https://img.shields.io/npm/dm/fuse.js.svg)](https://npmcharts.com/compare/fuse.js?minimal=tru)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+[![Contributors](https://img.shields.io/github/contributors/krisk/fuse.svg)](https://github.com/krisk/Fuse/graphs/contributors)
+![License](https://img.shields.io/npm/l/fuse.js.svg)
 
 ## <!--special end-->
 

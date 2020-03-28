@@ -31,5 +31,5 @@ export default function (arr1, arr2) {
     j += 1
   }
 
-  return result;
+  return result
 }

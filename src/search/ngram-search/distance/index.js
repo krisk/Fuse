@@ -1,5 +1,3 @@
 import jaccardDistance from './jaccard-distance'
 
-export {
-  jaccardDistance
-}
+export { jaccardDistance }
