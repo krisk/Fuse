@@ -70,7 +70,7 @@ module.exports = {
   serviceWorker: true,
   themeConfig: {
     repo: 'krisk/fuse',
-    docsDir: 'docs',
+    base: 'docs',
     version: VERSION,
     GA_MEASUREMENT_ID,
     displayAllHeaders: true,
