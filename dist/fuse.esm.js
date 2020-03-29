@@ -995,7 +995,7 @@ function transformScore(result, data) {
   data.score = result.score;
 }
 
-const FuseOptions = {
+const defaultOptions = {
   // When true, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
@@ -1030,8 +1030,8 @@ const FuseOptions = {
 };
 
 class Fuse {
-  constructor(list, options = FuseOptions, index = null) {
-    this.options = { ...FuseOptions, ...options };
+  constructor(list, options = defaultOptions, index = null) {
+    this.options = { ...defaultOptions, ...options };
     // `caseSensitive` is deprecated, use `isCaseSensitive` instead
     this.options.isCaseSensitive = options.caseSensitive;
     delete this.options.caseSensitive;
@@ -1272,5 +1272,6 @@ class Fuse {
 
 Fuse.version = '5.0.10-beta';
 Fuse.createIndex = createIndex;
+Fuse.defaultOptions = defaultOptions;
 
 export default Fuse;

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Examples | Fuse.js</title>
+    <meta name="description" content="Lightweight fuzzy-search">
+    <meta name="generator" content="VuePress 1.4.0">
+    <link rel="icon" href="/logo.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon-152x152.png">
+  <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#3eaf7c">
+  <meta name="msapplication-TileImage" content="/icons/msapplication-icon-144x144.png">
+    
+    <link rel="preload" href="/assets/css/0.styles.6db49eca.css" as="style"><link rel="preload" href="/assets/js/app.03a8716a.js" as="script"><link rel="preload" href="/assets/js/6.bf0327c3.js" as="script"><link rel="preload" href="/assets/js/2.3c323d06.js" as="script"><link rel="preload" href="/assets/js/16.ce76cbb2.js" as="script"><link rel="preload" href="/assets/js/5.2682b9ed.js" as="script"><link rel="prefetch" href="/assets/js/10.daf61f7c.js"><link rel="prefetch" href="/assets/js/11.6ddbcc5d.js"><link rel="prefetch" href="/assets/js/12.c734d01d.js"><link rel="prefetch" href="/assets/js/13.4ae7f0e6.js"><link rel="prefetch" href="/assets/js/14.e11263fa.js"><link rel="prefetch" href="/assets/js/15.f6935111.js"><link rel="prefetch" href="/assets/js/17.3abbfc49.js"><link rel="prefetch" href="/assets/js/18.176baa2f.js"><link rel="prefetch" href="/assets/js/19.914e581f.js"><link rel="prefetch" href="/assets/js/20.8979dc02.js"><link rel="prefetch" href="/assets/js/21.93aee97f.js"><link rel="prefetch" href="/assets/js/3.a3641db2.js"><link rel="prefetch" href="/assets/js/4.b8c0c2ab.js"><link rel="prefetch" href="/assets/js/7.ff7c8eb0.js"><link rel="prefetch" href="/assets/js/8.c4ed058c.js"><link rel="prefetch" href="/assets/js/9.2b18090c.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.6db49eca.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/" class="home-link router-link-active"><!----> <span class="site-name">Fuse.js</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/" class="nav-link">
+  Guide
+</a></div><div class="nav-item"><a href="/blog/" class="nav-link">
+  Blog
+</a></div><div class="nav-item"><a href="/team/" class="nav-link">
+  Team
+</a></div><div class="nav-item"><a href="/support/" class="nav-link">
+  Support Fuse.js
+</a></div><div class="nav-item"><a href="https://github.com/krisk/Fuse/releases" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Release Notes
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div> <a href="https://github.com/krisk/fuse" target="_blank" rel="noopener noreferrer" class="repo-link">
+    GitHub
+    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/" class="nav-link">
+  Guide
+</a></div><div class="nav-item"><a href="/blog/" class="nav-link">
+  Blog
+</a></div><div class="nav-item"><a href="/team/" class="nav-link">
+  Team
+</a></div><div class="nav-item"><a href="/support/" class="nav-link">
+  Support Fuse.js
+</a></div><div class="nav-item"><a href="https://github.com/krisk/Fuse/releases" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Release Notes
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div> <a href="https://github.com/krisk/fuse" target="_blank" rel="noopener noreferrer" class="repo-link">
+    GitHub
+    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>Getting Started</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/getting-started/installation.html" class="sidebar-link">Installation</a></li><li><a href="/getting-started/different-builds.html" class="sidebar-link">Explanation of Different Builds</a></li></ul></section></li><li><a href="/demo.html" class="sidebar-link">Live Demo</a></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>API Reference</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/api/options.html" class="sidebar-link">Options</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/api/options.html#basic-options" class="sidebar-link">Basic Options</a></li><li class="sidebar-sub-header"><a href="/api/options.html#fuzzy-matching-options" class="sidebar-link">Fuzzy Matching Options</a></li><li class="sidebar-sub-header"><a href="/api/options.html#advanced-options" class="sidebar-link">Advanced Options</a></li></ul></li><li><a href="/api/indexing.html" class="sidebar-link">Fuse.createIndex</a></li></ul></section></li><li><a href="/examples.html" class="active sidebar-link">Examples</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/examples.html#search-string-array" class="sidebar-link">Search String Array</a></li><li class="sidebar-sub-header"><a href="/examples.html#nested-search" class="sidebar-link">Nested Search</a></li><li class="sidebar-sub-header"><a href="/examples.html#weighted-search" class="sidebar-link">Weighted Search</a></li><li class="sidebar-sub-header"><a href="/examples.html#extended-search" class="sidebar-link">Extended Search</a></li></ul></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="examples"><a href="#examples" class="header-anchor">#</a> Examples</h1> <h2 id="search-string-array"><a href="#search-string-array" class="header-anchor">#</a> Search String Array</h2> <div class="el-tabs el-tabs--top el-tabs--border-card"><div class="el-tabs__header is-top"><div class="el-tabs__nav-wrap is-top"><div class="el-tabs__nav-scroll"><div role="tablist" class="el-tabs__nav is-top" style="transform:translateX(-0px);"></div></div></div></div><div class="el-tabs__content"><div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> list <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">&quot;Old Man's War&quot;</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'John Scalzi'</span><span class="token punctuation">,</span>
+    tags<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'fiction'</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">'The Lock Artist'</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'Steve'</span><span class="token punctuation">,</span>
+    tags<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'thriller'</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  includeScore<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// Search in `author` and in `tags` array</span>
+  keys<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'author'</span><span class="token punctuation">,</span> <span class="token string">'tags'</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> fuse <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Fuse</span><span class="token punctuation">(</span>list<span class="token punctuation">,</span> options<span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> result <span class="token operator">=</span> fuse<span class="token punctuation">.</span><span class="token function">search</span><span class="token punctuation">(</span><span class="token string">'tion'</span><span class="token punctuation">)</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">&quot;item&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Old Man's War&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;author&quot;</span><span class="token operator">:</span> <span class="token string">&quot;John Scalzi&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;tags&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">&quot;fiction&quot;</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;refIndex&quot;</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;score&quot;</span><span class="token operator">:</span> <span class="token number">0.03</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div></div></div> <h2 id="nested-search"><a href="#nested-search" class="header-anchor">#</a> Nested Search</h2> <div class="el-tabs el-tabs--top el-tabs--border-card"><div class="el-tabs__header is-top"><div class="el-tabs__nav-wrap is-top"><div class="el-tabs__nav-scroll"><div role="tablist" class="el-tabs__nav is-top" style="transform:translateX(-0px);"></div></div></div></div><div class="el-tabs__content"><div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> list <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">&quot;Old Man's War&quot;</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token punctuation">{</span>
+      name<span class="token operator">:</span> <span class="token string">'John Scalzi'</span><span class="token punctuation">,</span>
+      tags<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          value<span class="token operator">:</span> <span class="token string">'American'</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">'The Lock Artist'</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token punctuation">{</span>
+      name<span class="token operator">:</span> <span class="token string">'Steve Hamilton'</span><span class="token punctuation">,</span>
+      tags<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span>
+          value<span class="token operator">:</span> <span class="token string">'English'</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  includeScore<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  keys<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'author.tags.value'</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> fuse <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Fuse</span><span class="token punctuation">(</span>list<span class="token punctuation">,</span> options<span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> result <span class="token operator">=</span> fuse<span class="token punctuation">.</span><span class="token function">search</span><span class="token punctuation">(</span><span class="token string">'engsh'</span><span class="token punctuation">)</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">&quot;item&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;The Lock Artist&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;author&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Steve Hamilton&quot;</span><span class="token punctuation">,</span>
+        <span class="token property">&quot;tags&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">{</span>
+            <span class="token property">&quot;value&quot;</span><span class="token operator">:</span> <span class="token string">&quot;English&quot;</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">]</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;refIndex&quot;</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;score&quot;</span><span class="token operator">:</span> <span class="token number">0.4</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div></div></div> <div class="custom-block warning"><p class="custom-block-title">IMPORTANT</p> <p>The path has to eventually point to a string, otherwise you will not get any results.</p></div> <h2 id="weighted-search"><a href="#weighted-search" class="header-anchor">#</a> Weighted Search</h2> <p>You can allocate a weight to keys to give them higher (or lower) values in search results. The <code>weight</code> value has to be greater than <code>0</code> and less than <code>1</code>.</p> <div class="el-tabs el-tabs--top el-tabs--border-card"><div class="el-tabs__header is-top"><div class="el-tabs__nav-wrap is-top"><div class="el-tabs__nav-scroll"><div role="tablist" class="el-tabs__nav is-top" style="transform:translateX(-0px);"></div></div></div></div><div class="el-tabs__content"><div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> books <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">&quot;Old Man's War fiction&quot;</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'John X'</span><span class="token punctuation">,</span>
+    tags<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'war'</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">'Right Ho Jeeves'</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'P.D. Mans'</span><span class="token punctuation">,</span>
+    tags<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'fiction'</span><span class="token punctuation">,</span> <span class="token string">'war'</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  includeScore<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  keys<span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      name<span class="token operator">:</span> <span class="token string">'title'</span><span class="token punctuation">,</span>
+      weight<span class="token operator">:</span> <span class="token number">0.3</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      name<span class="token operator">:</span> <span class="token string">'author'</span><span class="token punctuation">,</span>
+      weight<span class="token operator">:</span> <span class="token number">0.7</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Create a new instance of Fuse</span>
+<span class="token keyword">const</span> fuse <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Fuse</span><span class="token punctuation">(</span>books<span class="token punctuation">,</span> options<span class="token punctuation">)</span>
+
+<span class="token comment">// Now search for 'Man'</span>
+<span class="token keyword">const</span> result <span class="token operator">=</span> fuse<span class="token punctuation">.</span><span class="token function">search</span><span class="token punctuation">(</span><span class="token string">'Man'</span><span class="token punctuation">)</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">&quot;item&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Right Ho Jeeves&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;author&quot;</span><span class="token operator">:</span> <span class="token string">&quot;P.D. Mans&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;tags&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">&quot;fiction&quot;</span><span class="token punctuation">,</span> <span class="token string">&quot;war&quot;</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;refIndex&quot;</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token comment">// index in the original list</span>
+    <span class="token property">&quot;score&quot;</span><span class="token operator">:</span> <span class="token number">0.12282280261157906</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">&quot;item&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Old Man's War fiction&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;author&quot;</span><span class="token operator">:</span> <span class="token string">&quot;John X&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;tags&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">&quot;war&quot;</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;refIndex&quot;</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;score&quot;</span><span class="token operator">:</span> <span class="token number">0.3807307877431757</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div></div></div> <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>As long as the <code>weight</code> is between <code>0</code> and <code>1</code> exclusive, you're good, because Fuse.js will normalize the weights so that their total is <code>1</code>.</p></div> <h2 id="extended-search"><a href="#extended-search" class="header-anchor">#</a> Extended Search <span class="badge warning" style="vertical-align:top;" data-v-15b7b770>beta</span></h2> <p>This form of advanced searching allows you to fine-tune results.</p> <p>White space acts as an <strong>AND</strong> operator, while a single pipe (<code>|</code>) character acts as an <strong>OR</strong> operator.</p> <table><thead><tr><th>Token</th> <th>Match type</th> <th>Description</th></tr></thead> <tbody><tr><td><code>jscript</code></td> <td>fuzzy-match</td> <td>Items that match <code>jscript</code></td></tr> <tr><td><code>'python</code></td> <td>exact-match</td> <td>Items that include <code>python</code></td></tr> <tr><td><code>!ruby</code></td> <td>inverse-exact-match</td> <td>Items that do not include <code>ruby</code></td></tr> <tr><td><code>^java</code></td> <td>prefix-exact-match</td> <td>Items that start with <code>java</code></td></tr> <tr><td><code>!^earlang</code></td> <td>inverse-prefix-exact-match</td> <td>Items that do not start with <code>earlang</code></td></tr> <tr><td><code>.js$</code></td> <td>suffix-exact-match</td> <td>Items that end with <code>.js</code></td></tr> <tr><td><code>!.go$</code></td> <td>inverse-suffix-exact-match</td> <td>Items that do not end with <code>.go</code></td></tr></tbody></table> <p>White space acts as an <strong>AND</strong> operator, while a single pipe (<code>|</code>) character acts as an <strong>OR</strong> operator.</p> <div class="el-tabs el-tabs--top el-tabs--border-card"><div class="el-tabs__header is-top"><div class="el-tabs__nav-wrap is-top"><div class="el-tabs__nav-scroll"><div role="tablist" class="el-tabs__nav is-top" style="transform:translateX(-0px);"></div></div></div></div><div class="el-tabs__content"><div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> books <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">&quot;Old Man's War&quot;</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'John Scalzi'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">'The Lock Artist'</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'Steve'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">'Artist for Life'</span><span class="token punctuation">,</span>
+    author<span class="token operator">:</span> <span class="token string">'Michelangelo'</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token keyword">const</span> options <span class="token operator">=</span> <span class="token punctuation">{</span>
+  includeScore<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  keys<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'author'</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> fuse <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Fuse</span><span class="token punctuation">(</span>books<span class="token punctuation">,</span> options<span class="token punctuation">)</span>
+
+<span class="token comment">// Search for items that include &quot;Man&quot; and &quot;Old&quot;,</span>
+<span class="token comment">// OR end with &quot;Artist&quot;</span>
+fuse<span class="token punctuation">.</span><span class="token function">search</span><span class="token punctuation">(</span><span class="token string">&quot;'Man 'Old | Artist$&quot;</span><span class="token punctuation">)</span>
+</code></pre></div></div> <div role="tabpanel" aria-hidden="true" id="pane-null" aria-labelledby="tab-null" class="el-tab-pane" style="display:none;"><div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">[</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">&quot;item&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Old Man's War&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;author&quot;</span><span class="token operator">:</span> <span class="token string">&quot;John Scalzi&quot;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;refIndex&quot;</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;score&quot;</span><span class="token operator">:</span> <span class="token number">2.220446049250313e-16</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span>
+    <span class="token property">&quot;item&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;The Lock Artist&quot;</span><span class="token punctuation">,</span>
+      <span class="token property">&quot;author&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Steve&quot;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;refIndex&quot;</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;score&quot;</span><span class="token operator">:</span> <span class="token number">2.220446049250313e-16</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div></div></div></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/api/indexing.html" class="prev">
+        Fuse.createIndex
+      </a></span> <!----></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.03a8716a.js" defer></script><script src="/assets/js/6.bf0327c3.js" defer></script><script src="/assets/js/2.3c323d06.js" defer></script><script src="/assets/js/16.ce76cbb2.js" defer></script><script src="/assets/js/5.2682b9ed.js" defer></script>
+  </body>
+</html>

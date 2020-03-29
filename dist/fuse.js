@@ -1144,7 +1144,7 @@
     data.score = result.score;
   }
 
-  var FuseOptions = {
+  var defaultOptions = {
     // When true, the algorithm continues searching to the end of the input even if a perfect
     // match is found before the end of the same input.
     isCaseSensitive: false,
@@ -1182,12 +1182,12 @@
 
   var Fuse = /*#__PURE__*/function () {
     function Fuse(list) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : FuseOptions;
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultOptions;
       var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
       _classCallCheck(this, Fuse);
 
-      this.options = _objectSpread2({}, FuseOptions, {}, options); // `caseSensitive` is deprecated, use `isCaseSensitive` instead
+      this.options = _objectSpread2({}, defaultOptions, {}, options); // `caseSensitive` is deprecated, use `isCaseSensitive` instead
 
       this.options.isCaseSensitive = options.caseSensitive;
       delete this.options.caseSensitive;
@@ -1461,6 +1461,7 @@
 
   Fuse.version = '5.0.10-beta';
   Fuse.createIndex = createIndex;
+  Fuse.defaultOptions = defaultOptions;
 
   return Fuse;
 

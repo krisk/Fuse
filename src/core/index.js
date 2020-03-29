@@ -10,7 +10,7 @@ import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
 import { MAX_BITS } from '../search/bitap-search/constants'
 
-const FuseOptions = {
+export const defaultOptions = {
   // When true, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
@@ -45,8 +45,8 @@ const FuseOptions = {
 }
 
 export default class Fuse {
-  constructor(list, options = FuseOptions, index = null) {
-    this.options = { ...FuseOptions, ...options }
+  constructor(list, options = defaultOptions, index = null) {
+    this.options = { ...defaultOptions, ...options }
     // `caseSensitive` is deprecated, use `isCaseSensitive` instead
     this.options.isCaseSensitive = options.caseSensitive
     delete this.options.caseSensitive
