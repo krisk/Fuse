@@ -3,8 +3,8 @@
     <li class="profile-container" v-for="profile in team">
       <div class="avatar">
         <img
-          v-if="profile.github"
-          :src="'https://github.com/' + profile.github + '.png'"
+          v-if="profile.social.github"
+          :src="'https://github.com/' + profile.social.github + '.png'"
           :alt="profile.name"
           width="80"
           height="80"
@@ -45,22 +45,38 @@
               </ul>
             </dd>
           </template>
-          <footer v-if="hasSocialLinks(profile)" class="social">
+          <footer class="social">
             <a
               class="github"
-              v-if="profile.github"
-              :href="githubUrl(profile.github)"
+              v-if="profile.social.github"
+              :href="githubUrl(profile.social.github)"
             >
               <i class="fab fa-github"></i>
               <span class="sr-only">Github</span>
             </a>
             <a
               class="twitter"
-              v-if="profile.twitter"
-              :href="'https://twitter.com/' + profile.twitter"
+              v-if="profile.social.twitter"
+              :href="'https://twitter.com/' + profile.social.twitter"
             >
               <i class="fab fa-twitter"></i>
               <span class="sr-only">Twitter</span>
+            </a>
+            <a
+              class="linkedin"
+              v-if="profile.social.linkedin"
+              :href="'https://linkedin.com/in/' + profile.social.linkedin"
+            >
+              <i class="fab fa-linkedin"></i>
+              <span class="sr-only">LinkedIn</span>
+            </a>
+            <a
+              class="reddit"
+              v-if="profile.social.reddit"
+              :href="'https://www.reddit.com/user/' + profile.social.reddit"
+            >
+              <i class="fab fa-reddit"></i>
+              <span class="sr-only">Reddit</span>
             </a>
           </footer>
         </dl>
@@ -75,8 +91,12 @@ let team = [
     name: 'Kiro Risk',
     // title: 'Benevolent Dictator For Life',
     city: 'San Francisco, CA, USA',
-    github: 'krisk',
-    twitter: 'kirorisk',
+    social: {
+      github: 'krisk',
+      twitter: 'kirorisk',
+      linkedin: 'kirollos',
+      reddit: 'kirorisk'
+    },
     work: {
       role: 'Creator',
       org: 'Fuse.js'
@@ -118,9 +138,6 @@ export default {
         }
       }
       return html
-    },
-    hasSocialLinks(profile) {
-      return profile.github || profile.twitter
     },
     /**
      * Generate a GitHub URL using a repo and a handle.
@@ -294,6 +311,9 @@ export default {
 }
 #team-members .profile-container .profile .social a.linkedin {
   color: #0077b5;
+}
+#team-members .profile-container .profile .social a.reddit {
+  color: #ff4501;
 }
 #team-members .profile-container .profile .social i {
   vertical-align: text-bottom;
