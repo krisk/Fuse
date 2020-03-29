@@ -12,6 +12,7 @@ package-lock.json
 dist/*.d.ts
 dist/*.js
 dist/*.map
+docs/.vuepress/dist
 RELEASE_NOTE*.md
 
 playground/
