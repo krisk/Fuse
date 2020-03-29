@@ -11,7 +11,7 @@ cd docs/.vuepress/dist
 
 echo 'fusejs.io' > CNAME
 
-# git init
+git init
 git add -A
 git commit -m 'deploy'
 
