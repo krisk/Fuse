@@ -32,6 +32,13 @@
               {{ profile.city }}
             </dd>
           </template>
+          <template v-if="profile.languages">
+            <dt>
+              <i class="fa fa-globe"></i>
+              <span class="sr-only">Languages</span>
+            </dt>
+            <dd v-html="languageListHtml(profile)" class="language-list"></dd>
+          </template>
           <template v-if="profile.links">
             <dt>
               <i class="fa fa-link"></i>
@@ -97,6 +104,7 @@ let team = [
       linkedin: 'kirollos',
       reddit: 'kirorisk'
     },
+    languages: ['en', 'it', 'fr'],
     work: {
       role: 'Creator',
       org: 'Fuse.js'
@@ -108,19 +116,36 @@ let team = [
   }
 ]
 
+const languageNameFor = {
+  en: 'English',
+  zh: '中文',
+  vi: 'Tiếng Việt',
+  pl: 'Polski',
+  pt: 'Português',
+  ru: 'Русский',
+  jp: '日本語',
+  fr: 'Français',
+  de: 'Deutsch',
+  it: 'Italiano',
+  el: 'Ελληνικά',
+  es: 'Español',
+  hi: 'हिंदी',
+  fa: 'فارسی',
+  ko: '한국어',
+  ro: 'Română'
+}
+
 export default {
   name: 'Team',
   data: () => ({
     team
   }),
-  computed: {},
   methods: {
     workHtml(profile) {
-      console.log(profile)
       var work = profile.work
       var html = ''
       if (work.orgUrl) {
-        html += '<a href="' + work.orgUrl + '" target="_blank">'
+        html += `<a href="${work.orgUrl}" target="_blank">`
         if (work.org) {
           html += work.org
         } else {
@@ -132,7 +157,7 @@ export default {
       }
       if (work.role) {
         if (html.length > 0) {
-          html = work.role + ' @ ' + html
+          html = `${work.role} @ ${html}`
         } else {
           html = work.role
         }
@@ -149,9 +174,38 @@ export default {
       if (repo && repo.indexOf('/') !== -1) {
         // If the repo name has a slash, it must be an organization repo.
         // In such a case, we discard the (personal) handle.
-        return 'https://github.com/' + repo.replace(/\/\*$/, '')
+        return `https://github.com/${repo.replace(/\/\*$/, '')}`
       }
-      return 'https://github.com/' + handle + '/' + (repo || '')
+      return `https://github.com/${handle}/${repo || ''}`
+    },
+    languageListHtml(profile) {
+      var nav = window.navigator
+      if (!profile.languages) return ''
+      var preferredLanguageCode = nav.languages
+        ? // The preferred language set in the browser
+          nav.languages[0]
+        : // The system language in IE
+          nav.userLanguage ||
+          // The language in the current page
+          nav.language
+      return (
+        '<ul><li>' +
+        profile.languages
+          .map((languageCode, index) => {
+            var language = languageNameFor[languageCode]
+            if (
+              languageCode !== 'en' &&
+              preferredLanguageCode &&
+              languageCode === preferredLanguageCode.slice(0, 2)
+            ) {
+              const title = `${profile.name} can give technical talks in your preferred language.`
+              return `<span class="user-match" title="${title}">${language}</span>`
+            }
+            return language
+          })
+          .join('</li><li>') +
+        '</li></ul>'
+      )
     },
     minimizeLink(link) {
       return link
@@ -236,7 +290,7 @@ export default {
 }
 #team-members .profile-container .profile .user-match:after {
   content: '\f06a';
-  font-family: FontAwesome;
+  font-family: 'Font Awesome 5 Free';
   font-size: 0.75em;
   vertical-align: super;
   margin-left: 4px;
