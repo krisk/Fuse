@@ -4,7 +4,7 @@
       <div class="avatar">
         <img
           v-if="profile.social.github"
-          :src="'https://github.com/' + profile.social.github + '.png'"
+          :src="`https://github.com/${profile.social.github}.png`"
           :alt="profile.name"
           width="80"
           height="80"
@@ -64,7 +64,7 @@
             <a
               class="twitter"
               v-if="profile.social.twitter"
-              :href="'https://twitter.com/' + profile.social.twitter"
+              :href="`https://twitter.com/${profile.social.twitter}`"
             >
               <i class="fab fa-twitter"></i>
               <span class="sr-only">Twitter</span>
@@ -72,7 +72,7 @@
             <a
               class="linkedin"
               v-if="profile.social.linkedin"
-              :href="'https://linkedin.com/in/' + profile.social.linkedin"
+              :href="`https://linkedin.com/in/${profile.social.linkedin}`"
             >
               <i class="fab fa-linkedin"></i>
               <span class="sr-only">LinkedIn</span>
@@ -80,7 +80,7 @@
             <a
               class="reddit"
               v-if="profile.social.reddit"
-              :href="'https://www.reddit.com/user/' + profile.social.reddit"
+              :href="`https://www.reddit.com/user/${profile.social.reddit}`"
             >
               <i class="fab fa-reddit"></i>
               <span class="sr-only">Reddit</span>
@@ -93,6 +93,8 @@
 </template>
 
 <script>
+/* global globalThis */
+
 let team = [
   {
     name: 'Kiro Risk',
@@ -179,20 +181,24 @@ export default {
       return `https://github.com/${handle}/${repo || ''}`
     },
     languageListHtml(profile) {
-      var nav = window.navigator
+      let nav = globalThis.navigator
       if (!profile.languages) return ''
-      var preferredLanguageCode = nav.languages
-        ? // The preferred language set in the browser
-          nav.languages[0]
-        : // The system language in IE
-          nav.userLanguage ||
-          // The language in the current page
-          nav.language
+
+      let preferredLanguageCode = nav
+        ? nav.languages
+          ? // The preferred language set in the browser
+            nav.languages[0]
+          : // The system language in IE
+            nav.userLanguage ||
+            // The language in the current page
+            nav.language
+        : null
+
       return (
         '<ul><li>' +
         profile.languages
           .map((languageCode, index) => {
-            var language = languageNameFor[languageCode]
+            const language = languageNameFor[languageCode]
             if (
               languageCode !== 'en' &&
               preferredLanguageCode &&
