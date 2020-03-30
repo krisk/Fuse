@@ -6,7 +6,7 @@ const extendsNetworks = {
   email: {
     sharer: 'mailto:?subject=@title&body=@url%0D%0A%0D%0A@description',
     type: 'direct',
-    icon: '/email.png'
+    icon: '/assets/img/email.png'
   },
   linkedin: {
     sharer:
@@ -23,7 +23,7 @@ module.exports = {
     '/': {
       lang: 'en-US',
       title: 'Fuse.js',
-      description: 'Lightweight fuzzy-search'
+      description: 'Lightweight fuzzy-search library, in JavaScript'
     }
   },
   head: [
@@ -69,6 +69,7 @@ module.exports = {
   ],
   serviceWorker: true,
   themeConfig: {
+    logo: '/assets/img/logo.png',
     repo: 'krisk/fuse',
     base: 'docs',
     version: VERSION,
