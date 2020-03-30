@@ -7,8 +7,6 @@
 [![Contributors](https://img.shields.io/github/contributors/krisk/fuse.svg)](https://github.com/krisk/Fuse/graphs/contributors)
 ![License](https://img.shields.io/npm/l/fuse.js.svg)
 
-## <!--special end-->
-
 ## Supporting Fuse.js
 
 Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. Also, you will be recognized as a beacon of support to open-source developers.
