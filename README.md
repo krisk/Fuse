@@ -1,4 +1,4 @@
-<p><a href="https://fusejs.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://fusejs.io/assets/images/logo.png" alt="Fuse.js logo"></a></p>
+# Fuse.js
 
 ![Node.js CI](https://github.com/krisk/Fuse/workflows/Node.js%20CI/badge.svg)
 [![Version](https://img.shields.io/npm/v/fuse.js.svg)](https://www.npmjs.com/package/fuse.js)
