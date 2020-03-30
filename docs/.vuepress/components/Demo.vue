@@ -1,350 +1,235 @@
 <template>
-  <div class="demo-app">
-    <h3>List</h3>
-    <div class="list-container">
-      <span class="commands command" @click="resetList">[reset]</span>
-      <textarea v-model="listJSON" @change="onListChange" />
-      <span class="error-msg">{{ listErrorMessage }}</span>
-    </div>
-    <h3>Options</h3>
-    <div class="row">
-      <div class="col-4">
-        <strong>Basic options</strong>
-        <ul>
-          <li v-for="item in booleans" :key="item">
-            <input
-              :id="item"
-              type="checkbox"
-              :checked="options[item]"
-              @change="onCheckboxOptionChange"
-            />
-            <label :for="item">
-              <code>{{ item }}</code>
-            </label>
-          </li>
-          <li>
-            <label class="option-label" for="minMatchCharLength">
-              <code>minMatchCharLength</code> :
-            </label>
-            <input
-              id="minMatchCharLength"
-              type="number"
-              min="0"
-              max="32"
-              :value="options.minMatchCharLength"
-              @change="onInputChange"
-            />
-          </li>
-        </ul>
-      </div>
-      <div class="col-4">
-        <strong>Fuzzy matching options</strong>
-        <ul>
-          <li v-for="item in numbers" :key="item.name">
-            <label class="option-label" for="item.name">
-              <code>{{ item.name }}</code> :
-            </label>
-            <input
-              :id="item.name"
-              type="number"
-              :min="item.min"
-              :max="item.max"
-              :step="item.step"
-              :value="options[item.name]"
-              @change="onInputChange"
-            />
-          </li>
-        </ul>
-      </div>
-      <div class="col-4">
-        <strong>Advanced options</strong>
-        <ul>
-          <li>
-            <input
-              id="useExtendedSearch"
-              type="checkbox"
-              :checked="options.useExtendedSearch"
-              @change="onCheckboxOptionChange"
-            />
-            <label for="useExtendedSearch">
-              <code>useExtendedSearch</code>
-            </label>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div v-bind:class="{ largeKeysTextbox: keyMode === 'weighted' }">
-      <label for="keysTextbox"> <code>keys</code></label>
-      <span class="commands">
-        [Try:
-        <span
-          :class="['command', { keyModeActive: keyMode === 'normal' }]"
-          @click="changeKeyMode('normal')"
-        >
-          normal
-        </span>
-        <span>|</span>
-        <span
-          :class="['command', { keyModeActive: keyMode === 'weighted' }]"
-          @click="changeKeyMode('weighted')"
-        >
-          weighted
-        </span>
-        ]
+  <div class="live-demo">
+    <article class="code-container">
+      <span class="header">
+        <span>list.json</span>
+        <span class="instruction">(list of items to search)</span>
       </span>
-      <textarea id="keysTextbox" v-model="keysJSON" @change="onKeysChange" />
-      <span class="error-msg">{{ keyErrorMessage }}</span>
-    </div>
-    <h3>Code</h3>
-    <!-- eslint-disable-next-line vue/no-v-html -->
-    <pre><code v-html="codeHtml"></code></pre>
-    <div>
-      <label for="searchTextbox">Search: </label>
-      <input
-        id="searchTextbox"
-        type="search"
-        placeholder="Old man's war, etc..."
-        @keyup="onPatternKeyUp"
-        @change="onPatternChange"
+      <codemirror
+        class="cm-list-editor"
+        ref="listEditor"
+        :value="listJSON"
+        :options="listOptions"
+        @input="onCmListChange"
       />
-    </div>
-    <!-- eslint-disable-next-line vue/no-v-html -->
-    <pre><code v-html="queryHtml"></code></pre>
-    <h3>Results</h3>
-    <!-- eslint-disable-next-line vue/no-v-html -->
-    <pre><code v-html="outputHtml"></code></pre>
+    </article>
+    <!-- <span class="error-msg">{{ listErrorMessage }}</span> -->
+    <Content slot-key="middle" />
+    <article class="code-container">
+      <span class="header">
+        <span>main.js</span>
+        <span class="instruction">(entry module)</span>
+      </span>
+      <codemirror
+        ref="cmEditor"
+        class="cm-code-editor"
+        :value="code"
+        :options="cmOptions"
+        @ready="onCmReady"
+        @focus="onCmFocus"
+        @input="onCmCodeChange"
+      />
+    </article>
+    <!-- <span class="error-msg">{{ codeErrorMessage }}</span> -->
+    <h3></h3>
+    <article class="code-container">
+      <span class="header"
+        ><b>Results:</b> found {{ count }} items in {{ searchTime }}</span
+      >
+      <pre class="output"><code v-html="outputHtml"></code></pre>
+    </article>
   </div>
 </template>
 
-<!-- eslint-disable-next-line vue/component-tags-order-->
 <script>
-/* global gtag globalThis */
-
 import Fuse from '../../../dist/fuse.esm.js'
 import Books from './books.js'
+
 import Prism from 'prismjs'
-import 'prismjs/components/prism-json' // need this
+import 'prismjs/components/prism-json'
 
-function send(label) {
-  if (process.env.NODE_ENV === 'production' && !!globalThis.gtag) {
-    gtag('event', 'change', {
-      event_category: 'Demo',
-      event_label: label
-    })
-  }
-}
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/mode/javascript/javascript.js'
+import 'codemirror/theme/monokai.css'
 
-const KeyModeDefault = {
-  normal: ['title', 'author.firstName'],
-  weighted: [
-    {
-      name: 'title',
-      weight: 0.7
-    },
-    {
-      name: 'author.firstName',
-      weight: 0.3
-    }
+const code = `const options = {
+  isCaseSensitive: false,
+  findAllMatches: false,
+  includeMatches: false,
+  includeScore: false,
+  useExtendedSearch: false,
+  minMatchCharLength: 1,
+  shouldSort: true,
+  threshold: 0.6,
+  location: 0,
+  distance: 100,
+  keys: [
+    "title",
+    "author.firstName"
   ]
-}
+};
 
-const booksJSON = JSON.stringify(Books, null, 2)
+const fuse = new Fuse(list, options);
+
+// Change the query
+const query = "old"
+
+return fuse.search(query)`
 
 export default {
   name: 'Demo',
-  data: () => ({
-    defaults: Fuse.defaultOptions,
-    list: Books,
-    listJSON: booksJSON,
-    booleans: [
-      'isCaseSensitive',
-      'includeScore',
-      'includeMatches',
-      'shouldSort',
-      'findAllMatches'
-    ],
-    numbers: [
-      { name: 'location', min: 0, max: 100, step: 1 },
-      { name: 'threshold', min: 0, max: 1, step: 0.1 },
-      { name: 'distance', min: 0, max: 1000, step: 1 }
-    ],
-    options: {
-      ...Fuse.defaultOptions,
-      keys: KeyModeDefault.normal
-    },
-    keysJSON: JSON.stringify(KeyModeDefault.normal, null, 2),
-    keyMode: 'normal',
-    codeHtml: '',
-    queryHtml: '',
-    pattern: '',
-    outputHtml: '',
-    keyErrorMessage: '',
-    listErrorMessage: ''
-  }),
-  mounted: function () {
-    this.$nextTick(this.update)
+  components: {
+    codemirror
   },
-  methods: {
-    onCheckboxOptionChange(event) {
-      let isChecked = event.target.checked
-      this.options[event.target.id] = isChecked
-      send(`option:${event.target.id}`)
-      this.update()
+  data: () => ({
+    listJSON: JSON.stringify(Books, null, 2),
+    list: Books,
+    code,
+    result: '',
+    outputHtml: '',
+    count: 0,
+    searchTime: 0,
+    listErrorMessage: '',
+    codeErrorMessage: '',
+    listOptions: {
+      tabSize: 2,
+      mode: 'text/javascript',
+      theme: 'default',
+      lineNumbers: true,
+      line: true
     },
-    onKeysChange(event) {
+    cmOptions: {
+      tabSize: 2,
+      mode: 'text/javascript',
+      theme: 'default',
+      lineNumbers: true,
+      line: true
+    }
+  }),
+  methods: {
+    onCmReady(cm) {
+      // console.log('the editor is readied!', cm)
+    },
+    onCmFocus(cm) {
+      // console.log('the editor is focused!', cm)
+    },
+    onCmCodeChange(newCode) {
+      // console.log('this is new code', newCode)
+      this.code = newCode
       try {
-        let keys = JSON.parse(event.target.value)
-        this.options.keys = keys
-        this.$set(this, 'keysJSON', JSON.stringify(keys, null, 2))
+        this.parse()
         this.update()
-        this.keyErrorMessage = ''
-        send(`option:keys`)
       } catch (err) {
-        this.keyErrorMessage = err
+        console.error(err)
       }
     },
-    changeKeyMode(mode) {
-      let keys = JSON.stringify(KeyModeDefault[mode], null, 2)
-      this.options.keys = KeyModeDefault[mode]
-      this.$set(this, 'keysJSON', keys)
-      this.$set(this, 'keyMode', mode)
-      this.update()
-      this.keyErrorMessage = ''
-    },
-    onInputChange(event) {
-      this.options[event.target.id] = Number(event.target.value)
-      this.update()
-      send(`option:${event.target.id}`)
-    },
-    onPatternChange() {
-      send(`search`)
-    },
-    onPatternKeyUp(event) {
-      this.pattern = event.target.value
-      this.updateQuery()
-    },
-    onListChange() {
+    onCmListChange(newCode) {
       try {
-        this.$set(this, 'list', JSON.parse(this.listJSON))
-        this.listErrorMessage = ''
+        this.list = eval(newCode)
         this.update()
+        this.listErrorMessage = ''
       } catch (err) {
         this.listErrorMessage = err
       }
     },
-    resetList() {
-      this.$set(this, 'list', Books)
-      this.$set(this, 'listJSON', booksJSON)
-      this.update()
+    parse() {
+      try {
+        const func = () => {
+          let body = `(Fuse, list) => {${this.code}}`
+          return eval(body)(Fuse, this.list)
+        }
+        let start = new Date().getTime()
+        this.result = func()
+        let end = new Date().getTime()
+        this.searchTime = end - start + ' ms'
+        this.codeErrorMessage = null
+      } catch (err) {
+        this.codeErrorMessage = err
+      }
     },
     update() {
-      let arr = []
-      arr.push('const options = {')
-
-      const keys = Object.keys(this.options)
-      for (var key of keys) {
-        let value = this.options[key]
-        if (
-          typeof value == 'number' ||
-          typeof value == 'boolean' /* && value !== DEFAULT_OPTIONS[key]*/
-        ) {
-          arr.push(`  ${key}: ${value},`)
-        }
-      }
-
-      if (this.options.keys) {
-        arr.push('  keys: [')
-        // remove the first bracket, sicne we put it above
-        let lines = this.keysJSON.split('\n').slice(1)
-        lines.forEach((line) => {
-          arr.push('  ' + line)
-        })
-      }
-      arr.push('}')
-      arr.push('')
-      arr.push('const fuse = new Fuse(list, options)')
-      arr = arr.join('\n')
       const html = Prism.highlight(
-        arr,
-        Prism.languages.javascript,
-        'javascript'
-      )
-
-      this.codeHtml = html
-      this.updateQuery()
-    },
-    updateQuery() {
-      let query = `const result = fuse.search("${this.pattern}");`
-      const html = Prism.highlight(
-        query,
-        Prism.languages.javascript,
-        'javascript'
-      )
-      this.queryHtml = html
-      this.updateOutput()
-    },
-    updateOutput() {
-      const fuse = new Fuse(this.list, this.options)
-      let result = fuse.search(this.pattern)
-      const html = Prism.highlight(
-        JSON.stringify(result, null, 2),
+        JSON.stringify(this.result, null, 2),
         Prism.languages.json,
         'json'
       )
+      this.count = this.result.length
       this.outputHtml = html
     }
+  },
+  computed: {
+    codemirror() {
+      return this.$refs.cmEditor.codemirror
+    }
+  },
+  mounted() {
+    this.parse()
+    this.update()
   }
 }
 </script>
 
-<style lang="stylus">
-.demo-app {
-  input, textarea {
-    font: inherit;
-    line-height: normal;
-  }
-  ul {
-    list-style-type: none;
-    padding: 0px;
-    li {
-      margin: 2px 0px;
-    }
-  }
-
-  .commands {
-    float: right
-  }
-
-  .command {
-    cursor pointer
-    color: #2c3e50
-  }
-
-  .keyModeActive {
-    font-weight 700
-  }
-
-  .list-container {
-    textarea {
-      width: 100%
-      height: 300px
-    }
-  }
+<style lang="css">
+.live-demo .code-container {
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
 }
 
-#keysTextbox {
-  margin-top: 10px
-  min-width: 100%;
-  min-height: 85px;
+.live-demo .code-container .header {
+  display: block;
+  padding: 0.5em;
+  border-bottom: 1px solid #f4f4f4;
+  color: #555;
+  position: relative;
 }
 
-.largeKeysTextbox {
-  #keysTextbox {
-    min-height: 200px;
-  }
+.live-demo .code-container .header .instruction {
+  color: #555;
+  opacity: 0.6;
+  position: absolute;
+  right: 0;
+  padding-right: 0.5em;
 }
 
-.error-msg {
+.live-demo .CodeMirror {
+  height: 100%;
+  border-radius: 3px;
+  font-family: Inconsolata, monospace;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: #333;
+}
+.live-demo .cm-list-editor {
+  height: 250px;
+}
+.live-demo .error-msg {
+  margin-top: 5px;
   color: red;
+  display: inline-block;
+}
+.live-demo .output {
+  max-height: 300px;
+  border-radius: 3px;
+  background: white;
+  font-family: Inconsolata, monospace;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.live-demo .output .token.punctuation,
+.live-demo .output .token.operator {
+  color: #333;
+}
+
+.live-demo .output .token.property,
+.live-demo .output .token.string,
+.live-demo .output .token.number,
+.live-demo .output .token.comment,
+.live-demo .output .token.prolog,
+.live-demo .output .token.doctype,
+.live-demo .output .token.cdata {
+  color: #a11 !important;
 }
 </style>

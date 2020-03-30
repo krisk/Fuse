@@ -181,8 +181,9 @@ export default {
       return `https://github.com/${handle}/${repo || ''}`
     },
     languageListHtml(profile) {
-      let nav = globalThis.navigator
       if (!profile.languages) return ''
+
+      let nav = globalThis.navigator
 
       let preferredLanguageCode = nav
         ? nav.languages

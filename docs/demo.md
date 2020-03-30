@@ -1,5 +1,11 @@
 # Live Demo
 
-To understand the API, check out the [options](api/options.html).
+Play around with a live demo of Fuse.js. Have a look at the [options](api/options.html) to understand what they mean.
 
-<Demo />
+::: slot middle
+Modify the `options` and/or `query`:
+:::
+
+<ClientOnly>
+  <Demo />
+</ClientOnly>
