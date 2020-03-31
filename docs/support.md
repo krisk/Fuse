@@ -17,7 +17,7 @@ Accepting donations through these channels:
 Recurring pledges come with exclusive perks, e.g. having your name listed in the Fuse.js GitHub repository, and/or have your company logo placed on this website.
 
 - [Become a backer or sponsor via **GitHub**](https://github.com/sponsors/krisk)
-- [Become a backer or sponsor via **Patreon**](https://www.patreon.com/fusejs)
+- [Become a backer or sponsor via **Patreon**](https://www.patreon.com/krisk)
 
 <style>
 </style>

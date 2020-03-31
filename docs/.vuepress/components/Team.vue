@@ -113,7 +113,7 @@ let team = [
     },
     links: [
       'https://github.com/sponsors/krisk',
-      'https://www.patreon.com/kirorisk'
+      'https://www.patreon.com/krisk'
     ]
   }
 ]
