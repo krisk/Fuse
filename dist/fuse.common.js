@@ -1140,27 +1140,16 @@ function transformScore(result, data) {
   data.score = result.score;
 }
 
-var defaultOptions = {
+var BasicOptions = {
   // When true, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
-  // Determines how close the match must be to the fuzzy location (specified above).
-  // An exact letter match which is 'distance' characters away from the fuzzy location
-  // would score as a complete mismatch. A distance of '0' requires the match be at
-  // the exact location specified, a threshold of '1000' would require a perfect match
-  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100,
   // Minimum number of characters that must be matched before a result is considered a match
   findAllMatches: false,
-  // The get function to use when fetching an object's properties.
-  // The default will search nested paths *ie foo.bar.baz*
-  getFn: get,
   includeMatches: false,
   includeScore: false,
   // List of properties that will be searched. This also supports nested properties.
   keys: [],
-  // Approximately where in the text is the pattern expected to be found?
-  location: 0,
   // Minimum number of characters that must be matched before a result is considered a match
   minMatchCharLength: 1,
   // Whether to sort the result list, by score
@@ -1168,13 +1157,30 @@ var defaultOptions = {
   // Default sort function
   sortFn: function sortFn(a, b) {
     return a.score - b.score;
-  },
+  }
+};
+var FuzzyOptions = {
+  // Approximately where in the text is the pattern expected to be found?
+  location: 0,
   // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
   // (of both letters and location), a threshold of '1.0' would match anything.
   threshold: 0.6,
-  // Enabled extended-searching
-  useExtendedSearch: false
+  // Determines how close the match must be to the fuzzy location (specified above).
+  // An exact letter match which is 'distance' characters away from the fuzzy location
+  // would score as a complete mismatch. A distance of '0' requires the match be at
+  // the exact location specified, a threshold of '1000' would require a perfect match
+  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+  distance: 100
 };
+var AdvancedOptions = {
+  // Enabled extended-searching
+  useExtendedSearch: false,
+  // The get function to use when fetching an object's properties.
+  // The default will search nested paths *ie foo.bar.baz*
+  getFn: get
+};
+
+var defaultOptions = _objectSpread2({}, BasicOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
 var Fuse = /*#__PURE__*/function () {
   function Fuse(list) {

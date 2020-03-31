@@ -13,7 +13,9 @@
         @input="onCmListChange"
       />
     </article>
-    <!-- <span class="error-msg">{{ listErrorMessage }}</span> -->
+    <span v-if="listErrorMessage" class="error-msg">
+      {{ listErrorMessage }}
+    </span>
     <Content slot-key="middle" />
     <article class="code-container">
       <span class="header">
@@ -30,12 +32,16 @@
         @input="onCmCodeChange"
       />
     </article>
-    <!-- <span class="error-msg">{{ codeErrorMessage }}</span> -->
-    <h3></h3>
+    <span v-if="codeErrorMessage" class="error-msg">
+      {{ codeErrorMessage }}
+    </span>
     <article class="code-container">
-      <span class="header"
-        ><b>Results:</b> found {{ count }} items in {{ searchTime }}</span
-      >
+      <span class="header">
+        <span v-if="!hasErrors">
+          <b>Results:</b> found {{ count }} items in {{ searchTime }}
+        </span>
+        <span v-else>--</span>
+      </span>
       <pre class="output"><code v-html="outputHtml"></code></pre>
     </article>
   </div>
@@ -92,6 +98,7 @@ export default {
     searchTime: 0,
     listErrorMessage: '',
     codeErrorMessage: '',
+    hasErrors: false,
     listOptions: {
       tabSize: 2,
       mode: 'text/javascript',
@@ -120,17 +127,19 @@ export default {
       try {
         this.parse()
         this.update()
-      } catch (err) {
-        console.error(err)
-      }
+      } catch (err) {}
     },
     onCmListChange(newCode) {
       try {
         this.list = eval(newCode)
+        this.listErrorMessage = null
+        this.hasErrors = !!this.codeErrorMessage
         this.update()
-        this.listErrorMessage = ''
       } catch (err) {
         this.listErrorMessage = err
+        this.hasErrors = true
+        this.outputHtml = ''
+        throw err
       }
     },
     parse() {
@@ -144,11 +153,18 @@ export default {
         let end = new Date().getTime()
         this.searchTime = end - start + ' ms'
         this.codeErrorMessage = null
+        this.hasErrors = !!this.listErrorMessage
       } catch (err) {
         this.codeErrorMessage = err
+        this.hasErrors = true
+        this.outputHtml = ''
+        throw err
       }
     },
     update() {
+      if (this.hasErrors) {
+        return
+      }
       const html = Prism.highlight(
         JSON.stringify(this.result, null, 2),
         Prism.languages.json,
@@ -205,7 +221,7 @@ export default {
   height: 250px;
 }
 .live-demo .error-msg {
-  margin-top: 5px;
+  margin: 5px 0px;
   color: red;
   display: inline-block;
 }
