@@ -13,7 +13,7 @@
   "files": [
     "dist"
   ],
-  "version": "5.0.10",
+  "version": "5.1.0",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {
