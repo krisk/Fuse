@@ -16,25 +16,38 @@
     <span v-if="listErrorMessage" class="error-msg">
       {{ listErrorMessage }}
     </span>
-    <Content slot-key="middle" />
-    <article class="code-container">
-      <span class="header">
-        <span>main.js</span>
-        <span class="instruction">(entry module)</span>
-      </span>
-      <codemirror
-        ref="cmEditor"
-        class="cm-code-editor"
-        :value="code"
-        :options="cmOptions"
-        @ready="onCmReady"
-        @focus="onCmFocus"
-        @input="onCmCodeChange"
+
+    <section class="search-section">
+      <input
+        type="text"
+        v-model="pattern"
+        @keyup="onPatternKeyUp"
+        placeholder="Search..."
       />
-    </article>
-    <span v-if="codeErrorMessage" class="error-msg">
-      {{ codeErrorMessage }}
-    </span>
+      <!-- <label class="toggle-code" @click="toggleCode">
+        {{ showCode ? '[hide code]' : '[show code]' }}
+      </label> -->
+    </section>
+
+    <div v-if="showCode">
+      <Content slot-key="middle" />
+      <article class="code-container">
+        <span class="header">
+          <span>main.js</span>
+          <span class="instruction">(entry module)</span>
+        </span>
+        <codemirror
+          ref="cmEditor"
+          class="cm-code-editor"
+          :value="code"
+          :options="cmOptions"
+          @input="onCmCodeChange"
+        />
+      </article>
+      <span v-if="codeErrorMessage" class="error-msg">
+        {{ codeErrorMessage }}
+      </span>
+    </div>
     <article class="code-container">
       <span class="header">
         <span v-if="!hasErrors">
@@ -59,7 +72,8 @@ import 'codemirror/lib/codemirror.css'
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/theme/monokai.css'
 
-const code = `const options = {
+const code = (pattern) => {
+  return `const options = {
   isCaseSensitive: false,
   findAllMatches: false,
   includeMatches: false,
@@ -78,10 +92,24 @@ const code = `const options = {
 
 const fuse = new Fuse(list, options);
 
-// Change the query
-const query = "old"
+// Change the pattern
+const pattern = "${pattern}"
 
-return fuse.search(query)`
+return fuse.search(pattern)`
+}
+
+// Purely here to make two-way binding possible:
+// Extend Fuse such that we can expose the pattern that was
+// modified direclty in the CodeMirror input.
+class DemoFuse extends Fuse {
+  constructor(list, options, index) {
+    super(list, options, index)
+  }
+  search(pattern, opts = { limit: false }) {
+    const results = super.search(pattern, opts)
+    return { pattern, results }
+  }
+}
 
 export default {
   name: 'Demo',
@@ -91,7 +119,7 @@ export default {
   data: () => ({
     listJSON: JSON.stringify(Books, null, 2),
     list: Books,
-    code,
+    code: code(''),
     result: '',
     outputHtml: '',
     count: 0,
@@ -99,6 +127,8 @@ export default {
     listErrorMessage: '',
     codeErrorMessage: '',
     hasErrors: false,
+    pattern: '',
+    showCode: true,
     listOptions: {
       tabSize: 2,
       mode: 'text/javascript',
@@ -115,14 +145,11 @@ export default {
     }
   }),
   methods: {
-    onCmReady(cm) {
-      // console.log('the editor is readied!', cm)
-    },
-    onCmFocus(cm) {
-      // console.log('the editor is focused!', cm)
+    toggleCode() {
+      this.showCode = !this.showCode
+      console.log(this.showCode)
     },
     onCmCodeChange(newCode) {
-      // console.log('this is new code', newCode)
       this.code = newCode
       try {
         this.parse()
@@ -146,10 +173,13 @@ export default {
       try {
         const func = () => {
           let body = `(Fuse, list) => {${this.code}}`
-          return eval(body)(Fuse, this.list)
+          return eval(body)(DemoFuse, this.list)
         }
         let start = new Date().getTime()
-        this.result = func()
+        // this.result = func()
+        const { pattern, results } = func()
+        this.result = results
+        this.pattern = pattern
         let end = new Date().getTime()
         this.searchTime = end - start + ' ms'
         this.codeErrorMessage = null
@@ -172,11 +202,9 @@ export default {
       )
       this.count = this.result.length
       this.outputHtml = html
-    }
-  },
-  computed: {
-    codemirror() {
-      return this.$refs.cmEditor.codemirror
+    },
+    onPatternKeyUp() {
+      this.code = code(this.pattern)
     }
   },
   mounted() {
@@ -247,5 +275,15 @@ export default {
 .live-demo .output .token.doctype,
 .live-demo .output .token.cdata {
   color: #a11 !important;
+}
+
+.live-demo .search-section {
+  margin-bottom: 20px;
+}
+.live-demo .search-section input {
+  font-size: 16px;
+}
+.live-demo .toggle-code {
+  cursor: pointer;
 }
 </style>
