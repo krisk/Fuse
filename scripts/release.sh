@@ -18,7 +18,32 @@ else
   VERSION=$1
 fi
 
-read -p "Releasing $VERSION - are you sure? (y/n) " -n 1 -r
+PS3='Please enter your choice: '
+options=("latest" "beta" "alpha")
+select opt in "${options[@]}"
+do
+  case $opt in
+    "latest")
+      break
+      ;;
+    "beta")
+      RELEASE_TAG='beta'
+      break
+      ;;
+    "alpha")
+      RELEASE_TAG='alpha'
+      break
+      ;;
+    *) echo "invalid option $REPLY";;
+  esac
+done
+
+if [[ -z $RELEASE_TAG ]]; then
+  read -p "Releasing $VERSION (latest) - are you sure? (y/n) " -n 1 -r
+else
+  read -p "Releasing $VERSION ($RELEASE_TAG) - are you sure? (y/n) " -n 1 -r
+fi
+
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -46,7 +71,11 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   git push origin master
 
   # Publish
-  npm publish
+  if [[ -z $RELEASE_TAG ]]; then
+    npm publish
+  else
+    npm publish --tag "$RELEASE_TAG"
+  fi
 else
   echo -e "\033[0;31mCancelling...\033[0m"
 fi
