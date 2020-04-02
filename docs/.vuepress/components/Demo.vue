@@ -147,7 +147,6 @@ export default {
   methods: {
     toggleCode() {
       this.showCode = !this.showCode
-      console.log(this.showCode)
     },
     onCmCodeChange(newCode) {
       this.code = newCode
