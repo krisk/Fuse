@@ -2,13 +2,8 @@
 // Match type: suffix-exact-match
 // Description: Items that end with `.file`
 
-const isForPattern = (pattern) => pattern.charAt(pattern.length - 1) == '$'
-
-const sanitize = (pattern) => pattern.substr(0, pattern.length - 1)
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern)
-  const isMatch = text.endsWith(sanitizedPattern)
+const search = (pattern, text) => {
+  const isMatch = text.endsWith(pattern)
 
   return {
     isMatch,
@@ -16,8 +11,13 @@ const match = (pattern, text) => {
   }
 }
 
+const literal = /^"(.*)"\$$/
+const re = /^(.*)\$$/
+const name = 'suffix-exact'
+
 export default {
-  isForPattern,
-  sanitize,
-  match
+  name,
+  literal,
+  re,
+  search
 }

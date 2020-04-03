@@ -2,13 +2,8 @@
 // Match type: inverse-exact-match
 // Description: Items that do not include `fire`
 
-const isForPattern = (pattern) => pattern.charAt(0) == '!'
-
-const sanitize = (pattern) => pattern.substr(1)
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern)
-  const isMatch = text.indexOf(sanitizedPattern) === -1
+const search = (pattern, text) => {
+  const isMatch = text.indexOf(pattern) === -1
 
   return {
     isMatch,
@@ -16,8 +11,13 @@ const match = (pattern, text) => {
   }
 }
 
+const literal = /^!"(.*)"$/
+const re = /^!(.*)$/
+const name = 'inverse-exact'
+
 export default {
-  isForPattern,
-  sanitize,
-  match
+  name,
+  literal,
+  re,
+  search
 }

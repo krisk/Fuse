@@ -2,14 +2,8 @@
 // Match type: inverse-suffix-exact-match
 // Description: Items that do not end with `.file`
 
-const isForPattern = (pattern) =>
-  pattern.charAt(0) == '!' && pattern.charAt(pattern.length - 1) == '$'
-
-const sanitize = (pattern) => pattern.substring(1, pattern.length - 1)
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern)
-  const isMatch = !text.endsWith(sanitizedPattern)
+const search = (pattern, text) => {
+  const isMatch = !text.endsWith(pattern)
 
   return {
     isMatch,
@@ -17,8 +11,13 @@ const match = (pattern, text) => {
   }
 }
 
+const literal = /^!"(.*)"\$$/
+const re = /^!(.*)\$$/
+const name = 'inverse-suffix-exact'
+
 export default {
-  isForPattern,
-  sanitize,
-  match
+  name,
+  literal,
+  re,
+  search
 }

@@ -1,6 +1,6 @@
 const Fuse = require('../dist/fuse')
 
-describe('Searching using plugins', () => {
+describe('Searching using extended search', () => {
   const list = [
     {
       text: 'hello word'
@@ -62,6 +62,16 @@ describe('Searching using plugins', () => {
 
   test('Search: all', () => {
     let result = fuse.search('!foo$ !^how')
+    expect(result.length).toBe(2)
+  })
+
+  test('Search: literal', () => {
+    let result = fuse.search('\'"indeed fine"')
+    expect(result.length).toBe(1)
+  })
+
+  test('Search: literal', () => {
+    let result = fuse.search('\'"indeed fine" foo$ | \'are')
     expect(result.length).toBe(2)
   })
 })

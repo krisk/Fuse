@@ -404,17 +404,8 @@
   // Token: 'file
   // Match type: exact-match
   // Description: Items that include `file`
-  var isForPattern = function isForPattern(pattern) {
-    return pattern.charAt(0) == "'";
-  };
-
-  var sanitize = function sanitize(pattern) {
-    return pattern.substr(1);
-  };
-
-  var match = function match(pattern, text) {
-    var sanitizedPattern = sanitize(pattern);
-    var index = text.indexOf(sanitizedPattern);
+  var search = function search(pattern, text) {
+    var index = text.indexOf(pattern);
     var isMatch = index > -1;
     return {
       isMatch: isMatch,
@@ -422,140 +413,119 @@
     };
   };
 
+  var literal = /^'"(.*)"$/;
+  var re = /^'(.*)$/;
+  var name = 'exact';
   var exactMatch = {
-    isForPattern: isForPattern,
-    sanitize: sanitize,
-    match: match
+    name: name,
+    literal: literal,
+    re: re,
+    search: search
   };
 
   // Token: !fire
   // Match type: inverse-exact-match
   // Description: Items that do not include `fire`
-  var isForPattern$1 = function isForPattern(pattern) {
-    return pattern.charAt(0) == '!';
-  };
-
-  var sanitize$1 = function sanitize(pattern) {
-    return pattern.substr(1);
-  };
-
-  var match$1 = function match(pattern, text) {
-    var sanitizedPattern = sanitize$1(pattern);
-    var isMatch = text.indexOf(sanitizedPattern) === -1;
+  var search$1 = function search(pattern, text) {
+    var isMatch = text.indexOf(pattern) === -1;
     return {
       isMatch: isMatch,
       score: 0
     };
   };
 
+  var literal$1 = /^!"(.*)"$/;
+  var re$1 = /^!(.*)$/;
+  var name$1 = 'inverse-exact';
   var inverseExactMatch = {
-    isForPattern: isForPattern$1,
-    sanitize: sanitize$1,
-    match: match$1
+    name: name$1,
+    literal: literal$1,
+    re: re$1,
+    search: search$1
   };
 
   // Token: ^file
   // Match type: prefix-exact-match
   // Description: Items that start with `file`
-  var isForPattern$2 = function isForPattern(pattern) {
-    return pattern.charAt(0) == '^';
-  };
-
-  var sanitize$2 = function sanitize(pattern) {
-    return pattern.substr(1);
-  };
-
-  var match$2 = function match(pattern, text) {
-    var sanitizedPattern = sanitize$2(pattern);
-    var isMatch = text.startsWith(sanitizedPattern);
+  var search$2 = function search(pattern, text) {
+    var isMatch = text.startsWith(pattern);
     return {
       isMatch: isMatch,
       score: 0
     };
   };
 
+  var literal$2 = /^\^"(.*)"$/;
+  var re$2 = /^\^(.*)$/;
+  var name$2 = 'prefix-exact';
   var prefixExactMatch = {
-    isForPattern: isForPattern$2,
-    sanitize: sanitize$2,
-    match: match$2
+    name: name$2,
+    literal: literal$2,
+    re: re$2,
+    search: search$2
   };
 
   // Token: !^fire
   // Match type: inverse-prefix-exact-match
   // Description: Items that do not start with `fire`
-  var isForPattern$3 = function isForPattern(pattern) {
-    return pattern.charAt(0) == '!' && pattern.charAt(1) == '^';
-  };
-
-  var sanitize$3 = function sanitize(pattern) {
-    return pattern.substr(2);
-  };
-
-  var match$3 = function match(pattern, text) {
-    var sanitizedPattern = sanitize$3(pattern);
-    var isMatch = !text.startsWith(sanitizedPattern);
+  var search$3 = function search(pattern, text) {
+    var isMatch = !text.startsWith(pattern);
     return {
       isMatch: isMatch,
       score: 0
     };
   };
 
+  var literal$3 = /^!\^"(.*)"$/;
+  var re$3 = /^!\^(.*)$/;
+  var name$3 = 'inverse-prefix-exact';
   var inversePrefixExactMatch = {
-    isForPattern: isForPattern$3,
-    sanitize: sanitize$3,
-    match: match$3
+    name: name$3,
+    literal: literal$3,
+    re: re$3,
+    search: search$3
   };
 
   // Token: .file$
   // Match type: suffix-exact-match
   // Description: Items that end with `.file`
-  var isForPattern$4 = function isForPattern(pattern) {
-    return pattern.charAt(pattern.length - 1) == '$';
-  };
-
-  var sanitize$4 = function sanitize(pattern) {
-    return pattern.substr(0, pattern.length - 1);
-  };
-
-  var match$4 = function match(pattern, text) {
-    var sanitizedPattern = sanitize$4(pattern);
-    var isMatch = text.endsWith(sanitizedPattern);
+  var search$4 = function search(pattern, text) {
+    var isMatch = text.endsWith(pattern);
     return {
       isMatch: isMatch,
       score: 0
     };
   };
 
+  var literal$4 = /^"(.*)"\$$/;
+  var re$4 = /^(.*)\$$/;
+  var name$4 = 'suffix-exact';
   var suffixExactMatch = {
-    isForPattern: isForPattern$4,
-    sanitize: sanitize$4,
-    match: match$4
+    name: name$4,
+    literal: literal$4,
+    re: re$4,
+    search: search$4
   };
 
   // Token: !.file$
   // Match type: inverse-suffix-exact-match
   // Description: Items that do not end with `.file`
-  var isForPattern$5 = function isForPattern(pattern) {
-    return pattern.charAt(0) == '!' && pattern.charAt(pattern.length - 1) == '$';
-  };
-
-  var sanitize$5 = function sanitize(pattern) {
-    return pattern.substring(1, pattern.length - 1);
-  };
-
-  var match$5 = function match(pattern, text) {
-    var sanitizedPattern = sanitize$5(pattern);
-    var isMatch = !text.endsWith(sanitizedPattern);
+  var search$5 = function search(pattern, text) {
+    var isMatch = !text.endsWith(pattern);
     return {
       isMatch: isMatch,
       score: 0
     };
   };
 
+  var literal$5 = /^!"(.*)"\$$/;
+  var re$5 = /^!(.*)\$$/;
+  var name$5 = 'inverse-suffix-exact';
   var inverseSuffixExactMatch = {
-    isForPattern: isForPattern$5,
-    sanitize: sanitize$5,
-    match: match$5
+    name: name$5,
+    literal: literal$5,
+    re: re$5,
+    search: search$5
   };
 
   var INFINITY = 1 / 0;
@@ -586,14 +556,83 @@
     return value !== undefined && value !== null;
   };
 
-  // Example:
-  // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
+  var searchers = [exactMatch, prefixExactMatch, inversePrefixExactMatch, inverseSuffixExactMatch, suffixExactMatch, inverseExactMatch, {
+    literal: /^"(.*)"$/,
+    re: /^(.*)$/,
+    name: 'fuzzy',
+    search: function search() {}
+  }];
+  var re$6 = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
 
   var queryfy = function queryfy(pattern) {
     return pattern.split('|').map(function (item) {
-      return item.trim().split(/ +/g);
+      var str = item.trim();
+      var parts = str.split(re$6).filter(function (item) {
+        return item && !!item.trim();
+      });
+
+      {
+        console.log(parts);
+      }
+
+      var results = [];
+
+      for (var i = 0, len = parts.length; i < len; i += 1) {
+        var part = parts[i];
+        var found = false;
+
+        for (var _i = 0, _len = searchers.length; _i < _len; _i += 1) {
+          var searcher = searchers[_i];
+          var matches = part.match(searcher.literal);
+
+          if (matches) {
+            results.push({
+              search: searcher.search,
+              token: matches[1],
+              name: searcher.name
+            });
+            found = true;
+            break;
+          }
+        }
+
+        if (found) {
+          continue;
+        }
+
+        for (var j = 0, _len2 = searchers.length; j < _len2; j += 1) {
+          var _searcher = searchers[j];
+
+          var _matches = part.match(_searcher.re);
+
+          if (_matches) {
+            results.push({
+              search: _searcher.search,
+              token: _matches[1],
+              name: _searcher.name
+            });
+            break;
+          }
+        }
+      }
+
+      return results;
     });
-  };
+  }; // Return a 2D array representation of the query, for simpler parsing.
+  // Example:
+  // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
+  // const queryfy = (pattern) => {
+  //   return pattern.split('|').map((item) => {
+  //     let str = item.trim()
+  //     if (str.startsWith('"') && str.endsWith('"')) {
+  //       console.log(str)
+  //       return str.substring(1, str.length - 1)
+  //     } else {
+  //       return str.split(/ +/g)
+  //     }
+  //   })
+  // }
+
   /**
    * Command-like searching
    * ======================
@@ -655,14 +694,33 @@
         text = this.options.isCaseSensitive ? text : text.toLowerCase();
         var matchFound = false;
 
+        {
+          console.log(query);
+        }
+
         for (var i = 0, qLen = query.length; i < qLen; i += 1) {
           var parts = query[i];
           var result = null;
           matchFound = true;
 
           for (var j = 0, pLen = parts.length; j < pLen; j += 1) {
-            var token = parts[j];
-            result = this._search(token, text);
+            var part = parts[j];
+            var token = part.token;
+            var search = part.search;
+
+            if (search) {
+              result = search(token, text);
+            } else {
+              var searcher = this._fuzzyCache[pattern];
+
+              if (!searcher) {
+                searcher = new BitapSearch(pattern, this.options);
+                this._fuzzyCache[pattern] = searcher;
+              }
+
+              result = searcher.searchInString(text);
+            } // result = this._search(token, text)
+
 
             if (!result.isMatch) {
               // AND condition, short-circuit and move on to next part
@@ -682,33 +740,29 @@
           isMatch: false,
           score: 1
         };
-      }
-    }, {
-      key: "_search",
-      value: function _search(pattern, text) {
-        if (exactMatch.isForPattern(pattern)) {
-          return exactMatch.match(pattern, text);
-        } else if (prefixExactMatch.isForPattern(pattern)) {
-          return prefixExactMatch.match(pattern, text);
-        } else if (inversePrefixExactMatch.isForPattern(pattern)) {
-          return inversePrefixExactMatch.match(pattern, text);
-        } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
-          return inverseSuffixExactMatch.match(pattern, text);
-        } else if (suffixExactMatch.isForPattern(pattern)) {
-          return suffixExactMatch.match(pattern, text);
-        } else if (inverseExactMatch.isForPattern(pattern)) {
-          return inverseExactMatch.match(pattern, text);
-        } else {
-          var searcher = this._fuzzyCache[pattern];
+      } // _search(pattern, text) {
+      //   if (exactMatch.isForPattern(pattern)) {
+      //     return exactMatch.match(pattern, text)
+      //   } else if (prefixExactMatch.isForPattern(pattern)) {
+      //     return prefixExactMatch.match(pattern, text)
+      //   } else if (inversePrefixExactMatch.isForPattern(pattern)) {
+      //     return inversePrefixExactMatch.match(pattern, text)
+      //   } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
+      //     return inverseSuffixExactMatch.match(pattern, text)
+      //   } else if (suffixExactMatch.isForPattern(pattern)) {
+      //     return suffixExactMatch.match(pattern, text)
+      //   } else if (inverseExactMatch.isForPattern(pattern)) {
+      //     return inverseExactMatch.match(pattern, text)
+      //   } else {
+      //     let searcher = this._fuzzyCache[pattern]
+      //     if (!searcher) {
+      //       searcher = new BitapSearch(pattern, this.options)
+      //       this._fuzzyCache[pattern] = searcher
+      //     }
+      //     return searcher.searchInString(text)
+      //   }
+      // }
 
-          if (!searcher) {
-            searcher = new BitapSearch(pattern, this.options);
-            this._fuzzyCache[pattern] = searcher;
-          }
-
-          return searcher.searchInString(text);
-        }
-      }
     }]);
 
     return ExtendedSearch;

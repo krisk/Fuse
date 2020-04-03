@@ -329,13 +329,8 @@ class BitapSearch {
 // Match type: exact-match
 // Description: Items that include `file`
 
-const isForPattern = (pattern) => pattern.charAt(0) == "'";
-
-const sanitize = (pattern) => pattern.substr(1);
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern);
-  const index = text.indexOf(sanitizedPattern);
+const search = (pattern, text) => {
+  const index = text.indexOf(pattern);
   const isMatch = index > -1;
 
   return {
@@ -344,23 +339,23 @@ const match = (pattern, text) => {
   }
 };
 
+const literal = /^'"(.*)"$/;
+const re = /^'(.*)$/;
+const name = 'exact';
+
 var exactMatch = {
-  isForPattern,
-  sanitize,
-  match
+  name,
+  literal,
+  re,
+  search
 };
 
 // Token: !fire
 // Match type: inverse-exact-match
 // Description: Items that do not include `fire`
 
-const isForPattern$1 = (pattern) => pattern.charAt(0) == '!';
-
-const sanitize$1 = (pattern) => pattern.substr(1);
-
-const match$1 = (pattern, text) => {
-  const sanitizedPattern = sanitize$1(pattern);
-  const isMatch = text.indexOf(sanitizedPattern) === -1;
+const search$1 = (pattern, text) => {
+  const isMatch = text.indexOf(pattern) === -1;
 
   return {
     isMatch,
@@ -368,23 +363,23 @@ const match$1 = (pattern, text) => {
   }
 };
 
+const literal$1 = /^!"(.*)"$/;
+const re$1 = /^!(.*)$/;
+const name$1 = 'inverse-exact';
+
 var inverseExactMatch = {
-  isForPattern: isForPattern$1,
-  sanitize: sanitize$1,
-  match: match$1
+  name: name$1,
+  literal: literal$1,
+  re: re$1,
+  search: search$1
 };
 
 // Token: ^file
 // Match type: prefix-exact-match
 // Description: Items that start with `file`
 
-const isForPattern$2 = (pattern) => pattern.charAt(0) == '^';
-
-const sanitize$2 = (pattern) => pattern.substr(1);
-
-const match$2 = (pattern, text) => {
-  const sanitizedPattern = sanitize$2(pattern);
-  const isMatch = text.startsWith(sanitizedPattern);
+const search$2 = (pattern, text) => {
+  const isMatch = text.startsWith(pattern);
 
   return {
     isMatch,
@@ -392,24 +387,23 @@ const match$2 = (pattern, text) => {
   }
 };
 
+const literal$2 = /^\^"(.*)"$/;
+const re$2 = /^\^(.*)$/;
+const name$2 = 'prefix-exact';
+
 var prefixExactMatch = {
-  isForPattern: isForPattern$2,
-  sanitize: sanitize$2,
-  match: match$2
+  name: name$2,
+  literal: literal$2,
+  re: re$2,
+  search: search$2
 };
 
 // Token: !^fire
 // Match type: inverse-prefix-exact-match
 // Description: Items that do not start with `fire`
 
-const isForPattern$3 = (pattern) =>
-  pattern.charAt(0) == '!' && pattern.charAt(1) == '^';
-
-const sanitize$3 = (pattern) => pattern.substr(2);
-
-const match$3 = (pattern, text) => {
-  const sanitizedPattern = sanitize$3(pattern);
-  const isMatch = !text.startsWith(sanitizedPattern);
+const search$3 = (pattern, text) => {
+  const isMatch = !text.startsWith(pattern);
 
   return {
     isMatch,
@@ -417,23 +411,23 @@ const match$3 = (pattern, text) => {
   }
 };
 
+const literal$3 = /^!\^"(.*)"$/;
+const re$3 = /^!\^(.*)$/;
+const name$3 = 'inverse-prefix-exact';
+
 var inversePrefixExactMatch = {
-  isForPattern: isForPattern$3,
-  sanitize: sanitize$3,
-  match: match$3
+  name: name$3,
+  literal: literal$3,
+  re: re$3,
+  search: search$3
 };
 
 // Token: .file$
 // Match type: suffix-exact-match
 // Description: Items that end with `.file`
 
-const isForPattern$4 = (pattern) => pattern.charAt(pattern.length - 1) == '$';
-
-const sanitize$4 = (pattern) => pattern.substr(0, pattern.length - 1);
-
-const match$4 = (pattern, text) => {
-  const sanitizedPattern = sanitize$4(pattern);
-  const isMatch = text.endsWith(sanitizedPattern);
+const search$4 = (pattern, text) => {
+  const isMatch = text.endsWith(pattern);
 
   return {
     isMatch,
@@ -441,24 +435,23 @@ const match$4 = (pattern, text) => {
   }
 };
 
+const literal$4 = /^"(.*)"\$$/;
+const re$4 = /^(.*)\$$/;
+const name$4 = 'suffix-exact';
+
 var suffixExactMatch = {
-  isForPattern: isForPattern$4,
-  sanitize: sanitize$4,
-  match: match$4
+  name: name$4,
+  literal: literal$4,
+  re: re$4,
+  search: search$4
 };
 
 // Token: !.file$
 // Match type: inverse-suffix-exact-match
 // Description: Items that do not end with `.file`
 
-const isForPattern$5 = (pattern) =>
-  pattern.charAt(0) == '!' && pattern.charAt(pattern.length - 1) == '$';
-
-const sanitize$5 = (pattern) => pattern.substring(1, pattern.length - 1);
-
-const match$5 = (pattern, text) => {
-  const sanitizedPattern = sanitize$5(pattern);
-  const isMatch = !text.endsWith(sanitizedPattern);
+const search$5 = (pattern, text) => {
+  const isMatch = !text.endsWith(pattern);
 
   return {
     isMatch,
@@ -466,10 +459,15 @@ const match$5 = (pattern, text) => {
   }
 };
 
+const literal$5 = /^!"(.*)"\$$/;
+const re$5 = /^!(.*)\$$/;
+const name$5 = 'inverse-suffix-exact';
+
 var inverseSuffixExactMatch = {
-  isForPattern: isForPattern$5,
-  sanitize: sanitize$5,
-  match: match$5
+  name: name$5,
+  literal: literal$5,
+  re: re$5,
+  search: search$5
 };
 
 const INFINITY = 1 / 0;
@@ -498,11 +496,84 @@ const isNumber = (value) => typeof value === 'number';
 
 const isDefined = (value) => value !== undefined && value !== null;
 
+const searchers = [
+  exactMatch,
+  prefixExactMatch,
+  inversePrefixExactMatch,
+  inverseSuffixExactMatch,
+  suffixExactMatch,
+  inverseExactMatch,
+  { literal: /^"(.*)"$/, re: /^(.*)$/, name: 'fuzzy', search: () => {} }
+];
+
+const re$6 = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
+
+const queryfy = (pattern) => {
+  return pattern.split('|').map((item) => {
+    let str = item.trim();
+    let parts = str.split(re$6).filter((item) => {
+      return item && !!item.trim()
+    });
+
+    {
+      console.log(parts);
+    }
+
+    let results = [];
+    for (let i = 0, len = parts.length; i < len; i += 1) {
+      const part = parts[i];
+
+      let found = false;
+      for (let i = 0, len = searchers.length; i < len; i += 1) {
+        const searcher = searchers[i];
+        let matches = part.match(searcher.literal);
+        if (matches) {
+          results.push({
+            search: searcher.search,
+            token: matches[1],
+            name: searcher.name
+          });
+          found = true;
+          break
+        }
+      }
+
+      if (found) {
+        continue
+      }
+
+      for (let j = 0, len = searchers.length; j < len; j += 1) {
+        const searcher = searchers[j];
+        let matches = part.match(searcher.re);
+        if (matches) {
+          results.push({
+            search: searcher.search,
+            token: matches[1],
+            name: searcher.name
+          });
+          break
+        }
+      }
+    }
+
+    return results
+  })
+};
+
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-const queryfy = (pattern) =>
-  pattern.split('|').map((item) => item.trim().split(/ +/g));
+// const queryfy = (pattern) => {
+//   return pattern.split('|').map((item) => {
+//     let str = item.trim()
+//     if (str.startsWith('"') && str.endsWith('"')) {
+//       console.log(str)
+//       return str.substring(1, str.length - 1)
+//     } else {
+//       return str.split(/ +/g)
+//     }
+//   })
+// }
 
 /**
  * Command-like searching
@@ -561,14 +632,33 @@ class ExtendedSearch {
 
     let matchFound = false;
 
+    {
+      console.log(query);
+    }
+
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
       const parts = query[i];
       let result = null;
       matchFound = true;
 
       for (let j = 0, pLen = parts.length; j < pLen; j += 1) {
-        let token = parts[j];
-        result = this._search(token, text);
+        const part = parts[j];
+
+        let token = part.token;
+        const search = part.search;
+
+        if (search) {
+          result = search(token, text);
+        } else {
+          let searcher = this._fuzzyCache[pattern];
+          if (!searcher) {
+            searcher = new BitapSearch(pattern, this.options);
+            this._fuzzyCache[pattern] = searcher;
+          }
+          result = searcher.searchInString(text);
+        }
+
+        // result = this._search(token, text)
         if (!result.isMatch) {
           // AND condition, short-circuit and move on to next part
           matchFound = false;
@@ -589,28 +679,28 @@ class ExtendedSearch {
     }
   }
 
-  _search(pattern, text) {
-    if (exactMatch.isForPattern(pattern)) {
-      return exactMatch.match(pattern, text)
-    } else if (prefixExactMatch.isForPattern(pattern)) {
-      return prefixExactMatch.match(pattern, text)
-    } else if (inversePrefixExactMatch.isForPattern(pattern)) {
-      return inversePrefixExactMatch.match(pattern, text)
-    } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
-      return inverseSuffixExactMatch.match(pattern, text)
-    } else if (suffixExactMatch.isForPattern(pattern)) {
-      return suffixExactMatch.match(pattern, text)
-    } else if (inverseExactMatch.isForPattern(pattern)) {
-      return inverseExactMatch.match(pattern, text)
-    } else {
-      let searcher = this._fuzzyCache[pattern];
-      if (!searcher) {
-        searcher = new BitapSearch(pattern, this.options);
-        this._fuzzyCache[pattern] = searcher;
-      }
-      return searcher.searchInString(text)
-    }
-  }
+  // _search(pattern, text) {
+  //   if (exactMatch.isForPattern(pattern)) {
+  //     return exactMatch.match(pattern, text)
+  //   } else if (prefixExactMatch.isForPattern(pattern)) {
+  //     return prefixExactMatch.match(pattern, text)
+  //   } else if (inversePrefixExactMatch.isForPattern(pattern)) {
+  //     return inversePrefixExactMatch.match(pattern, text)
+  //   } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
+  //     return inverseSuffixExactMatch.match(pattern, text)
+  //   } else if (suffixExactMatch.isForPattern(pattern)) {
+  //     return suffixExactMatch.match(pattern, text)
+  //   } else if (inverseExactMatch.isForPattern(pattern)) {
+  //     return inverseExactMatch.match(pattern, text)
+  //   } else {
+  //     let searcher = this._fuzzyCache[pattern]
+  //     if (!searcher) {
+  //       searcher = new BitapSearch(pattern, this.options)
+  //       this._fuzzyCache[pattern] = searcher
+  //     }
+  //     return searcher.searchInString(text)
+  //   }
+  // }
 }
 
 const NGRAM_LEN = 3;
