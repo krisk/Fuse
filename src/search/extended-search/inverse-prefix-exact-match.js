@@ -2,23 +2,28 @@
 // Match type: inverse-prefix-exact-match
 // Description: Items that do not start with `fire`
 
-const isForPattern = (pattern) =>
-  pattern.charAt(0) == '!' && pattern.charAt(1) == '^'
+import Match from './match'
 
-const sanitize = (pattern) => pattern.substr(2)
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern)
-  const isMatch = !text.startsWith(sanitizedPattern)
-
-  return {
-    isMatch,
-    score: 0
+export default class InversePrefixExactMatch extends Match {
+  constructor(pattern) {
+    super(pattern)
   }
-}
+  static get type() {
+    return 'inverse-prefix-exact'
+  }
+  static get literal() {
+    return /^!\^"(.*)"$/
+  }
+  static get re() {
+    return /^!\^(.*)$/
+  }
+  search(text) {
+    const isMatch = !text.startsWith(this.pattern)
 
-export default {
-  isForPattern,
-  sanitize,
-  match
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      matchedIndices: [0, text.length - 1]
+    }
+  }
 }

@@ -80,6 +80,116 @@ function _objectSpread2(target) {
   return target;
 }
 
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf(subClass, superClass);
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+function _createSuper(Derived) {
+  return function () {
+    var Super = _getPrototypeOf(Derived),
+        result;
+
+    if (_isNativeReflectConstruct()) {
+      var NewTarget = _getPrototypeOf(this).constructor;
+
+      result = Reflect.construct(Super, arguments, NewTarget);
+    } else {
+      result = Super.apply(this, arguments);
+    }
+
+    return _possibleConstructorReturn(this, result);
+  };
+}
+
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+}
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+}
+
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+}
+
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(n);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+  return arr2;
+}
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
 function bitapScore(pattern, _ref) {
   var _ref$errors = _ref.errors,
       errors = _ref$errors === void 0 ? 0 : _ref$errors,
@@ -132,19 +242,143 @@ function matchedIndiced() {
   return matchedIndices;
 }
 
-function bitapSearch(text, pattern, patternAlphabet, _ref) {
-  var _ref$location = _ref.location,
-      location = _ref$location === void 0 ? 0 : _ref$location,
+var INFINITY = 1 / 0;
+var isArray = function isArray(value) {
+  return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
+}; // Adapted from:
+// https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
+
+var baseToString = function baseToString(value) {
+  // Exit early for strings to avoid a performance hit in some environments.
+  if (typeof value == 'string') {
+    return value;
+  }
+
+  var result = value + '';
+  return result == '0' && 1 / value == -INFINITY ? '-0' : result;
+};
+var toString = function toString(value) {
+  return value == null ? '' : baseToString(value);
+};
+var isString = function isString(value) {
+  return typeof value === 'string';
+};
+var isNumber = function isNumber(value) {
+  return typeof value === 'number';
+};
+var isDefined = function isDefined(value) {
+  return value !== undefined && value !== null;
+};
+
+function get(obj, path) {
+  var list = [];
+  var arr = false;
+
+  var _get = function _get(obj, path) {
+    if (!path) {
+      // If there's no path left, we've gotten to the object we care about.
+      list.push(obj);
+    } else {
+      var dotIndex = path.indexOf('.');
+      var key = path;
+      var remaining = null;
+
+      if (dotIndex !== -1) {
+        key = path.slice(0, dotIndex);
+        remaining = path.slice(dotIndex + 1);
+      }
+
+      var value = obj[key];
+
+      if (isDefined(value)) {
+        if (!remaining && (isString(value) || isNumber(value))) {
+          list.push(toString(value));
+        } else if (isArray(value)) {
+          arr = true; // Search each item in the array.
+
+          for (var i = 0, len = value.length; i < len; i += 1) {
+            _get(value[i], remaining);
+          }
+        } else if (remaining) {
+          // An object. Recurse further.
+          _get(value, remaining);
+        }
+      }
+    }
+  };
+
+  _get(obj, path);
+
+  if (arr) {
+    return list;
+  }
+
+  return list[0];
+}
+
+var MatchOptions = {
+  // Whether the matches should be included in the result set. When true, each record in the result
+  // set will include the indices of the matched characters.
+  // These can consequently be used for highlighting purposes.
+  includeMatches: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  // a perfect match has already been located in the string.
+  findAllMatches: false,
+  // Minimum number of characters that must be matched before a result is considered a match
+  minMatchCharLength: 1
+};
+var BasicOptions = {
+  // When true, the algorithm continues searching to the end of the input even if a perfect
+  // match is found before the end of the same input.
+  isCaseSensitive: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  includeScore: false,
+  // List of properties that will be searched. This also supports nested properties.
+  keys: [],
+  // Whether to sort the result list, by score
+  shouldSort: true,
+  // Default sort function
+  sortFn: function sortFn(a, b) {
+    return a.score - b.score;
+  }
+};
+var FuzzyOptions = {
+  // Approximately where in the text is the pattern expected to be found?
+  location: 0,
+  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+  // (of both letters and location), a threshold of '1.0' would match anything.
+  threshold: 0.6,
+  // Determines how close the match must be to the fuzzy location (specified above).
+  // An exact letter match which is 'distance' characters away from the fuzzy location
+  // would score as a complete mismatch. A distance of '0' requires the match be at
+  // the exact location specified, a threshold of '1000' would require a perfect match
+  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+  distance: 100
+};
+var AdvancedOptions = {
+  // When true, it enables the use of unix-like search commands
+  useExtendedSearch: false,
+  // The get function to use when fetching an object's properties.
+  // The default will search nested paths *ie foo.bar.baz*
+  getFn: get
+};
+var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
+
+function bitapSearch(text, pattern, patternAlphabet) {
+  var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
+      _ref$location = _ref.location,
+      location = _ref$location === void 0 ? Config.location : _ref$location,
       _ref$distance = _ref.distance,
-      distance = _ref$distance === void 0 ? 100 : _ref$distance,
+      distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
       _ref$threshold = _ref.threshold,
-      threshold = _ref$threshold === void 0 ? 0.6 : _ref$threshold,
+      threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
       _ref$findAllMatches = _ref.findAllMatches,
-      findAllMatches = _ref$findAllMatches === void 0 ? false : _ref$findAllMatches,
+      findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
       _ref$minMatchCharLeng = _ref.minMatchCharLength,
-      minMatchCharLength = _ref$minMatchCharLeng === void 0 ? 1 : _ref$minMatchCharLeng,
+      minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
       _ref$includeMatches = _ref.includeMatches,
-      includeMatches = _ref$includeMatches === void 0 ? false : _ref$includeMatches;
+      includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
+
   var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
 
   var textLen = text.length; // Handle the case when location > text.length
@@ -309,39 +543,20 @@ function patternAlphabet(pattern) {
 var MAX_BITS = 32;
 
 var BitapSearch = /*#__PURE__*/function () {
-  function BitapSearch(pattern, _ref) {
-    var _ref$location = _ref.location,
-        location = _ref$location === void 0 ? 0 : _ref$location,
-        _ref$distance = _ref.distance,
-        distance = _ref$distance === void 0 ? 100 : _ref$distance,
-        _ref$threshold = _ref.threshold,
-        threshold = _ref$threshold === void 0 ? 0.6 : _ref$threshold,
-        _ref$isCaseSensitive = _ref.isCaseSensitive,
-        isCaseSensitive = _ref$isCaseSensitive === void 0 ? false : _ref$isCaseSensitive,
-        _ref$findAllMatches = _ref.findAllMatches,
-        findAllMatches = _ref$findAllMatches === void 0 ? false : _ref$findAllMatches,
-        _ref$minMatchCharLeng = _ref.minMatchCharLength,
-        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? 1 : _ref$minMatchCharLeng,
-        _ref$includeMatches = _ref.includeMatches,
-        includeMatches = _ref$includeMatches === void 0 ? false : _ref$includeMatches;
+  function BitapSearch(pattern) {
+    var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
+
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
 
     _classCallCheck(this, BitapSearch);
 
-    this.options = {
-      location: location,
-      distance: distance,
-      threshold: threshold,
-      isCaseSensitive: isCaseSensitive,
-      findAllMatches: findAllMatches,
-      includeMatches: includeMatches,
-      minMatchCharLength: minMatchCharLength
-    };
+    this.options = options;
 
     if (pattern.length > MAX_BITS) {
       throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
     }
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
     this.patternAlphabet = patternAlphabet(this.pattern);
   }
 
@@ -397,199 +612,382 @@ var BitapSearch = /*#__PURE__*/function () {
   return BitapSearch;
 }();
 
-// Token: 'file
-// Match type: exact-match
-// Description: Items that include `file`
-var isForPattern = function isForPattern(pattern) {
-  return pattern.charAt(0) == "'";
-};
+var Match = /*#__PURE__*/function () {
+  function Match(pattern) {
+    _classCallCheck(this, Match);
 
-var sanitize = function sanitize(pattern) {
-  return pattern.substr(1);
-};
-
-var match = function match(pattern, text) {
-  var sanitizedPattern = sanitize(pattern);
-  var index = text.indexOf(sanitizedPattern);
-  var isMatch = index > -1;
-  return {
-    isMatch: isMatch,
-    score: 0
-  };
-};
-
-var exactMatch = {
-  isForPattern: isForPattern,
-  sanitize: sanitize,
-  match: match
-};
-
-// Token: !fire
-// Match type: inverse-exact-match
-// Description: Items that do not include `fire`
-var isForPattern$1 = function isForPattern(pattern) {
-  return pattern.charAt(0) == '!';
-};
-
-var sanitize$1 = function sanitize(pattern) {
-  return pattern.substr(1);
-};
-
-var match$1 = function match(pattern, text) {
-  var sanitizedPattern = sanitize$1(pattern);
-  var isMatch = text.indexOf(sanitizedPattern) === -1;
-  return {
-    isMatch: isMatch,
-    score: 0
-  };
-};
-
-var inverseExactMatch = {
-  isForPattern: isForPattern$1,
-  sanitize: sanitize$1,
-  match: match$1
-};
-
-// Token: ^file
-// Match type: prefix-exact-match
-// Description: Items that start with `file`
-var isForPattern$2 = function isForPattern(pattern) {
-  return pattern.charAt(0) == '^';
-};
-
-var sanitize$2 = function sanitize(pattern) {
-  return pattern.substr(1);
-};
-
-var match$2 = function match(pattern, text) {
-  var sanitizedPattern = sanitize$2(pattern);
-  var isMatch = text.startsWith(sanitizedPattern);
-  return {
-    isMatch: isMatch,
-    score: 0
-  };
-};
-
-var prefixExactMatch = {
-  isForPattern: isForPattern$2,
-  sanitize: sanitize$2,
-  match: match$2
-};
-
-// Token: !^fire
-// Match type: inverse-prefix-exact-match
-// Description: Items that do not start with `fire`
-var isForPattern$3 = function isForPattern(pattern) {
-  return pattern.charAt(0) == '!' && pattern.charAt(1) == '^';
-};
-
-var sanitize$3 = function sanitize(pattern) {
-  return pattern.substr(2);
-};
-
-var match$3 = function match(pattern, text) {
-  var sanitizedPattern = sanitize$3(pattern);
-  var isMatch = !text.startsWith(sanitizedPattern);
-  return {
-    isMatch: isMatch,
-    score: 0
-  };
-};
-
-var inversePrefixExactMatch = {
-  isForPattern: isForPattern$3,
-  sanitize: sanitize$3,
-  match: match$3
-};
-
-// Token: .file$
-// Match type: suffix-exact-match
-// Description: Items that end with `.file`
-var isForPattern$4 = function isForPattern(pattern) {
-  return pattern.charAt(pattern.length - 1) == '$';
-};
-
-var sanitize$4 = function sanitize(pattern) {
-  return pattern.substr(0, pattern.length - 1);
-};
-
-var match$4 = function match(pattern, text) {
-  var sanitizedPattern = sanitize$4(pattern);
-  var isMatch = text.endsWith(sanitizedPattern);
-  return {
-    isMatch: isMatch,
-    score: 0
-  };
-};
-
-var suffixExactMatch = {
-  isForPattern: isForPattern$4,
-  sanitize: sanitize$4,
-  match: match$4
-};
-
-// Token: !.file$
-// Match type: inverse-suffix-exact-match
-// Description: Items that do not end with `.file`
-var isForPattern$5 = function isForPattern(pattern) {
-  return pattern.charAt(0) == '!' && pattern.charAt(pattern.length - 1) == '$';
-};
-
-var sanitize$5 = function sanitize(pattern) {
-  return pattern.substring(1, pattern.length - 1);
-};
-
-var match$5 = function match(pattern, text) {
-  var sanitizedPattern = sanitize$5(pattern);
-  var isMatch = !text.endsWith(sanitizedPattern);
-  return {
-    isMatch: isMatch,
-    score: 0
-  };
-};
-
-var inverseSuffixExactMatch = {
-  isForPattern: isForPattern$5,
-  sanitize: sanitize$5,
-  match: match$5
-};
-
-var INFINITY = 1 / 0;
-var isArray = function isArray(value) {
-  return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
-}; // Adapted from:
-// https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-
-var baseToString = function baseToString(value) {
-  // Exit early for strings to avoid a performance hit in some environments.
-  if (typeof value == 'string') {
-    return value;
+    this.pattern = pattern;
   }
 
-  var result = value + '';
-  return result == '0' && 1 / value == -INFINITY ? '-0' : result;
-};
-var toString = function toString(value) {
-  return value == null ? '' : baseToString(value);
-};
-var isString = function isString(value) {
-  return typeof value === 'string';
-};
-var isNumber = function isNumber(value) {
-  return typeof value === 'number';
-};
-var isDefined = function isDefined(value) {
-  return value !== undefined && value !== null;
-};
+  _createClass(Match, [{
+    key: "search",
+    value: function search(text) {}
+  }], [{
+    key: "isLiteralMatch",
+    value: function isLiteralMatch(pattern) {
+      return getMatch(pattern, this.literal);
+    }
+  }, {
+    key: "isRegMatch",
+    value: function isRegMatch(pattern, re) {
+      return getMatch(pattern, this.re);
+    }
+  }]);
 
+  return Match;
+}();
+
+function getMatch(pattern, exp) {
+  var matches = pattern.match(exp);
+  return matches ? matches[1] : null;
+}
+
+var ExactMatch = /*#__PURE__*/function (_Match) {
+  _inherits(ExactMatch, _Match);
+
+  var _super = _createSuper(ExactMatch);
+
+  function ExactMatch(pattern) {
+    _classCallCheck(this, ExactMatch);
+
+    return _super.call(this, pattern);
+  }
+
+  _createClass(ExactMatch, [{
+    key: "search",
+    value: function search(text) {
+      var index = text.indexOf(this.pattern);
+      var isMatch = index > -1;
+      return {
+        isMatch: isMatch,
+        score: isMatch ? 1 : 0,
+        matchedIndices: [index, index + this.pattern.length - 1]
+      };
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'exact';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^'"(.*)"$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^'(.*)$/;
+    }
+  }]);
+
+  return ExactMatch;
+}(Match);
+
+var InverseExactMatch = /*#__PURE__*/function (_Match) {
+  _inherits(InverseExactMatch, _Match);
+
+  var _super = _createSuper(InverseExactMatch);
+
+  function InverseExactMatch(pattern) {
+    _classCallCheck(this, InverseExactMatch);
+
+    return _super.call(this, pattern);
+  }
+
+  _createClass(InverseExactMatch, [{
+    key: "search",
+    value: function search(text) {
+      var index = text.indexOf(this.pattern);
+      var isMatch = index === -1;
+      return {
+        isMatch: isMatch,
+        score: isMatch ? 0 : 1,
+        matchedIndices: [0, text.length - 1]
+      };
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'inverse-exact';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^!"(.*)"$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^!(.*)$/;
+    }
+  }]);
+
+  return InverseExactMatch;
+}(Match);
+
+var PrefixExactMatch = /*#__PURE__*/function (_Match) {
+  _inherits(PrefixExactMatch, _Match);
+
+  var _super = _createSuper(PrefixExactMatch);
+
+  function PrefixExactMatch(pattern) {
+    _classCallCheck(this, PrefixExactMatch);
+
+    return _super.call(this, pattern);
+  }
+
+  _createClass(PrefixExactMatch, [{
+    key: "search",
+    value: function search(text) {
+      var isMatch = text.startsWith(this.pattern);
+      return {
+        isMatch: isMatch,
+        score: isMatch ? 0 : 1,
+        matchedIndices: [0, this.pattern.length - 1]
+      };
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'prefix-exact';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^\^"(.*)"$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^\^(.*)$/;
+    }
+  }]);
+
+  return PrefixExactMatch;
+}(Match);
+
+var InversePrefixExactMatch = /*#__PURE__*/function (_Match) {
+  _inherits(InversePrefixExactMatch, _Match);
+
+  var _super = _createSuper(InversePrefixExactMatch);
+
+  function InversePrefixExactMatch(pattern) {
+    _classCallCheck(this, InversePrefixExactMatch);
+
+    return _super.call(this, pattern);
+  }
+
+  _createClass(InversePrefixExactMatch, [{
+    key: "search",
+    value: function search(text) {
+      var isMatch = !text.startsWith(this.pattern);
+      return {
+        isMatch: isMatch,
+        score: isMatch ? 0 : 1,
+        matchedIndices: [0, text.length - 1]
+      };
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'inverse-prefix-exact';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^!\^"(.*)"$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^!\^(.*)$/;
+    }
+  }]);
+
+  return InversePrefixExactMatch;
+}(Match);
+
+var SuffixExactMatch = /*#__PURE__*/function (_Match) {
+  _inherits(SuffixExactMatch, _Match);
+
+  var _super = _createSuper(SuffixExactMatch);
+
+  function SuffixExactMatch(pattern) {
+    _classCallCheck(this, SuffixExactMatch);
+
+    return _super.call(this, pattern);
+  }
+
+  _createClass(SuffixExactMatch, [{
+    key: "search",
+    value: function search(text) {
+      var isMatch = text.endsWith(this.pattern);
+      return {
+        isMatch: isMatch,
+        score: isMatch ? 0 : 1,
+        matchedIndices: [text.length - this.pattern.length, text.length - 1]
+      };
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'suffix-exact';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^"(.*)"\$$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^(.*)\$$/;
+    }
+  }]);
+
+  return SuffixExactMatch;
+}(Match);
+
+var InverseSuffixExactMatch = /*#__PURE__*/function (_Match) {
+  _inherits(InverseSuffixExactMatch, _Match);
+
+  var _super = _createSuper(InverseSuffixExactMatch);
+
+  function InverseSuffixExactMatch(pattern) {
+    _classCallCheck(this, InverseSuffixExactMatch);
+
+    return _super.call(this, pattern);
+  }
+
+  _createClass(InverseSuffixExactMatch, [{
+    key: "search",
+    value: function search(text) {
+      var isMatch = !text.endsWith(this.pattern);
+      return {
+        isMatch: isMatch,
+        score: isMatch ? 0 : 1,
+        matchedIndices: [0, text.length - 1]
+      };
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'inverse-suffix-exact';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^!"(.*)"\$$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^!(.*)\$$/;
+    }
+  }]);
+
+  return InverseSuffixExactMatch;
+}(Match);
+
+var FuzzyMatch = /*#__PURE__*/function (_Match) {
+  _inherits(FuzzyMatch, _Match);
+
+  var _super = _createSuper(FuzzyMatch);
+
+  function FuzzyMatch(pattern) {
+    var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
+
+    var _this;
+
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+
+    _classCallCheck(this, FuzzyMatch);
+
+    _this = _super.call(this, pattern);
+    _this._bitapSearch = new BitapSearch(pattern, options);
+    return _this;
+  }
+
+  _createClass(FuzzyMatch, [{
+    key: "search",
+    value: function search(text) {
+      return this._bitapSearch.searchInString(text);
+    }
+  }], [{
+    key: "type",
+    get: function get() {
+      return 'fuzzy';
+    }
+  }, {
+    key: "literal",
+    get: function get() {
+      return /^"(.*)"$/;
+    }
+  }, {
+    key: "re",
+    get: function get() {
+      return /^(.*)$/;
+    }
+  }]);
+
+  return FuzzyMatch;
+}(Match);
+
+var searchers = [ExactMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
+var searchersLen = searchers.length; // Regex to split by spaces, but keep anything in quotes together
+
+var SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
+var OR_TOKEN = '|'; // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 
-var queryfy = function queryfy(pattern) {
-  return pattern.split('|').map(function (item) {
-    return item.trim().split(/ +/g);
+function parseQuery(pattern, options) {
+  return pattern.split(OR_TOKEN).map(function (item) {
+    var query = item.trim().split(SPACE_RE).filter(function (item) {
+      return item && !!item.trim();
+    });
+    var results = [];
+
+    for (var i = 0, len = query.length; i < len; i += 1) {
+      var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quotes "hello world")
+
+      var found = false;
+      var idx = -1;
+
+      while (!found && ++idx < searchersLen) {
+        var searcher = searchers[idx];
+        var token = searcher.isLiteralMatch(queryItem);
+
+        if (token) {
+          results.push(new searcher(token, options));
+          found = true;
+        }
+      }
+
+      if (found) {
+        continue;
+      } // 2. Handle regular queries
+
+
+      idx = -1;
+
+      while (++idx < searchersLen) {
+        var _searcher = searchers[idx];
+
+        var _token = _searcher.isRegMatch(queryItem);
+
+        if (_token) {
+          results.push(new _searcher(_token, options));
+          break;
+        }
+      }
+    }
+
+    return results;
   });
-};
+}
+
 /**
  * Command-like searching
  * ======================
@@ -618,21 +1016,18 @@ var queryfy = function queryfy(pattern) {
  * ```
  */
 
-
 var ExtendedSearch = /*#__PURE__*/function () {
-  function ExtendedSearch(pattern, options) {
+  function ExtendedSearch(pattern) {
+    var _ref, _ref$isCaseSensitive, _ref$includeMatches, _ref$minMatchCharLeng, _ref$findAllMatches, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches2;
+
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches2 = _ref.includeMatches, includeMatches = _ref$includeMatches2 === void 0 ? Config.includeMatches : _ref$includeMatches2, _ref);
+
     _classCallCheck(this, ExtendedSearch);
 
-    var isCaseSensitive = options.isCaseSensitive;
     this.query = null;
-    this.options = options; // A <pattern>:<BitapSearch> key-value pair for optimizing searching
-
-    this._fuzzyCache = {};
-
-    if (isString(pattern) && pattern.trim().length > 0) {
-      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-      this.query = queryfy(this.pattern);
-    }
+    this.options = options;
+    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.query = parseQuery(this.pattern, options);
   }
 
   _createClass(ExtendedSearch, [{
@@ -640,7 +1035,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
     value: function searchIn(value) {
       var query = this.query;
 
-      if (!this.query) {
+      if (!query) {
         return {
           isMatch: false,
           score: 1
@@ -648,27 +1043,55 @@ var ExtendedSearch = /*#__PURE__*/function () {
       }
 
       var text = value.$;
-      text = this.options.isCaseSensitive ? text : text.toLowerCase();
-      var matchFound = false;
+      var _this$options = this.options,
+          includeMatches = _this$options.includeMatches,
+          isCaseSensitive = _this$options.isCaseSensitive;
+      text = isCaseSensitive ? text : text.toLowerCase();
+      var numMatches = 0;
+      var indices = []; // ORs
 
       for (var i = 0, qLen = query.length; i < qLen; i += 1) {
-        var parts = query[i];
-        var result = null;
-        matchFound = true;
+        var searchers = query[i]; // Reset indices
 
-        for (var j = 0, pLen = parts.length; j < pLen; j += 1) {
-          var token = parts[j];
-          result = this._search(token, text);
+        indices.length = 0;
+        numMatches = 0; // ANDs
 
-          if (!result.isMatch) {
-            // AND condition, short-circuit and move on to next part
-            matchFound = false;
+        for (var j = 0, pLen = searchers.length; j < pLen; j += 1) {
+          var searcher = searchers[j];
+
+          var _searcher$search = searcher.search(text),
+              isMatch = _searcher$search.isMatch,
+              matchedIndices = _searcher$search.matchedIndices;
+
+          if (isMatch) {
+            numMatches += 1;
+
+            if (includeMatches) {
+              if (searcher.constructor.type === FuzzyMatch.type) {
+                // FuzzyMatch returns is a 2D array
+                indices = [].concat(_toConsumableArray(indices), _toConsumableArray(matchedIndices));
+              } else {
+                indices.push(matchedIndices);
+              }
+            }
+          } else {
+            numMatches = 0;
+            indices.length = 0;
             break;
           }
         } // OR condition, so if TRUE, return
 
 
-        if (matchFound) {
+        if (numMatches) {
+          var result = {
+            isMatch: true,
+            score: 0
+          };
+
+          if (includeMatches) {
+            result.matchedIndices = indices;
+          }
+
           return result;
         }
       } // Nothing was matched
@@ -679,31 +1102,10 @@ var ExtendedSearch = /*#__PURE__*/function () {
         score: 1
       };
     }
-  }, {
-    key: "_search",
-    value: function _search(pattern, text) {
-      if (exactMatch.isForPattern(pattern)) {
-        return exactMatch.match(pattern, text);
-      } else if (prefixExactMatch.isForPattern(pattern)) {
-        return prefixExactMatch.match(pattern, text);
-      } else if (inversePrefixExactMatch.isForPattern(pattern)) {
-        return inversePrefixExactMatch.match(pattern, text);
-      } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
-        return inverseSuffixExactMatch.match(pattern, text);
-      } else if (suffixExactMatch.isForPattern(pattern)) {
-        return suffixExactMatch.match(pattern, text);
-      } else if (inverseExactMatch.isForPattern(pattern)) {
-        return inverseExactMatch.match(pattern, text);
-      } else {
-        var searcher = this._fuzzyCache[pattern];
-
-        if (!searcher) {
-          searcher = new BitapSearch(pattern, this.options);
-          this._fuzzyCache[pattern] = searcher;
-        }
-
-        return searcher.searchInString(text);
-      }
+  }], [{
+    key: "condition",
+    value: function condition(_, options) {
+      return options.useExtendedSearch;
     }
   }]);
 
@@ -820,9 +1222,9 @@ function jaccardDistance(nGram1, nGram2) {
 
 var NGramSearch = /*#__PURE__*/function () {
   function NGramSearch(pattern) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-      threshold: 0.6
-    };
+    var _ref, _ref$threshold;
+
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref);
 
     _classCallCheck(this, NGramSearch);
 
@@ -852,56 +1254,15 @@ var NGramSearch = /*#__PURE__*/function () {
         isMatch: isMatch
       };
     }
+  }], [{
+    key: "condition",
+    value: function condition(pattern) {
+      return pattern.length > MAX_BITS;
+    }
   }]);
 
   return NGramSearch;
 }();
-
-function get(obj, path) {
-  var list = [];
-  var arr = false;
-
-  var _get = function _get(obj, path) {
-    if (!path) {
-      // If there's no path left, we've gotten to the object we care about.
-      list.push(obj);
-    } else {
-      var dotIndex = path.indexOf('.');
-      var key = path;
-      var remaining = null;
-
-      if (dotIndex !== -1) {
-        key = path.slice(0, dotIndex);
-        remaining = path.slice(dotIndex + 1);
-      }
-
-      var value = obj[key];
-
-      if (isDefined(value)) {
-        if (!remaining && (isString(value) || isNumber(value))) {
-          list.push(toString(value));
-        } else if (isArray(value)) {
-          arr = true; // Search each item in the array.
-
-          for (var i = 0, len = value.length; i < len; i += 1) {
-            _get(value[i], remaining);
-          }
-        } else if (remaining) {
-          // An object. Recurse further.
-          _get(value, remaining);
-        }
-      }
-    }
-  };
-
-  _get(obj, path);
-
-  if (arr) {
-    return list;
-  }
-
-  return list[0];
-}
 
 function createIndex(keys, list) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
@@ -1140,59 +1501,16 @@ function transformScore(result, data) {
   data.score = result.score;
 }
 
-var BasicOptions = {
-  // When true, the algorithm continues searching to the end of the input even if a perfect
-  // match is found before the end of the same input.
-  isCaseSensitive: false,
-  // Minimum number of characters that must be matched before a result is considered a match
-  findAllMatches: false,
-  includeMatches: false,
-  includeScore: false,
-  // List of properties that will be searched. This also supports nested properties.
-  keys: [],
-  // Minimum number of characters that must be matched before a result is considered a match
-  minMatchCharLength: 1,
-  // Whether to sort the result list, by score
-  shouldSort: true,
-  // Default sort function
-  sortFn: function sortFn(a, b) {
-    return a.score - b.score;
-  }
-};
-var FuzzyOptions = {
-  // Approximately where in the text is the pattern expected to be found?
-  location: 0,
-  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-  // (of both letters and location), a threshold of '1.0' would match anything.
-  threshold: 0.6,
-  // Determines how close the match must be to the fuzzy location (specified above).
-  // An exact letter match which is 'distance' characters away from the fuzzy location
-  // would score as a complete mismatch. A distance of '0' requires the match be at
-  // the exact location specified, a threshold of '1000' would require a perfect match
-  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100
-};
-var AdvancedOptions = {
-  // Enabled extended-searching
-  useExtendedSearch: false,
-  // The get function to use when fetching an object's properties.
-  // The default will search nested paths *ie foo.bar.baz*
-  getFn: get
-};
-
-var defaultOptions = _objectSpread2({}, BasicOptions, {}, FuzzyOptions, {}, AdvancedOptions);
+var registeredSearchers = [];
 
 var Fuse = /*#__PURE__*/function () {
   function Fuse(list) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultOptions;
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
     _classCallCheck(this, Fuse);
 
-    this.options = _objectSpread2({}, defaultOptions, {}, options); // `caseSensitive` is deprecated, use `isCaseSensitive` instead
-
-    this.options.isCaseSensitive = options.caseSensitive;
-    delete this.options.caseSensitive;
+    this.options = _objectSpread2({}, Config, {}, options);
 
     this._processKeys(this.options.keys);
 
@@ -1240,11 +1558,16 @@ var Fuse = /*#__PURE__*/function () {
           shouldSort = _this$options.shouldSort;
       var searcher = null;
 
-      if (useExtendedSearch) {
-        searcher = new ExtendedSearch(pattern, this.options);
-      } else if (pattern.length > MAX_BITS) {
-        searcher = new NGramSearch(pattern, this.options);
-      } else {
+      for (var i = 0, len = registeredSearchers.length; i < len; i += 1) {
+        var searcherClass = registeredSearchers[i];
+
+        if (searcherClass.condition(pattern, this.options)) {
+          searcher = new searcherClass(pattern, this.options);
+          break;
+        }
+      }
+
+      if (!searcher) {
         searcher = new BitapSearch(pattern, this.options);
       }
 
@@ -1434,8 +1757,8 @@ var Fuse = /*#__PURE__*/function () {
           includeMatches = _this$options2.includeMatches,
           includeScore = _this$options2.includeScore;
       var transformers = [];
-      if (includeMatches) { transformers.push(transformMatches); }
-      if (includeScore) { transformers.push(transformScore); }
+      if (includeMatches) transformers.push(transformMatches);
+      if (includeScore) transformers.push(transformScore);
 
       for (var i = 0, len = results.length; i < len; i += 1) {
         var result = results[i];
@@ -1456,13 +1779,19 @@ var Fuse = /*#__PURE__*/function () {
 
       return finalOutput;
     }
+  }], [{
+    key: "register",
+    value: function register() {
+      registeredSearchers.push.apply(registeredSearchers, arguments);
+    }
   }]);
 
   return Fuse;
 }();
 
+Fuse.register(ExtendedSearch, NGramSearch);
 Fuse.version = '5.1.0';
 Fuse.createIndex = createIndex;
-Fuse.defaultOptions = defaultOptions;
+Fuse.config = Config;
 
 module.exports = Fuse;

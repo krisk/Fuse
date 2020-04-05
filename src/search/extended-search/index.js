@@ -1,18 +1,6 @@
-import exactMatch from './exact-match'
-import inverseExactMatch from './inverse-exact-match'
-import prefixExactMatch from './prefix-exact-match'
-import inversePrefixExactMatch from './inverse-prefix-exact-match'
-import suffixExactMatch from './suffix-exact-match'
-import inverseSuffixExactMatch from './inverse-suffix-exact-match'
-import BitapSearch from '../bitap-search'
-
-import { isString } from '../../helpers/type-checkers'
-
-// Return a 2D array representation of the query, for simpler parsing.
-// Example:
-// "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-const queryfy = (pattern) =>
-  pattern.split('|').map((item) => item.trim().split(/ +/g))
+import parseQuery from './parse-query'
+import FuzzyMatch from './fuzzy-match'
+import Config from '../../core/config'
 
 /**
  * Command-like searching
@@ -42,23 +30,34 @@ const queryfy = (pattern) =>
  * ```
  */
 export default class ExtendedSearch {
-  constructor(pattern, options) {
-    const { isCaseSensitive } = options
+  constructor(
+    pattern,
+    options = ({
+      isCaseSensitive = Config.isCaseSensitive,
+      includeMatches = Config.includeMatches,
+      minMatchCharLength = Config.minMatchCharLength,
+      findAllMatches = Config.findAllMatches,
+      location = Config.location,
+      threshold = Config.threshold,
+      distance = Config.distance,
+      includeMatches = Config.includeMatches
+    } = {})
+  ) {
     this.query = null
     this.options = options
-    // A <pattern>:<BitapSearch> key-value pair for optimizing searching
-    this._fuzzyCache = {}
 
-    if (isString(pattern) && pattern.trim().length > 0) {
-      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-      this.query = queryfy(this.pattern)
-    }
+    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.query = parseQuery(this.pattern, options)
+  }
+
+  static condition(_, options) {
+    return options.useExtendedSearch
   }
 
   searchIn(value) {
     const query = this.query
 
-    if (!this.query) {
+    if (!query) {
       return {
         isMatch: false,
         score: 1
@@ -67,27 +66,54 @@ export default class ExtendedSearch {
 
     let text = value.$
 
-    text = this.options.isCaseSensitive ? text : text.toLowerCase()
+    const { includeMatches, isCaseSensitive } = this.options
 
-    let matchFound = false
+    text = isCaseSensitive ? text : text.toLowerCase()
 
+    let numMatches = 0
+    let indices = []
+
+    // ORs
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
-      const parts = query[i]
-      let result = null
-      matchFound = true
+      const searchers = query[i]
 
-      for (let j = 0, pLen = parts.length; j < pLen; j += 1) {
-        let token = parts[j]
-        result = this._search(token, text)
-        if (!result.isMatch) {
-          // AND condition, short-circuit and move on to next part
-          matchFound = false
+      // Reset indices
+      indices.length = 0
+      numMatches = 0
+
+      // ANDs
+      for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
+        const searcher = searchers[j]
+        const { isMatch, matchedIndices } = searcher.search(text)
+
+        if (isMatch) {
+          numMatches += 1
+          if (includeMatches) {
+            if (searcher.constructor.type === FuzzyMatch.type) {
+              // FuzzyMatch returns is a 2D array
+              indices = [...indices, ...matchedIndices]
+            } else {
+              indices.push(matchedIndices)
+            }
+          }
+        } else {
+          numMatches = 0
+          indices.length = 0
           break
         }
       }
 
       // OR condition, so if TRUE, return
-      if (matchFound) {
+      if (numMatches) {
+        let result = {
+          isMatch: true,
+          score: 0
+        }
+
+        if (includeMatches) {
+          result.matchedIndices = indices
+        }
+
         return result
       }
     }
@@ -96,29 +122,6 @@ export default class ExtendedSearch {
     return {
       isMatch: false,
       score: 1
-    }
-  }
-
-  _search(pattern, text) {
-    if (exactMatch.isForPattern(pattern)) {
-      return exactMatch.match(pattern, text)
-    } else if (prefixExactMatch.isForPattern(pattern)) {
-      return prefixExactMatch.match(pattern, text)
-    } else if (inversePrefixExactMatch.isForPattern(pattern)) {
-      return inversePrefixExactMatch.match(pattern, text)
-    } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
-      return inverseSuffixExactMatch.match(pattern, text)
-    } else if (suffixExactMatch.isForPattern(pattern)) {
-      return suffixExactMatch.match(pattern, text)
-    } else if (inverseExactMatch.isForPattern(pattern)) {
-      return inverseExactMatch.match(pattern, text)
-    } else {
-      let searcher = this._fuzzyCache[pattern]
-      if (!searcher) {
-        searcher = new BitapSearch(pattern, this.options)
-        this._fuzzyCache[pattern] = searcher
-      }
-      return searcher.searchInString(text)
     }
   }
 }

@@ -1,23 +1,28 @@
 // Token: ^file
 // Match type: prefix-exact-match
 // Description: Items that start with `file`
+import Match from './match'
 
-const isForPattern = (pattern) => pattern.charAt(0) == '^'
-
-const sanitize = (pattern) => pattern.substr(1)
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern)
-  const isMatch = text.startsWith(sanitizedPattern)
-
-  return {
-    isMatch,
-    score: 0
+export default class PrefixExactMatch extends Match {
+  constructor(pattern) {
+    super(pattern)
   }
-}
+  static get type() {
+    return 'prefix-exact'
+  }
+  static get literal() {
+    return /^\^"(.*)"$/
+  }
+  static get re() {
+    return /^\^(.*)$/
+  }
+  search(text) {
+    const isMatch = text.startsWith(this.pattern)
 
-export default {
-  isForPattern,
-  sanitize,
-  match
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      matchedIndices: [0, this.pattern.length - 1]
+    }
+  }
 }

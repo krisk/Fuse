@@ -1,4 +1,4 @@
-import { BitapSearch, ExtendedSearch, NGramSearch } from '../search'
+import { BitapSearch } from '../search'
 import {
   isArray,
   isDefined,
@@ -7,24 +7,22 @@ import {
 } from '../helpers/type-checkers'
 import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
-import { MAX_BITS } from '../search/bitap-search/constants'
-import { BasicOptions, FuzzyOptions, AdvancedOptions } from './options'
+import Config from './config'
 
-export const defaultOptions = {
-  ...BasicOptions,
-  ...FuzzyOptions,
-  ...AdvancedOptions
-}
+export { Config }
+
+const registeredSearchers = []
 
 export default class Fuse {
-  constructor(list, options = defaultOptions, index = null) {
-    this.options = { ...defaultOptions, ...options }
-    // `caseSensitive` is deprecated, use `isCaseSensitive` instead
-    this.options.isCaseSensitive = options.caseSensitive
-    delete this.options.caseSensitive
+  constructor(list, options = {}, index = null) {
+    this.options = { ...Config, ...options }
 
     this._processKeys(this.options.keys)
     this.setCollection(list, index)
+  }
+
+  static register(...args) {
+    registeredSearchers.push(...args)
   }
 
   setCollection(list, index = null) {
@@ -57,11 +55,15 @@ export default class Fuse {
 
     let searcher = null
 
-    if (useExtendedSearch) {
-      searcher = new ExtendedSearch(pattern, this.options)
-    } else if (pattern.length > MAX_BITS) {
-      searcher = new NGramSearch(pattern, this.options)
-    } else {
+    for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
+      let searcherClass = registeredSearchers[i]
+      if (searcherClass.condition(pattern, this.options)) {
+        searcher = new searcherClass(pattern, this.options)
+        break
+      }
+    }
+
+    if (!searcher) {
       searcher = new BitapSearch(pattern, this.options)
     }
 

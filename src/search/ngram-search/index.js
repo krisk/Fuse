@@ -1,11 +1,16 @@
 import ngram from './ngram'
 import { jaccardDistance } from './distance'
+import Config from '../../core/config'
+import { MAX_BITS } from '../bitap-search/constants'
 
 export default class NGramSearch {
-  constructor(pattern, options = { threshold: 0.6 }) {
+  constructor(pattern, options = ({ threshold = Config.threshold } = {})) {
     // Create the ngram, and sort it
     this.options = options
     this.patternNgram = ngram(pattern, { sort: true })
+  }
+  static condition(pattern) {
+    return pattern.length > MAX_BITS
   }
   searchIn(value) {
     let textNgram = value.ng

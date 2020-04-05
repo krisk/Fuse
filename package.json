@@ -27,9 +27,9 @@
     "bitap"
   ],
   "scripts": {
-    "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev",
-    "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs",
-    "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm",
+    "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev-full",
+    "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs-full",
+    "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm-dev-full",
     "build": "node scripts/build.main.js",
     "test": "jest",
     "lint": "eslint src scripts test",

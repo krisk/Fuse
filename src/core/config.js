@@ -1,17 +1,25 @@
 import get from '../helpers/get'
 
+export const MatchOptions = {
+  // Whether the matches should be included in the result set. When true, each record in the result
+  // set will include the indices of the matched characters.
+  // These can consequently be used for highlighting purposes.
+  includeMatches: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  // a perfect match has already been located in the string.
+  findAllMatches: false,
+  // Minimum number of characters that must be matched before a result is considered a match
+  minMatchCharLength: 1
+}
+
 export const BasicOptions = {
   // When true, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
-  // Minimum number of characters that must be matched before a result is considered a match
-  findAllMatches: false,
-  includeMatches: false,
+  // When true, the matching function will continue to the end of a search pattern even if
   includeScore: false,
   // List of properties that will be searched. This also supports nested properties.
   keys: [],
-  // Minimum number of characters that must be matched before a result is considered a match
-  minMatchCharLength: 1,
   // Whether to sort the result list, by score
   shouldSort: true,
   // Default sort function
@@ -33,9 +41,16 @@ export const FuzzyOptions = {
 }
 
 export const AdvancedOptions = {
-  // Enabled extended-searching
+  // When true, it enables the use of unix-like search commands
   useExtendedSearch: false,
   // The get function to use when fetching an object's properties.
   // The default will search nested paths *ie foo.bar.baz*
   getFn: get
+}
+
+export default {
+  ...BasicOptions,
+  ...MatchOptions,
+  ...FuzzyOptions,
+  ...AdvancedOptions
 }

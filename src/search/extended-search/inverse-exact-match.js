@@ -2,22 +2,29 @@
 // Match type: inverse-exact-match
 // Description: Items that do not include `fire`
 
-const isForPattern = (pattern) => pattern.charAt(0) == '!'
+import Match from './match'
 
-const sanitize = (pattern) => pattern.substr(1)
-
-const match = (pattern, text) => {
-  const sanitizedPattern = sanitize(pattern)
-  const isMatch = text.indexOf(sanitizedPattern) === -1
-
-  return {
-    isMatch,
-    score: 0
+export default class InverseExactMatch extends Match {
+  constructor(pattern) {
+    super(pattern)
   }
-}
+  static get type() {
+    return 'inverse-exact'
+  }
+  static get literal() {
+    return /^!"(.*)"$/
+  }
+  static get re() {
+    return /^!(.*)$/
+  }
+  search(text) {
+    const index = text.indexOf(this.pattern)
+    const isMatch = index === -1
 
-export default {
-  isForPattern,
-  sanitize,
-  match
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      matchedIndices: [0, text.length - 1]
+    }
+  }
 }
