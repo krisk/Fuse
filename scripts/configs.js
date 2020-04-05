@@ -87,28 +87,24 @@ const builds = {
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es',
     env: 'development',
-    transpile: false
   },
   'esm-prod-full': {
     entry: resolve('src/entry-full.js'),
     dest: resolve(`dist/${FILENAME}.esm.min.js`),
     format: 'es',
     env: 'production',
-    transpile: false
   },
   'esm-basic': {
     entry: resolve('src/entry-basic.js'),
     dest: resolve(`dist/${FILENAME}.basic.esm.js`),
     format: 'es',
     env: 'development',
-    transpile: false
   },
   'esm-prod-basic': {
     entry: resolve('src/entry-basic.js'),
     dest: resolve(`dist/${FILENAME}.basic.esm.min.js`),
     format: 'es',
     env: 'production',
-    transpile: false
   }
 }
 
@@ -141,10 +137,8 @@ function genConfig(options) {
 
   config.plugins.push(replace(vars))
 
-  if (options.transpile !== false) {
-    config.plugins.push(babel())
-    // config.plugins.push(buble())
-  }
+  config.plugins.push(babel())
+  // config.plugins.push(buble())
 
   return config
 }
