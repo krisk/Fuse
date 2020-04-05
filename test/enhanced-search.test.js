@@ -65,13 +65,18 @@ describe('Searching using extended search', () => {
     expect(result.length).toBe(2)
   })
 
-  test('Search: literal', () => {
+  test('Search: single literal match', () => {
     let result = fuse.search('\'"indeed fine"')
     expect(result.length).toBe(1)
   })
 
-  test('Search: literal', () => {
+  test('Search: literal match with regular match', () => {
     let result = fuse.search('\'"indeed fine" foo$ | \'are')
+    expect(result.length).toBe(2)
+  })
+
+  test('Search: literal match with fuzzy match', () => {
+    let result = fuse.search('\'"indeed fine" foo$ | helol')
     expect(result.length).toBe(2)
   })
 })

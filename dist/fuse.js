@@ -84,6 +84,116 @@
     return target;
   }
 
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function");
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) _setPrototypeOf(subClass, superClass);
+  }
+
+  function _getPrototypeOf(o) {
+    _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf(o);
+  }
+
+  function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
+
+    return _setPrototypeOf(o, p);
+  }
+
+  function _isNativeReflectConstruct() {
+    if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+    if (Reflect.construct.sham) return false;
+    if (typeof Proxy === "function") return true;
+
+    try {
+      Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function _assertThisInitialized(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return self;
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (call && (typeof call === "object" || typeof call === "function")) {
+      return call;
+    }
+
+    return _assertThisInitialized(self);
+  }
+
+  function _createSuper(Derived) {
+    return function () {
+      var Super = _getPrototypeOf(Derived),
+          result;
+
+      if (_isNativeReflectConstruct()) {
+        var NewTarget = _getPrototypeOf(this).constructor;
+
+        result = Reflect.construct(Super, arguments, NewTarget);
+      } else {
+        result = Super.apply(this, arguments);
+      }
+
+      return _possibleConstructorReturn(this, result);
+    };
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+  }
+
+  function _iterableToArray(iter) {
+    if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+  }
+
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(n);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
+
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
   function bitapScore(pattern, _ref) {
     var _ref$errors = _ref.errors,
         errors = _ref$errors === void 0 ? 0 : _ref$errors,
@@ -401,216 +511,366 @@
     return BitapSearch;
   }();
 
-  // Token: 'file
-  // Match type: exact-match
-  // Description: Items that include `file`
-  var search = function search(pattern, text) {
-    var index = text.indexOf(pattern);
-    var isMatch = index > -1;
-    return {
-      isMatch: isMatch,
-      score: 0
-    };
-  };
+  var Match = /*#__PURE__*/function () {
+    function Match(pattern) {
+      _classCallCheck(this, Match);
 
-  var literal = /^'"(.*)"$/;
-  var re = /^'(.*)$/;
-  var name = 'exact';
-  var exactMatch = {
-    name: name,
-    literal: literal,
-    re: re,
-    search: search
-  };
-
-  // Token: !fire
-  // Match type: inverse-exact-match
-  // Description: Items that do not include `fire`
-  var search$1 = function search(pattern, text) {
-    var isMatch = text.indexOf(pattern) === -1;
-    return {
-      isMatch: isMatch,
-      score: 0
-    };
-  };
-
-  var literal$1 = /^!"(.*)"$/;
-  var re$1 = /^!(.*)$/;
-  var name$1 = 'inverse-exact';
-  var inverseExactMatch = {
-    name: name$1,
-    literal: literal$1,
-    re: re$1,
-    search: search$1
-  };
-
-  // Token: ^file
-  // Match type: prefix-exact-match
-  // Description: Items that start with `file`
-  var search$2 = function search(pattern, text) {
-    var isMatch = text.startsWith(pattern);
-    return {
-      isMatch: isMatch,
-      score: 0
-    };
-  };
-
-  var literal$2 = /^\^"(.*)"$/;
-  var re$2 = /^\^(.*)$/;
-  var name$2 = 'prefix-exact';
-  var prefixExactMatch = {
-    name: name$2,
-    literal: literal$2,
-    re: re$2,
-    search: search$2
-  };
-
-  // Token: !^fire
-  // Match type: inverse-prefix-exact-match
-  // Description: Items that do not start with `fire`
-  var search$3 = function search(pattern, text) {
-    var isMatch = !text.startsWith(pattern);
-    return {
-      isMatch: isMatch,
-      score: 0
-    };
-  };
-
-  var literal$3 = /^!\^"(.*)"$/;
-  var re$3 = /^!\^(.*)$/;
-  var name$3 = 'inverse-prefix-exact';
-  var inversePrefixExactMatch = {
-    name: name$3,
-    literal: literal$3,
-    re: re$3,
-    search: search$3
-  };
-
-  // Token: .file$
-  // Match type: suffix-exact-match
-  // Description: Items that end with `.file`
-  var search$4 = function search(pattern, text) {
-    var isMatch = text.endsWith(pattern);
-    return {
-      isMatch: isMatch,
-      score: 0
-    };
-  };
-
-  var literal$4 = /^"(.*)"\$$/;
-  var re$4 = /^(.*)\$$/;
-  var name$4 = 'suffix-exact';
-  var suffixExactMatch = {
-    name: name$4,
-    literal: literal$4,
-    re: re$4,
-    search: search$4
-  };
-
-  // Token: !.file$
-  // Match type: inverse-suffix-exact-match
-  // Description: Items that do not end with `.file`
-  var search$5 = function search(pattern, text) {
-    var isMatch = !text.endsWith(pattern);
-    return {
-      isMatch: isMatch,
-      score: 0
-    };
-  };
-
-  var literal$5 = /^!"(.*)"\$$/;
-  var re$5 = /^!(.*)\$$/;
-  var name$5 = 'inverse-suffix-exact';
-  var inverseSuffixExactMatch = {
-    name: name$5,
-    literal: literal$5,
-    re: re$5,
-    search: search$5
-  };
-
-  var INFINITY = 1 / 0;
-  var isArray = function isArray(value) {
-    return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
-  }; // Adapted from:
-  // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-
-  var baseToString = function baseToString(value) {
-    // Exit early for strings to avoid a performance hit in some environments.
-    if (typeof value == 'string') {
-      return value;
+      this.pattern = pattern;
     }
 
-    var result = value + '';
-    return result == '0' && 1 / value == -INFINITY ? '-0' : result;
-  };
-  var toString = function toString(value) {
-    return value == null ? '' : baseToString(value);
-  };
-  var isString = function isString(value) {
-    return typeof value === 'string';
-  };
-  var isNumber = function isNumber(value) {
-    return typeof value === 'number';
-  };
-  var isDefined = function isDefined(value) {
-    return value !== undefined && value !== null;
-  };
+    _createClass(Match, [{
+      key: "search",
+      value: function search(text) {}
+    }], [{
+      key: "isLiteralMatch",
+      value: function isLiteralMatch(pattern) {
+        var matches = pattern.match(this.literal);
+        return matches ? matches[1] : null;
+      }
+    }, {
+      key: "isRegMatch",
+      value: function isRegMatch(pattern, re) {
+        var matches = pattern.match(this.re);
+        return matches ? matches[1] : null;
+      }
+    }]);
 
-  var searchers = [exactMatch, prefixExactMatch, inversePrefixExactMatch, inverseSuffixExactMatch, suffixExactMatch, inverseExactMatch, {
-    literal: /^"(.*)"$/,
-    re: /^(.*)$/,
-    name: 'fuzzy',
-    search: function search() {}
-  }];
-  var re$6 = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
+    return Match;
+  }();
 
-  var queryfy = function queryfy(pattern) {
-    return pattern.split('|').map(function (item) {
-      var str = item.trim();
-      var parts = str.split(re$6).filter(function (item) {
+  var ExactMatch = /*#__PURE__*/function (_Match) {
+    _inherits(ExactMatch, _Match);
+
+    var _super = _createSuper(ExactMatch);
+
+    function ExactMatch(pattern) {
+      _classCallCheck(this, ExactMatch);
+
+      return _super.call(this, pattern);
+    }
+
+    _createClass(ExactMatch, [{
+      key: "search",
+      value: function search(text) {
+        var index = text.indexOf(this.pattern);
+        var isMatch = index > -1;
+        return {
+          isMatch: isMatch,
+          score: isMatch ? 1 : 0,
+          matchedIndices: [index, index + this.pattern.length - 1]
+        };
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'exact';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^'"(.*)"$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^'(.*)$/;
+      }
+    }]);
+
+    return ExactMatch;
+  }(Match);
+
+  var InverseExactMatch = /*#__PURE__*/function (_Match) {
+    _inherits(InverseExactMatch, _Match);
+
+    var _super = _createSuper(InverseExactMatch);
+
+    function InverseExactMatch(pattern) {
+      _classCallCheck(this, InverseExactMatch);
+
+      return _super.call(this, pattern);
+    }
+
+    _createClass(InverseExactMatch, [{
+      key: "search",
+      value: function search(text) {
+        var index = text.indexOf(this.pattern);
+        var isMatch = index === -1;
+        return {
+          isMatch: isMatch,
+          score: isMatch ? 0 : 1,
+          matchedIndices: [0, text.length - 1]
+        };
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'inverse-exact';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^!"(.*)"$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^!(.*)$/;
+      }
+    }]);
+
+    return InverseExactMatch;
+  }(Match);
+
+  var PrefixExactMatch = /*#__PURE__*/function (_Match) {
+    _inherits(PrefixExactMatch, _Match);
+
+    var _super = _createSuper(PrefixExactMatch);
+
+    function PrefixExactMatch(pattern) {
+      _classCallCheck(this, PrefixExactMatch);
+
+      return _super.call(this, pattern);
+    }
+
+    _createClass(PrefixExactMatch, [{
+      key: "search",
+      value: function search(text) {
+        var isMatch = text.startsWith(this.pattern);
+        return {
+          isMatch: isMatch,
+          score: isMatch ? 0 : 1,
+          matchedIndices: [0, this.pattern.length - 1]
+        };
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'prefix-exact';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^\^"(.*)"$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^\^(.*)$/;
+      }
+    }]);
+
+    return PrefixExactMatch;
+  }(Match);
+
+  var InversePrefixExactMatch = /*#__PURE__*/function (_Match) {
+    _inherits(InversePrefixExactMatch, _Match);
+
+    var _super = _createSuper(InversePrefixExactMatch);
+
+    function InversePrefixExactMatch(pattern) {
+      _classCallCheck(this, InversePrefixExactMatch);
+
+      return _super.call(this, pattern);
+    }
+
+    _createClass(InversePrefixExactMatch, [{
+      key: "search",
+      value: function search(text) {
+        var isMatch = !text.startsWith(this.pattern);
+        return {
+          isMatch: isMatch,
+          score: isMatch ? 0 : 1,
+          matchedIndices: [0, text.length - 1]
+        };
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'inverse-prefix-exact';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^!\^"(.*)"$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^!\^(.*)$/;
+      }
+    }]);
+
+    return InversePrefixExactMatch;
+  }(Match);
+
+  var SuffixExactMatch = /*#__PURE__*/function (_Match) {
+    _inherits(SuffixExactMatch, _Match);
+
+    var _super = _createSuper(SuffixExactMatch);
+
+    function SuffixExactMatch(pattern) {
+      _classCallCheck(this, SuffixExactMatch);
+
+      return _super.call(this, pattern);
+    }
+
+    _createClass(SuffixExactMatch, [{
+      key: "search",
+      value: function search(text) {
+        var isMatch = text.endsWith(this.pattern);
+        return {
+          isMatch: isMatch,
+          score: isMatch ? 0 : 1,
+          matchedIndices: [text.length - this.pattern.length, text.length - 1]
+        };
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'suffix-exact';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^"(.*)"\$$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^(.*)\$$/;
+      }
+    }]);
+
+    return SuffixExactMatch;
+  }(Match);
+
+  var InverseSuffixExactMatch = /*#__PURE__*/function (_Match) {
+    _inherits(InverseSuffixExactMatch, _Match);
+
+    var _super = _createSuper(InverseSuffixExactMatch);
+
+    function InverseSuffixExactMatch(pattern) {
+      _classCallCheck(this, InverseSuffixExactMatch);
+
+      return _super.call(this, pattern);
+    }
+
+    _createClass(InverseSuffixExactMatch, [{
+      key: "search",
+      value: function search(text) {
+        var isMatch = !text.endsWith(this.pattern);
+        return {
+          isMatch: isMatch,
+          score: isMatch ? 0 : 1,
+          matchedIndices: [0, text.length - 1]
+        };
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'inverse-suffix-exact';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^!"(.*)"\$$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^!(.*)\$$/;
+      }
+    }]);
+
+    return InverseSuffixExactMatch;
+  }(Match);
+
+  var FuzzyMatch = /*#__PURE__*/function (_Match) {
+    _inherits(FuzzyMatch, _Match);
+
+    var _super = _createSuper(FuzzyMatch);
+
+    function FuzzyMatch(pattern, options) {
+      var _this;
+
+      _classCallCheck(this, FuzzyMatch);
+
+      _this = _super.call(this, pattern);
+      _this._bitapSearch = new BitapSearch(pattern, options);
+      return _this;
+    }
+
+    _createClass(FuzzyMatch, [{
+      key: "search",
+      value: function search(text) {
+        return this._bitapSearch.searchInString(text);
+      }
+    }], [{
+      key: "type",
+      get: function get() {
+        return 'fuzzy';
+      }
+    }, {
+      key: "literal",
+      get: function get() {
+        return /^"(.*)"$/;
+      }
+    }, {
+      key: "re",
+      get: function get() {
+        return /^(.*)$/;
+      }
+    }]);
+
+    return FuzzyMatch;
+  }(Match);
+
+  var searchers = [ExactMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
+  var searchersLen = searchers.length; // Regex to split by spaces, but keep anything in quotes together
+
+  var SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
+  var OR_TOKEN = '|'; // Return a 2D array representation of the query, for simpler parsing.
+  // Example:
+  // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
+
+  function parseQuery(pattern, options) {
+    return pattern.split(OR_TOKEN).map(function (item) {
+      var query = item.trim().split(SPACE_RE).filter(function (item) {
         return item && !!item.trim();
       });
-
-      {
-        console.log(parts);
-      }
-
       var results = [];
 
-      for (var i = 0, len = parts.length; i < len; i += 1) {
-        var part = parts[i];
+      for (var i = 0, len = query.length; i < len; i += 1) {
+        var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quotes "hello world")
+
         var found = false;
+        var idx = -1;
 
-        for (var _i = 0, _len = searchers.length; _i < _len; _i += 1) {
-          var searcher = searchers[_i];
-          var matches = part.match(searcher.literal);
+        while (!found && ++idx < searchersLen) {
+          var searcher = searchers[idx];
+          var token = searcher.isLiteralMatch(queryItem);
 
-          if (matches) {
-            results.push({
-              search: searcher.search,
-              token: matches[1],
-              name: searcher.name
-            });
+          if (token) {
+            results.push(new searcher(token, options));
             found = true;
-            break;
           }
         }
 
         if (found) {
           continue;
-        }
+        } // 2. Handle regular queries
 
-        for (var j = 0, _len2 = searchers.length; j < _len2; j += 1) {
-          var _searcher = searchers[j];
 
-          var _matches = part.match(_searcher.re);
+        idx = -1;
 
-          if (_matches) {
-            results.push({
-              search: _searcher.search,
-              token: _matches[1],
-              name: _searcher.name
-            });
+        while (++idx < searchersLen) {
+          var _searcher = searchers[idx];
+
+          var _token = _searcher.isRegMatch(queryItem);
+
+          if (_token) {
+            results.push(new _searcher(_token, options));
             break;
           }
         }
@@ -618,20 +878,7 @@
 
       return results;
     });
-  }; // Return a 2D array representation of the query, for simpler parsing.
-  // Example:
-  // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-  // const queryfy = (pattern) => {
-  //   return pattern.split('|').map((item) => {
-  //     let str = item.trim()
-  //     if (str.startsWith('"') && str.endsWith('"')) {
-  //       console.log(str)
-  //       return str.substring(1, str.length - 1)
-  //     } else {
-  //       return str.split(/ +/g)
-  //     }
-  //   })
-  // }
+  }
 
   /**
    * Command-like searching
@@ -661,21 +908,15 @@
    * ```
    */
 
-
   var ExtendedSearch = /*#__PURE__*/function () {
     function ExtendedSearch(pattern, options) {
       _classCallCheck(this, ExtendedSearch);
 
       var isCaseSensitive = options.isCaseSensitive;
       this.query = null;
-      this.options = options; // A <pattern>:<BitapSearch> key-value pair for optimizing searching
-
-      this._fuzzyCache = {};
-
-      if (isString(pattern) && pattern.trim().length > 0) {
-        this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-        this.query = queryfy(this.pattern);
-      }
+      this.options = options;
+      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.query = parseQuery(this.pattern, options);
     }
 
     _createClass(ExtendedSearch, [{
@@ -683,7 +924,7 @@
       value: function searchIn(value) {
         var query = this.query;
 
-        if (!this.query) {
+        if (!query) {
           return {
             isMatch: false,
             score: 1
@@ -691,46 +932,55 @@
         }
 
         var text = value.$;
-        text = this.options.isCaseSensitive ? text : text.toLowerCase();
-        var matchFound = false;
-
-        {
-          console.log(query);
-        }
+        var _this$options = this.options,
+            includeMatches = _this$options.includeMatches,
+            isCaseSensitive = _this$options.isCaseSensitive;
+        text = isCaseSensitive ? text : text.toLowerCase();
+        var numMatches = 0;
+        var indices = []; // ORs
 
         for (var i = 0, qLen = query.length; i < qLen; i += 1) {
-          var parts = query[i];
-          var result = null;
-          matchFound = true;
+          var searchers = query[i]; // Reset indices
 
-          for (var j = 0, pLen = parts.length; j < pLen; j += 1) {
-            var part = parts[j];
-            var token = part.token;
-            var search = part.search;
+          indices.length = 0;
+          numMatches = 0; // ANDs
 
-            if (search) {
-              result = search(token, text);
-            } else {
-              var searcher = this._fuzzyCache[pattern];
+          for (var j = 0, pLen = searchers.length; j < pLen; j += 1) {
+            var searcher = searchers[j];
 
-              if (!searcher) {
-                searcher = new BitapSearch(pattern, this.options);
-                this._fuzzyCache[pattern] = searcher;
+            var _searcher$search = searcher.search(text),
+                isMatch = _searcher$search.isMatch,
+                matchedIndices = _searcher$search.matchedIndices;
+
+            if (isMatch) {
+              numMatches += 1;
+
+              if (includeMatches) {
+                if (searcher.constructor.type === FuzzyMatch.type) {
+                  // FuzzyMatch returns is a 2D array
+                  indices = [].concat(_toConsumableArray(indices), _toConsumableArray(matchedIndices));
+                } else {
+                  indices.push(matchedIndices);
+                }
               }
-
-              result = searcher.searchInString(text);
-            } // result = this._search(token, text)
-
-
-            if (!result.isMatch) {
-              // AND condition, short-circuit and move on to next part
-              matchFound = false;
+            } else {
+              numMatches = 0;
+              indices.length = 0;
               break;
             }
           } // OR condition, so if TRUE, return
 
 
-          if (matchFound) {
+          if (numMatches) {
+            var result = {
+              isMatch: true,
+              score: 0
+            };
+
+            if (includeMatches) {
+              result.matchedIndices = indices;
+            }
+
             return result;
           }
         } // Nothing was matched
@@ -740,29 +990,7 @@
           isMatch: false,
           score: 1
         };
-      } // _search(pattern, text) {
-      //   if (exactMatch.isForPattern(pattern)) {
-      //     return exactMatch.match(pattern, text)
-      //   } else if (prefixExactMatch.isForPattern(pattern)) {
-      //     return prefixExactMatch.match(pattern, text)
-      //   } else if (inversePrefixExactMatch.isForPattern(pattern)) {
-      //     return inversePrefixExactMatch.match(pattern, text)
-      //   } else if (inverseSuffixExactMatch.isForPattern(pattern)) {
-      //     return inverseSuffixExactMatch.match(pattern, text)
-      //   } else if (suffixExactMatch.isForPattern(pattern)) {
-      //     return suffixExactMatch.match(pattern, text)
-      //   } else if (inverseExactMatch.isForPattern(pattern)) {
-      //     return inverseExactMatch.match(pattern, text)
-      //   } else {
-      //     let searcher = this._fuzzyCache[pattern]
-      //     if (!searcher) {
-      //       searcher = new BitapSearch(pattern, this.options)
-      //       this._fuzzyCache[pattern] = searcher
-      //     }
-      //     return searcher.searchInString(text)
-      //   }
-      // }
-
+      }
     }]);
 
     return ExtendedSearch;
@@ -914,6 +1142,34 @@
 
     return NGramSearch;
   }();
+
+  var INFINITY = 1 / 0;
+  var isArray = function isArray(value) {
+    return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
+  }; // Adapted from:
+  // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
+
+  var baseToString = function baseToString(value) {
+    // Exit early for strings to avoid a performance hit in some environments.
+    if (typeof value == 'string') {
+      return value;
+    }
+
+    var result = value + '';
+    return result == '0' && 1 / value == -INFINITY ? '-0' : result;
+  };
+  var toString = function toString(value) {
+    return value == null ? '' : baseToString(value);
+  };
+  var isString = function isString(value) {
+    return typeof value === 'string';
+  };
+  var isNumber = function isNumber(value) {
+    return typeof value === 'number';
+  };
+  var isDefined = function isDefined(value) {
+    return value !== undefined && value !== null;
+  };
 
   function get(obj, path) {
     var list = [];

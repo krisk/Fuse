@@ -2,23 +2,29 @@
 // Match type: exact-match
 // Description: Items that include `file`
 
-const search = (pattern, text) => {
-  const index = text.indexOf(pattern)
-  const isMatch = index > -1
+import Match from './match'
 
-  return {
-    isMatch,
-    score: 0
+export default class ExactMatch extends Match {
+  constructor(pattern) {
+    super(pattern)
   }
-}
+  static get type() {
+    return 'exact'
+  }
+  static get literal() {
+    return /^'"(.*)"$/
+  }
+  static get re() {
+    return /^'(.*)$/
+  }
+  search(text) {
+    const index = text.indexOf(this.pattern)
+    const isMatch = index > -1
 
-const literal = /^'"(.*)"$/
-const re = /^'(.*)$/
-const name = 'exact'
-
-export default {
-  name,
-  literal,
-  re,
-  search
+    return {
+      isMatch,
+      score: isMatch ? 1 : 0,
+      matchedIndices: [index, index + this.pattern.length - 1]
+    }
+  }
 }

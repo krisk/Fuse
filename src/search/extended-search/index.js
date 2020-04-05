@@ -1,77 +1,5 @@
-import exactMatch from './exact-match'
-import inverseExactMatch from './inverse-exact-match'
-import prefixExactMatch from './prefix-exact-match'
-import inversePrefixExactMatch from './inverse-prefix-exact-match'
-import suffixExactMatch from './suffix-exact-match'
-import inverseSuffixExactMatch from './inverse-suffix-exact-match'
-import BitapSearch from '../bitap-search'
-
-import { isString } from '../../helpers/type-checkers'
-
-const FuzzyMatch = 'fuzzy'
-
-const searchers = [
-  exactMatch,
-  prefixExactMatch,
-  inversePrefixExactMatch,
-  inverseSuffixExactMatch,
-  suffixExactMatch,
-  inverseExactMatch,
-  { literal: /^"(.*)"$/, re: /^(.*)$/, name: 'fuzzy', search: () => {} }
-]
-
-const re = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/
-
-// Return a 2D array representation of the query, for simpler parsing.
-// Example:
-// "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-const queryfy = (pattern) => {
-  return pattern.split('|').map((item) => {
-    let str = item.trim()
-    let parts = str.split(re).filter((item) => {
-      return item && !!item.trim()
-    })
-
-    let results = []
-    for (let i = 0, len = parts.length; i < len; i += 1) {
-      const part = parts[i]
-
-      let found = false
-      for (let i = 0, len = searchers.length; i < len; i += 1) {
-        const searcher = searchers[i]
-        let matches = part.match(searcher.literal)
-        if (matches) {
-          results.push({
-            search: searcher.search,
-            token: matches[1],
-            name: searcher.name
-          })
-          found = true
-          break
-        }
-      }
-
-      if (found) {
-        continue
-      }
-
-      for (let j = 0, len = searchers.length; j < len; j += 1) {
-        const searcher = searchers[j]
-        let matches = part.match(searcher.re)
-        if (matches) {
-          results.push({
-            search: searcher.search,
-            token: matches[1],
-            name: searcher.name
-          })
-          break
-        }
-      }
-    }
-
-    return results
-  })
-}
+import parseQuery from './parse-query'
+import FuzzyMatch from './fuzzy-match'
 
 /**
  * Command-like searching
@@ -105,19 +33,15 @@ export default class ExtendedSearch {
     const { isCaseSensitive } = options
     this.query = null
     this.options = options
-    // A <pattern>:<BitapSearch> key-value pair for optimizing searching
-    this._fuzzyCache = {}
 
-    if (isString(pattern) && pattern.trim().length > 0) {
-      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-      this.query = queryfy(this.pattern)
-    }
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.query = parseQuery(this.pattern, options)
   }
 
   searchIn(value) {
     const query = this.query
 
-    if (!this.query) {
+    if (!query) {
       return {
         isMatch: false,
         score: 1
@@ -126,46 +50,54 @@ export default class ExtendedSearch {
 
     let text = value.$
 
-    text = this.options.isCaseSensitive ? text : text.toLowerCase()
+    const { includeMatches, isCaseSensitive } = this.options
 
-    let matchFound = false
+    text = isCaseSensitive ? text : text.toLowerCase()
 
-    // if (process.env.NODE_ENV === 'development') {
-    //   console.log(query)
-    // }
+    let numMatches = 0
+    let indices = []
 
+    // ORs
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
-      const parts = query[i]
-      let result = null
-      matchFound = true
+      const searchers = query[i]
 
-      for (let j = 0, pLen = parts.length; j < pLen; j += 1) {
-        const part = parts[j]
+      // Reset indices
+      indices.length = 0
+      numMatches = 0
 
-        let token = part.token
-        const search = part.search
+      // ANDs
+      for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
+        const searcher = searchers[j]
+        const { isMatch, matchedIndices } = searcher.search(text)
 
-        if (search) {
-          result = search(token, text)
-        } else {
-          let searcher = this._fuzzyCache[pattern]
-          if (!searcher) {
-            searcher = new BitapSearch(pattern, this.options)
-            this._fuzzyCache[pattern] = searcher
+        if (isMatch) {
+          numMatches += 1
+          if (includeMatches) {
+            if (searcher.constructor.type === FuzzyMatch.type) {
+              // FuzzyMatch returns is a 2D array
+              indices = [...indices, ...matchedIndices]
+            } else {
+              indices.push(matchedIndices)
+            }
           }
-          result = searcher.searchInString(text)
-        }
-
-        // result = this._search(token, text)
-        if (!result.isMatch) {
-          // AND condition, short-circuit and move on to next part
-          matchFound = false
+        } else {
+          numMatches = 0
+          indices.length = 0
           break
         }
       }
 
       // OR condition, so if TRUE, return
-      if (matchFound) {
+      if (numMatches) {
+        let result = {
+          isMatch: true,
+          score: 0
+        }
+
+        if (includeMatches) {
+          result.matchedIndices = indices
+        }
+
         return result
       }
     }
