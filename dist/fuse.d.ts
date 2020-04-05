@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v5.2.0-alpha.0
+// Type definitions for Fuse.js v5.2.0-alpha.1
 // TypeScript v3.8.3
 
 export = Fuse

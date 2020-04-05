@@ -58,7 +58,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   git push origin refs/tags/v"$VERSION"
 
   # Push to repo
-  git push origin master
+  git push origin HEAD
 
   # Publish
   if [[ -z $RELEASE_TAG ]]; then
