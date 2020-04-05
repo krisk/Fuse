@@ -1,6 +1,6 @@
 import { isArray, isDefined, isString } from '../helpers/type-checkers'
 import get from '../helpers/get'
-import ngram from '../search/ngram/ngram'
+import createNGram from '../search/ngram/createNGram'
 
 export default function createIndex(
   keys,
@@ -26,7 +26,7 @@ export default function createIndex(
         }
 
         if (ngrams) {
-          record.ng = ngram(value, { sort: true })
+          record.ng = createNGram(value, { sort: true })
         }
 
         indexedList.push(record)
@@ -69,7 +69,7 @@ export default function createIndex(
               let subRecord = { $: value, idx: arrayIndex }
 
               if (ngrams) {
-                subRecord.ng = ngram(value, { sort: true })
+                subRecord.ng = createNGram(value, { sort: true })
               }
 
               subRecords.push(subRecord)
@@ -94,7 +94,7 @@ export default function createIndex(
           let subRecord = { $: value }
 
           if (ngrams) {
-            subRecord.ng = ngram(value, { sort: true })
+            subRecord.ng = createNGram(value, { sort: true })
           }
 
           record.$[key] = subRecord

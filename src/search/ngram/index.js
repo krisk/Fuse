@@ -1,4 +1,4 @@
-import ngram from './ngram'
+import createNGram from './createNGram'
 import { jaccardDistance } from './distance'
 import Config from '../../core/config'
 import { MAX_BITS } from '../bitap/constants'
@@ -14,7 +14,7 @@ export default class NGramSearch {
   ) {
     // Create the ngram, and sort it
     this.options = options
-    this.patternNgram = ngram(pattern, { sort: true })
+    this.patternNgram = createNGram(pattern, { sort: true })
   }
   static condition(pattern) {
     return pattern.length > MAX_BITS
@@ -22,7 +22,7 @@ export default class NGramSearch {
   searchIn(value) {
     let textNgram = value.ng
     if (!textNgram) {
-      textNgram = ngram(value.$, { sort: true })
+      textNgram = createNGram(value.$, { sort: true })
       value.ng = textNgram
     }
 

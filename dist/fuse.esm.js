@@ -135,7 +135,7 @@ var Config = {
   ...AdvancedOptions
 };
 
-function bitapScore(
+function computeScore(
   pattern,
   {
     errors = 0,
@@ -185,7 +185,7 @@ function convertMaskToIndices(
   return matchedIndices
 }
 
-function bitapSearch(
+function search(
   text,
   pattern,
   patternAlphabet,
@@ -215,7 +215,7 @@ function bitapSearch(
   }
 
   if (bestLocation !== -1) {
-    let score = bitapScore(pattern, {
+    let score = computeScore(pattern, {
       errors: 0,
       currentLocation: bestLocation,
       expectedLocation,
@@ -227,7 +227,7 @@ function bitapSearch(
     bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
 
     if (bestLocation !== -1) {
-      let score = bitapScore(pattern, {
+      let score = computeScore(pattern, {
         errors: 0,
         currentLocation: bestLocation,
         expectedLocation,
@@ -254,7 +254,7 @@ function bitapSearch(
     let binMid = binMax;
 
     while (binMin < binMid) {
-      const score = bitapScore(pattern, {
+      const score = computeScore(pattern, {
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
@@ -301,7 +301,7 @@ function bitapSearch(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = bitapScore(pattern, {
+        finalScore = computeScore(pattern, {
           errors: i,
           currentLocation,
           expectedLocation,
@@ -327,7 +327,7 @@ function bitapSearch(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = bitapScore(pattern, {
+    const score = computeScore(pattern, {
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
@@ -438,7 +438,8 @@ class BitapSearch {
       findAllMatches,
       minMatchCharLength
     } = this.options;
-    return bitapSearch(text, this.pattern, this.patternAlphabet, {
+
+    return search(text, this.pattern, this.patternAlphabet, {
       location,
       distance,
       threshold,
@@ -844,11 +845,11 @@ class ExtendedSearch {
   }
 }
 
-const NGRAM_LEN = 3;
+const NGRAMS = 3;
 
-function ngram(
+function createNGram(
   text,
-  { n = NGRAM_LEN, pad = true, sort = false }
+  { n = NGRAMS, pad = true, sort = false }
 ) {
   let nGrams = [];
 
@@ -958,7 +959,7 @@ class NGramSearch {
   ) {
     // Create the ngram, and sort it
     this.options = options;
-    this.patternNgram = ngram(pattern, { sort: true });
+    this.patternNgram = createNGram(pattern, { sort: true });
   }
   static condition(pattern) {
     return pattern.length > MAX_BITS
@@ -966,7 +967,7 @@ class NGramSearch {
   searchIn(value) {
     let textNgram = value.ng;
     if (!textNgram) {
-      textNgram = ngram(value.$, { sort: true });
+      textNgram = createNGram(value.$, { sort: true });
       value.ng = textNgram;
     }
 
@@ -1005,7 +1006,7 @@ function createIndex(
         };
 
         if (ngrams) {
-          record.ng = ngram(value, { sort: true });
+          record.ng = createNGram(value, { sort: true });
         }
 
         indexedList.push(record);
@@ -1048,7 +1049,7 @@ function createIndex(
               let subRecord = { $: value, idx: arrayIndex };
 
               if (ngrams) {
-                subRecord.ng = ngram(value, { sort: true });
+                subRecord.ng = createNGram(value, { sort: true });
               }
 
               subRecords.push(subRecord);
@@ -1070,7 +1071,7 @@ function createIndex(
           let subRecord = { $: value };
 
           if (ngrams) {
-            subRecord.ng = ngram(value, { sort: true });
+            subRecord.ng = createNGram(value, { sort: true });
           }
 
           record.$[key] = subRecord;

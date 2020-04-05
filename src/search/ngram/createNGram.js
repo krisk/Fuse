@@ -1,8 +1,8 @@
-export const NGRAM_LEN = 3
+export const NGRAMS = 3
 
-export default function ngram(
+export default function createNGram(
   text,
-  { n = NGRAM_LEN, pad = true, sort = false }
+  { n = NGRAMS, pad = true, sort = false }
 ) {
   let nGrams = []
 

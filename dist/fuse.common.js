@@ -312,7 +312,7 @@ var AdvancedOptions = {
 };
 var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
-function bitapScore(pattern) {
+function computeScore(pattern) {
   var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
       _ref$errors = _ref.errors,
       errors = _ref$errors === void 0 ? 0 : _ref$errors,
@@ -366,7 +366,7 @@ function convertMaskToIndices() {
   return matchedIndices;
 }
 
-function bitapSearch(text, pattern, patternAlphabet) {
+function search(text, pattern, patternAlphabet) {
   var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
       _ref$location = _ref.location,
       location = _ref$location === void 0 ? Config.location : _ref$location,
@@ -398,7 +398,7 @@ function bitapSearch(text, pattern, patternAlphabet) {
   }
 
   if (bestLocation !== -1) {
-    var score = bitapScore(pattern, {
+    var score = computeScore(pattern, {
       errors: 0,
       currentLocation: bestLocation,
       expectedLocation: expectedLocation,
@@ -409,7 +409,7 @@ function bitapSearch(text, pattern, patternAlphabet) {
     bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
 
     if (bestLocation !== -1) {
-      var _score = bitapScore(pattern, {
+      var _score = computeScore(pattern, {
         errors: 0,
         currentLocation: bestLocation,
         expectedLocation: expectedLocation,
@@ -435,7 +435,7 @@ function bitapSearch(text, pattern, patternAlphabet) {
     var binMid = binMax;
 
     while (binMin < binMid) {
-      var _score3 = bitapScore(pattern, {
+      var _score3 = computeScore(pattern, {
         errors: _i,
         currentLocation: expectedLocation + binMid,
         expectedLocation: expectedLocation,
@@ -475,7 +475,7 @@ function bitapSearch(text, pattern, patternAlphabet) {
       }
 
       if (bitArr[j] & mask) {
-        finalScore = bitapScore(pattern, {
+        finalScore = computeScore(pattern, {
           errors: _i,
           currentLocation: currentLocation,
           expectedLocation: expectedLocation,
@@ -499,7 +499,7 @@ function bitapSearch(text, pattern, patternAlphabet) {
     } // No hope for a (better) match at greater error levels.
 
 
-    var _score2 = bitapScore(pattern, {
+    var _score2 = computeScore(pattern, {
       errors: _i + 1,
       currentLocation: expectedLocation,
       expectedLocation: expectedLocation,
@@ -600,7 +600,7 @@ var BitapSearch = /*#__PURE__*/function () {
           threshold = _this$options2.threshold,
           findAllMatches = _this$options2.findAllMatches,
           minMatchCharLength = _this$options2.minMatchCharLength;
-      return bitapSearch(text, this.pattern, this.patternAlphabet, {
+      return search(text, this.pattern, this.patternAlphabet, {
         location: location,
         distance: distance,
         threshold: threshold,
@@ -1116,10 +1116,10 @@ var ExtendedSearch = /*#__PURE__*/function () {
   return ExtendedSearch;
 }();
 
-var NGRAM_LEN = 3;
-function ngram(text, _ref) {
+var NGRAMS = 3;
+function createNGram(text, _ref) {
   var _ref$n = _ref.n,
-      n = _ref$n === void 0 ? NGRAM_LEN : _ref$n,
+      n = _ref$n === void 0 ? NGRAMS : _ref$n,
       _ref$pad = _ref.pad,
       pad = _ref$pad === void 0 ? true : _ref$pad,
       _ref$sort = _ref.sort,
@@ -1234,7 +1234,7 @@ var NGramSearch = /*#__PURE__*/function () {
 
     // Create the ngram, and sort it
     this.options = options;
-    this.patternNgram = ngram(pattern, {
+    this.patternNgram = createNGram(pattern, {
       sort: true
     });
   }
@@ -1245,7 +1245,7 @@ var NGramSearch = /*#__PURE__*/function () {
       var textNgram = value.ng;
 
       if (!textNgram) {
-        textNgram = ngram(value.$, {
+        textNgram = createNGram(value.$, {
           sort: true
         });
         value.ng = textNgram;
@@ -1292,7 +1292,7 @@ function createIndex(keys, list) {
         };
 
         if (ngrams) {
-          record.ng = ngram(value, {
+          record.ng = createNGram(value, {
             sort: true
           });
         }
@@ -1346,7 +1346,7 @@ function createIndex(keys, list) {
               };
 
               if (ngrams) {
-                subRecord.ng = ngram(_value2, {
+                subRecord.ng = createNGram(_value2, {
                   sort: true
                 });
               }
@@ -1372,7 +1372,7 @@ function createIndex(keys, list) {
           };
 
           if (ngrams) {
-            _subRecord.ng = ngram(_value, {
+            _subRecord.ng = createNGram(_value, {
               sort: true
             });
           }

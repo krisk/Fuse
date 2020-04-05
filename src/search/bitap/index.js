@@ -1,4 +1,4 @@
-import bitapSearch from './bitapSearch'
+import search from './search'
 import createPatternAlphabet from './createPatternAlphabet'
 import { MAX_BITS } from './constants'
 import Config from '../../core/config'
@@ -69,7 +69,8 @@ export default class BitapSearch {
       findAllMatches,
       minMatchCharLength
     } = this.options
-    return bitapSearch(text, this.pattern, this.patternAlphabet, {
+
+    return search(text, this.pattern, this.patternAlphabet, {
       location,
       distance,
       threshold,

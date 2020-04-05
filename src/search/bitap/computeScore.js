@@ -1,6 +1,6 @@
 import Config from '../../core/config'
 
-export default function bitapScore(
+export default function computeScore(
   pattern,
   {
     errors = 0,

@@ -1,8 +1,8 @@
-import bitapScore from './bitapScore'
+import computeScore from './computeScore'
 import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
 
-export default function bitapSearch(
+export default function search(
   text,
   pattern,
   patternAlphabet,
@@ -32,7 +32,7 @@ export default function bitapSearch(
   }
 
   if (bestLocation !== -1) {
-    let score = bitapScore(pattern, {
+    let score = computeScore(pattern, {
       errors: 0,
       currentLocation: bestLocation,
       expectedLocation,
@@ -44,7 +44,7 @@ export default function bitapSearch(
     bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen)
 
     if (bestLocation !== -1) {
-      let score = bitapScore(pattern, {
+      let score = computeScore(pattern, {
         errors: 0,
         currentLocation: bestLocation,
         expectedLocation,
@@ -71,7 +71,7 @@ export default function bitapSearch(
     let binMid = binMax
 
     while (binMin < binMid) {
-      const score = bitapScore(pattern, {
+      const score = computeScore(pattern, {
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
@@ -118,7 +118,7 @@ export default function bitapSearch(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = bitapScore(pattern, {
+        finalScore = computeScore(pattern, {
           errors: i,
           currentLocation,
           expectedLocation,
@@ -144,7 +144,7 @@ export default function bitapSearch(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = bitapScore(pattern, {
+    const score = computeScore(pattern, {
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
