@@ -26,9 +26,9 @@ const banner = `/**
 const resolve = (_path) => path.resolve(__dirname, '../', _path)
 
 const builds = {
-  // UMD build
-  'umd-dev': {
-    entry: resolve('src/index.js'),
+  // UMD full build
+  'umd-dev-full': {
+    entry: resolve('src/entry-full.js'),
     dest: resolve(`dist/${FILENAME}.js`),
     format: 'umd',
     env: 'development',
@@ -48,28 +48,70 @@ const builds = {
     ]
   },
   // UMD production build
-  'umd-prod': {
-    entry: resolve('src/index.js'),
+  'umd-prod-full': {
+    entry: resolve('src/entry-full.js'),
     dest: resolve(`dist/${FILENAME}.min.js`),
     format: 'umd',
     env: 'production'
   },
-  // CommonJS build
-  commonjs: {
-    entry: resolve('src/index.js'),
+  // UMD basic build
+  'umd-dev-basic': {
+    entry: resolve('src/entry-basic.js'),
+    dest: resolve(`dist/${FILENAME}.basic.js`),
+    format: 'umd',
+    env: 'development'
+  },
+  'umd-prod-basic': {
+    entry: resolve('src/entry-basic.js'),
+    dest: resolve(`dist/${FILENAME}.basic.min.js`),
+    format: 'umd',
+    env: 'production'
+  },
+  // CommonJS full build
+  'commonjs-full': {
+    entry: resolve('src/entry-full.js'),
     dest: resolve(`dist/${FILENAME}.common.js`),
     env: 'development',
     format: 'cjs'
   },
+  // CommonJS basic build
+  'commonjs-basic': {
+    entry: resolve('src/entry-basic.js'),
+    dest: resolve(`dist/${FILENAME}.basic.common.js`),
+    env: 'development',
+    format: 'cjs'
+  },
   // ES modules build (for bundlers)
-  esm: {
-    entry: resolve('src/index.js'),
+  'esm-dev-full': {
+    entry: resolve('src/entry-full.js'),
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es',
     env: 'development',
     transpile: false
+  },
+  'esm-prod-full': {
+    entry: resolve('src/entry-full.js'),
+    dest: resolve(`dist/${FILENAME}.esm.min.js`),
+    format: 'es',
+    env: 'production',
+    transpile: false
+  },
+  'esm-basic': {
+    entry: resolve('src/entry-basic.js'),
+    dest: resolve(`dist/${FILENAME}.basic.esm.js`),
+    format: 'es',
+    env: 'development',
+    transpile: false
+  },
+  'esm-prod-basic': {
+    entry: resolve('src/entry-basic.js'),
+    dest: resolve(`dist/${FILENAME}.basic.esm.min.js`),
+    format: 'es',
+    env: 'production',
+    transpile: false
   }
 }
+
 // built-in vars
 const vars = {
   __VERSION__: VERSION
@@ -101,7 +143,7 @@ function genConfig(options) {
 
   if (options.transpile !== false) {
     config.plugins.push(babel())
-    config.plugins.push(buble())
+    // config.plugins.push(buble())
   }
 
   return config

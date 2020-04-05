@@ -1106,6 +1106,11 @@
           score: 1
         };
       }
+    }], [{
+      key: "condition",
+      value: function condition(_, options) {
+        return options.useExtendedSearch;
+      }
     }]);
 
     return ExtendedSearch;
@@ -1252,6 +1257,11 @@
           score: isMatch ? jacardResult : 1,
           isMatch: isMatch
         };
+      }
+    }], [{
+      key: "condition",
+      value: function condition(pattern) {
+        return pattern.length > MAX_BITS;
       }
     }]);
 
@@ -1495,6 +1505,8 @@
     data.score = result.score;
   }
 
+  var registeredSearchers = [];
+
   var Fuse = /*#__PURE__*/function () {
     function Fuse(list) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -1550,11 +1562,16 @@
             shouldSort = _this$options.shouldSort;
         var searcher = null;
 
-        if (useExtendedSearch) {
-          searcher = new ExtendedSearch(pattern, this.options);
-        } else if (pattern.length > MAX_BITS) {
-          searcher = new NGramSearch(pattern, this.options);
-        } else {
+        for (var i = 0, len = registeredSearchers.length; i < len; i += 1) {
+          var searcherClass = registeredSearchers[i];
+
+          if (searcherClass.condition(pattern, this.options)) {
+            searcher = new searcherClass(pattern, this.options);
+            break;
+          }
+        }
+
+        if (!searcher) {
           searcher = new BitapSearch(pattern, this.options);
         }
 
@@ -1744,8 +1761,8 @@
             includeMatches = _this$options2.includeMatches,
             includeScore = _this$options2.includeScore;
         var transformers = [];
-        if (includeMatches) { transformers.push(transformMatches); }
-        if (includeScore) { transformers.push(transformScore); }
+        if (includeMatches) transformers.push(transformMatches);
+        if (includeScore) transformers.push(transformScore);
 
         for (var i = 0, len = results.length; i < len; i += 1) {
           var result = results[i];
@@ -1766,11 +1783,17 @@
 
         return finalOutput;
       }
+    }], [{
+      key: "register",
+      value: function register() {
+        registeredSearchers.push.apply(registeredSearchers, arguments);
+      }
     }]);
 
     return Fuse;
   }();
 
+  Fuse.register(ExtendedSearch, NGramSearch);
   Fuse.version = '5.1.0';
   Fuse.createIndex = createIndex;
   Fuse.config = Config;

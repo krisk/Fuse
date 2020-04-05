@@ -1,11 +1,17 @@
 # Explanation of Different Builds
 
-|                 | UMD         | CommonJS       | ES Module (for bundlers) |
-| --------------- | ----------- | -------------- | ------------------------ |
-| **Development** | fuse.js     | fuse.common.js | fuse.esm.js              |
-| **Production**  | fuse.min.js | -              | -                        |
+|                        | UMD               | CommonJS             | ES Module (for bundlers) |
+| ---------------------- | ----------------- | -------------------- | ------------------------ |
+| **Full**               | fuse.js           | fuse.common.js       | fuse.esm.js              |
+| **Basic**              | fuse.basic.js     | fuse.basic.common.js | fuse.basic.esm.js        |
+| **Full (Production)**  | fuse.min.js       | -                    | fuse.esm.min.js          |
+| **Basic (Production)** | fuse.basic.min.js | -                    | fuse.basic.esm.min.js    |
 
 ### Terms
+
+- **Full**: Builds that contain standard fuzzy searching, [extended](/examples.html#extended-search) searching, and long pattern searching. These builds are larger.
+
+- **Basic**: Builds that contain only standard fuzzy searching. Use these if you're not going to enable extended searching, and if the patterns that are searched are typically less than 32 characters in length.
 
 - **[UMD](https://github.com/umdjs/umd)**: UMD builds can be used directly in the browser via a `<script>` tag. The default file from jsDelivr CDN at https://cdn.jsdelivr.net/npm/fuse.js is the UMD build (`fuse.js`).
 

@@ -753,6 +753,10 @@ class ExtendedSearch {
     this.query = parseQuery(this.pattern, options);
   }
 
+  static condition(_, options) {
+    return options.useExtendedSearch
+  }
+
   searchIn(value) {
     const query = this.query;
 
@@ -933,6 +937,9 @@ class NGramSearch {
     // Create the ngram, and sort it
     this.options = options;
     this.patternNgram = ngram(pattern, { sort: true });
+  }
+  static condition(pattern) {
+    return pattern.length > MAX_BITS
   }
   searchIn(value) {
     let textNgram = value.ng;
@@ -1160,12 +1167,18 @@ function transformScore(result, data) {
   data.score = result.score;
 }
 
+const registeredSearchers = [];
+
 class Fuse {
   constructor(list, options = {}, index = null) {
     this.options = { ...Config, ...options };
 
     this._processKeys(this.options.keys);
     this.setCollection(list, index);
+  }
+
+  static register(...args) {
+    registeredSearchers.push(...args);
   }
 
   setCollection(list, index = null) {
@@ -1198,11 +1211,15 @@ class Fuse {
 
     let searcher = null;
 
-    if (useExtendedSearch) {
-      searcher = new ExtendedSearch(pattern, this.options);
-    } else if (pattern.length > MAX_BITS) {
-      searcher = new NGramSearch(pattern, this.options);
-    } else {
+    for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
+      let searcherClass = registeredSearchers[i];
+      if (searcherClass.condition(pattern, this.options)) {
+        searcher = new searcherClass(pattern, this.options);
+        break
+      }
+    }
+
+    if (!searcher) {
       searcher = new BitapSearch(pattern, this.options);
     }
 
@@ -1397,6 +1414,8 @@ class Fuse {
     return finalOutput
   }
 }
+
+Fuse.register(ExtendedSearch, NGramSearch);
 
 Fuse.version = '5.1.0';
 Fuse.createIndex = createIndex;

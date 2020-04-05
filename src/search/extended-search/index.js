@@ -50,6 +50,10 @@ export default class ExtendedSearch {
     this.query = parseQuery(this.pattern, options)
   }
 
+  static condition(_, options) {
+    return options.useExtendedSearch
+  }
+
   searchIn(value) {
     const query = this.query
 
