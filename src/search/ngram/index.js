@@ -1,7 +1,7 @@
 import ngram from './ngram'
 import { jaccardDistance } from './distance'
 import Config from '../../core/config'
-import { MAX_BITS } from '../bitap-search/constants'
+import { MAX_BITS } from '../bitap/constants'
 
 export default class NGramSearch {
   constructor(

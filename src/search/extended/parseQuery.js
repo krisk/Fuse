@@ -1,10 +1,10 @@
-import ExactMatch from './exact-match'
-import InverseExactMatch from './inverse-exact-match'
-import PrefixExactMatch from './prefix-exact-match'
-import InversePrefixExactMatch from './inverse-prefix-exact-match'
-import SuffixExactMatch from './suffix-exact-match'
-import InverseSuffixExactMatch from './inverse-suffix-exact-match'
-import FuzzyMatch from './fuzzy-match'
+import ExactMatch from './ExactMatch'
+import InverseExactMatch from './InverseExactMatch'
+import PrefixExactMatch from './PrefixExactMatch'
+import InversePrefixExactMatch from './InversePrefixExactMatch'
+import SuffixExactMatch from './SuffixExactMatch'
+import InverseSuffixExactMatch from './InverseSuffixExactMatch'
+import FuzzyMatch from './FuzzyMatch'
 
 // ❗Order is important. DO NOT CHANGE.
 const searchers = [

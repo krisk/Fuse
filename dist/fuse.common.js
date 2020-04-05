@@ -190,58 +190,6 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-function bitapScore(pattern, _ref) {
-  var _ref$errors = _ref.errors,
-      errors = _ref$errors === void 0 ? 0 : _ref$errors,
-      _ref$currentLocation = _ref.currentLocation,
-      currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
-      _ref$expectedLocation = _ref.expectedLocation,
-      expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
-      _ref$distance = _ref.distance,
-      distance = _ref$distance === void 0 ? 100 : _ref$distance;
-  var accuracy = errors / pattern.length;
-  var proximity = Math.abs(expectedLocation - currentLocation);
-
-  if (!distance) {
-    // Dodge divide by zero error.
-    return proximity ? 1.0 : accuracy;
-  }
-
-  return accuracy + proximity / distance;
-}
-
-function matchedIndiced() {
-  var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-  var matchedIndices = [];
-  var start = -1;
-  var end = -1;
-  var i = 0;
-
-  for (var len = matchmask.length; i < len; i += 1) {
-    var match = matchmask[i];
-
-    if (match && start === -1) {
-      start = i;
-    } else if (!match && start !== -1) {
-      end = i - 1;
-
-      if (end - start + 1 >= minMatchCharLength) {
-        matchedIndices.push([start, end]);
-      }
-
-      start = -1;
-    }
-  } // (i-1 - start) + 1 => i - start
-
-
-  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1]);
-  }
-
-  return matchedIndices;
-}
-
 var INFINITY = 1 / 0;
 var isArray = function isArray(value) {
   return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
@@ -363,6 +311,60 @@ var AdvancedOptions = {
   getFn: get
 };
 var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
+
+function bitapScore(pattern) {
+  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref$errors = _ref.errors,
+      errors = _ref$errors === void 0 ? 0 : _ref$errors,
+      _ref$currentLocation = _ref.currentLocation,
+      currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
+      _ref$expectedLocation = _ref.expectedLocation,
+      expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
+      _ref$distance = _ref.distance,
+      distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
+
+  var accuracy = errors / pattern.length;
+  var proximity = Math.abs(expectedLocation - currentLocation);
+
+  if (!distance) {
+    // Dodge divide by zero error.
+    return proximity ? 1.0 : accuracy;
+  }
+
+  return accuracy + proximity / distance;
+}
+
+function convertMaskToIndices() {
+  var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var matchedIndices = [];
+  var start = -1;
+  var end = -1;
+  var i = 0;
+
+  for (var len = matchmask.length; i < len; i += 1) {
+    var match = matchmask[i];
+
+    if (match && start === -1) {
+      start = i;
+    } else if (!match && start !== -1) {
+      end = i - 1;
+
+      if (end - start + 1 >= minMatchCharLength) {
+        matchedIndices.push([start, end]);
+      }
+
+      start = -1;
+    }
+  } // (i-1 - start) + 1 => i - start
+
+
+  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
+    matchedIndices.push([start, i - 1]);
+  }
+
+  return matchedIndices;
+}
 
 function bitapSearch(text, pattern, patternAlphabet) {
   var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
@@ -518,13 +520,13 @@ function bitapSearch(text, pattern, patternAlphabet) {
   };
 
   if (includeMatches) {
-    result.matchedIndices = matchedIndiced(matchMask, minMatchCharLength);
+    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
   return result;
 }
 
-function patternAlphabet(pattern) {
+function createPatternAlphabet(pattern) {
   var mask = {};
   var len = pattern.length;
 
@@ -557,7 +559,7 @@ var BitapSearch = /*#__PURE__*/function () {
     }
 
     this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.patternAlphabet = patternAlphabet(this.pattern);
+    this.patternAlphabet = createPatternAlphabet(this.pattern);
   }
 
   _createClass(BitapSearch, [{
@@ -612,14 +614,14 @@ var BitapSearch = /*#__PURE__*/function () {
   return BitapSearch;
 }();
 
-var Match = /*#__PURE__*/function () {
-  function Match(pattern) {
-    _classCallCheck(this, Match);
+var BaseMatch = /*#__PURE__*/function () {
+  function BaseMatch(pattern) {
+    _classCallCheck(this, BaseMatch);
 
     this.pattern = pattern;
   }
 
-  _createClass(Match, [{
+  _createClass(BaseMatch, [{
     key: "search",
     value: function search()
     /*text*/
@@ -636,7 +638,7 @@ var Match = /*#__PURE__*/function () {
     }
   }]);
 
-  return Match;
+  return BaseMatch;
 }();
 
 function getMatch(pattern, exp) {
@@ -644,8 +646,8 @@ function getMatch(pattern, exp) {
   return matches ? matches[1] : null;
 }
 
-var ExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(ExactMatch, _Match);
+var ExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(ExactMatch, _BaseMatch);
 
   var _super = _createSuper(ExactMatch);
 
@@ -684,10 +686,10 @@ var ExactMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return ExactMatch;
-}(Match);
+}(BaseMatch);
 
-var InverseExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(InverseExactMatch, _Match);
+var InverseExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(InverseExactMatch, _BaseMatch);
 
   var _super = _createSuper(InverseExactMatch);
 
@@ -726,10 +728,10 @@ var InverseExactMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return InverseExactMatch;
-}(Match);
+}(BaseMatch);
 
-var PrefixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(PrefixExactMatch, _Match);
+var PrefixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(PrefixExactMatch, _BaseMatch);
 
   var _super = _createSuper(PrefixExactMatch);
 
@@ -767,10 +769,10 @@ var PrefixExactMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return PrefixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var InversePrefixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(InversePrefixExactMatch, _Match);
+var InversePrefixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(InversePrefixExactMatch, _BaseMatch);
 
   var _super = _createSuper(InversePrefixExactMatch);
 
@@ -808,10 +810,10 @@ var InversePrefixExactMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return InversePrefixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var SuffixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(SuffixExactMatch, _Match);
+var SuffixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(SuffixExactMatch, _BaseMatch);
 
   var _super = _createSuper(SuffixExactMatch);
 
@@ -849,10 +851,10 @@ var SuffixExactMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return SuffixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var InverseSuffixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(InverseSuffixExactMatch, _Match);
+var InverseSuffixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(InverseSuffixExactMatch, _BaseMatch);
 
   var _super = _createSuper(InverseSuffixExactMatch);
 
@@ -890,10 +892,10 @@ var InverseSuffixExactMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return InverseSuffixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var FuzzyMatch = /*#__PURE__*/function (_Match) {
-  _inherits(FuzzyMatch, _Match);
+var FuzzyMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(FuzzyMatch, _BaseMatch);
 
   var _super = _createSuper(FuzzyMatch);
 
@@ -934,7 +936,7 @@ var FuzzyMatch = /*#__PURE__*/function (_Match) {
   }]);
 
   return FuzzyMatch;
-}(Match);
+}(BaseMatch);
 
 var searchers = [ExactMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
 var searchersLen = searchers.length; // Regex to split by spaces, but keep anything in quotes together

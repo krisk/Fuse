@@ -1,6 +1,6 @@
 import { isArray, isDefined, isString } from '../helpers/type-checkers'
 import get from '../helpers/get'
-import ngram from '../search/ngram-search/ngram'
+import ngram from '../search/ngram/ngram'
 
 export default function createIndex(
   keys,

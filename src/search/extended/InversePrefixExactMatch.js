@@ -2,9 +2,9 @@
 // Match type: inverse-prefix-exact-match
 // Description: Items that do not start with `fire`
 
-import Match from './match'
+import BaseMatch from './BaseMatch'
 
-export default class InversePrefixExactMatch extends Match {
+export default class InversePrefixExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }

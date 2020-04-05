@@ -1,5 +1,5 @@
-import bitapScore from './bitap-score'
-import matchedIndices from './bitap-matched-indices'
+import bitapScore from './bitapScore'
+import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
 
 export default function bitapSearch(
@@ -165,7 +165,7 @@ export default function bitapSearch(
   }
 
   if (includeMatches) {
-    result.matchedIndices = matchedIndices(matchMask, minMatchCharLength)
+    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength)
   }
 
   return result

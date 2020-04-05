@@ -1,4 +1,4 @@
-import transformMatches from './transform-matches'
-import transformScore from './transform-score'
+import transformMatches from './transformMatches'
+import transformScore from './transformScore'
 
 export { transformMatches, transformScore }

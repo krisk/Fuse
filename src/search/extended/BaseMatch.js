@@ -1,4 +1,4 @@
-export default class Match {
+export default class BaseMatch {
   constructor(pattern) {
     this.pattern = pattern
   }

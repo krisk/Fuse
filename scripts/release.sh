@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-on_master_branch () {
-  [[ $(git symbolic-ref --short -q HEAD) == "master" ]] && return 0
-  return 1
-}
-
-if ! on_master_branch; then
-  echo -e "\033[0;31mRefusing to release from non master branch.\033[0m"
-  exit 1
-fi
-
 if [[ -z $1 ]]; then
   echo "Enter new version: "
   read -r VERSION

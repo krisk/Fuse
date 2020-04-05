@@ -1,4 +1,4 @@
-import createIndex from './create-index'
-import KeyStore from './key-store'
+import createIndex from './createIndex'
+import KeyStore from './KeyStore'
 
 export { createIndex, KeyStore }

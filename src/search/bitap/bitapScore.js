@@ -1,6 +1,13 @@
+import Config from '../../core/config'
+
 export default function bitapScore(
   pattern,
-  { errors = 0, currentLocation = 0, expectedLocation = 0, distance = 100 }
+  {
+    errors = 0,
+    currentLocation = 0,
+    expectedLocation = 0,
+    distance = Config.distance
+  } = {}
 ) {
   const accuracy = errors / pattern.length
   const proximity = Math.abs(expectedLocation - currentLocation)

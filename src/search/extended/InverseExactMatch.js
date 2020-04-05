@@ -2,9 +2,9 @@
 // Match type: inverse-exact-match
 // Description: Items that do not include `fire`
 
-import Match from './match'
+import BaseMatch from './BaseMatch'
 
-export default class InverseExactMatch extends Match {
+export default class InverseExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }

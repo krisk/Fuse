@@ -1,5 +1,5 @@
-import bitapSearch from './bitap-search'
-import patternAlphabet from './bitap-pattern-alphabet'
+import bitapSearch from './bitapSearch'
+import createPatternAlphabet from './createPatternAlphabet'
 import { MAX_BITS } from './constants'
 import Config from '../../core/config'
 
@@ -32,7 +32,7 @@ export default class BitapSearch {
     this.pattern = this.options.isCaseSensitive
       ? pattern
       : pattern.toLowerCase()
-    this.patternAlphabet = patternAlphabet(this.pattern)
+    this.patternAlphabet = createPatternAlphabet(this.pattern)
   }
 
   searchIn(value) {

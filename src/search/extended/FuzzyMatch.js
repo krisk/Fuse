@@ -1,8 +1,8 @@
-import Match from './match'
-import BitapSearch from '../bitap-search'
+import BaseMatch from './BaseMatch'
+import BitapSearch from '../bitap'
 import Config from '../../core/config'
 
-export default class FuzzyMatch extends Match {
+export default class FuzzyMatch extends BaseMatch {
   constructor(
     pattern,
     options = ({

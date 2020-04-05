@@ -1,5 +1,5 @@
-import parseQuery from './parse-query'
-import FuzzyMatch from './fuzzy-match'
+import parseQuery from './parseQuery'
+import FuzzyMatch from './FuzzyMatch'
 import Config from '../../core/config'
 
 /**

@@ -2,9 +2,9 @@
 // Match type: exact-match
 // Description: Items that include `file`
 
-import Match from './match'
+import BaseMatch from './BaseMatch'
 
-export default class ExactMatch extends Match {
+export default class ExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }
