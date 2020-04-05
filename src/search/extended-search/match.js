@@ -5,10 +5,10 @@ export default class Match {
   static isLiteralMatch(pattern) {
     return getMatch(pattern, this.literal)
   }
-  static isRegMatch(pattern, re) {
+  static isRegMatch(pattern) {
     return getMatch(pattern, this.re)
   }
-  search(text) {}
+  search(/*text*/) {}
 }
 
 function getMatch(pattern, exp) {

@@ -51,7 +51,7 @@ export default class Fuse {
   }
 
   search(pattern, opts = { limit: false }) {
-    const { useExtendedSearch, shouldSort } = this.options
+    const { shouldSort } = this.options
 
     let searcher = null
 

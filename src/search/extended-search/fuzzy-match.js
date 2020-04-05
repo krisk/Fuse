@@ -6,6 +6,7 @@ export default class FuzzyMatch extends Match {
   constructor(
     pattern,
     options = ({
+      /*eslint-disable no-undef*/
       location = Config.location,
       threshold = Config.threshold,
       distance = Config.distance,
@@ -13,6 +14,7 @@ export default class FuzzyMatch extends Match {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive
+      /*eslint-enable no-undef*/
     } = {})
   ) {
     super(pattern)

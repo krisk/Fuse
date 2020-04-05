@@ -33,6 +33,7 @@ export default class ExtendedSearch {
   constructor(
     pattern,
     options = ({
+      /*eslint-disable no-undef*/
       isCaseSensitive = Config.isCaseSensitive,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
@@ -41,6 +42,7 @@ export default class ExtendedSearch {
       threshold = Config.threshold,
       distance = Config.distance,
       includeMatches = Config.includeMatches
+      /*eslint-enable no-undef*/
     } = {})
   ) {
     this.query = null

@@ -10,7 +10,9 @@ export default class BitapSearch {
     // of this class is created every time a pattern is created. Otherwise, a spread
     // operation would be performed directly withing the contructor, which may slow
     // done searches.
+
     options = ({
+      /*eslint-disable no-undef*/
       location = Config.location,
       threshold = Config.threshold,
       distance = Config.distance,
@@ -18,6 +20,7 @@ export default class BitapSearch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive
+      /*eslint-enable no-undef*/
     } = {})
   ) {
     this.options = options
