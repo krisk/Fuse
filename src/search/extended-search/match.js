@@ -3,12 +3,15 @@ export default class Match {
     this.pattern = pattern
   }
   static isLiteralMatch(pattern) {
-    const matches = pattern.match(this.literal)
-    return matches ? matches[1] : null
+    return getMatch(pattern, this.literal)
   }
   static isRegMatch(pattern, re) {
-    const matches = pattern.match(this.re)
-    return matches ? matches[1] : null
+    return getMatch(pattern, this.re)
   }
   search(text) {}
+}
+
+function getMatch(pattern, exp) {
+  const matches = pattern.match(exp)
+  return matches ? matches[1] : null
 }

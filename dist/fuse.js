@@ -524,19 +524,22 @@
     }], [{
       key: "isLiteralMatch",
       value: function isLiteralMatch(pattern) {
-        var matches = pattern.match(this.literal);
-        return matches ? matches[1] : null;
+        return getMatch(pattern, this.literal);
       }
     }, {
       key: "isRegMatch",
       value: function isRegMatch(pattern, re) {
-        var matches = pattern.match(this.re);
-        return matches ? matches[1] : null;
+        return getMatch(pattern, this.re);
       }
     }]);
 
     return Match;
   }();
+
+  function getMatch(pattern, exp) {
+    var matches = pattern.match(exp);
+    return matches ? matches[1] : null;
+  }
 
   var ExactMatch = /*#__PURE__*/function (_Match) {
     _inherits(ExactMatch, _Match);
