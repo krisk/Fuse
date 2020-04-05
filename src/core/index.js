@@ -8,20 +8,13 @@ import {
 import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
 import { MAX_BITS } from '../search/bitap-search/constants'
-import { BasicOptions, FuzzyOptions, AdvancedOptions } from './options'
+import Config from './config'
 
-export const defaultOptions = {
-  ...BasicOptions,
-  ...FuzzyOptions,
-  ...AdvancedOptions
-}
+export { Config }
 
 export default class Fuse {
-  constructor(list, options = defaultOptions, index = null) {
-    this.options = { ...defaultOptions, ...options }
-    // `caseSensitive` is deprecated, use `isCaseSensitive` instead
-    this.options.isCaseSensitive = options.caseSensitive
-    delete this.options.caseSensitive
+  constructor(list, options = {}, index = null) {
+    this.options = { ...Config, ...options }
 
     this._processKeys(this.options.keys)
     this.setCollection(list, index)

@@ -49,18 +49,146 @@ function matchedIndiced(matchmask = [], minMatchCharLength = 1) {
   return matchedIndices
 }
 
+const INFINITY = 1 / 0;
+
+const isArray = (value) =>
+  !Array.isArray
+    ? Object.prototype.toString.call(value) === '[object Array]'
+    : Array.isArray(value);
+
+// Adapted from:
+// https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
+const baseToString = (value) => {
+  // Exit early for strings to avoid a performance hit in some environments.
+  if (typeof value == 'string') {
+    return value
+  }
+  let result = value + '';
+  return result == '0' && 1 / value == -INFINITY ? '-0' : result
+};
+
+const toString = (value) => (value == null ? '' : baseToString(value));
+
+const isString = (value) => typeof value === 'string';
+
+const isNumber = (value) => typeof value === 'number';
+
+const isDefined = (value) => value !== undefined && value !== null;
+
+function get(obj, path) {
+  let list = [];
+  let arr = false;
+
+  const _get = (obj, path) => {
+    if (!path) {
+      // If there's no path left, we've gotten to the object we care about.
+      list.push(obj);
+    } else {
+      const dotIndex = path.indexOf('.');
+
+      let key = path;
+      let remaining = null;
+
+      if (dotIndex !== -1) {
+        key = path.slice(0, dotIndex);
+        remaining = path.slice(dotIndex + 1);
+      }
+
+      const value = obj[key];
+
+      if (isDefined(value)) {
+        if (!remaining && (isString(value) || isNumber(value))) {
+          list.push(toString(value));
+        } else if (isArray(value)) {
+          arr = true;
+          // Search each item in the array.
+          for (let i = 0, len = value.length; i < len; i += 1) {
+            _get(value[i], remaining);
+          }
+        } else if (remaining) {
+          // An object. Recurse further.
+          _get(value, remaining);
+        }
+      }
+    }
+  };
+
+  _get(obj, path);
+
+  if (arr) {
+    return list
+  }
+
+  return list[0]
+}
+
+const MatchOptions = {
+  // Whether the matches should be included in the result set. When true, each record in the result
+  // set will include the indices of the matched characters.
+  // These can consequently be used for highlighting purposes.
+  includeMatches: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  // a perfect match has already been located in the string.
+  findAllMatches: false,
+  // Minimum number of characters that must be matched before a result is considered a match
+  minMatchCharLength: 1
+};
+
+const BasicOptions = {
+  // When true, the algorithm continues searching to the end of the input even if a perfect
+  // match is found before the end of the same input.
+  isCaseSensitive: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  includeScore: false,
+  // List of properties that will be searched. This also supports nested properties.
+  keys: [],
+  // Whether to sort the result list, by score
+  shouldSort: true,
+  // Default sort function
+  sortFn: (a, b) => a.score - b.score
+};
+
+const FuzzyOptions = {
+  // Approximately where in the text is the pattern expected to be found?
+  location: 0,
+  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+  // (of both letters and location), a threshold of '1.0' would match anything.
+  threshold: 0.6,
+  // Determines how close the match must be to the fuzzy location (specified above).
+  // An exact letter match which is 'distance' characters away from the fuzzy location
+  // would score as a complete mismatch. A distance of '0' requires the match be at
+  // the exact location specified, a threshold of '1000' would require a perfect match
+  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+  distance: 100
+};
+
+const AdvancedOptions = {
+  // When true, it enables the use of unix-like search commands
+  useExtendedSearch: false,
+  // The get function to use when fetching an object's properties.
+  // The default will search nested paths *ie foo.bar.baz*
+  getFn: get
+};
+
+var Config = {
+  ...BasicOptions,
+  ...MatchOptions,
+  ...FuzzyOptions,
+  ...AdvancedOptions
+};
+
 function bitapSearch(
   text,
   pattern,
   patternAlphabet,
   {
-    location = 0,
-    distance = 100,
-    threshold = 0.6,
-    findAllMatches = false,
-    minMatchCharLength = 1,
-    includeMatches = false
-  }
+    location = Config.location,
+    distance = Config.distance,
+    threshold = Config.threshold,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    includeMatches = Config.includeMatches
+  } = {}
 ) {
   const patternLen = pattern.length;
   // Set starting location at beginning text and initialize the alphabet.
@@ -239,44 +367,29 @@ const MAX_BITS = 32;
 class BitapSearch {
   constructor(
     pattern,
-    {
-      // Approximately where in the text is the pattern expected to be found?
-      location = 0,
-      // Determines how close the match must be to the fuzzy location (specified above).
-      // An exact letter match which is 'distance' characters away from the fuzzy location
-      // would score as a complete mismatch. A distance of '0' requires the match be at
-      // the exact location specified, a threshold of '1000' would require a perfect match
-      // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-      distance = 100,
-      // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-      // (of both letters and location), a threshold of '1.0' would match anything.
-      threshold = 0.6,
-      // Indicates whether comparisons should be case sensitive.
-      isCaseSensitive = false,
-      // When true, the algorithm continues searching to the end of the input even if a perfect
-      // match is found before the end of the same input.
-      findAllMatches = false,
-      // Minimum number of characters that must be matched before a result is considered a match
-      minMatchCharLength = 1,
-
-      includeMatches = false
-    }
+    // Deconstructed in this fashion purely for speed-up, since a new instance
+    // of this class is created every time a pattern is created. Otherwise, a spread
+    // operation would be performed directly withing the contructor, which may slow
+    // done searches.
+    options = ({
+      location = Config.location,
+      threshold = Config.threshold,
+      distance = Config.distance,
+      includeMatches = Config.includeMatches,
+      findAllMatches = Config.findAllMatches,
+      minMatchCharLength = Config.minMatchCharLength,
+      isCaseSensitive = Config.isCaseSensitive
+    } = {})
   ) {
-    this.options = {
-      location,
-      distance,
-      threshold,
-      isCaseSensitive,
-      findAllMatches,
-      includeMatches,
-      minMatchCharLength
-    };
+    this.options = options;
 
     if (pattern.length > MAX_BITS) {
       throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
     }
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.pattern = this.options.isCaseSensitive
+      ? pattern
+      : pattern.toLowerCase();
     this.patternAlphabet = patternAlphabet(this.pattern);
   }
 
@@ -501,7 +614,18 @@ class InverseSuffixExactMatch extends Match {
 }
 
 class FuzzyMatch extends Match {
-  constructor(pattern, options) {
+  constructor(
+    pattern,
+    options = ({
+      location = Config.location,
+      threshold = Config.threshold,
+      distance = Config.distance,
+      includeMatches = Config.includeMatches,
+      findAllMatches = Config.findAllMatches,
+      minMatchCharLength = Config.minMatchCharLength,
+      isCaseSensitive = Config.isCaseSensitive
+    } = {})
+  ) {
     super(pattern);
     this._bitapSearch = new BitapSearch(pattern, options);
   }
@@ -609,12 +733,23 @@ function parseQuery(pattern, options) {
  * ```
  */
 class ExtendedSearch {
-  constructor(pattern, options) {
-    const { isCaseSensitive } = options;
+  constructor(
+    pattern,
+    options = ({
+      isCaseSensitive = Config.isCaseSensitive,
+      includeMatches = Config.includeMatches,
+      minMatchCharLength = Config.minMatchCharLength,
+      findAllMatches = Config.findAllMatches,
+      location = Config.location,
+      threshold = Config.threshold,
+      distance = Config.distance,
+      includeMatches = Config.includeMatches
+    } = {})
+  ) {
     this.query = null;
     this.options = options;
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
     this.query = parseQuery(this.pattern, options);
   }
 
@@ -794,7 +929,7 @@ function jaccardDistance(nGram1, nGram2) {
 }
 
 class NGramSearch {
-  constructor(pattern, options = { threshold: 0.6 }) {
+  constructor(pattern, options = ({ threshold = Config.threshold } = {})) {
     // Create the ngram, and sort it
     this.options = options;
     this.patternNgram = ngram(pattern, { sort: true });
@@ -815,79 +950,6 @@ class NGramSearch {
       isMatch
     }
   }
-}
-
-const INFINITY = 1 / 0;
-
-const isArray = (value) =>
-  !Array.isArray
-    ? Object.prototype.toString.call(value) === '[object Array]'
-    : Array.isArray(value);
-
-// Adapted from:
-// https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-const baseToString = (value) => {
-  // Exit early for strings to avoid a performance hit in some environments.
-  if (typeof value == 'string') {
-    return value
-  }
-  let result = value + '';
-  return result == '0' && 1 / value == -INFINITY ? '-0' : result
-};
-
-const toString = (value) => (value == null ? '' : baseToString(value));
-
-const isString = (value) => typeof value === 'string';
-
-const isNumber = (value) => typeof value === 'number';
-
-const isDefined = (value) => value !== undefined && value !== null;
-
-function get(obj, path) {
-  let list = [];
-  let arr = false;
-
-  const _get = (obj, path) => {
-    if (!path) {
-      // If there's no path left, we've gotten to the object we care about.
-      list.push(obj);
-    } else {
-      const dotIndex = path.indexOf('.');
-
-      let key = path;
-      let remaining = null;
-
-      if (dotIndex !== -1) {
-        key = path.slice(0, dotIndex);
-        remaining = path.slice(dotIndex + 1);
-      }
-
-      const value = obj[key];
-
-      if (isDefined(value)) {
-        if (!remaining && (isString(value) || isNumber(value))) {
-          list.push(toString(value));
-        } else if (isArray(value)) {
-          arr = true;
-          // Search each item in the array.
-          for (let i = 0, len = value.length; i < len; i += 1) {
-            _get(value[i], remaining);
-          }
-        } else if (remaining) {
-          // An object. Recurse further.
-          _get(value, remaining);
-        }
-      }
-    }
-  };
-
-  _get(obj, path);
-
-  if (arr) {
-    return list
-  }
-
-  return list[0]
 }
 
 function createIndex(
@@ -1098,58 +1160,9 @@ function transformScore(result, data) {
   data.score = result.score;
 }
 
-const BasicOptions = {
-  // When true, the algorithm continues searching to the end of the input even if a perfect
-  // match is found before the end of the same input.
-  isCaseSensitive: false,
-  // Minimum number of characters that must be matched before a result is considered a match
-  findAllMatches: false,
-  includeMatches: false,
-  includeScore: false,
-  // List of properties that will be searched. This also supports nested properties.
-  keys: [],
-  // Minimum number of characters that must be matched before a result is considered a match
-  minMatchCharLength: 1,
-  // Whether to sort the result list, by score
-  shouldSort: true,
-  // Default sort function
-  sortFn: (a, b) => a.score - b.score
-};
-
-const FuzzyOptions = {
-  // Approximately where in the text is the pattern expected to be found?
-  location: 0,
-  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-  // (of both letters and location), a threshold of '1.0' would match anything.
-  threshold: 0.6,
-  // Determines how close the match must be to the fuzzy location (specified above).
-  // An exact letter match which is 'distance' characters away from the fuzzy location
-  // would score as a complete mismatch. A distance of '0' requires the match be at
-  // the exact location specified, a threshold of '1000' would require a perfect match
-  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100
-};
-
-const AdvancedOptions = {
-  // Enabled extended-searching
-  useExtendedSearch: false,
-  // The get function to use when fetching an object's properties.
-  // The default will search nested paths *ie foo.bar.baz*
-  getFn: get
-};
-
-const defaultOptions = {
-  ...BasicOptions,
-  ...FuzzyOptions,
-  ...AdvancedOptions
-};
-
 class Fuse {
-  constructor(list, options = defaultOptions, index = null) {
-    this.options = { ...defaultOptions, ...options };
-    // `caseSensitive` is deprecated, use `isCaseSensitive` instead
-    this.options.isCaseSensitive = options.caseSensitive;
-    delete this.options.caseSensitive;
+  constructor(list, options = {}, index = null) {
+    this.options = { ...Config, ...options };
 
     this._processKeys(this.options.keys);
     this.setCollection(list, index);
@@ -1387,6 +1400,6 @@ class Fuse {
 
 Fuse.version = '5.1.0';
 Fuse.createIndex = createIndex;
-Fuse.defaultOptions = defaultOptions;
+Fuse.config = Config;
 
 export default Fuse;

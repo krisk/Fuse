@@ -246,19 +246,143 @@
     return matchedIndices;
   }
 
-  function bitapSearch(text, pattern, patternAlphabet, _ref) {
-    var _ref$location = _ref.location,
-        location = _ref$location === void 0 ? 0 : _ref$location,
+  var INFINITY = 1 / 0;
+  var isArray = function isArray(value) {
+    return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
+  }; // Adapted from:
+  // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
+
+  var baseToString = function baseToString(value) {
+    // Exit early for strings to avoid a performance hit in some environments.
+    if (typeof value == 'string') {
+      return value;
+    }
+
+    var result = value + '';
+    return result == '0' && 1 / value == -INFINITY ? '-0' : result;
+  };
+  var toString = function toString(value) {
+    return value == null ? '' : baseToString(value);
+  };
+  var isString = function isString(value) {
+    return typeof value === 'string';
+  };
+  var isNumber = function isNumber(value) {
+    return typeof value === 'number';
+  };
+  var isDefined = function isDefined(value) {
+    return value !== undefined && value !== null;
+  };
+
+  function get(obj, path) {
+    var list = [];
+    var arr = false;
+
+    var _get = function _get(obj, path) {
+      if (!path) {
+        // If there's no path left, we've gotten to the object we care about.
+        list.push(obj);
+      } else {
+        var dotIndex = path.indexOf('.');
+        var key = path;
+        var remaining = null;
+
+        if (dotIndex !== -1) {
+          key = path.slice(0, dotIndex);
+          remaining = path.slice(dotIndex + 1);
+        }
+
+        var value = obj[key];
+
+        if (isDefined(value)) {
+          if (!remaining && (isString(value) || isNumber(value))) {
+            list.push(toString(value));
+          } else if (isArray(value)) {
+            arr = true; // Search each item in the array.
+
+            for (var i = 0, len = value.length; i < len; i += 1) {
+              _get(value[i], remaining);
+            }
+          } else if (remaining) {
+            // An object. Recurse further.
+            _get(value, remaining);
+          }
+        }
+      }
+    };
+
+    _get(obj, path);
+
+    if (arr) {
+      return list;
+    }
+
+    return list[0];
+  }
+
+  var MatchOptions = {
+    // Whether the matches should be included in the result set. When true, each record in the result
+    // set will include the indices of the matched characters.
+    // These can consequently be used for highlighting purposes.
+    includeMatches: false,
+    // When true, the matching function will continue to the end of a search pattern even if
+    // a perfect match has already been located in the string.
+    findAllMatches: false,
+    // Minimum number of characters that must be matched before a result is considered a match
+    minMatchCharLength: 1
+  };
+  var BasicOptions = {
+    // When true, the algorithm continues searching to the end of the input even if a perfect
+    // match is found before the end of the same input.
+    isCaseSensitive: false,
+    // When true, the matching function will continue to the end of a search pattern even if
+    includeScore: false,
+    // List of properties that will be searched. This also supports nested properties.
+    keys: [],
+    // Whether to sort the result list, by score
+    shouldSort: true,
+    // Default sort function
+    sortFn: function sortFn(a, b) {
+      return a.score - b.score;
+    }
+  };
+  var FuzzyOptions = {
+    // Approximately where in the text is the pattern expected to be found?
+    location: 0,
+    // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+    // (of both letters and location), a threshold of '1.0' would match anything.
+    threshold: 0.6,
+    // Determines how close the match must be to the fuzzy location (specified above).
+    // An exact letter match which is 'distance' characters away from the fuzzy location
+    // would score as a complete mismatch. A distance of '0' requires the match be at
+    // the exact location specified, a threshold of '1000' would require a perfect match
+    // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+    distance: 100
+  };
+  var AdvancedOptions = {
+    // When true, it enables the use of unix-like search commands
+    useExtendedSearch: false,
+    // The get function to use when fetching an object's properties.
+    // The default will search nested paths *ie foo.bar.baz*
+    getFn: get
+  };
+  var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
+
+  function bitapSearch(text, pattern, patternAlphabet) {
+    var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
         _ref$distance = _ref.distance,
-        distance = _ref$distance === void 0 ? 100 : _ref$distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
         _ref$threshold = _ref.threshold,
-        threshold = _ref$threshold === void 0 ? 0.6 : _ref$threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
         _ref$findAllMatches = _ref.findAllMatches,
-        findAllMatches = _ref$findAllMatches === void 0 ? false : _ref$findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
         _ref$minMatchCharLeng = _ref.minMatchCharLength,
-        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? 1 : _ref$minMatchCharLeng,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
         _ref$includeMatches = _ref.includeMatches,
-        includeMatches = _ref$includeMatches === void 0 ? false : _ref$includeMatches;
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
+
     var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
 
     var textLen = text.length; // Handle the case when location > text.length
@@ -423,39 +547,20 @@
   var MAX_BITS = 32;
 
   var BitapSearch = /*#__PURE__*/function () {
-    function BitapSearch(pattern, _ref) {
-      var _ref$location = _ref.location,
-          location = _ref$location === void 0 ? 0 : _ref$location,
-          _ref$distance = _ref.distance,
-          distance = _ref$distance === void 0 ? 100 : _ref$distance,
-          _ref$threshold = _ref.threshold,
-          threshold = _ref$threshold === void 0 ? 0.6 : _ref$threshold,
-          _ref$isCaseSensitive = _ref.isCaseSensitive,
-          isCaseSensitive = _ref$isCaseSensitive === void 0 ? false : _ref$isCaseSensitive,
-          _ref$findAllMatches = _ref.findAllMatches,
-          findAllMatches = _ref$findAllMatches === void 0 ? false : _ref$findAllMatches,
-          _ref$minMatchCharLeng = _ref.minMatchCharLength,
-          minMatchCharLength = _ref$minMatchCharLeng === void 0 ? 1 : _ref$minMatchCharLeng,
-          _ref$includeMatches = _ref.includeMatches,
-          includeMatches = _ref$includeMatches === void 0 ? false : _ref$includeMatches;
+    function BitapSearch(pattern) {
+      var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
+
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
 
       _classCallCheck(this, BitapSearch);
 
-      this.options = {
-        location: location,
-        distance: distance,
-        threshold: threshold,
-        isCaseSensitive: isCaseSensitive,
-        findAllMatches: findAllMatches,
-        includeMatches: includeMatches,
-        minMatchCharLength: minMatchCharLength
-      };
+      this.options = options;
 
       if (pattern.length > MAX_BITS) {
         throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
       }
 
-      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
       this.patternAlphabet = patternAlphabet(this.pattern);
     }
 
@@ -794,8 +899,12 @@
 
     var _super = _createSuper(FuzzyMatch);
 
-    function FuzzyMatch(pattern, options) {
+    function FuzzyMatch(pattern) {
+      var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
+
       var _this;
+
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
 
       _classCallCheck(this, FuzzyMatch);
 
@@ -912,13 +1021,16 @@
    */
 
   var ExtendedSearch = /*#__PURE__*/function () {
-    function ExtendedSearch(pattern, options) {
+    function ExtendedSearch(pattern) {
+      var _ref, _ref$isCaseSensitive, _ref$includeMatches, _ref$minMatchCharLeng, _ref$findAllMatches, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches2;
+
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches2 = _ref.includeMatches, includeMatches = _ref$includeMatches2 === void 0 ? Config.includeMatches : _ref$includeMatches2, _ref);
+
       _classCallCheck(this, ExtendedSearch);
 
-      var isCaseSensitive = options.isCaseSensitive;
       this.query = null;
       this.options = options;
-      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
       this.query = parseQuery(this.pattern, options);
     }
 
@@ -1109,9 +1221,9 @@
 
   var NGramSearch = /*#__PURE__*/function () {
     function NGramSearch(pattern) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-        threshold: 0.6
-      };
+      var _ref, _ref$threshold;
+
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref);
 
       _classCallCheck(this, NGramSearch);
 
@@ -1145,80 +1257,6 @@
 
     return NGramSearch;
   }();
-
-  var INFINITY = 1 / 0;
-  var isArray = function isArray(value) {
-    return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
-  }; // Adapted from:
-  // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-
-  var baseToString = function baseToString(value) {
-    // Exit early for strings to avoid a performance hit in some environments.
-    if (typeof value == 'string') {
-      return value;
-    }
-
-    var result = value + '';
-    return result == '0' && 1 / value == -INFINITY ? '-0' : result;
-  };
-  var toString = function toString(value) {
-    return value == null ? '' : baseToString(value);
-  };
-  var isString = function isString(value) {
-    return typeof value === 'string';
-  };
-  var isNumber = function isNumber(value) {
-    return typeof value === 'number';
-  };
-  var isDefined = function isDefined(value) {
-    return value !== undefined && value !== null;
-  };
-
-  function get(obj, path) {
-    var list = [];
-    var arr = false;
-
-    var _get = function _get(obj, path) {
-      if (!path) {
-        // If there's no path left, we've gotten to the object we care about.
-        list.push(obj);
-      } else {
-        var dotIndex = path.indexOf('.');
-        var key = path;
-        var remaining = null;
-
-        if (dotIndex !== -1) {
-          key = path.slice(0, dotIndex);
-          remaining = path.slice(dotIndex + 1);
-        }
-
-        var value = obj[key];
-
-        if (isDefined(value)) {
-          if (!remaining && (isString(value) || isNumber(value))) {
-            list.push(toString(value));
-          } else if (isArray(value)) {
-            arr = true; // Search each item in the array.
-
-            for (var i = 0, len = value.length; i < len; i += 1) {
-              _get(value[i], remaining);
-            }
-          } else if (remaining) {
-            // An object. Recurse further.
-            _get(value, remaining);
-          }
-        }
-      }
-    };
-
-    _get(obj, path);
-
-    if (arr) {
-      return list;
-    }
-
-    return list[0];
-  }
 
   function createIndex(keys, list) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
@@ -1457,59 +1495,14 @@
     data.score = result.score;
   }
 
-  var BasicOptions = {
-    // When true, the algorithm continues searching to the end of the input even if a perfect
-    // match is found before the end of the same input.
-    isCaseSensitive: false,
-    // Minimum number of characters that must be matched before a result is considered a match
-    findAllMatches: false,
-    includeMatches: false,
-    includeScore: false,
-    // List of properties that will be searched. This also supports nested properties.
-    keys: [],
-    // Minimum number of characters that must be matched before a result is considered a match
-    minMatchCharLength: 1,
-    // Whether to sort the result list, by score
-    shouldSort: true,
-    // Default sort function
-    sortFn: function sortFn(a, b) {
-      return a.score - b.score;
-    }
-  };
-  var FuzzyOptions = {
-    // Approximately where in the text is the pattern expected to be found?
-    location: 0,
-    // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-    // (of both letters and location), a threshold of '1.0' would match anything.
-    threshold: 0.6,
-    // Determines how close the match must be to the fuzzy location (specified above).
-    // An exact letter match which is 'distance' characters away from the fuzzy location
-    // would score as a complete mismatch. A distance of '0' requires the match be at
-    // the exact location specified, a threshold of '1000' would require a perfect match
-    // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-    distance: 100
-  };
-  var AdvancedOptions = {
-    // Enabled extended-searching
-    useExtendedSearch: false,
-    // The get function to use when fetching an object's properties.
-    // The default will search nested paths *ie foo.bar.baz*
-    getFn: get
-  };
-
-  var defaultOptions = _objectSpread2({}, BasicOptions, {}, FuzzyOptions, {}, AdvancedOptions);
-
   var Fuse = /*#__PURE__*/function () {
     function Fuse(list) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultOptions;
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
       _classCallCheck(this, Fuse);
 
-      this.options = _objectSpread2({}, defaultOptions, {}, options); // `caseSensitive` is deprecated, use `isCaseSensitive` instead
-
-      this.options.isCaseSensitive = options.caseSensitive;
-      delete this.options.caseSensitive;
+      this.options = _objectSpread2({}, Config, {}, options);
 
       this._processKeys(this.options.keys);
 
@@ -1780,7 +1773,7 @@
 
   Fuse.version = '5.1.0';
   Fuse.createIndex = createIndex;
-  Fuse.defaultOptions = defaultOptions;
+  Fuse.config = Config;
 
   return Fuse;
 

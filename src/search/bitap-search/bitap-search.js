@@ -1,18 +1,19 @@
 import bitapScore from './bitap-score'
 import matchedIndices from './bitap-matched-indices'
+import Config from '../../core/config'
 
 export default function bitapSearch(
   text,
   pattern,
   patternAlphabet,
   {
-    location = 0,
-    distance = 100,
-    threshold = 0.6,
-    findAllMatches = false,
-    minMatchCharLength = 1,
-    includeMatches = false
-  }
+    location = Config.location,
+    distance = Config.distance,
+    threshold = Config.threshold,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    includeMatches = Config.includeMatches
+  } = {}
 ) {
   const patternLen = pattern.length
   // Set starting location at beginning text and initialize the alphabet.

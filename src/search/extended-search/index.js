@@ -1,5 +1,6 @@
 import parseQuery from './parse-query'
 import FuzzyMatch from './fuzzy-match'
+import Config from '../../core/config'
 
 /**
  * Command-like searching
@@ -29,12 +30,23 @@ import FuzzyMatch from './fuzzy-match'
  * ```
  */
 export default class ExtendedSearch {
-  constructor(pattern, options) {
-    const { isCaseSensitive } = options
+  constructor(
+    pattern,
+    options = ({
+      isCaseSensitive = Config.isCaseSensitive,
+      includeMatches = Config.includeMatches,
+      minMatchCharLength = Config.minMatchCharLength,
+      findAllMatches = Config.findAllMatches,
+      location = Config.location,
+      threshold = Config.threshold,
+      distance = Config.distance,
+      includeMatches = Config.includeMatches
+    } = {})
+  ) {
     this.query = null
     this.options = options
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase()
     this.query = parseQuery(this.pattern, options)
   }
 

@@ -1,8 +1,9 @@
 import ngram from './ngram'
 import { jaccardDistance } from './distance'
+import Config from '../../core/config'
 
 export default class NGramSearch {
-  constructor(pattern, options = { threshold: 0.6 }) {
+  constructor(pattern, options = ({ threshold = Config.threshold } = {})) {
     // Create the ngram, and sort it
     this.options = options
     this.patternNgram = ngram(pattern, { sort: true })
