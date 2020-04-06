@@ -1,6 +1,8 @@
+import Config from '../../core/config'
+
 export default function convertMaskToIndices(
   matchmask = [],
-  minMatchCharLength = 1
+  minMatchCharLength = Config.minMatchCharLength
 ) {
   let matchedIndices = []
   let start = -1

@@ -157,7 +157,7 @@ function computeScore(
 
 function convertMaskToIndices(
   matchmask = [],
-  minMatchCharLength = 1
+  minMatchCharLength = Config.minMatchCharLength
 ) {
   let matchedIndices = [];
   let start = -1;
@@ -699,10 +699,6 @@ class Fuse {
 
     this._processKeys(this.options.keys);
     this.setCollection(list, index);
-  }
-
-  static register(...args) {
-    registeredSearchers.push(...args);
   }
 
   setCollection(list, index = null) {

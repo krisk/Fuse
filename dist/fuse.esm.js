@@ -157,7 +157,7 @@ function computeScore(
 
 function convertMaskToIndices(
   matchmask = [],
-  minMatchCharLength = 1
+  minMatchCharLength = Config.minMatchCharLength
 ) {
   let matchedIndices = [];
   let start = -1;
@@ -1192,16 +1192,16 @@ function transformScore(result, data) {
 
 const registeredSearchers = [];
 
+function register(...args) {
+  registeredSearchers.push(...args);
+}
+
 class Fuse {
   constructor(list, options = {}, index = null) {
     this.options = { ...Config, ...options };
 
     this._processKeys(this.options.keys);
     this.setCollection(list, index);
-  }
-
-  static register(...args) {
-    registeredSearchers.push(...args);
   }
 
   setCollection(list, index = null) {
@@ -1438,7 +1438,7 @@ class Fuse {
   }
 }
 
-Fuse.register(ExtendedSearch, NGramSearch);
+register(ExtendedSearch, NGramSearch);
 
 Fuse.version = '5.2.0-alpha.1';
 Fuse.createIndex = createIndex;

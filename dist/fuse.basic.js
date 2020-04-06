@@ -230,7 +230,7 @@
 
   function convertMaskToIndices() {
     var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
     var matchedIndices = [];
     var start = -1;
     var end = -1;
@@ -1059,11 +1059,6 @@
         }
 
         return finalOutput;
-      }
-    }], [{
-      key: "register",
-      value: function register() {
-        registeredSearchers.push.apply(registeredSearchers, arguments);
       }
     }]);
 

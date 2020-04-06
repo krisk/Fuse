@@ -340,7 +340,7 @@
 
   function convertMaskToIndices() {
     var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
     var matchedIndices = [];
     var start = -1;
     var end = -1;
@@ -1510,6 +1510,9 @@
   }
 
   var registeredSearchers = [];
+  function register() {
+    registeredSearchers.push.apply(registeredSearchers, arguments);
+  }
 
   var Fuse = /*#__PURE__*/function () {
     function Fuse(list) {
@@ -1785,17 +1788,12 @@
 
         return finalOutput;
       }
-    }], [{
-      key: "register",
-      value: function register() {
-        registeredSearchers.push.apply(registeredSearchers, arguments);
-      }
     }]);
 
     return Fuse;
   }();
 
-  Fuse.register(ExtendedSearch, NGramSearch);
+  register(ExtendedSearch, NGramSearch);
   Fuse.version = '5.2.0-alpha.1';
   Fuse.createIndex = createIndex;
   Fuse.config = Config;

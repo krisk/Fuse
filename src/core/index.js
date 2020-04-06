@@ -9,9 +9,11 @@ import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
 import Config from './config'
 
-export { Config }
-
 const registeredSearchers = []
+
+export function register(...args) {
+  registeredSearchers.push(...args)
+}
 
 export default class Fuse {
   constructor(list, options = {}, index = null) {
@@ -19,10 +21,6 @@ export default class Fuse {
 
     this._processKeys(this.options.keys)
     this.setCollection(list, index)
-  }
-
-  static register(...args) {
-    registeredSearchers.push(...args)
   }
 
   setCollection(list, index = null) {
