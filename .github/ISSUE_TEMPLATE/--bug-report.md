@@ -1,23 +1,27 @@
 ---
 name: "\U0001F41EBug report"
-about: Create a report to help us improve
+about: Report a bug in Fuse.js.
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### Describe the bug
+<!-- ✍️--> A clear and concise description of what the bug is.
 
-**Steps to reproduce the bug**
-Steps to reproduce the behavior.
+### Version
+<!-- ✍️--> The Fuse.js version where this bug is happening.
 
-**Version**
-The Fuse.js version where this bug is happening.
+### Is this a regression?
+<!-- Did this behavior use to work in the previous version? -->
+<!-- ✍️--> Yes, the previous version in which this bug was not present was: ...
 
-**Additional context**
-Add any other context about the problem.
+### 🔬Minimal Reproduction
+<!-- Simple steps to reproduce this bug -->
+
+### Additional context
+<!-- Add any other context about the problem -->
 
 <!--
 Love Fuse.js? Please consider supporting:
