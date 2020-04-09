@@ -261,6 +261,7 @@ const books = [
 
 ```javascript
 const options = {
+  useExtendedSearch: true,
   includeScore: true,
   keys: ['author']
 }
