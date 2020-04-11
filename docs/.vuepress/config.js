@@ -129,8 +129,8 @@ module.exports = {
               collapsable: false,
               children: ['/api/options', '/api/indexing']
             },
-            '/examples',
-            '/scoring'
+            '/examples'
+            // '/scoring'
           ]
         }
       }

@@ -49,6 +49,12 @@ export default class Fuse {
   }
 
   search(pattern, opts = { limit: false }) {
+    pattern = pattern.trim()
+
+    if (!pattern.length) {
+      return []
+    }
+
     const { shouldSort } = this.options
 
     let searcher = null

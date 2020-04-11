@@ -1632,6 +1632,12 @@ var Fuse = /*#__PURE__*/function () {
       var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         limit: false
       };
+      pattern = pattern.trim();
+
+      if (!pattern.length) {
+        return [];
+      }
+
       var shouldSort = this.options.shouldSort;
       var searcher = null;
 

@@ -175,7 +175,6 @@ export default {
           return eval(body)(DemoFuse, this.list)
         }
         let start = new Date().getTime()
-        // this.result = func()
         const { pattern, results } = func()
         this.result = results
         this.pattern = pattern
