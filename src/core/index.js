@@ -90,7 +90,7 @@ export default class Fuse {
       // Iterate over every string in the list
       for (let i = 0, len = list.length; i < len; i += 1) {
         let value = list[i]
-        let { $: text, idx } = value
+        let { $: text, idx, t } = value
 
         if (!isDefined(text)) {
           continue
@@ -104,7 +104,7 @@ export default class Fuse {
           continue
         }
 
-        let match = { score, value: text }
+        let match = { score, value: text, t }
 
         if (includeMatches) {
           match.indices = searchResult.matchedIndices
@@ -142,8 +142,7 @@ export default class Fuse {
           if (isArray(value)) {
             for (let k = 0, len = value.length; k < len; k += 1) {
               let arrItem = value[k]
-              let text = arrItem.$
-              let idx = arrItem.idx
+              const { $: text, idx, t } = arrItem
 
               if (!isDefined(text)) {
                 continue
@@ -157,7 +156,7 @@ export default class Fuse {
                 continue
               }
 
-              let match = { score, key, value: text, idx }
+              let match = { score, key, value: text, idx, t }
 
               if (includeMatches) {
                 match.indices = searchResult.matchedIndices
@@ -166,7 +165,8 @@ export default class Fuse {
               matches.push(match)
             }
           } else {
-            let text = value.$
+            const { $: text, t } = value
+
             let searchResult = searcher.searchIn(value)
 
             const { isMatch, score } = searchResult
@@ -175,7 +175,7 @@ export default class Fuse {
               continue
             }
 
-            let match = { score, key, value: text }
+            let match = { score, key, value: text, t }
 
             if (includeMatches) {
               match.indices = searchResult.matchedIndices
@@ -198,26 +198,33 @@ export default class Fuse {
     return results
   }
 
+  // Practical scoring function
   _computeScore(results) {
-    for (let i = 0, len = results.length; i < len; i += 1) {
+    const resultsLen = results.length
+
+    for (let i = 0; i < resultsLen; i += 1) {
       const result = results[i]
       const matches = result.matches
-      const scoreLen = matches.length
+      const numMatches = matches.length
 
-      let totalWeightedScore = 1
+      let totalScore = 1
 
-      for (let j = 0; j < scoreLen; j += 1) {
-        const item = matches[j]
-        const key = item.key
+      for (let j = 0; j < numMatches; j += 1) {
+        const match = matches[j]
+        const { key, t } = match
+
         const keyWeight = this._keyStore.get(key, 'weight')
         const weight = keyWeight > -1 ? keyWeight : 1
         const score =
-          item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score
+          match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score
 
-        totalWeightedScore *= Math.pow(score, weight)
+        // Field-length norm: the shorter the field, the higher the weight.
+        const norm = 1 / Math.sqrt(t)
+
+        totalScore *= Math.pow(score, weight * norm)
       }
 
-      result.score = totalWeightedScore
+      result.score = totalScore
     }
   }
 

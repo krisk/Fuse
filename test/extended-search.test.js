@@ -60,9 +60,13 @@ describe('Searching using extended search', () => {
   test('Search: inverse-prefix-exact-match', () => {
     let result = fuse.search('!^hello')
     expect(result.length).toBe(3)
+    expect(result[0].refIndex).toBe(1)
+    expect(result[1].refIndex).toBe(3)
+    expect(result[2].refIndex).toBe(2)
+
     expect(result[0].matches[0].indices).toMatchObject([[0, 10]])
-    expect(result[1].matches[0].indices).toMatchObject([[0, 20]])
-    expect(result[2].matches[0].indices).toMatchObject([[0, 8]])
+    expect(result[1].matches[0].indices).toMatchObject([[0, 8]])
+    expect(result[2].matches[0].indices).toMatchObject([[0, 20]])
   })
 
   test('Search: inverse-suffix-exact-match', () => {

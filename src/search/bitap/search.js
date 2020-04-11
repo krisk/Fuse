@@ -23,34 +23,36 @@ export default function search(
   // Highest score beyond which we give up.
   let currentThreshold = threshold
   // Is there a nearby exact match? (speedup)
-  let bestLocation = text.indexOf(pattern, expectedLocation)
+  let bestLocation = expectedLocation
 
-  // a mask of the matches
+  // A mask of the matches, used for building the indices
   const matchMask = []
-  for (let i = 0; i < textLen; i += 1) {
-    matchMask[i] = 0
+
+  if (includeMatches) {
+    for (let i = 0; i < textLen; i += 1) {
+      matchMask[i] = 0
+    }
   }
 
-  if (bestLocation !== -1) {
+  let index
+
+  // Get all exact matches
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     let score = computeScore(pattern, {
-      errors: 0,
-      currentLocation: bestLocation,
+      currentLocation: index,
       expectedLocation,
       distance
     })
+
     currentThreshold = Math.min(score, currentThreshold)
+    bestLocation = index + patternLen
 
-    // What about in the other direction? (speed up)
-    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen)
-
-    if (bestLocation !== -1) {
-      let score = computeScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
-        expectedLocation,
-        distance
-      })
-      currentThreshold = Math.min(score, currentThreshold)
+    if (includeMatches) {
+      let i = 0
+      while (i < patternLen) {
+        matchMask[index + i] = 1
+        i += 1
+      }
     }
   }
 
@@ -104,7 +106,7 @@ export default function search(
       let currentLocation = j - 1
       let charMatch = patternAlphabet[text.charAt(currentLocation)]
 
-      if (charMatch) {
+      if (charMatch && includeMatches) {
         matchMask[currentLocation] = 1
       }
 
@@ -167,6 +169,8 @@ export default function search(
   if (includeMatches) {
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength)
   }
+
+  // console.log('result', result)
 
   return result
 }

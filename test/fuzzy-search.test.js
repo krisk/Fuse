@@ -622,7 +622,7 @@ describe('Weighted search', () => {
       return (result = fuse.search('War'))
     })
 
-    test('We get the the exactly matching object', () => {
+    test('We get the exactly matching object', () => {
       expect(result[0]).toMatchObject({
         item: {
           title: "Old Man's War fiction",
@@ -878,5 +878,45 @@ describe('Searching using string large strings', () => {
     let result = fuse.search(pattern)
     expect(result.length).toBe(1)
     expect(result[0].item.text).toBe(list[2].text)
+  })
+})
+
+describe('Searching taking into account field length', () => {
+  const list = [
+    {
+      ISBN: '0312696957',
+      title: 'The Lock war Artist nonficon',
+      author: 'Steve Hamilton',
+      tags: ['fiction war hello no way']
+    },
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction no']
+    }
+  ]
+
+  test('The entry with the shorter field length appears first', () => {
+    const fuse = new Fuse(list, {
+      keys: ['title']
+    })
+    let result = fuse.search('war')
+    expect(result.length).toBe(2)
+    expect(result[0].item.ISBN).toBe('0765348276')
+    expect(result[1].item.ISBN).toBe('0312696957')
+  })
+
+  test('Weighted entries still are given high precedence', () => {
+    const fuse = new Fuse(list, {
+      keys: [
+        { name: 'tags', weight: 0.8 },
+        { name: 'title', weight: 0.2 }
+      ]
+    })
+    let result = fuse.search('war')
+    expect(result.length).toBe(2)
+    expect(result[0].item.ISBN).toBe('0312696957')
+    expect(result[1].item.ISBN).toBe('0765348276')
   })
 })

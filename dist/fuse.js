@@ -393,34 +393,34 @@
 
     var currentThreshold = threshold; // Is there a nearby exact match? (speedup)
 
-    var bestLocation = text.indexOf(pattern, expectedLocation); // a mask of the matches
+    var bestLocation = expectedLocation; // A mask of the matches, used for building the indices
 
     var matchMask = [];
 
-    for (var i = 0; i < textLen; i += 1) {
-      matchMask[i] = 0;
+    if (includeMatches) {
+      for (var i = 0; i < textLen; i += 1) {
+        matchMask[i] = 0;
+      }
     }
 
-    if (bestLocation !== -1) {
+    var index; // Get all exact matches
+
+    while ((index = text.indexOf(pattern, bestLocation)) > -1) {
       var score = computeScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
+        currentLocation: index,
         expectedLocation: expectedLocation,
         distance: distance
       });
-      currentThreshold = Math.min(score, currentThreshold); // What about in the other direction? (speed up)
+      currentThreshold = Math.min(score, currentThreshold);
+      bestLocation = index + patternLen;
 
-      bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
+      if (includeMatches) {
+        var _i = 0;
 
-      if (bestLocation !== -1) {
-        var _score = computeScore(pattern, {
-          errors: 0,
-          currentLocation: bestLocation,
-          expectedLocation: expectedLocation,
-          distance: distance
-        });
-
-        currentThreshold = Math.min(_score, currentThreshold);
+        while (_i < patternLen) {
+          matchMask[index + _i] = 1;
+          _i += 1;
+        }
       }
     } // Reset the best location
 
@@ -431,7 +431,7 @@
     var binMax = patternLen + textLen;
     var mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
 
-    for (var _i = 0; _i < patternLen; _i += 1) {
+    for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
       // Scan for the best match; each iteration allows for one more error.
       // Run a binary search to determine how far from the match location we can stray
       // at this error level.
@@ -439,14 +439,14 @@
       var binMid = binMax;
 
       while (binMin < binMid) {
-        var _score3 = computeScore(pattern, {
-          errors: _i,
+        var _score2 = computeScore(pattern, {
+          errors: _i2,
           currentLocation: expectedLocation + binMid,
           expectedLocation: expectedLocation,
           distance: distance
         });
 
-        if (_score3 <= currentThreshold) {
+        if (_score2 <= currentThreshold) {
           binMin = binMid;
         } else {
           binMax = binMid;
@@ -461,26 +461,26 @@
       var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
       var bitArr = Array(finish + 2);
-      bitArr[finish + 1] = (1 << _i) - 1;
+      bitArr[finish + 1] = (1 << _i2) - 1;
 
       for (var j = finish; j >= start; j -= 1) {
         var currentLocation = j - 1;
         var charMatch = patternAlphabet[text.charAt(currentLocation)];
 
-        if (charMatch) {
+        if (charMatch && includeMatches) {
           matchMask[currentLocation] = 1;
         } // First pass: exact match
 
 
         bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch; // Subsequent passes: fuzzy match
 
-        if (_i !== 0) {
+        if (_i2 !== 0) {
           bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
         }
 
         if (bitArr[j] & mask) {
           finalScore = computeScore(pattern, {
-            errors: _i,
+            errors: _i2,
             currentLocation: currentLocation,
             expectedLocation: expectedLocation,
             distance: distance
@@ -503,14 +503,14 @@
       } // No hope for a (better) match at greater error levels.
 
 
-      var _score2 = computeScore(pattern, {
-        errors: _i + 1,
+      var _score = computeScore(pattern, {
+        errors: _i2 + 1,
         currentLocation: expectedLocation,
         expectedLocation: expectedLocation,
         distance: distance
       });
 
-      if (_score2 > currentThreshold) {
+      if (_score > currentThreshold) {
         break;
       }
 
@@ -525,7 +525,8 @@
 
     if (includeMatches) {
       result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
-    }
+    } // console.log('result', result)
+
 
     return result;
   }
@@ -664,12 +665,21 @@
     _createClass(ExactMatch, [{
       key: "search",
       value: function search(text) {
-        var index = text.indexOf(this.pattern);
-        var isMatch = index > -1;
+        var location = 0;
+        var index;
+        var matchedIndices = [];
+        var patternLen = this.pattern.length; // Get all exact matches
+
+        while ((index = text.indexOf(this.pattern, location)) > -1) {
+          location = index + patternLen;
+          matchedIndices.push([index, location - 1]);
+        }
+
+        var isMatch = !!matchedIndices.length;
         return {
           isMatch: isMatch,
           score: isMatch ? 1 : 0,
-          matchedIndices: [index, index + this.pattern.length - 1]
+          matchedIndices: matchedIndices
         };
       }
     }], [{
@@ -996,6 +1006,9 @@
     });
   }
 
+  // to a singl match
+
+  var MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type]);
   /**
    * Command-like searching
    * ======================
@@ -1075,8 +1088,9 @@
               numMatches += 1;
 
               if (includeMatches) {
-                if (searcher.constructor.type === FuzzyMatch.type) {
-                  // FuzzyMatch returns is a 2D array
+                var type = searcher.constructor.type;
+
+                if (MultiMatchSet.has(type)) {
                   indices = [].concat(_toConsumableArray(indices), _toConsumableArray(matchedIndices));
                 } else {
                   indices.push(matchedIndices);
@@ -1272,6 +1286,7 @@
     return NGramSearch;
   }();
 
+  var SPACE = /[^ ]+/g;
   function createIndex(keys, list) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref$getFn = _ref.getFn,
@@ -1287,12 +1302,10 @@
         var value = list[i];
 
         if (isDefined(value)) {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
           var record = {
             $: value,
-            idx: i
+            idx: i,
+            t: value.match(SPACE).length
           };
 
           if (ngrams) {
@@ -1341,12 +1354,10 @@
               }
 
               if (isString(_value2)) {
-                // if (!isCaseSensitive) {
-                //   v = v.toLowerCase()
-                // }
                 var subRecord = {
                   $: _value2,
-                  idx: arrayIndex
+                  idx: arrayIndex,
+                  t: _value2.match(SPACE).length
                 };
 
                 if (ngrams) {
@@ -1368,11 +1379,9 @@
 
             _record.$[key] = subRecords;
           } else {
-            // if (!isCaseSensitive) {
-            //   value = value.toLowerCase()
-            // }
             var _subRecord = {
-              $: _value
+              $: _value,
+              t: _value.match(SPACE).length
             };
 
             if (ngrams) {
@@ -1606,7 +1615,8 @@
           for (var i = 0, len = list.length; i < len; i += 1) {
             var value = list[i];
             var text = value.$,
-                idx = value.idx;
+                idx = value.idx,
+                t = value.t;
 
             if (!isDefined(text)) {
               continue;
@@ -1622,7 +1632,8 @@
 
             var match = {
               score: score,
-              value: text
+              value: text,
+              t: t
             };
 
             if (includeMatches) {
@@ -1663,8 +1674,9 @@
               if (isArray(_value)) {
                 for (var k = 0, _len2 = _value.length; k < _len2; k += 1) {
                   var arrItem = _value[k];
-                  var _text = arrItem.$;
-                  var _idx2 = arrItem.idx;
+                  var _text = arrItem.$,
+                      _idx2 = arrItem.idx,
+                      _t = arrItem.t;
 
                   if (!isDefined(_text)) {
                     continue;
@@ -1683,7 +1695,8 @@
                     score: _score,
                     key: key,
                     value: _text,
-                    idx: _idx2
+                    idx: _idx2,
+                    t: _t
                   };
 
                   if (includeMatches) {
@@ -1693,7 +1706,8 @@
                   matches.push(_match);
                 }
               } else {
-                var _text2 = _value.$;
+                var _text2 = _value.$,
+                    _t2 = _value.t;
 
                 var _searchResult2 = searcher.searchIn(_value);
 
@@ -1707,7 +1721,8 @@
                 var _match2 = {
                   score: _score2,
                   key: key,
-                  value: _text2
+                  value: _text2,
+                  t: _t2
                 };
 
                 if (includeMatches) {
@@ -1729,28 +1744,34 @@
         }
 
         return results;
-      }
+      } // Practical scoring function
+
     }, {
       key: "_computeScore",
       value: function _computeScore(results) {
-        for (var i = 0, len = results.length; i < len; i += 1) {
+        var resultsLen = results.length;
+
+        for (var i = 0; i < resultsLen; i += 1) {
           var result = results[i];
           var matches = result.matches;
-          var scoreLen = matches.length;
-          var totalWeightedScore = 1;
+          var numMatches = matches.length;
+          var totalScore = 1;
 
-          for (var j = 0; j < scoreLen; j += 1) {
-            var item = matches[j];
-            var key = item.key;
+          for (var j = 0; j < numMatches; j += 1) {
+            var match = matches[j];
+            var key = match.key,
+                t = match.t;
 
             var keyWeight = this._keyStore.get(key, 'weight');
 
             var weight = keyWeight > -1 ? keyWeight : 1;
-            var score = item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
-            totalWeightedScore *= Math.pow(score, weight);
+            var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score; // Field-length norm: the shorter the field, the higher the weight.
+
+            var norm = 1 / Math.sqrt(t);
+            totalScore *= Math.pow(score, weight * norm);
           }
 
-          result.score = totalWeightedScore;
+          result.score = totalScore;
         }
       }
     }, {

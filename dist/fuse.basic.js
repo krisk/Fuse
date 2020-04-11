@@ -283,7 +283,8 @@
 
     var currentThreshold = threshold; // Is there a nearby exact match? (speedup)
 
-    var bestLocation = text.indexOf(pattern, expectedLocation); // a mask of the matches
+    var bestLocation = text.indexOf(pattern, expectedLocation);
+    console.log('bestLocation', bestLocation); // a mask of the matches
 
     var matchMask = [];
 
@@ -298,9 +299,17 @@
         expectedLocation: expectedLocation,
         distance: distance
       });
-      currentThreshold = Math.min(score, currentThreshold); // What about in the other direction? (speed up)
+      currentThreshold = Math.min(score, currentThreshold);
+      console.log({
+        score: score,
+        currentThreshold: currentThreshold
+      }); // What about in the other direction? (speed up)
 
       bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
+      console.log({
+        bestLocation: bestLocation,
+        expectedLocation: expectedLocation
+      });
 
       if (bestLocation !== -1) {
         var _score = computeScore(pattern, {
@@ -354,8 +363,10 @@
       bitArr[finish + 1] = (1 << _i) - 1;
 
       for (var j = finish; j >= start; j -= 1) {
+        console.log('start', start);
         var currentLocation = j - 1;
         var charMatch = patternAlphabet[text.charAt(currentLocation)];
+        console.log('charMatch', charMatch, text.charAt(currentLocation));
 
         if (charMatch) {
           matchMask[currentLocation] = 1;
@@ -567,7 +578,8 @@
           // }
           var record = {
             $: value,
-            idx: i
+            idx: i,
+            t: value.split(/ /g).length
           };
 
           if (ngrams) {
@@ -621,7 +633,8 @@
                 // }
                 var subRecord = {
                   $: _value2,
-                  idx: arrayIndex
+                  idx: arrayIndex,
+                  t: _value2.split(/ /g).length
                 };
 
                 if (ngrams) {
@@ -647,7 +660,8 @@
             //   value = value.toLowerCase()
             // }
             var _subRecord = {
-              $: _value
+              $: _value,
+              t: _value.split(/ /g).length
             };
 
             if (ngrams) {
@@ -786,6 +800,8 @@
 
   var registeredSearchers = [];
 
+  var util = require('util');
+
   var Fuse = /*#__PURE__*/function () {
     function Fuse(list) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -878,7 +894,8 @@
           for (var i = 0, len = list.length; i < len; i += 1) {
             var value = list[i];
             var text = value.$,
-                idx = value.idx;
+                idx = value.idx,
+                t = value.t;
 
             if (!isDefined(text)) {
               continue;
@@ -894,7 +911,8 @@
 
             var match = {
               score: score,
-              value: text
+              value: text,
+              t: t
             };
 
             if (includeMatches) {
@@ -935,8 +953,9 @@
               if (isArray(_value)) {
                 for (var k = 0, _len2 = _value.length; k < _len2; k += 1) {
                   var arrItem = _value[k];
-                  var _text = arrItem.$;
-                  var _idx2 = arrItem.idx;
+                  var _text = arrItem.$,
+                      _idx2 = arrItem.idx,
+                      _t = arrItem.t;
 
                   if (!isDefined(_text)) {
                     continue;
@@ -955,7 +974,8 @@
                     score: _score,
                     key: key,
                     value: _text,
-                    idx: _idx2
+                    idx: _idx2,
+                    t: _t
                   };
 
                   if (includeMatches) {
@@ -965,7 +985,8 @@
                   matches.push(_match);
                 }
               } else {
-                var _text2 = _value.$;
+                var _text2 = _value.$,
+                    _t2 = _value.t;
 
                 var _searchResult2 = searcher.searchIn(_value);
 
@@ -979,7 +1000,8 @@
                 var _match2 = {
                   score: _score2,
                   key: key,
-                  value: _text2
+                  value: _text2,
+                  t: _t2
                 };
 
                 if (includeMatches) {
@@ -1005,30 +1027,117 @@
     }, {
       key: "_computeScore",
       value: function _computeScore(results) {
+        // idf(t) = 1 + log ( numDocs / (docFreq + 1))
+        var idf = 1 + Math.log(this._indexedList.length / (results.length + 1)); // console.log('idf', idf)
+        // console.log(
+        //   util.inspect(this._indexedList, false, null, true /* enable colors */)
+        // )
+        // console.log(util.inspect(results, false, null, true /* enable colors */))
+
+        console.log('----------------');
+        var keysLen = this._keyStore.count() || 1;
+
         for (var i = 0, len = results.length; i < len; i += 1) {
           var result = results[i];
           var matches = result.matches;
-          var scoreLen = matches.length;
-          var totalWeightedScore = 1;
+          var numMatches = matches.length;
+          // let tf = Math.sqrt(numMatches)
 
-          for (var j = 0; j < scoreLen; j += 1) {
-            var item = matches[j];
-            var key = item.key;
+          var numWords = 0;
 
-            var keyWeight = this._keyStore.get(key, 'weight');
+          for (var j = 0; j < numMatches; j += 1) {
+            var match = matches[j];
+            var t = match.t;
+            numWords += t;
+          } // console.log('Index: ', result.idx)
+          // console.log('numWords', numWords)
+          // let tf = Math.sqrt(numMatches)
+
+
+          var tf = numMatches / numWords;
+          var tfidf = tf * idf; // console.log('tfidf', tfidf)
+          console.log('ITEM---'); // let totalWeight = 0
+
+          var totalScore = 1;
+
+          for (var _j = 0; _j < numMatches; _j += 1) {
+            var _match3 = matches[_j];
+            var key = _match3.key,
+                value = _match3.value,
+                _t3 = _match3.t; // const key = match.key
+            // tf(t in d) = count of t in d / number of words in d
+            // TODO: put this in the index
+            // TODO: enable with "norm" option
+            // const numTerms = value.split(/ /g).length
+            // norm(d) = 1 / √numTerms
+            // Field-length norm: the shorter the field, the higher the weight.
+            // The field-length norm (norm) is the inverse square root of the number of terms in the field.
+
+            var norm = 1 / Math.sqrt(_t3); // console.log('Norm', norm)
+
+            var keyWeight = this._keyStore.get(key, 'weight'); // console.log('keyWeight', key, keyWeight)
+            // totalWeight += weight
+
 
             var weight = keyWeight > -1 ? keyWeight : 1;
-            var score = item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
-            totalWeightedScore *= Math.pow(score, weight);
-          }
+            var score = _match3.score || Number.EPSILON; // === 0 && keyWeight > -1 ? Number.EPSILON : match.score
+            // const score = match.score
+            // const _score = tfidf * (1 - norm) * (1 - score) * weight
+            // console.log('newScore', _score)
 
-          result.score = totalWeightedScore;
+            console.log('-------');
+            console.log(key, value);
+            console.log({
+              t: _t3,
+              tfidf: tfidf,
+              norm: norm,
+              weight: weight,
+              score: score,
+              numMatches: numMatches,
+              keysLen: keysLen
+            }); // totalWeightedScore += Math.pow(score, weight)
+            // multiplier += tfidf * norm
+            // const mult = score * (1 / Math.sqrt(tfidf * norm))
+            // totalScore *= Math.pow(mult, weight)
+
+            var mult = numMatches / keysLen * (1 / 1 + tfidf * norm); // 1 / Math.sqrt(tfidf * norm) // fidf * norm1 / (1 + Math.sqrt(tfidf * norm))
+            // totalScore *= Math.pow(score, weight) // * mult
+
+            totalScore *= Math.pow(score, weight * mult);
+          } // let _score = totalScore * totalWeight
+          // console.log('multiplier', multiplier)
+          // console.log('totalScore', totalScore)
+          // console.log('totalWeight', totalWeight)
+          // totalWeight = 1 - totalWeight || 1
+          // totalScore =
+          //   (1 - multiplier / (1 + multiplier)) *
+          //   (totalScore / (1 + totalScore)) *
+          //   (1 - totalWeight / (1 + totalWeight)) // Math.pow((totalScore / numMatches) * totalWeight, multiplier)
+          // console.log('totalScore:after', totalScore)
+          // console.log('totalWeight:after', totalWeight)
+          // totalWeightedScore = 1 - totalWeightedScore / numMatches
+          // console.log('totalWeightedScore:before', totalWeightedScore)
+          // totalWeightedScore = Math.pow(totalWeightedScore, multiplier)
+          // console.log('totalWeightedScore:after', totalWeightedScore)
+
+
+          result.score = totalScore;
+
+          if (result.score >= 1) {
+            console.log('***********************');
+            console.log(result);
+            console.log('***********************');
+            throw new Error('Error with score');
+          }
         }
       }
     }, {
       key: "_sort",
       value: function _sort(results) {
         results.sort(this.options.sortFn);
+        console.log(util.inspect(results, false, null, true
+        /* enable colors */
+        ));
       }
     }, {
       key: "_format",

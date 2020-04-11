@@ -16,6 +16,7 @@ const searchers = [
   InverseExactMatch,
   FuzzyMatch
 ]
+
 const searchersLen = searchers.length
 
 // Regex to split by spaces, but keep anything in quotes together

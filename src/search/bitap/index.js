@@ -10,7 +10,6 @@ export default class BitapSearch {
     // of this class is created every time a pattern is created. Otherwise, a spread
     // operation would be performed directly withing the contructor, which may slow
     // done searches.
-
     options = ({
       /*eslint-disable no-undef*/
       location = Config.location,

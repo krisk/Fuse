@@ -2,6 +2,8 @@ import { isArray, isDefined, isString } from '../helpers/type-checkers'
 import get from '../helpers/get'
 import createNGram from '../search/ngram/createNGram'
 
+const SPACE = /[^ ]+/g
+
 export default function createIndex(
   keys,
   list,
@@ -16,13 +18,10 @@ export default function createIndex(
       const value = list[i]
 
       if (isDefined(value)) {
-        // if (!isCaseSensitive) {
-        //   value = value.toLowerCase()
-        // }
-
         let record = {
           $: value,
-          idx: i
+          idx: i,
+          t: value.match(SPACE).length
         }
 
         if (ngrams) {
@@ -62,11 +61,11 @@ export default function createIndex(
             }
 
             if (isString(value)) {
-              // if (!isCaseSensitive) {
-              //   v = v.toLowerCase()
-              // }
-
-              let subRecord = { $: value, idx: arrayIndex }
+              let subRecord = {
+                $: value,
+                idx: arrayIndex,
+                t: value.match(SPACE).length
+              }
 
               if (ngrams) {
                 subRecord.ng = createNGram(value, { sort: true })
@@ -87,11 +86,7 @@ export default function createIndex(
           }
           record.$[key] = subRecords
         } else {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
-
-          let subRecord = { $: value }
+          let subRecord = { $: value, t: value.match(SPACE).length }
 
           if (ngrams) {
             subRecord.ng = createNGram(value, { sort: true })

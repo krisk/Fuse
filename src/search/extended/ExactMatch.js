@@ -18,13 +18,24 @@ export default class ExactMatch extends BaseMatch {
     return /^'(.*)$/
   }
   search(text) {
-    const index = text.indexOf(this.pattern)
-    const isMatch = index > -1
+    let location = 0
+    let index
+
+    const matchedIndices = []
+    const patternLen = this.pattern.length
+
+    // Get all exact matches
+    while ((index = text.indexOf(this.pattern, location)) > -1) {
+      location = index + patternLen
+      matchedIndices.push([index, location - 1])
+    }
+
+    const isMatch = !!matchedIndices.length
 
     return {
       isMatch,
       score: isMatch ? 1 : 0,
-      matchedIndices: [index, index + this.pattern.length - 1]
+      matchedIndices
     }
   }
 }

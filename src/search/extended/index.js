@@ -1,6 +1,11 @@
 import parseQuery from './parseQuery'
 import FuzzyMatch from './FuzzyMatch'
+import ExactMatch from './ExactMatch'
 import Config from '../../core/config'
+
+// These extended matchers can return an array of matches, as opposed
+// to a singl match
+const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type])
 
 /**
  * Command-like searching
@@ -91,8 +96,8 @@ export default class ExtendedSearch {
         if (isMatch) {
           numMatches += 1
           if (includeMatches) {
-            if (searcher.constructor.type === FuzzyMatch.type) {
-              // FuzzyMatch returns is a 2D array
+            const type = searcher.constructor.type
+            if (MultiMatchSet.has(type)) {
               indices = [...indices, ...matchedIndices]
             } else {
               indices.push(matchedIndices)
