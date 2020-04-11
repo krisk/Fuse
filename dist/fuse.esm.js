@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.0-alpha.3 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.0-alpha.4 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1476,7 +1476,7 @@ class Fuse {
 // ❗Order is important. DO NOT CHANGE.
 register(ExtendedSearch, NGramSearch);
 
-Fuse.version = '5.2.0-alpha.3';
+Fuse.version = '5.2.0-alpha.4';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;
 
