@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.0-alpha.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.0-alpha.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -206,39 +206,36 @@ function search(
   // Highest score beyond which we give up.
   let currentThreshold = threshold;
   // Is there a nearby exact match? (speedup)
-  let bestLocation = text.indexOf(pattern, expectedLocation);
-  console.log('bestLocation', bestLocation);
+  let bestLocation = expectedLocation;
 
-  // a mask of the matches
+  // A mask of the matches, used for building the indices
   const matchMask = [];
-  for (let i = 0; i < textLen; i += 1) {
-    matchMask[i] = 0;
+
+  if (includeMatches) {
+    for (let i = 0; i < textLen; i += 1) {
+      matchMask[i] = 0;
+    }
   }
 
-  if (bestLocation !== -1) {
+  let index;
+
+  // Get all exact matches
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     let score = computeScore(pattern, {
-      errors: 0,
-      currentLocation: bestLocation,
+      currentLocation: index,
       expectedLocation,
       distance
     });
+
     currentThreshold = Math.min(score, currentThreshold);
+    bestLocation = index + patternLen;
 
-    console.log({ score, currentThreshold });
-
-    // What about in the other direction? (speed up)
-    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
-
-    console.log({ bestLocation, expectedLocation });
-
-    if (bestLocation !== -1) {
-      let score = computeScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
-        expectedLocation,
-        distance
-      });
-      currentThreshold = Math.min(score, currentThreshold);
+    if (includeMatches) {
+      let i = 0;
+      while (i < patternLen) {
+        matchMask[index + i] = 1;
+        i += 1;
+      }
     }
   }
 
@@ -289,12 +286,10 @@ function search(
     bitArr[finish + 1] = (1 << i) - 1;
 
     for (let j = finish; j >= start; j -= 1) {
-      console.log('start', start);
       let currentLocation = j - 1;
       let charMatch = patternAlphabet[text.charAt(currentLocation)];
-      console.log('charMatch', charMatch, text.charAt(currentLocation));
 
-      if (charMatch) {
+      if (charMatch && includeMatches) {
         matchMask[currentLocation] = 1;
       }
 
@@ -358,6 +353,8 @@ function search(
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
+  // console.log('result', result)
+
   return result
 }
 
@@ -386,8 +383,7 @@ class BitapSearch {
     // of this class is created every time a pattern is created. Otherwise, a spread
     // operation would be performed directly withing the contructor, which may slow
     // done searches.
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       location = Config.location,
       threshold = Config.threshold,
       distance = Config.distance,
@@ -395,18 +391,23 @@ class BitapSearch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive
-      /*eslint-enable no-undef*/
-    } = {})
+    } = {}
   ) {
-    this.options = options;
+    this.options = {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive
+    };
 
     if (pattern.length > MAX_BITS) {
       throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
     }
 
-    this.pattern = this.options.isCaseSensitive
-      ? pattern
-      : pattern.toLowerCase();
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
     this.patternAlphabet = createPatternAlphabet(this.pattern);
   }
 
@@ -490,13 +491,24 @@ class ExactMatch extends BaseMatch {
     return /^'(.*)$/
   }
   search(text) {
-    const index = text.indexOf(this.pattern);
-    const isMatch = index > -1;
+    let location = 0;
+    let index;
+
+    const matchedIndices = [];
+    const patternLen = this.pattern.length;
+
+    // Get all exact matches
+    while ((index = text.indexOf(this.pattern, location)) > -1) {
+      location = index + patternLen;
+      matchedIndices.push([index, location - 1]);
+    }
+
+    const isMatch = !!matchedIndices.length;
 
     return {
       isMatch,
       score: isMatch ? 1 : 0,
-      matchedIndices: [index, index + this.pattern.length - 1]
+      matchedIndices
     }
   }
 }
@@ -634,8 +646,7 @@ class InverseSuffixExactMatch extends BaseMatch {
 class FuzzyMatch extends BaseMatch {
   constructor(
     pattern,
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       location = Config.location,
       threshold = Config.threshold,
       distance = Config.distance,
@@ -643,11 +654,18 @@ class FuzzyMatch extends BaseMatch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive
-      /*eslint-enable no-undef*/
-    } = {})
+    } = {}
   ) {
     super(pattern);
-    this._bitapSearch = new BitapSearch(pattern, options);
+    this._bitapSearch = new BitapSearch(pattern, {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive
+    });
   }
   static get type() {
     return 'fuzzy'
@@ -673,6 +691,7 @@ const searchers = [
   InverseExactMatch,
   FuzzyMatch
 ];
+
 const searchersLen = searchers.length;
 
 // Regex to split by spaces, but keep anything in quotes together
@@ -682,7 +701,7 @@ const OR_TOKEN = '|';
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-function parseQuery(pattern, options) {
+function parseQuery(pattern, options = {}) {
   return pattern.split(OR_TOKEN).map((item) => {
     let query = item
       .trim()
@@ -693,7 +712,7 @@ function parseQuery(pattern, options) {
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i];
 
-      // 1. Handle literal queries (i.e, once that are quotes "hello world")
+      // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
       let found = false;
       let idx = -1;
       while (!found && ++idx < searchersLen) {
@@ -725,6 +744,10 @@ function parseQuery(pattern, options) {
   })
 }
 
+// These extended matchers can return an array of matches, as opposed
+// to a singl match
+const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type]);
+
 /**
  * Command-like searching
  * ======================
@@ -755,24 +778,29 @@ function parseQuery(pattern, options) {
 class ExtendedSearch {
   constructor(
     pattern,
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       isCaseSensitive = Config.isCaseSensitive,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
       findAllMatches = Config.findAllMatches,
       location = Config.location,
       threshold = Config.threshold,
-      distance = Config.distance,
-      includeMatches = Config.includeMatches
-      /*eslint-enable no-undef*/
-    } = {})
+      distance = Config.distance
+    } = {}
   ) {
     this.query = null;
-    this.options = options;
+    this.options = {
+      isCaseSensitive,
+      includeMatches,
+      minMatchCharLength,
+      findAllMatches,
+      location,
+      threshold,
+      distance
+    };
 
-    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.query = parseQuery(this.pattern, options);
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.query = parseQuery(this.pattern, this.options);
   }
 
   static condition(_, options) {
@@ -814,8 +842,8 @@ class ExtendedSearch {
         if (isMatch) {
           numMatches += 1;
           if (includeMatches) {
-            if (searcher.constructor.type === FuzzyMatch.type) {
-              // FuzzyMatch returns is a 2D array
+            const type = searcher.constructor.type;
+            if (MultiMatchSet.has(type)) {
               indices = [...indices, ...matchedIndices];
             } else {
               indices.push(matchedIndices);
@@ -955,16 +983,9 @@ function jaccardDistance(nGram1, nGram2) {
 }
 
 class NGramSearch {
-  constructor(
-    pattern,
-    options = ({
-      /*eslint-disable no-undef*/
-      threshold = Config.threshold
-      /*eslint-enable no-undef*/
-    } = {})
-  ) {
+  constructor(pattern, { threshold = Config.threshold } = {}) {
     // Create the ngram, and sort it
-    this.options = options;
+    this.options = { threshold };
     this.patternNgram = createNGram(pattern, { sort: true });
   }
   static condition(pattern) {
@@ -988,6 +1009,8 @@ class NGramSearch {
   }
 }
 
+const SPACE = /[^ ]+/g;
+
 function createIndex(
   keys,
   list,
@@ -1002,14 +1025,10 @@ function createIndex(
       const value = list[i];
 
       if (isDefined(value)) {
-        // if (!isCaseSensitive) {
-        //   value = value.toLowerCase()
-        // }
-
         let record = {
           $: value,
           idx: i,
-          t: value.split(/ /g).length
+          t: value.match(SPACE).length
         };
 
         if (ngrams) {
@@ -1049,14 +1068,10 @@ function createIndex(
             }
 
             if (isString(value)) {
-              // if (!isCaseSensitive) {
-              //   v = v.toLowerCase()
-              // }
-
               let subRecord = {
                 $: value,
                 idx: arrayIndex,
-                t: value.split(/ /g).length
+                t: value.match(SPACE).length
               };
 
               if (ngrams) {
@@ -1075,11 +1090,7 @@ function createIndex(
           }
           record.$[key] = subRecords;
         } else {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
-
-          let subRecord = { $: value, t: value.split(/ /g).length };
+          let subRecord = { $: value, t: value.match(SPACE).length };
 
           if (ngrams) {
             subRecord.ng = createNGram(value, { sort: true });
@@ -1206,8 +1217,6 @@ const registeredSearchers = [];
 function register(...args) {
   registeredSearchers.push(...args);
 }
-
-const util = require('util');
 
 class Fuse {
   constructor(list, options = {}, index = null) {
@@ -1392,134 +1401,38 @@ class Fuse {
     return results
   }
 
+  // Practical scoring function
   _computeScore(results) {
-    // idf(t) = 1 + log ( numDocs / (docFreq + 1))
-    const idf = 1 + Math.log(this._indexedList.length / (results.length + 1));
-    // console.log('idf', idf)
+    const resultsLen = results.length;
 
-    // console.log(
-    //   util.inspect(this._indexedList, false, null, true /* enable colors */)
-    // )
-    // console.log(util.inspect(results, false, null, true /* enable colors */))
-    console.log('----------------');
-    const keysLen = this._keyStore.count() || 1;
-
-    for (let i = 0, len = results.length; i < len; i += 1) {
+    for (let i = 0; i < resultsLen; i += 1) {
       const result = results[i];
       const matches = result.matches;
       const numMatches = matches.length;
 
-      // tf(t in d) = √frequency
-
-      // let tf = Math.sqrt(numMatches)
-
-      let numWords = 0;
-
-      for (let j = 0; j < numMatches; j += 1) {
-        const match = matches[j];
-        const { t } = match;
-        numWords += t;
-      }
-
-      // console.log('Index: ', result.idx)
-      // console.log('numWords', numWords)
-
-      // let tf = Math.sqrt(numMatches)
-      let tf = numMatches / numWords;
-      let tfidf = tf * idf;
-
-      console.log('ITEM---');
-
-      // let totalWeight = 0
       let totalScore = 1;
 
       for (let j = 0; j < numMatches; j += 1) {
         const match = matches[j];
-        const { key, value, t } = match;
-
-        // const key = match.key
-
-        // tf(t in d) = count of t in d / number of words in d
-
-        // TODO: put this in the index
-        // TODO: enable with "norm" option
-        // const numTerms = value.split(/ /g).length
-        // norm(d) = 1 / √numTerms
-
-        // Field-length norm: the shorter the field, the higher the weight.
-        // The field-length norm (norm) is the inverse square root of the number of terms in the field.
-        const norm = 1 / Math.sqrt(t);
-        // console.log('Norm', norm)
+        const { key, t } = match;
 
         const keyWeight = this._keyStore.get(key, 'weight');
-        // console.log('keyWeight', key, keyWeight)
-
-        // totalWeight += weight
-
         const weight = keyWeight > -1 ? keyWeight : 1;
-        const score = match.score || Number.EPSILON; // === 0 && keyWeight > -1 ? Number.EPSILON : match.score
-        // const score = match.score
+        const score =
+          match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
 
-        // const _score = tfidf * (1 - norm) * (1 - score) * weight
-        // console.log('newScore', _score)
+        // Field-length norm: the shorter the field, the higher the weight.
+        const norm = 1 / Math.sqrt(t);
 
-        console.log('-------');
-        console.log(key, value);
-        console.log({
-          t,
-          tfidf,
-          norm,
-          weight,
-          score,
-          numMatches,
-          keysLen
-        });
-
-        // totalWeightedScore += Math.pow(score, weight)
-
-        // multiplier += tfidf * norm
-        // const mult = score * (1 / Math.sqrt(tfidf * norm))
-        // totalScore *= Math.pow(mult, weight)
-        const mult = (numMatches / keysLen) * (1 / 1 + tfidf * norm); // 1 / Math.sqrt(tfidf * norm) // fidf * norm1 / (1 + Math.sqrt(tfidf * norm))
-        // totalScore *= Math.pow(score, weight) // * mult
-        totalScore *= Math.pow(score, weight * mult);
+        totalScore *= Math.pow(score, weight * norm);
       }
-
-      // let _score = totalScore * totalWeight
-      // console.log('multiplier', multiplier)
-      // console.log('totalScore', totalScore)
-      // console.log('totalWeight', totalWeight)
-
-      // totalWeight = 1 - totalWeight || 1
-      // totalScore =
-      //   (1 - multiplier / (1 + multiplier)) *
-      //   (totalScore / (1 + totalScore)) *
-      //   (1 - totalWeight / (1 + totalWeight)) // Math.pow((totalScore / numMatches) * totalWeight, multiplier)
-
-      // console.log('totalScore:after', totalScore)
-      // console.log('totalWeight:after', totalWeight)
-
-      // totalWeightedScore = 1 - totalWeightedScore / numMatches
-
-      // console.log('totalWeightedScore:before', totalWeightedScore)
-
-      // totalWeightedScore = Math.pow(totalWeightedScore, multiplier)
-      // console.log('totalWeightedScore:after', totalWeightedScore)
 
       result.score = totalScore;
-
-      if (result.score >= 1) {
-        console.log('***********************');
-        console.log(result);
-        console.log('***********************');
-        throw new Error('Error with score')
-      }
     }
   }
 
   _sort(results) {
     results.sort(this.options.sortFn);
-    console.log(util.inspect(results, false, null, true /* enable colors */));
   }
 
   _format(results) {
@@ -1554,11 +1467,11 @@ class Fuse {
   }
 }
 
+// ❗Order is important. DO NOT CHANGE.
 register(ExtendedSearch, NGramSearch);
 
-Fuse.version = '5.2.0-alpha.2';
+Fuse.version = '5.2.0-alpha.3';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;
-Fuse.BitapSearch = BitapSearch;
 
 export default Fuse;

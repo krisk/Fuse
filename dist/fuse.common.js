@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.0-alpha.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.0-alpha.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -389,43 +389,34 @@ function search(text, pattern, patternAlphabet) {
 
   var currentThreshold = threshold; // Is there a nearby exact match? (speedup)
 
-  var bestLocation = text.indexOf(pattern, expectedLocation);
-  console.log('bestLocation', bestLocation); // a mask of the matches
+  var bestLocation = expectedLocation; // A mask of the matches, used for building the indices
 
   var matchMask = [];
 
-  for (var i = 0; i < textLen; i += 1) {
-    matchMask[i] = 0;
+  if (includeMatches) {
+    for (var i = 0; i < textLen; i += 1) {
+      matchMask[i] = 0;
+    }
   }
 
-  if (bestLocation !== -1) {
+  var index; // Get all exact matches
+
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     var score = computeScore(pattern, {
-      errors: 0,
-      currentLocation: bestLocation,
+      currentLocation: index,
       expectedLocation: expectedLocation,
       distance: distance
     });
     currentThreshold = Math.min(score, currentThreshold);
-    console.log({
-      score: score,
-      currentThreshold: currentThreshold
-    }); // What about in the other direction? (speed up)
+    bestLocation = index + patternLen;
 
-    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
-    console.log({
-      bestLocation: bestLocation,
-      expectedLocation: expectedLocation
-    });
+    if (includeMatches) {
+      var _i = 0;
 
-    if (bestLocation !== -1) {
-      var _score = computeScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
-        expectedLocation: expectedLocation,
-        distance: distance
-      });
-
-      currentThreshold = Math.min(_score, currentThreshold);
+      while (_i < patternLen) {
+        matchMask[index + _i] = 1;
+        _i += 1;
+      }
     }
   } // Reset the best location
 
@@ -436,7 +427,7 @@ function search(text, pattern, patternAlphabet) {
   var binMax = patternLen + textLen;
   var mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
 
-  for (var _i = 0; _i < patternLen; _i += 1) {
+  for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
     // Scan for the best match; each iteration allows for one more error.
     // Run a binary search to determine how far from the match location we can stray
     // at this error level.
@@ -444,14 +435,14 @@ function search(text, pattern, patternAlphabet) {
     var binMid = binMax;
 
     while (binMin < binMid) {
-      var _score3 = computeScore(pattern, {
-        errors: _i,
+      var _score2 = computeScore(pattern, {
+        errors: _i2,
         currentLocation: expectedLocation + binMid,
         expectedLocation: expectedLocation,
         distance: distance
       });
 
-      if (_score3 <= currentThreshold) {
+      if (_score2 <= currentThreshold) {
         binMin = binMid;
       } else {
         binMax = binMid;
@@ -466,28 +457,26 @@ function search(text, pattern, patternAlphabet) {
     var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
     var bitArr = Array(finish + 2);
-    bitArr[finish + 1] = (1 << _i) - 1;
+    bitArr[finish + 1] = (1 << _i2) - 1;
 
     for (var j = finish; j >= start; j -= 1) {
-      console.log('start', start);
       var currentLocation = j - 1;
       var charMatch = patternAlphabet[text.charAt(currentLocation)];
-      console.log('charMatch', charMatch, text.charAt(currentLocation));
 
-      if (charMatch) {
+      if (charMatch && includeMatches) {
         matchMask[currentLocation] = 1;
       } // First pass: exact match
 
 
       bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch; // Subsequent passes: fuzzy match
 
-      if (_i !== 0) {
+      if (_i2 !== 0) {
         bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
       }
 
       if (bitArr[j] & mask) {
         finalScore = computeScore(pattern, {
-          errors: _i,
+          errors: _i2,
           currentLocation: currentLocation,
           expectedLocation: expectedLocation,
           distance: distance
@@ -510,14 +499,14 @@ function search(text, pattern, patternAlphabet) {
     } // No hope for a (better) match at greater error levels.
 
 
-    var _score2 = computeScore(pattern, {
-      errors: _i + 1,
+    var _score = computeScore(pattern, {
+      errors: _i2 + 1,
       currentLocation: expectedLocation,
       expectedLocation: expectedLocation,
       distance: distance
     });
 
-    if (_score2 > currentThreshold) {
+    if (_score > currentThreshold) {
       break;
     }
 
@@ -532,7 +521,8 @@ function search(text, pattern, patternAlphabet) {
 
   if (includeMatches) {
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
-  }
+  } // console.log('result', result)
+
 
   return result;
 }
@@ -557,19 +547,39 @@ var MAX_BITS = 32;
 
 var BitapSearch = /*#__PURE__*/function () {
   function BitapSearch(pattern) {
-    var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+        _ref$findAllMatches = _ref.findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+        _ref$minMatchCharLeng = _ref.minMatchCharLength,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$isCaseSensitive = _ref.isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
     _classCallCheck(this, BitapSearch);
 
-    this.options = options;
+    this.options = {
+      location: location,
+      threshold: threshold,
+      distance: distance,
+      includeMatches: includeMatches,
+      findAllMatches: findAllMatches,
+      minMatchCharLength: minMatchCharLength,
+      isCaseSensitive: isCaseSensitive
+    };
 
     if (pattern.length > MAX_BITS) {
       throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
     }
 
-    this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
     this.patternAlphabet = createPatternAlphabet(this.pattern);
   }
 
@@ -671,12 +681,21 @@ var ExactMatch = /*#__PURE__*/function (_BaseMatch) {
   _createClass(ExactMatch, [{
     key: "search",
     value: function search(text) {
-      var index = text.indexOf(this.pattern);
-      var isMatch = index > -1;
+      var location = 0;
+      var index;
+      var matchedIndices = [];
+      var patternLen = this.pattern.length; // Get all exact matches
+
+      while ((index = text.indexOf(this.pattern, location)) > -1) {
+        location = index + patternLen;
+        matchedIndices.push([index, location - 1]);
+      }
+
+      var isMatch = !!matchedIndices.length;
       return {
         isMatch: isMatch,
         score: isMatch ? 1 : 0,
-        matchedIndices: [index, index + this.pattern.length - 1]
+        matchedIndices: matchedIndices
       };
     }
   }], [{
@@ -911,16 +930,36 @@ var FuzzyMatch = /*#__PURE__*/function (_BaseMatch) {
   var _super = _createSuper(FuzzyMatch);
 
   function FuzzyMatch(pattern) {
-    var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
     var _this;
 
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+        _ref$findAllMatches = _ref.findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+        _ref$minMatchCharLeng = _ref.minMatchCharLength,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$isCaseSensitive = _ref.isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
     _classCallCheck(this, FuzzyMatch);
 
     _this = _super.call(this, pattern);
-    _this._bitapSearch = new BitapSearch(pattern, options);
+    _this._bitapSearch = new BitapSearch(pattern, {
+      location: location,
+      threshold: threshold,
+      distance: distance,
+      includeMatches: includeMatches,
+      findAllMatches: findAllMatches,
+      minMatchCharLength: minMatchCharLength,
+      isCaseSensitive: isCaseSensitive
+    });
     return _this;
   }
 
@@ -957,7 +996,8 @@ var OR_TOKEN = '|'; // Return a 2D array representation of the query, for simple
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 
-function parseQuery(pattern, options) {
+function parseQuery(pattern) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   return pattern.split(OR_TOKEN).map(function (item) {
     var query = item.trim().split(SPACE_RE).filter(function (item) {
       return item && !!item.trim();
@@ -965,7 +1005,7 @@ function parseQuery(pattern, options) {
     var results = [];
 
     for (var i = 0, len = query.length; i < len; i += 1) {
-      var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quotes "hello world")
+      var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
 
       var found = false;
       var idx = -1;
@@ -1003,6 +1043,9 @@ function parseQuery(pattern, options) {
   });
 }
 
+// to a singl match
+
+var MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type]);
 /**
  * Command-like searching
  * ======================
@@ -1033,16 +1076,36 @@ function parseQuery(pattern, options) {
 
 var ExtendedSearch = /*#__PURE__*/function () {
   function ExtendedSearch(pattern) {
-    var _ref, _ref$isCaseSensitive, _ref$includeMatches, _ref$minMatchCharLeng, _ref$findAllMatches, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches2;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches2 = _ref.includeMatches, includeMatches = _ref$includeMatches2 === void 0 ? Config.includeMatches : _ref$includeMatches2, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$isCaseSensitive = _ref.isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+        _ref$minMatchCharLeng = _ref.minMatchCharLength,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$findAllMatches = _ref.findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
 
     _classCallCheck(this, ExtendedSearch);
 
     this.query = null;
-    this.options = options;
-    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.query = parseQuery(this.pattern, options);
+    this.options = {
+      isCaseSensitive: isCaseSensitive,
+      includeMatches: includeMatches,
+      minMatchCharLength: minMatchCharLength,
+      findAllMatches: findAllMatches,
+      location: location,
+      threshold: threshold,
+      distance: distance
+    };
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.query = parseQuery(this.pattern, this.options);
   }
 
   _createClass(ExtendedSearch, [{
@@ -1082,8 +1145,9 @@ var ExtendedSearch = /*#__PURE__*/function () {
             numMatches += 1;
 
             if (includeMatches) {
-              if (searcher.constructor.type === FuzzyMatch.type) {
-                // FuzzyMatch returns is a 2D array
+              var type = searcher.constructor.type;
+
+              if (MultiMatchSet.has(type)) {
                 indices = [].concat(_toConsumableArray(indices), _toConsumableArray(matchedIndices));
               } else {
                 indices.push(matchedIndices);
@@ -1237,14 +1301,16 @@ function jaccardDistance(nGram1, nGram2) {
 
 var NGramSearch = /*#__PURE__*/function () {
   function NGramSearch(pattern) {
-    var _ref, _ref$threshold;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold;
 
     _classCallCheck(this, NGramSearch);
 
     // Create the ngram, and sort it
-    this.options = options;
+    this.options = {
+      threshold: threshold
+    };
     this.patternNgram = createNGram(pattern, {
       sort: true
     });
@@ -1279,6 +1345,7 @@ var NGramSearch = /*#__PURE__*/function () {
   return NGramSearch;
 }();
 
+var SPACE = /[^ ]+/g;
 function createIndex(keys, list) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
       _ref$getFn = _ref.getFn,
@@ -1294,13 +1361,10 @@ function createIndex(keys, list) {
       var value = list[i];
 
       if (isDefined(value)) {
-        // if (!isCaseSensitive) {
-        //   value = value.toLowerCase()
-        // }
         var record = {
           $: value,
           idx: i,
-          t: value.split(/ /g).length
+          t: value.match(SPACE).length
         };
 
         if (ngrams) {
@@ -1349,13 +1413,10 @@ function createIndex(keys, list) {
             }
 
             if (isString(_value2)) {
-              // if (!isCaseSensitive) {
-              //   v = v.toLowerCase()
-              // }
               var subRecord = {
                 $: _value2,
                 idx: arrayIndex,
-                t: _value2.split(/ /g).length
+                t: _value2.match(SPACE).length
               };
 
               if (ngrams) {
@@ -1377,12 +1438,9 @@ function createIndex(keys, list) {
 
           _record.$[key] = subRecords;
         } else {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
           var _subRecord = {
             $: _value,
-            t: _value.split(/ /g).length
+            t: _value.match(SPACE).length
           };
 
           if (ngrams) {
@@ -1523,8 +1581,6 @@ var registeredSearchers = [];
 function register() {
   registeredSearchers.push.apply(registeredSearchers, arguments);
 }
-
-var util = require('util');
 
 var Fuse = /*#__PURE__*/function () {
   function Fuse(list) {
@@ -1747,121 +1803,40 @@ var Fuse = /*#__PURE__*/function () {
       }
 
       return results;
-    }
+    } // Practical scoring function
+
   }, {
     key: "_computeScore",
     value: function _computeScore(results) {
-      // idf(t) = 1 + log ( numDocs / (docFreq + 1))
-      var idf = 1 + Math.log(this._indexedList.length / (results.length + 1)); // console.log('idf', idf)
-      // console.log(
-      //   util.inspect(this._indexedList, false, null, true /* enable colors */)
-      // )
-      // console.log(util.inspect(results, false, null, true /* enable colors */))
+      var resultsLen = results.length;
 
-      console.log('----------------');
-      var keysLen = this._keyStore.count() || 1;
-
-      for (var i = 0, len = results.length; i < len; i += 1) {
+      for (var i = 0; i < resultsLen; i += 1) {
         var result = results[i];
         var matches = result.matches;
         var numMatches = matches.length;
-        // let tf = Math.sqrt(numMatches)
-
-        var numWords = 0;
+        var totalScore = 1;
 
         for (var j = 0; j < numMatches; j += 1) {
           var match = matches[j];
-          var t = match.t;
-          numWords += t;
-        } // console.log('Index: ', result.idx)
-        // console.log('numWords', numWords)
-        // let tf = Math.sqrt(numMatches)
+          var key = match.key,
+              t = match.t;
 
-
-        var tf = numMatches / numWords;
-        var tfidf = tf * idf; // console.log('tfidf', tfidf)
-        console.log('ITEM---'); // let totalWeight = 0
-
-        var totalScore = 1;
-
-        for (var _j = 0; _j < numMatches; _j += 1) {
-          var _match3 = matches[_j];
-          var key = _match3.key,
-              value = _match3.value,
-              _t3 = _match3.t; // const key = match.key
-          // tf(t in d) = count of t in d / number of words in d
-          // TODO: put this in the index
-          // TODO: enable with "norm" option
-          // const numTerms = value.split(/ /g).length
-          // norm(d) = 1 / √numTerms
-          // Field-length norm: the shorter the field, the higher the weight.
-          // The field-length norm (norm) is the inverse square root of the number of terms in the field.
-
-          var norm = 1 / Math.sqrt(_t3); // console.log('Norm', norm)
-
-          var keyWeight = this._keyStore.get(key, 'weight'); // console.log('keyWeight', key, keyWeight)
-          // totalWeight += weight
-
+          var keyWeight = this._keyStore.get(key, 'weight');
 
           var weight = keyWeight > -1 ? keyWeight : 1;
-          var score = _match3.score || Number.EPSILON; // === 0 && keyWeight > -1 ? Number.EPSILON : match.score
-          // const score = match.score
-          // const _score = tfidf * (1 - norm) * (1 - score) * weight
-          // console.log('newScore', _score)
+          var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score; // Field-length norm: the shorter the field, the higher the weight.
 
-          console.log('-------');
-          console.log(key, value);
-          console.log({
-            t: _t3,
-            tfidf: tfidf,
-            norm: norm,
-            weight: weight,
-            score: score,
-            numMatches: numMatches,
-            keysLen: keysLen
-          }); // totalWeightedScore += Math.pow(score, weight)
-          // multiplier += tfidf * norm
-          // const mult = score * (1 / Math.sqrt(tfidf * norm))
-          // totalScore *= Math.pow(mult, weight)
-
-          var mult = numMatches / keysLen * (1 / 1 + tfidf * norm); // 1 / Math.sqrt(tfidf * norm) // fidf * norm1 / (1 + Math.sqrt(tfidf * norm))
-          // totalScore *= Math.pow(score, weight) // * mult
-
-          totalScore *= Math.pow(score, weight * mult);
-        } // let _score = totalScore * totalWeight
-        // console.log('multiplier', multiplier)
-        // console.log('totalScore', totalScore)
-        // console.log('totalWeight', totalWeight)
-        // totalWeight = 1 - totalWeight || 1
-        // totalScore =
-        //   (1 - multiplier / (1 + multiplier)) *
-        //   (totalScore / (1 + totalScore)) *
-        //   (1 - totalWeight / (1 + totalWeight)) // Math.pow((totalScore / numMatches) * totalWeight, multiplier)
-        // console.log('totalScore:after', totalScore)
-        // console.log('totalWeight:after', totalWeight)
-        // totalWeightedScore = 1 - totalWeightedScore / numMatches
-        // console.log('totalWeightedScore:before', totalWeightedScore)
-        // totalWeightedScore = Math.pow(totalWeightedScore, multiplier)
-        // console.log('totalWeightedScore:after', totalWeightedScore)
-
+          var norm = 1 / Math.sqrt(t);
+          totalScore *= Math.pow(score, weight * norm);
+        }
 
         result.score = totalScore;
-
-        if (result.score >= 1) {
-          console.log('***********************');
-          console.log(result);
-          console.log('***********************');
-          throw new Error('Error with score');
-        }
       }
     }
   }, {
     key: "_sort",
     value: function _sort(results) {
       results.sort(this.options.sortFn);
-      console.log(util.inspect(results, false, null, true
-      /* enable colors */
-      ));
     }
   }, {
     key: "_format",
@@ -1899,9 +1874,8 @@ var Fuse = /*#__PURE__*/function () {
 }();
 
 register(ExtendedSearch, NGramSearch);
-Fuse.version = '5.2.0-alpha.2';
+Fuse.version = '5.2.0-alpha.3';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;
-Fuse.BitapSearch = BitapSearch;
 
 module.exports = Fuse;
