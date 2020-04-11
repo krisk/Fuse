@@ -4,16 +4,9 @@ import Config from '../../core/config'
 import { MAX_BITS } from '../bitap/constants'
 
 export default class NGramSearch {
-  constructor(
-    pattern,
-    options = ({
-      /*eslint-disable no-undef*/
-      threshold = Config.threshold
-      /*eslint-enable no-undef*/
-    } = {})
-  ) {
+  constructor(pattern, { threshold = Config.threshold } = {}) {
     // Create the ngram, and sort it
-    this.options = options
+    this.options = { threshold }
     this.patternNgram = createNGram(pattern, { sort: true })
   }
   static condition(pattern) {

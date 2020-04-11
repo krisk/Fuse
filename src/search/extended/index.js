@@ -37,24 +37,29 @@ const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type])
 export default class ExtendedSearch {
   constructor(
     pattern,
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       isCaseSensitive = Config.isCaseSensitive,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
       findAllMatches = Config.findAllMatches,
       location = Config.location,
       threshold = Config.threshold,
-      distance = Config.distance,
-      includeMatches = Config.includeMatches
-      /*eslint-enable no-undef*/
-    } = {})
+      distance = Config.distance
+    } = {}
   ) {
     this.query = null
-    this.options = options
+    this.options = {
+      isCaseSensitive,
+      includeMatches,
+      minMatchCharLength,
+      findAllMatches,
+      location,
+      threshold,
+      distance
+    }
 
-    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase()
-    this.query = parseQuery(this.pattern, options)
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.query = parseQuery(this.pattern, this.options)
   }
 
   static condition(_, options) {

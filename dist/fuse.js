@@ -551,19 +551,39 @@
 
   var BitapSearch = /*#__PURE__*/function () {
     function BitapSearch(pattern) {
-      var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref$location = _ref.location,
+          location = _ref$location === void 0 ? Config.location : _ref$location,
+          _ref$threshold = _ref.threshold,
+          threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+          _ref$distance = _ref.distance,
+          distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+          _ref$includeMatches = _ref.includeMatches,
+          includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+          _ref$findAllMatches = _ref.findAllMatches,
+          findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+          _ref$minMatchCharLeng = _ref.minMatchCharLength,
+          minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+          _ref$isCaseSensitive = _ref.isCaseSensitive,
+          isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
       _classCallCheck(this, BitapSearch);
 
-      this.options = options;
+      this.options = {
+        location: location,
+        threshold: threshold,
+        distance: distance,
+        includeMatches: includeMatches,
+        findAllMatches: findAllMatches,
+        minMatchCharLength: minMatchCharLength,
+        isCaseSensitive: isCaseSensitive
+      };
 
       if (pattern.length > MAX_BITS) {
         throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
       }
 
-      this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
       this.patternAlphabet = createPatternAlphabet(this.pattern);
     }
 
@@ -914,16 +934,36 @@
     var _super = _createSuper(FuzzyMatch);
 
     function FuzzyMatch(pattern) {
-      var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
       var _this;
 
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref$location = _ref.location,
+          location = _ref$location === void 0 ? Config.location : _ref$location,
+          _ref$threshold = _ref.threshold,
+          threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+          _ref$distance = _ref.distance,
+          distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+          _ref$includeMatches = _ref.includeMatches,
+          includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+          _ref$findAllMatches = _ref.findAllMatches,
+          findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+          _ref$minMatchCharLeng = _ref.minMatchCharLength,
+          minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+          _ref$isCaseSensitive = _ref.isCaseSensitive,
+          isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
       _classCallCheck(this, FuzzyMatch);
 
       _this = _super.call(this, pattern);
-      _this._bitapSearch = new BitapSearch(pattern, options);
+      _this._bitapSearch = new BitapSearch(pattern, {
+        location: location,
+        threshold: threshold,
+        distance: distance,
+        includeMatches: includeMatches,
+        findAllMatches: findAllMatches,
+        minMatchCharLength: minMatchCharLength,
+        isCaseSensitive: isCaseSensitive
+      });
       return _this;
     }
 
@@ -960,7 +1000,8 @@
   // Example:
   // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 
-  function parseQuery(pattern, options) {
+  function parseQuery(pattern) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     return pattern.split(OR_TOKEN).map(function (item) {
       var query = item.trim().split(SPACE_RE).filter(function (item) {
         return item && !!item.trim();
@@ -968,7 +1009,7 @@
       var results = [];
 
       for (var i = 0, len = query.length; i < len; i += 1) {
-        var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quotes "hello world")
+        var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
 
         var found = false;
         var idx = -1;
@@ -1039,16 +1080,36 @@
 
   var ExtendedSearch = /*#__PURE__*/function () {
     function ExtendedSearch(pattern) {
-      var _ref, _ref$isCaseSensitive, _ref$includeMatches, _ref$minMatchCharLeng, _ref$findAllMatches, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches2;
-
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches2 = _ref.includeMatches, includeMatches = _ref$includeMatches2 === void 0 ? Config.includeMatches : _ref$includeMatches2, _ref);
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref$isCaseSensitive = _ref.isCaseSensitive,
+          isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+          _ref$includeMatches = _ref.includeMatches,
+          includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+          _ref$minMatchCharLeng = _ref.minMatchCharLength,
+          minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+          _ref$findAllMatches = _ref.findAllMatches,
+          findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+          _ref$location = _ref.location,
+          location = _ref$location === void 0 ? Config.location : _ref$location,
+          _ref$threshold = _ref.threshold,
+          threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+          _ref$distance = _ref.distance,
+          distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
 
       _classCallCheck(this, ExtendedSearch);
 
       this.query = null;
-      this.options = options;
-      this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
-      this.query = parseQuery(this.pattern, options);
+      this.options = {
+        isCaseSensitive: isCaseSensitive,
+        includeMatches: includeMatches,
+        minMatchCharLength: minMatchCharLength,
+        findAllMatches: findAllMatches,
+        location: location,
+        threshold: threshold,
+        distance: distance
+      };
+      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.query = parseQuery(this.pattern, this.options);
     }
 
     _createClass(ExtendedSearch, [{
@@ -1244,14 +1305,16 @@
 
   var NGramSearch = /*#__PURE__*/function () {
     function NGramSearch(pattern) {
-      var _ref, _ref$threshold;
-
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref);
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref$threshold = _ref.threshold,
+          threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold;
 
       _classCallCheck(this, NGramSearch);
 
       // Create the ngram, and sort it
-      this.options = options;
+      this.options = {
+        threshold: threshold
+      };
       this.patternNgram = createNGram(pattern, {
         sort: true
       });

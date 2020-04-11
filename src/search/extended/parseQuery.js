@@ -26,7 +26,7 @@ const OR_TOKEN = '|'
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-export default function parseQuery(pattern, options) {
+export default function parseQuery(pattern, options = {}) {
   return pattern.split(OR_TOKEN).map((item) => {
     let query = item
       .trim()
@@ -37,7 +37,7 @@ export default function parseQuery(pattern, options) {
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i]
 
-      // 1. Handle literal queries (i.e, once that are quotes "hello world")
+      // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
       let found = false
       let idx = -1
       while (!found && ++idx < searchersLen) {
