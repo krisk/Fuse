@@ -19,6 +19,7 @@ describe('Searching using extended search', () => {
   const options = {
     useExtendedSearch: true,
     includeMatches: true,
+    includeScore: true,
     shouldSort: true,
     threshold: 0.5,
     location: 0,
@@ -91,11 +92,11 @@ describe('Searching using extended search', () => {
   test('Search: literal match with regular match', () => {
     let result = fuse.search('\'"indeed fine" foo$ | \'are')
     expect(result.length).toBe(2)
-    expect(result[0].matches[0].indices).toMatchObject([[4, 6]])
-    expect(result[1].matches[0].indices).toMatchObject([
+    expect(result[0].matches[0].indices).toMatchObject([
       [0, 10],
       [18, 20]
     ])
+    expect(result[1].matches[0].indices).toMatchObject([[4, 6]])
   })
 
   test('Search: literal match with fuzzy match', () => {

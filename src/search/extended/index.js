@@ -84,6 +84,7 @@ export default class ExtendedSearch {
 
     let numMatches = 0
     let indices = []
+    let totalScore = 0
 
     // ORs
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
@@ -96,10 +97,11 @@ export default class ExtendedSearch {
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
         const searcher = searchers[j]
-        const { isMatch, matchedIndices } = searcher.search(text)
+        const { isMatch, matchedIndices, score } = searcher.search(text)
 
         if (isMatch) {
           numMatches += 1
+          totalScore += score
           if (includeMatches) {
             const type = searcher.constructor.type
             if (MultiMatchSet.has(type)) {
@@ -109,6 +111,7 @@ export default class ExtendedSearch {
             }
           }
         } else {
+          totalScore = 0
           numMatches = 0
           indices.length = 0
           break
@@ -119,7 +122,7 @@ export default class ExtendedSearch {
       if (numMatches) {
         let result = {
           isMatch: true,
-          score: 0
+          score: totalScore / numMatches
         }
 
         if (includeMatches) {

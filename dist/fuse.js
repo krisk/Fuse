@@ -1130,7 +1130,8 @@
             isCaseSensitive = _this$options.isCaseSensitive;
         text = isCaseSensitive ? text : text.toLowerCase();
         var numMatches = 0;
-        var indices = []; // ORs
+        var indices = [];
+        var totalScore = 0; // ORs
 
         for (var i = 0, qLen = query.length; i < qLen; i += 1) {
           var searchers = query[i]; // Reset indices
@@ -1143,10 +1144,12 @@
 
             var _searcher$search = searcher.search(text),
                 isMatch = _searcher$search.isMatch,
-                matchedIndices = _searcher$search.matchedIndices;
+                matchedIndices = _searcher$search.matchedIndices,
+                score = _searcher$search.score;
 
             if (isMatch) {
               numMatches += 1;
+              totalScore += score;
 
               if (includeMatches) {
                 var type = searcher.constructor.type;
@@ -1158,6 +1161,7 @@
                 }
               }
             } else {
+              totalScore = 0;
               numMatches = 0;
               indices.length = 0;
               break;
@@ -1168,7 +1172,7 @@
           if (numMatches) {
             var result = {
               isMatch: true,
-              score: 0
+              score: totalScore / numMatches
             };
 
             if (includeMatches) {

@@ -80,6 +80,15 @@ module.exports = {
         isPlain: false,
         noGlobalSocialShare: true
       }
+    ],
+    [
+      'vuepress-plugin-mathjax',
+      {
+        target: 'svg',
+        macros: {
+          '*': '\\times'
+        }
+      }
     ]
   ],
   serviceWorker: true,
