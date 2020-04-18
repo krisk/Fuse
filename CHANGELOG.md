@@ -1,3 +1,8 @@
+# Version 5.2.0
+
+- Addresses #390, #376, #382, #385
+- Removed ngram search and extended bitap to search long patterns
+
 # Version 5.0.9-beta
 
 - Fixed Fuse global name. Erroenously set as 'Fuse.js'
