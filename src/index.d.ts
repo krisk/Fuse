@@ -30,6 +30,11 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     options?: Fuse.FuseSearchOptions
   ): Fuse.FuseResult<R>[]
 
+  searchList(
+    patterns: [string],
+    options?: Fuse.FuseSearchOptions
+  ): [Fuse.FuseResult<R>[]]
+
   setCollection(
     list: ReadonlyArray<T>,
     index?: ReadonlyArray<Fuse.FuseIndexRecord>

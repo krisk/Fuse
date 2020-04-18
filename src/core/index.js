@@ -82,6 +82,10 @@ export default class Fuse {
     return this._format(results)
   }
 
+  searchList(patterns, opts) {
+    return patterns.map(pattern => this.search(pattern, opts))
+  }
+
   _searchUsing(searcher) {
     const list = this._indexedList
     const results = []
