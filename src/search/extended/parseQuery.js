@@ -37,12 +37,12 @@ export default function parseQuery(pattern, options = {}) {
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i]
 
-      // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
+      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
       let found = false
       let idx = -1
       while (!found && ++idx < searchersLen) {
         const searcher = searchers[idx]
-        let token = searcher.isLiteralMatch(queryItem)
+        let token = searcher.isMultiMatch(queryItem)
         if (token) {
           results.push(new searcher(token, options))
           found = true
@@ -53,11 +53,11 @@ export default function parseQuery(pattern, options = {}) {
         continue
       }
 
-      // 2. Handle regular queries
+      // 2. Handle single query matches (i.e, once that are *not* quoted)
       idx = -1
       while (++idx < searchersLen) {
         const searcher = searchers[idx]
-        let token = searcher.isRegMatch(queryItem)
+        let token = searcher.isSingleMatch(queryItem)
         if (token) {
           results.push(new searcher(token, options))
           break

@@ -10,10 +10,10 @@ export default class SuffixExactMatch extends BaseMatch {
   static get type() {
     return 'suffix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^"(.*)"\$$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^(.*)\$$/
   }
   search(text) {

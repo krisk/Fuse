@@ -10,10 +10,10 @@ export default class PrefixExactMatch extends BaseMatch {
   static get type() {
     return 'prefix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^\^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^\^(.*)$/
   }
   search(text) {

@@ -11,10 +11,10 @@ export default class ExactMatch extends BaseMatch {
   static get type() {
     return 'exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^'"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^'(.*)$/
   }
   search(text) {

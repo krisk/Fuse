@@ -29,10 +29,10 @@ export default class FuzzyMatch extends BaseMatch {
   static get type() {
     return 'fuzzy'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^(.*)$/
   }
   search(text) {

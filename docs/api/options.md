@@ -73,6 +73,9 @@ At what point does the match algorithm give up. A threshold of `0.0` requires a 
 
 ### `distance`
 
+- Type: `number`
+- Default: `100`
+
 Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified, a distance of `1000` would require a perfect match to be within `800` characters of the `location` to be found using a `threshold` of `0.8`.
 
 ## Advanced Options
@@ -83,3 +86,14 @@ Determines how close the match must be to the fuzzy location (specified by `loca
 - Default: `false`
 
 When `true`, it enables the use of unix-like search commands. See [example](/examples.html#extended-search).
+
+### `getFn`
+
+- Type: `Function`
+- Default: `(obj: T, path: string) => string[] | string`
+
+The function to use to retrieve an object's value at the provided path (i.e, key). The default will search nested paths.
+
+::: danger
+There aren't many cases where you'd want to use your own `getFn`.
+:::

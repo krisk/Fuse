@@ -185,6 +185,9 @@ function convertMaskToIndices(
   return matchedIndices
 }
 
+// Machine word size
+const MAX_BITS = 32;
+
 function search(
   text,
   pattern,
@@ -198,6 +201,10 @@ function search(
     includeMatches = Config.includeMatches
   } = {}
 ) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+  }
+
   const patternLen = pattern.length;
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length;
@@ -219,7 +226,7 @@ function search(
 
   let index;
 
-  // Get all exact matches
+  // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     let score = computeScore(pattern, {
       currentLocation: index,
@@ -246,7 +253,7 @@ function search(
   let finalScore = 1;
   let binMax = patternLen + textLen;
 
-  const mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
+  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -353,8 +360,6 @@ function search(
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
-  // console.log('result', result)
-
   return result
 }
 
@@ -373,16 +378,9 @@ function createPatternAlphabet(pattern) {
   return mask
 }
 
-// Machine word size
-const MAX_BITS = 32;
-
 class BitapSearch {
   constructor(
     pattern,
-    // Deconstructed in this fashion purely for speed-up, since a new instance
-    // of this class is created every time a pattern is created. Otherwise, a spread
-    // operation would be performed directly withing the contructor, which may slow
-    // done searches.
     {
       location = Config.location,
       threshold = Config.threshold,
@@ -403,12 +401,19 @@ class BitapSearch {
       isCaseSensitive
     };
 
-    if (pattern.length > MAX_BITS) {
-      throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
-    }
-
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.patternAlphabet = createPatternAlphabet(this.pattern);
+
+    this.chunks = [];
+
+    let index = 0;
+    while (index < this.pattern.length) {
+      let pattern = this.pattern.substring(index, index + MAX_BITS);
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern)
+      });
+      index += MAX_BITS;
+    }
   }
 
   searchIn(value) {
@@ -446,14 +451,45 @@ class BitapSearch {
       minMatchCharLength
     } = this.options;
 
-    return search(text, this.pattern, this.patternAlphabet, {
-      location,
-      distance,
-      threshold,
-      findAllMatches,
-      minMatchCharLength,
-      includeMatches
-    })
+    let allMatchedIndices = [];
+    let totalScore = 0;
+    let hasMatches = false;
+
+    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
+      let { pattern, alphabet } = this.chunks[i];
+
+      let result = search(text, pattern, alphabet, {
+        location: location + MAX_BITS * i,
+        distance,
+        threshold,
+        findAllMatches,
+        minMatchCharLength,
+        includeMatches
+      });
+
+      const { isMatch, score, matchedIndices } = result;
+
+      if (isMatch) {
+        hasMatches = true;
+      }
+
+      totalScore += score;
+
+      if (isMatch && matchedIndices) {
+        allMatchedIndices = [...allMatchedIndices, ...matchedIndices];
+      }
+    }
+
+    let result = {
+      isMatch: hasMatches,
+      score: hasMatches ? totalScore / this.chunks.length : 1
+    };
+
+    if (hasMatches && includeMatches) {
+      result.matchedIndices = allMatchedIndices;
+    }
+
+    return result
   }
 }
 
@@ -461,11 +497,11 @@ class BaseMatch {
   constructor(pattern) {
     this.pattern = pattern;
   }
-  static isLiteralMatch(pattern) {
-    return getMatch(pattern, this.literal)
+  static isMultiMatch(pattern) {
+    return getMatch(pattern, this.multiRegex)
   }
-  static isRegMatch(pattern) {
-    return getMatch(pattern, this.re)
+  static isSingleMatch(pattern) {
+    return getMatch(pattern, this.singleRegex)
   }
   search(/*text*/) {}
 }
@@ -484,10 +520,10 @@ class ExactMatch extends BaseMatch {
   static get type() {
     return 'exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^'"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^'(.*)$/
   }
   search(text) {
@@ -522,10 +558,10 @@ class InverseExactMatch extends BaseMatch {
   static get type() {
     return 'inverse-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^!"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^!(.*)$/
   }
   search(text) {
@@ -549,10 +585,10 @@ class PrefixExactMatch extends BaseMatch {
   static get type() {
     return 'prefix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^\^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^\^(.*)$/
   }
   search(text) {
@@ -575,10 +611,10 @@ class InversePrefixExactMatch extends BaseMatch {
   static get type() {
     return 'inverse-prefix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^!\^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^!\^(.*)$/
   }
   search(text) {
@@ -601,10 +637,10 @@ class SuffixExactMatch extends BaseMatch {
   static get type() {
     return 'suffix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^"(.*)"\$$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^(.*)\$$/
   }
   search(text) {
@@ -627,10 +663,10 @@ class InverseSuffixExactMatch extends BaseMatch {
   static get type() {
     return 'inverse-suffix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^!"(.*)"\$$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^!(.*)\$$/
   }
   search(text) {
@@ -670,10 +706,10 @@ class FuzzyMatch extends BaseMatch {
   static get type() {
     return 'fuzzy'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^(.*)$/
   }
   search(text) {
@@ -712,12 +748,12 @@ function parseQuery(pattern, options = {}) {
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i];
 
-      // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
+      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
       let found = false;
       let idx = -1;
       while (!found && ++idx < searchersLen) {
         const searcher = searchers[idx];
-        let token = searcher.isLiteralMatch(queryItem);
+        let token = searcher.isMultiMatch(queryItem);
         if (token) {
           results.push(new searcher(token, options));
           found = true;
@@ -728,11 +764,11 @@ function parseQuery(pattern, options = {}) {
         continue
       }
 
-      // 2. Handle regular queries
+      // 2. Handle single query matches (i.e, once that are *not* quoted)
       idx = -1;
       while (++idx < searchersLen) {
         const searcher = searchers[idx];
-        let token = searcher.isRegMatch(queryItem);
+        let token = searcher.isSingleMatch(queryItem);
         if (token) {
           results.push(new searcher(token, options));
           break
@@ -882,143 +918,9 @@ class ExtendedSearch {
   }
 }
 
-const NGRAMS = 3;
-
-function createNGram(
-  text,
-  { n = NGRAMS, pad = true, sort = false }
-) {
-  let nGrams = [];
-
-  if (text === null || text === undefined) {
-    return nGrams
-  }
-
-  text = text.toLowerCase();
-  if (pad) {
-    text = ` ${text} `;
-  }
-
-  let index = text.length - n + 1;
-  if (index < 1) {
-    return nGrams
-  }
-
-  while (index--) {
-    nGrams[index] = text.substr(index, n);
-  }
-
-  if (sort) {
-    nGrams.sort((a, b) => (a == b ? 0 : a < b ? -1 : 1));
-  }
-
-  return nGrams
-}
-
-// Assumes arrays are sorted
-function union (arr1, arr2) {
-  let result = [];
-  let i = 0;
-  let j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    let item1 = arr1[i];
-    let item2 = arr2[j];
-
-    if (item1 < item2) {
-      result.push(item1);
-      i += 1;
-    } else if (item2 < item1) {
-      result.push(item2);
-      j += 1;
-    } else {
-      result.push(item2);
-      i += 1;
-      j += 1;
-    }
-  }
-
-  while (i < arr1.length) {
-    result.push(arr1[i]);
-    i += 1;
-  }
-
-  while (j < arr2.length) {
-    result.push(arr2[j]);
-    j += 1;
-  }
-
-  return result
-}
-
-// Assumes arrays are sorted
-function intersection(arr1, arr2) {
-  let result = [];
-  let i = 0;
-  let j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    let item1 = arr1[i];
-    let item2 = arr2[j];
-
-    if (item1 == item2) {
-      result.push(item1);
-      i += 1;
-      j += 1;
-    } else if (item1 < item2) {
-      i += 1;
-    } else if (item1 > item2) {
-      j += 1;
-    } else {
-      i += 1;
-      j += 1;
-    }
-  }
-
-  return result
-}
-
-function jaccardDistance(nGram1, nGram2) {
-  let nGramUnion = union(nGram1, nGram2);
-  let nGramIntersection = intersection(nGram1, nGram2);
-
-  return 1 - nGramIntersection.length / nGramUnion.length
-}
-
-class NGramSearch {
-  constructor(pattern, { threshold = Config.threshold } = {}) {
-    // Create the ngram, and sort it
-    this.options = { threshold };
-    this.patternNgram = createNGram(pattern, { sort: true });
-  }
-  static condition(pattern) {
-    return pattern.length > MAX_BITS
-  }
-  searchIn(value) {
-    let textNgram = value.ng;
-    if (!textNgram) {
-      textNgram = createNGram(value.$, { sort: true });
-      value.ng = textNgram;
-    }
-
-    let jacardResult = jaccardDistance(this.patternNgram, textNgram);
-
-    const isMatch = jacardResult < this.options.threshold;
-
-    return {
-      score: isMatch ? jacardResult : 1,
-      isMatch
-    }
-  }
-}
-
 const SPACE = /[^ ]+/g;
 
-function createIndex(
-  keys,
-  list,
-  { getFn = get, ngrams = false } = {}
-) {
+function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = [];
 
   // List is Array<String>
@@ -1033,10 +935,6 @@ function createIndex(
           idx: i,
           t: value.match(SPACE).length
         };
-
-        if (ngrams) {
-          record.ng = createNGram(value, { sort: true });
-        }
 
         indexedList.push(record);
       }
@@ -1076,11 +974,6 @@ function createIndex(
                 idx: arrayIndex,
                 t: value.match(SPACE).length
               };
-
-              if (ngrams) {
-                subRecord.ng = createNGram(value, { sort: true });
-              }
-
               subRecords.push(subRecord);
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
@@ -1093,11 +986,10 @@ function createIndex(
           }
           record.$[key] = subRecords;
         } else {
-          let subRecord = { $: value, t: value.match(SPACE).length };
-
-          if (ngrams) {
-            subRecord.ng = createNGram(value, { sort: true });
-          }
+          let subRecord = {
+            $: value,
+            t: value.match(SPACE).length
+          };
 
           record.$[key] = subRecord;
         }
@@ -1476,8 +1368,7 @@ class Fuse {
   }
 }
 
-// ❗Order is important. DO NOT CHANGE.
-register(ExtendedSearch, NGramSearch);
+register(ExtendedSearch);
 
 Fuse.version = '5.2.0-alpha.5';
 Fuse.createIndex = createIndex;

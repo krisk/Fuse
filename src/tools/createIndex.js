@@ -1,14 +1,9 @@
 import { isArray, isDefined, isString } from '../helpers/type-checkers'
-import get from '../helpers/get'
-import createNGram from '../search/ngram/createNGram'
+import Config from '../core/config'
 
 const SPACE = /[^ ]+/g
 
-export default function createIndex(
-  keys,
-  list,
-  { getFn = get, ngrams = false } = {}
-) {
+export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = []
 
   // List is Array<String>
@@ -22,10 +17,6 @@ export default function createIndex(
           $: value,
           idx: i,
           t: value.match(SPACE).length
-        }
-
-        if (ngrams) {
-          record.ng = createNGram(value, { sort: true })
         }
 
         indexedList.push(record)
@@ -66,11 +57,6 @@ export default function createIndex(
                 idx: arrayIndex,
                 t: value.match(SPACE).length
               }
-
-              if (ngrams) {
-                subRecord.ng = createNGram(value, { sort: true })
-              }
-
               subRecords.push(subRecord)
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
@@ -86,10 +72,9 @@ export default function createIndex(
           }
           record.$[key] = subRecords
         } else {
-          let subRecord = { $: value, t: value.match(SPACE).length }
-
-          if (ngrams) {
-            subRecord.ng = createNGram(value, { sort: true })
+          let subRecord = {
+            $: value,
+            t: value.match(SPACE).length
           }
 
           record.$[key] = subRecord

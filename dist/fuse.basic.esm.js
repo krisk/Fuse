@@ -185,6 +185,9 @@ function convertMaskToIndices(
   return matchedIndices
 }
 
+// Machine word size
+const MAX_BITS = 32;
+
 function search(
   text,
   pattern,
@@ -198,6 +201,10 @@ function search(
     includeMatches = Config.includeMatches
   } = {}
 ) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+  }
+
   const patternLen = pattern.length;
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length;
@@ -219,7 +226,7 @@ function search(
 
   let index;
 
-  // Get all exact matches
+  // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     let score = computeScore(pattern, {
       currentLocation: index,
@@ -246,7 +253,7 @@ function search(
   let finalScore = 1;
   let binMax = patternLen + textLen;
 
-  const mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
+  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -353,8 +360,6 @@ function search(
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
-  // console.log('result', result)
-
   return result
 }
 
@@ -373,16 +378,9 @@ function createPatternAlphabet(pattern) {
   return mask
 }
 
-// Machine word size
-const MAX_BITS = 32;
-
 class BitapSearch {
   constructor(
     pattern,
-    // Deconstructed in this fashion purely for speed-up, since a new instance
-    // of this class is created every time a pattern is created. Otherwise, a spread
-    // operation would be performed directly withing the contructor, which may slow
-    // done searches.
     {
       location = Config.location,
       threshold = Config.threshold,
@@ -403,12 +401,19 @@ class BitapSearch {
       isCaseSensitive
     };
 
-    if (pattern.length > MAX_BITS) {
-      throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
-    }
-
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.patternAlphabet = createPatternAlphabet(this.pattern);
+
+    this.chunks = [];
+
+    let index = 0;
+    while (index < this.pattern.length) {
+      let pattern = this.pattern.substring(index, index + MAX_BITS);
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern)
+      });
+      index += MAX_BITS;
+    }
   }
 
   searchIn(value) {
@@ -446,57 +451,51 @@ class BitapSearch {
       minMatchCharLength
     } = this.options;
 
-    return search(text, this.pattern, this.patternAlphabet, {
-      location,
-      distance,
-      threshold,
-      findAllMatches,
-      minMatchCharLength,
-      includeMatches
-    })
+    let allMatchedIndices = [];
+    let totalScore = 0;
+    let hasMatches = false;
+
+    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
+      let { pattern, alphabet } = this.chunks[i];
+
+      let result = search(text, pattern, alphabet, {
+        location: location + MAX_BITS * i,
+        distance,
+        threshold,
+        findAllMatches,
+        minMatchCharLength,
+        includeMatches
+      });
+
+      const { isMatch, score, matchedIndices } = result;
+
+      if (isMatch) {
+        hasMatches = true;
+      }
+
+      totalScore += score;
+
+      if (isMatch && matchedIndices) {
+        allMatchedIndices = [...allMatchedIndices, ...matchedIndices];
+      }
+    }
+
+    let result = {
+      isMatch: hasMatches,
+      score: hasMatches ? totalScore / this.chunks.length : 1
+    };
+
+    if (hasMatches && includeMatches) {
+      result.matchedIndices = allMatchedIndices;
+    }
+
+    return result
   }
-}
-
-const NGRAMS = 3;
-
-function createNGram(
-  text,
-  { n = NGRAMS, pad = true, sort = false }
-) {
-  let nGrams = [];
-
-  if (text === null || text === undefined) {
-    return nGrams
-  }
-
-  text = text.toLowerCase();
-  if (pad) {
-    text = ` ${text} `;
-  }
-
-  let index = text.length - n + 1;
-  if (index < 1) {
-    return nGrams
-  }
-
-  while (index--) {
-    nGrams[index] = text.substr(index, n);
-  }
-
-  if (sort) {
-    nGrams.sort((a, b) => (a == b ? 0 : a < b ? -1 : 1));
-  }
-
-  return nGrams
 }
 
 const SPACE = /[^ ]+/g;
 
-function createIndex(
-  keys,
-  list,
-  { getFn = get, ngrams = false } = {}
-) {
+function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = [];
 
   // List is Array<String>
@@ -511,10 +510,6 @@ function createIndex(
           idx: i,
           t: value.match(SPACE).length
         };
-
-        if (ngrams) {
-          record.ng = createNGram(value, { sort: true });
-        }
 
         indexedList.push(record);
       }
@@ -554,11 +549,6 @@ function createIndex(
                 idx: arrayIndex,
                 t: value.match(SPACE).length
               };
-
-              if (ngrams) {
-                subRecord.ng = createNGram(value, { sort: true });
-              }
-
               subRecords.push(subRecord);
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
@@ -571,11 +561,10 @@ function createIndex(
           }
           record.$[key] = subRecords;
         } else {
-          let subRecord = { $: value, t: value.match(SPACE).length };
-
-          if (ngrams) {
-            subRecord.ng = createNGram(value, { sort: true });
-          }
+          let subRecord = {
+            $: value,
+            t: value.match(SPACE).length
+          };
 
           record.$[key] = subRecord;
         }

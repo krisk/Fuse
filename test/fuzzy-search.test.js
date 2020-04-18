@@ -766,7 +766,7 @@ describe('Searching with minCharLength and pattern larger than machine word size
         findAllMatches: true,
         includeScore: true,
         minMatchCharLength: 20,
-        threshold: 0.8,
+        threshold: 0.6,
         distance: 30
       }))
   )
@@ -774,12 +774,11 @@ describe('Searching with minCharLength and pattern larger than machine word size
   describe('When searching for the term "American as apple pie is odd treatment of something made by mom"', () => {
     let result
 
-    beforeEach(
-      () =>
-        (result = fuse.search(
-          'American as apple pie is odd treatment of something made by mom'
-        ))
-    )
+    beforeEach(() => {
+      result = fuse.search(
+        'American as apple pie is odd treatment of something made by mom'
+      )
+    })
 
     test('We get exactly 1 result', () => {
       expect(result).toHaveLength(1)
@@ -787,7 +786,7 @@ describe('Searching with minCharLength and pattern larger than machine word size
 
     test('Which corresponds to the first item in the list, with no matches', () => {
       expect(result[0].refIndex).toBe(0)
-      expect(result[0].matches).toHaveLength(0)
+      expect(result[0].matches).toHaveLength(1)
     })
   })
 })

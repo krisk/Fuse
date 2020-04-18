@@ -11,10 +11,10 @@ export default class InverseExactMatch extends BaseMatch {
   static get type() {
     return 'inverse-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^!"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^!(.*)$/
   }
   search(text) {

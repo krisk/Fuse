@@ -366,6 +366,9 @@ function convertMaskToIndices() {
   return matchedIndices;
 }
 
+// Machine word size
+var MAX_BITS = 32;
+
 function search(text, pattern, patternAlphabet) {
   var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
       _ref$location = _ref.location,
@@ -380,6 +383,10 @@ function search(text, pattern, patternAlphabet) {
       minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
       _ref$includeMatches = _ref.includeMatches,
       includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
+
+  if (pattern.length > MAX_BITS) {
+    throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+  }
 
   var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
 
@@ -399,7 +406,7 @@ function search(text, pattern, patternAlphabet) {
     }
   }
 
-  var index; // Get all exact matches
+  var index; // Get all exact matches, here for speed up
 
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     var score = computeScore(pattern, {
@@ -425,7 +432,7 @@ function search(text, pattern, patternAlphabet) {
   var lastBitArr = [];
   var finalScore = 1;
   var binMax = patternLen + textLen;
-  var mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
+  var mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
 
   for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -521,8 +528,7 @@ function search(text, pattern, patternAlphabet) {
 
   if (includeMatches) {
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
-  } // console.log('result', result)
-
+  }
 
   return result;
 }
@@ -541,9 +547,6 @@ function createPatternAlphabet(pattern) {
 
   return mask;
 }
-
-// Machine word size
-var MAX_BITS = 32;
 
 var BitapSearch = /*#__PURE__*/function () {
   function BitapSearch(pattern) {
@@ -574,13 +577,19 @@ var BitapSearch = /*#__PURE__*/function () {
       minMatchCharLength: minMatchCharLength,
       isCaseSensitive: isCaseSensitive
     };
-
-    if (pattern.length > MAX_BITS) {
-      throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
-    }
-
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.patternAlphabet = createPatternAlphabet(this.pattern);
+    this.chunks = [];
+    var index = 0;
+
+    while (index < this.pattern.length) {
+      var _pattern = this.pattern.substring(index, index + MAX_BITS);
+
+      this.chunks.push({
+        pattern: _pattern,
+        alphabet: createPatternAlphabet(_pattern)
+      });
+      index += MAX_BITS;
+    }
   }
 
   _createClass(BitapSearch, [{
@@ -602,16 +611,16 @@ var BitapSearch = /*#__PURE__*/function () {
 
 
       if (this.pattern === text) {
-        var result = {
+        var _result = {
           isMatch: true,
           score: 0
         };
 
         if (includeMatches) {
-          result.matchedIndices = [[0, text.length - 1]];
+          _result.matchedIndices = [[0, text.length - 1]];
         }
 
-        return result;
+        return _result;
       } // Otherwise, use Bitap algorithm
 
 
@@ -621,14 +630,49 @@ var BitapSearch = /*#__PURE__*/function () {
           threshold = _this$options2.threshold,
           findAllMatches = _this$options2.findAllMatches,
           minMatchCharLength = _this$options2.minMatchCharLength;
-      return search(text, this.pattern, this.patternAlphabet, {
-        location: location,
-        distance: distance,
-        threshold: threshold,
-        findAllMatches: findAllMatches,
-        minMatchCharLength: minMatchCharLength,
-        includeMatches: includeMatches
-      });
+      var allMatchedIndices = [];
+      var totalScore = 0;
+      var hasMatches = false;
+
+      for (var i = 0, len = this.chunks.length; i < len; i += 1) {
+        var _this$chunks$i = this.chunks[i],
+            pattern = _this$chunks$i.pattern,
+            alphabet = _this$chunks$i.alphabet;
+
+        var _result2 = search(text, pattern, alphabet, {
+          location: location + MAX_BITS * i,
+          distance: distance,
+          threshold: threshold,
+          findAllMatches: findAllMatches,
+          minMatchCharLength: minMatchCharLength,
+          includeMatches: includeMatches
+        });
+
+        var isMatch = _result2.isMatch,
+            score = _result2.score,
+            matchedIndices = _result2.matchedIndices;
+
+        if (isMatch) {
+          hasMatches = true;
+        }
+
+        totalScore += score;
+
+        if (isMatch && matchedIndices) {
+          allMatchedIndices = [].concat(_toConsumableArray(allMatchedIndices), _toConsumableArray(matchedIndices));
+        }
+      }
+
+      var result = {
+        isMatch: hasMatches,
+        score: hasMatches ? totalScore / this.chunks.length : 1
+      };
+
+      if (hasMatches && includeMatches) {
+        result.matchedIndices = allMatchedIndices;
+      }
+
+      return result;
     }
   }]);
 
@@ -648,14 +692,14 @@ var BaseMatch = /*#__PURE__*/function () {
     /*text*/
     {}
   }], [{
-    key: "isLiteralMatch",
-    value: function isLiteralMatch(pattern) {
-      return getMatch(pattern, this.literal);
+    key: "isMultiMatch",
+    value: function isMultiMatch(pattern) {
+      return getMatch(pattern, this.multiRegex);
     }
   }, {
-    key: "isRegMatch",
-    value: function isRegMatch(pattern) {
-      return getMatch(pattern, this.re);
+    key: "isSingleMatch",
+    value: function isSingleMatch(pattern) {
+      return getMatch(pattern, this.singleRegex);
     }
   }]);
 
@@ -704,12 +748,12 @@ var ExactMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^'"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^'(.*)$/;
     }
@@ -746,12 +790,12 @@ var InverseExactMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'inverse-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^!"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^!(.*)$/;
     }
@@ -787,12 +831,12 @@ var PrefixExactMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'prefix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^\^"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^\^(.*)$/;
     }
@@ -828,12 +872,12 @@ var InversePrefixExactMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'inverse-prefix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^!\^"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^!\^(.*)$/;
     }
@@ -869,12 +913,12 @@ var SuffixExactMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'suffix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^"(.*)"\$$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^(.*)\$$/;
     }
@@ -910,12 +954,12 @@ var InverseSuffixExactMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'inverse-suffix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^!"(.*)"\$$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^!(.*)\$$/;
     }
@@ -974,12 +1018,12 @@ var FuzzyMatch = /*#__PURE__*/function (_BaseMatch) {
       return 'fuzzy';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^(.*)$/;
     }
@@ -1005,14 +1049,14 @@ function parseQuery(pattern) {
     var results = [];
 
     for (var i = 0, len = query.length; i < len; i += 1) {
-      var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quoted, like `"hello world"`)
+      var queryItem = query[i]; // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
 
       var found = false;
       var idx = -1;
 
       while (!found && ++idx < searchersLen) {
         var searcher = searchers[idx];
-        var token = searcher.isLiteralMatch(queryItem);
+        var token = searcher.isMultiMatch(queryItem);
 
         if (token) {
           results.push(new searcher(token, options));
@@ -1022,7 +1066,7 @@ function parseQuery(pattern) {
 
       if (found) {
         continue;
-      } // 2. Handle regular queries
+      } // 2. Handle single query matches (i.e, once that are *not* quoted)
 
 
       idx = -1;
@@ -1030,7 +1074,7 @@ function parseQuery(pattern) {
       while (++idx < searchersLen) {
         var _searcher = searchers[idx];
 
-        var _token = _searcher.isRegMatch(queryItem);
+        var _token = _searcher.isSingleMatch(queryItem);
 
         if (_token) {
           results.push(new _searcher(_token, options));
@@ -1195,167 +1239,11 @@ var ExtendedSearch = /*#__PURE__*/function () {
   return ExtendedSearch;
 }();
 
-var NGRAMS = 3;
-function createNGram(text, _ref) {
-  var _ref$n = _ref.n,
-      n = _ref$n === void 0 ? NGRAMS : _ref$n,
-      _ref$pad = _ref.pad,
-      pad = _ref$pad === void 0 ? true : _ref$pad,
-      _ref$sort = _ref.sort,
-      sort = _ref$sort === void 0 ? false : _ref$sort;
-  var nGrams = [];
-
-  if (text === null || text === undefined) {
-    return nGrams;
-  }
-
-  text = text.toLowerCase();
-
-  if (pad) {
-    text = " ".concat(text, " ");
-  }
-
-  var index = text.length - n + 1;
-
-  if (index < 1) {
-    return nGrams;
-  }
-
-  while (index--) {
-    nGrams[index] = text.substr(index, n);
-  }
-
-  if (sort) {
-    nGrams.sort(function (a, b) {
-      return a == b ? 0 : a < b ? -1 : 1;
-    });
-  }
-
-  return nGrams;
-}
-
-// Assumes arrays are sorted
-function union (arr1, arr2) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    var item1 = arr1[i];
-    var item2 = arr2[j];
-
-    if (item1 < item2) {
-      result.push(item1);
-      i += 1;
-    } else if (item2 < item1) {
-      result.push(item2);
-      j += 1;
-    } else {
-      result.push(item2);
-      i += 1;
-      j += 1;
-    }
-  }
-
-  while (i < arr1.length) {
-    result.push(arr1[i]);
-    i += 1;
-  }
-
-  while (j < arr2.length) {
-    result.push(arr2[j]);
-    j += 1;
-  }
-
-  return result;
-}
-
-// Assumes arrays are sorted
-function intersection(arr1, arr2) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    var item1 = arr1[i];
-    var item2 = arr2[j];
-
-    if (item1 == item2) {
-      result.push(item1);
-      i += 1;
-      j += 1;
-    } else if (item1 < item2) {
-      i += 1;
-    } else if (item1 > item2) {
-      j += 1;
-    } else {
-      i += 1;
-      j += 1;
-    }
-  }
-
-  return result;
-}
-
-function jaccardDistance(nGram1, nGram2) {
-  var nGramUnion = union(nGram1, nGram2);
-  var nGramIntersection = intersection(nGram1, nGram2);
-  return 1 - nGramIntersection.length / nGramUnion.length;
-}
-
-var NGramSearch = /*#__PURE__*/function () {
-  function NGramSearch(pattern) {
-    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref$threshold = _ref.threshold,
-        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold;
-
-    _classCallCheck(this, NGramSearch);
-
-    // Create the ngram, and sort it
-    this.options = {
-      threshold: threshold
-    };
-    this.patternNgram = createNGram(pattern, {
-      sort: true
-    });
-  }
-
-  _createClass(NGramSearch, [{
-    key: "searchIn",
-    value: function searchIn(value) {
-      var textNgram = value.ng;
-
-      if (!textNgram) {
-        textNgram = createNGram(value.$, {
-          sort: true
-        });
-        value.ng = textNgram;
-      }
-
-      var jacardResult = jaccardDistance(this.patternNgram, textNgram);
-      var isMatch = jacardResult < this.options.threshold;
-      return {
-        score: isMatch ? jacardResult : 1,
-        isMatch: isMatch
-      };
-    }
-  }], [{
-    key: "condition",
-    value: function condition(pattern) {
-      return pattern.length > MAX_BITS;
-    }
-  }]);
-
-  return NGramSearch;
-}();
-
 var SPACE = /[^ ]+/g;
 function createIndex(keys, list) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
       _ref$getFn = _ref.getFn,
-      getFn = _ref$getFn === void 0 ? get : _ref$getFn,
-      _ref$ngrams = _ref.ngrams,
-      ngrams = _ref$ngrams === void 0 ? false : _ref$ngrams;
+      getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
 
   var indexedList = []; // List is Array<String>
 
@@ -1370,13 +1258,6 @@ function createIndex(keys, list) {
           idx: i,
           t: value.match(SPACE).length
         };
-
-        if (ngrams) {
-          record.ng = createNGram(value, {
-            sort: true
-          });
-        }
-
         indexedList.push(record);
       }
     }
@@ -1422,13 +1303,6 @@ function createIndex(keys, list) {
                 idx: arrayIndex,
                 t: _value2.match(SPACE).length
               };
-
-              if (ngrams) {
-                subRecord.ng = createNGram(_value2, {
-                  sort: true
-                });
-              }
-
               subRecords.push(subRecord);
             } else if (isArray(_value2)) {
               for (var k = 0, arrLen = _value2.length; k < arrLen; k += 1) {
@@ -1446,13 +1320,6 @@ function createIndex(keys, list) {
             $: _value,
             t: _value.match(SPACE).length
           };
-
-          if (ngrams) {
-            _subRecord.ng = createNGram(_value, {
-              sort: true
-            });
-          }
-
           _record.$[key] = _subRecord;
         }
       }
@@ -1883,7 +1750,7 @@ var Fuse = /*#__PURE__*/function () {
   return Fuse;
 }();
 
-register(ExtendedSearch, NGramSearch);
+register(ExtendedSearch);
 Fuse.version = '5.2.0-alpha.5';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;

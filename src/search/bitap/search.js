@@ -1,6 +1,7 @@
 import computeScore from './computeScore'
 import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
+import { MAX_BITS } from './constants'
 
 export default function search(
   text,
@@ -15,6 +16,10 @@ export default function search(
     includeMatches = Config.includeMatches
   } = {}
 ) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+  }
+
   const patternLen = pattern.length
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length
@@ -36,7 +41,7 @@ export default function search(
 
   let index
 
-  // Get all exact matches
+  // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
     let score = computeScore(pattern, {
       currentLocation: index,
@@ -63,7 +68,7 @@ export default function search(
   let finalScore = 1
   let binMax = patternLen + textLen
 
-  const mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30)
+  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2)
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -169,8 +174,6 @@ export default function search(
   if (includeMatches) {
     result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength)
   }
-
-  // console.log('result', result)
 
   return result
 }
