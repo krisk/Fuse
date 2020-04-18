@@ -1,4 +1,5 @@
-import Fuse, { Config } from './core'
+import Fuse from './core'
+import Config from './core/config'
 import { createIndex } from './tools'
 
 Fuse.version = '__VERSION__'

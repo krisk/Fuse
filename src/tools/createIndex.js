@@ -1,12 +1,9 @@
 import { isArray, isDefined, isString } from '../helpers/type-checkers'
-import get from '../helpers/get'
-import ngram from '../search/ngram-search/ngram'
+import Config from '../core/config'
 
-export default function createIndex(
-  keys,
-  list,
-  { getFn = get, ngrams = false } = {}
-) {
+const SPACE = /[^ ]+/g
+
+export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = []
 
   // List is Array<String>
@@ -16,17 +13,10 @@ export default function createIndex(
       const value = list[i]
 
       if (isDefined(value)) {
-        // if (!isCaseSensitive) {
-        //   value = value.toLowerCase()
-        // }
-
         let record = {
           $: value,
-          idx: i
-        }
-
-        if (ngrams) {
-          record.ng = ngram(value, { sort: true })
+          idx: i,
+          t: value.match(SPACE).length
         }
 
         indexedList.push(record)
@@ -62,16 +52,11 @@ export default function createIndex(
             }
 
             if (isString(value)) {
-              // if (!isCaseSensitive) {
-              //   v = v.toLowerCase()
-              // }
-
-              let subRecord = { $: value, idx: arrayIndex }
-
-              if (ngrams) {
-                subRecord.ng = ngram(value, { sort: true })
+              let subRecord = {
+                $: value,
+                idx: arrayIndex,
+                t: value.match(SPACE).length
               }
-
               subRecords.push(subRecord)
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
@@ -87,14 +72,9 @@ export default function createIndex(
           }
           record.$[key] = subRecords
         } else {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
-
-          let subRecord = { $: value }
-
-          if (ngrams) {
-            subRecord.ng = ngram(value, { sort: true })
+          let subRecord = {
+            $: value,
+            t: value.match(SPACE).length
           }
 
           record.$[key] = subRecord

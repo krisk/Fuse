@@ -622,7 +622,7 @@ describe('Weighted search', () => {
       return (result = fuse.search('War'))
     })
 
-    test('We get the the exactly matching object', () => {
+    test('We get the exactly matching object', () => {
       expect(result[0]).toMatchObject({
         item: {
           title: "Old Man's War fiction",
@@ -766,7 +766,7 @@ describe('Searching with minCharLength and pattern larger than machine word size
         findAllMatches: true,
         includeScore: true,
         minMatchCharLength: 20,
-        threshold: 0.8,
+        threshold: 0.6,
         distance: 30
       }))
   )
@@ -774,12 +774,11 @@ describe('Searching with minCharLength and pattern larger than machine word size
   describe('When searching for the term "American as apple pie is odd treatment of something made by mom"', () => {
     let result
 
-    beforeEach(
-      () =>
-        (result = fuse.search(
-          'American as apple pie is odd treatment of something made by mom'
-        ))
-    )
+    beforeEach(() => {
+      result = fuse.search(
+        'American as apple pie is odd treatment of something made by mom'
+      )
+    })
 
     test('We get exactly 1 result', () => {
       expect(result).toHaveLength(1)
@@ -787,7 +786,7 @@ describe('Searching with minCharLength and pattern larger than machine word size
 
     test('Which corresponds to the first item in the list, with no matches', () => {
       expect(result[0].refIndex).toBe(0)
-      expect(result[0].matches).toHaveLength(0)
+      expect(result[0].matches).toHaveLength(1)
     })
   })
 })
@@ -878,5 +877,45 @@ describe('Searching using string large strings', () => {
     let result = fuse.search(pattern)
     expect(result.length).toBe(1)
     expect(result[0].item.text).toBe(list[2].text)
+  })
+})
+
+describe('Searching taking into account field length', () => {
+  const list = [
+    {
+      ISBN: '0312696957',
+      title: 'The Lock war Artist nonficon',
+      author: 'Steve Hamilton',
+      tags: ['fiction war hello no way']
+    },
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction no']
+    }
+  ]
+
+  test('The entry with the shorter field length appears first', () => {
+    const fuse = new Fuse(list, {
+      keys: ['title']
+    })
+    let result = fuse.search('war')
+    expect(result.length).toBe(2)
+    expect(result[0].item.ISBN).toBe('0765348276')
+    expect(result[1].item.ISBN).toBe('0312696957')
+  })
+
+  test('Weighted entries still are given high precedence', () => {
+    const fuse = new Fuse(list, {
+      keys: [
+        { name: 'tags', weight: 0.8 },
+        { name: 'title', weight: 0.2 }
+      ]
+    })
+    let result = fuse.search('war')
+    expect(result.length).toBe(2)
+    expect(result[0].item.ISBN).toBe('0312696957')
+    expect(result[1].item.ISBN).toBe('0765348276')
   })
 })

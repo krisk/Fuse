@@ -1,19 +1,19 @@
 // Token: ^file
 // Match type: prefix-exact-match
 // Description: Items that start with `file`
-import Match from './match'
+import BaseMatch from './BaseMatch'
 
-export default class PrefixExactMatch extends Match {
+export default class PrefixExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }
   static get type() {
     return 'prefix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^\^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^\^(.*)$/
   }
   search(text) {

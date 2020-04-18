@@ -1,8 +1,9 @@
-import { ExtendedSearch, NGramSearch } from './search'
-import Fuse, { Config } from './core'
+import { ExtendedSearch } from './search'
+import Config from './core/config'
+import Fuse, { register } from './core'
 import { createIndex } from './tools'
 
-Fuse.register(ExtendedSearch, NGramSearch)
+register(ExtendedSearch)
 
 Fuse.version = '__VERSION__'
 Fuse.createIndex = createIndex

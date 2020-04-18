@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.0-alpha.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.0-alpha.6 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -190,58 +190,6 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-function bitapScore(pattern, _ref) {
-  var _ref$errors = _ref.errors,
-      errors = _ref$errors === void 0 ? 0 : _ref$errors,
-      _ref$currentLocation = _ref.currentLocation,
-      currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
-      _ref$expectedLocation = _ref.expectedLocation,
-      expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
-      _ref$distance = _ref.distance,
-      distance = _ref$distance === void 0 ? 100 : _ref$distance;
-  var accuracy = errors / pattern.length;
-  var proximity = Math.abs(expectedLocation - currentLocation);
-
-  if (!distance) {
-    // Dodge divide by zero error.
-    return proximity ? 1.0 : accuracy;
-  }
-
-  return accuracy + proximity / distance;
-}
-
-function matchedIndiced() {
-  var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-  var matchedIndices = [];
-  var start = -1;
-  var end = -1;
-  var i = 0;
-
-  for (var len = matchmask.length; i < len; i += 1) {
-    var match = matchmask[i];
-
-    if (match && start === -1) {
-      start = i;
-    } else if (!match && start !== -1) {
-      end = i - 1;
-
-      if (end - start + 1 >= minMatchCharLength) {
-        matchedIndices.push([start, end]);
-      }
-
-      start = -1;
-    }
-  } // (i-1 - start) + 1 => i - start
-
-
-  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1]);
-  }
-
-  return matchedIndices;
-}
-
 var INFINITY = 1 / 0;
 var isArray = function isArray(value) {
   return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
@@ -364,7 +312,64 @@ var AdvancedOptions = {
 };
 var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
-function bitapSearch(text, pattern, patternAlphabet) {
+function computeScore(pattern) {
+  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref$errors = _ref.errors,
+      errors = _ref$errors === void 0 ? 0 : _ref$errors,
+      _ref$currentLocation = _ref.currentLocation,
+      currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
+      _ref$expectedLocation = _ref.expectedLocation,
+      expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
+      _ref$distance = _ref.distance,
+      distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
+
+  var accuracy = errors / pattern.length;
+  var proximity = Math.abs(expectedLocation - currentLocation);
+
+  if (!distance) {
+    // Dodge divide by zero error.
+    return proximity ? 1.0 : accuracy;
+  }
+
+  return accuracy + proximity / distance;
+}
+
+function convertMaskToIndices() {
+  var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
+  var matchedIndices = [];
+  var start = -1;
+  var end = -1;
+  var i = 0;
+
+  for (var len = matchmask.length; i < len; i += 1) {
+    var match = matchmask[i];
+
+    if (match && start === -1) {
+      start = i;
+    } else if (!match && start !== -1) {
+      end = i - 1;
+
+      if (end - start + 1 >= minMatchCharLength) {
+        matchedIndices.push([start, end]);
+      }
+
+      start = -1;
+    }
+  } // (i-1 - start) + 1 => i - start
+
+
+  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
+    matchedIndices.push([start, i - 1]);
+  }
+
+  return matchedIndices;
+}
+
+// Machine word size
+var MAX_BITS = 32;
+
+function search(text, pattern, patternAlphabet) {
   var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
       _ref$location = _ref.location,
       location = _ref$location === void 0 ? Config.location : _ref$location,
@@ -379,6 +384,10 @@ function bitapSearch(text, pattern, patternAlphabet) {
       _ref$includeMatches = _ref.includeMatches,
       includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
 
+  if (pattern.length > MAX_BITS) {
+    throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+  }
+
   var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
 
   var textLen = text.length; // Handle the case when location > text.length
@@ -387,34 +396,34 @@ function bitapSearch(text, pattern, patternAlphabet) {
 
   var currentThreshold = threshold; // Is there a nearby exact match? (speedup)
 
-  var bestLocation = text.indexOf(pattern, expectedLocation); // a mask of the matches
+  var bestLocation = expectedLocation; // A mask of the matches, used for building the indices
 
   var matchMask = [];
 
-  for (var i = 0; i < textLen; i += 1) {
-    matchMask[i] = 0;
+  if (includeMatches) {
+    for (var i = 0; i < textLen; i += 1) {
+      matchMask[i] = 0;
+    }
   }
 
-  if (bestLocation !== -1) {
-    var score = bitapScore(pattern, {
-      errors: 0,
-      currentLocation: bestLocation,
+  var index; // Get all exact matches, here for speed up
+
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
+    var score = computeScore(pattern, {
+      currentLocation: index,
       expectedLocation: expectedLocation,
       distance: distance
     });
-    currentThreshold = Math.min(score, currentThreshold); // What about in the other direction? (speed up)
+    currentThreshold = Math.min(score, currentThreshold);
+    bestLocation = index + patternLen;
 
-    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
+    if (includeMatches) {
+      var _i = 0;
 
-    if (bestLocation !== -1) {
-      var _score = bitapScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
-        expectedLocation: expectedLocation,
-        distance: distance
-      });
-
-      currentThreshold = Math.min(_score, currentThreshold);
+      while (_i < patternLen) {
+        matchMask[index + _i] = 1;
+        _i += 1;
+      }
     }
   } // Reset the best location
 
@@ -423,9 +432,9 @@ function bitapSearch(text, pattern, patternAlphabet) {
   var lastBitArr = [];
   var finalScore = 1;
   var binMax = patternLen + textLen;
-  var mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
+  var mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
 
-  for (var _i = 0; _i < patternLen; _i += 1) {
+  for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
     // Scan for the best match; each iteration allows for one more error.
     // Run a binary search to determine how far from the match location we can stray
     // at this error level.
@@ -433,14 +442,14 @@ function bitapSearch(text, pattern, patternAlphabet) {
     var binMid = binMax;
 
     while (binMin < binMid) {
-      var _score3 = bitapScore(pattern, {
-        errors: _i,
+      var _score2 = computeScore(pattern, {
+        errors: _i2,
         currentLocation: expectedLocation + binMid,
         expectedLocation: expectedLocation,
         distance: distance
       });
 
-      if (_score3 <= currentThreshold) {
+      if (_score2 <= currentThreshold) {
         binMin = binMid;
       } else {
         binMax = binMid;
@@ -455,26 +464,26 @@ function bitapSearch(text, pattern, patternAlphabet) {
     var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
     var bitArr = Array(finish + 2);
-    bitArr[finish + 1] = (1 << _i) - 1;
+    bitArr[finish + 1] = (1 << _i2) - 1;
 
     for (var j = finish; j >= start; j -= 1) {
       var currentLocation = j - 1;
       var charMatch = patternAlphabet[text.charAt(currentLocation)];
 
-      if (charMatch) {
+      if (charMatch && includeMatches) {
         matchMask[currentLocation] = 1;
       } // First pass: exact match
 
 
       bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch; // Subsequent passes: fuzzy match
 
-      if (_i !== 0) {
+      if (_i2 !== 0) {
         bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
       }
 
       if (bitArr[j] & mask) {
-        finalScore = bitapScore(pattern, {
-          errors: _i,
+        finalScore = computeScore(pattern, {
+          errors: _i2,
           currentLocation: currentLocation,
           expectedLocation: expectedLocation,
           distance: distance
@@ -497,14 +506,14 @@ function bitapSearch(text, pattern, patternAlphabet) {
     } // No hope for a (better) match at greater error levels.
 
 
-    var _score2 = bitapScore(pattern, {
-      errors: _i + 1,
+    var _score = computeScore(pattern, {
+      errors: _i2 + 1,
       currentLocation: expectedLocation,
       expectedLocation: expectedLocation,
       distance: distance
     });
 
-    if (_score2 > currentThreshold) {
+    if (_score > currentThreshold) {
       break;
     }
 
@@ -518,13 +527,13 @@ function bitapSearch(text, pattern, patternAlphabet) {
   };
 
   if (includeMatches) {
-    result.matchedIndices = matchedIndiced(matchMask, minMatchCharLength);
+    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
   return result;
 }
 
-function patternAlphabet(pattern) {
+function createPatternAlphabet(pattern) {
   var mask = {};
   var len = pattern.length;
 
@@ -539,25 +548,48 @@ function patternAlphabet(pattern) {
   return mask;
 }
 
-// Machine word size
-var MAX_BITS = 32;
-
 var BitapSearch = /*#__PURE__*/function () {
   function BitapSearch(pattern) {
-    var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+        _ref$findAllMatches = _ref.findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+        _ref$minMatchCharLeng = _ref.minMatchCharLength,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$isCaseSensitive = _ref.isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
     _classCallCheck(this, BitapSearch);
 
-    this.options = options;
+    this.options = {
+      location: location,
+      threshold: threshold,
+      distance: distance,
+      includeMatches: includeMatches,
+      findAllMatches: findAllMatches,
+      minMatchCharLength: minMatchCharLength,
+      isCaseSensitive: isCaseSensitive
+    };
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.chunks = [];
+    var index = 0;
 
-    if (pattern.length > MAX_BITS) {
-      throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+    while (index < this.pattern.length) {
+      var _pattern = this.pattern.substring(index, index + MAX_BITS);
+
+      this.chunks.push({
+        pattern: _pattern,
+        alphabet: createPatternAlphabet(_pattern)
+      });
+      index += MAX_BITS;
     }
-
-    this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.patternAlphabet = patternAlphabet(this.pattern);
   }
 
   _createClass(BitapSearch, [{
@@ -579,16 +611,16 @@ var BitapSearch = /*#__PURE__*/function () {
 
 
       if (this.pattern === text) {
-        var result = {
+        var _result = {
           isMatch: true,
           score: 0
         };
 
         if (includeMatches) {
-          result.matchedIndices = [[0, text.length - 1]];
+          _result.matchedIndices = [[0, text.length - 1]];
         }
 
-        return result;
+        return _result;
       } // Otherwise, use Bitap algorithm
 
 
@@ -598,45 +630,80 @@ var BitapSearch = /*#__PURE__*/function () {
           threshold = _this$options2.threshold,
           findAllMatches = _this$options2.findAllMatches,
           minMatchCharLength = _this$options2.minMatchCharLength;
-      return bitapSearch(text, this.pattern, this.patternAlphabet, {
-        location: location,
-        distance: distance,
-        threshold: threshold,
-        findAllMatches: findAllMatches,
-        minMatchCharLength: minMatchCharLength,
-        includeMatches: includeMatches
-      });
+      var allMatchedIndices = [];
+      var totalScore = 0;
+      var hasMatches = false;
+
+      for (var i = 0, len = this.chunks.length; i < len; i += 1) {
+        var _this$chunks$i = this.chunks[i],
+            pattern = _this$chunks$i.pattern,
+            alphabet = _this$chunks$i.alphabet;
+
+        var _result2 = search(text, pattern, alphabet, {
+          location: location + MAX_BITS * i,
+          distance: distance,
+          threshold: threshold,
+          findAllMatches: findAllMatches,
+          minMatchCharLength: minMatchCharLength,
+          includeMatches: includeMatches
+        });
+
+        var isMatch = _result2.isMatch,
+            score = _result2.score,
+            matchedIndices = _result2.matchedIndices;
+
+        if (isMatch) {
+          hasMatches = true;
+        }
+
+        totalScore += score;
+
+        if (isMatch && matchedIndices) {
+          allMatchedIndices = [].concat(_toConsumableArray(allMatchedIndices), _toConsumableArray(matchedIndices));
+        }
+      }
+
+      var result = {
+        isMatch: hasMatches,
+        score: hasMatches ? totalScore / this.chunks.length : 1
+      };
+
+      if (hasMatches && includeMatches) {
+        result.matchedIndices = allMatchedIndices;
+      }
+
+      return result;
     }
   }]);
 
   return BitapSearch;
 }();
 
-var Match = /*#__PURE__*/function () {
-  function Match(pattern) {
-    _classCallCheck(this, Match);
+var BaseMatch = /*#__PURE__*/function () {
+  function BaseMatch(pattern) {
+    _classCallCheck(this, BaseMatch);
 
     this.pattern = pattern;
   }
 
-  _createClass(Match, [{
+  _createClass(BaseMatch, [{
     key: "search",
     value: function search()
     /*text*/
     {}
   }], [{
-    key: "isLiteralMatch",
-    value: function isLiteralMatch(pattern) {
-      return getMatch(pattern, this.literal);
+    key: "isMultiMatch",
+    value: function isMultiMatch(pattern) {
+      return getMatch(pattern, this.multiRegex);
     }
   }, {
-    key: "isRegMatch",
-    value: function isRegMatch(pattern) {
-      return getMatch(pattern, this.re);
+    key: "isSingleMatch",
+    value: function isSingleMatch(pattern) {
+      return getMatch(pattern, this.singleRegex);
     }
   }]);
 
-  return Match;
+  return BaseMatch;
 }();
 
 function getMatch(pattern, exp) {
@@ -644,8 +711,8 @@ function getMatch(pattern, exp) {
   return matches ? matches[1] : null;
 }
 
-var ExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(ExactMatch, _Match);
+var ExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(ExactMatch, _BaseMatch);
 
   var _super = _createSuper(ExactMatch);
 
@@ -658,12 +725,21 @@ var ExactMatch = /*#__PURE__*/function (_Match) {
   _createClass(ExactMatch, [{
     key: "search",
     value: function search(text) {
-      var index = text.indexOf(this.pattern);
-      var isMatch = index > -1;
+      var location = 0;
+      var index;
+      var matchedIndices = [];
+      var patternLen = this.pattern.length; // Get all exact matches
+
+      while ((index = text.indexOf(this.pattern, location)) > -1) {
+        location = index + patternLen;
+        matchedIndices.push([index, location - 1]);
+      }
+
+      var isMatch = !!matchedIndices.length;
       return {
         isMatch: isMatch,
         score: isMatch ? 1 : 0,
-        matchedIndices: [index, index + this.pattern.length - 1]
+        matchedIndices: matchedIndices
       };
     }
   }], [{
@@ -672,22 +748,22 @@ var ExactMatch = /*#__PURE__*/function (_Match) {
       return 'exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^'"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^'(.*)$/;
     }
   }]);
 
   return ExactMatch;
-}(Match);
+}(BaseMatch);
 
-var InverseExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(InverseExactMatch, _Match);
+var InverseExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(InverseExactMatch, _BaseMatch);
 
   var _super = _createSuper(InverseExactMatch);
 
@@ -714,22 +790,22 @@ var InverseExactMatch = /*#__PURE__*/function (_Match) {
       return 'inverse-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^!"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^!(.*)$/;
     }
   }]);
 
   return InverseExactMatch;
-}(Match);
+}(BaseMatch);
 
-var PrefixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(PrefixExactMatch, _Match);
+var PrefixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(PrefixExactMatch, _BaseMatch);
 
   var _super = _createSuper(PrefixExactMatch);
 
@@ -755,22 +831,22 @@ var PrefixExactMatch = /*#__PURE__*/function (_Match) {
       return 'prefix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^\^"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^\^(.*)$/;
     }
   }]);
 
   return PrefixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var InversePrefixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(InversePrefixExactMatch, _Match);
+var InversePrefixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(InversePrefixExactMatch, _BaseMatch);
 
   var _super = _createSuper(InversePrefixExactMatch);
 
@@ -796,22 +872,22 @@ var InversePrefixExactMatch = /*#__PURE__*/function (_Match) {
       return 'inverse-prefix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^!\^"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^!\^(.*)$/;
     }
   }]);
 
   return InversePrefixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var SuffixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(SuffixExactMatch, _Match);
+var SuffixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(SuffixExactMatch, _BaseMatch);
 
   var _super = _createSuper(SuffixExactMatch);
 
@@ -837,22 +913,22 @@ var SuffixExactMatch = /*#__PURE__*/function (_Match) {
       return 'suffix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^"(.*)"\$$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^(.*)\$$/;
     }
   }]);
 
   return SuffixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var InverseSuffixExactMatch = /*#__PURE__*/function (_Match) {
-  _inherits(InverseSuffixExactMatch, _Match);
+var InverseSuffixExactMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(InverseSuffixExactMatch, _BaseMatch);
 
   var _super = _createSuper(InverseSuffixExactMatch);
 
@@ -878,36 +954,56 @@ var InverseSuffixExactMatch = /*#__PURE__*/function (_Match) {
       return 'inverse-suffix-exact';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^!"(.*)"\$$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^!(.*)\$$/;
     }
   }]);
 
   return InverseSuffixExactMatch;
-}(Match);
+}(BaseMatch);
 
-var FuzzyMatch = /*#__PURE__*/function (_Match) {
-  _inherits(FuzzyMatch, _Match);
+var FuzzyMatch = /*#__PURE__*/function (_BaseMatch) {
+  _inherits(FuzzyMatch, _BaseMatch);
 
   var _super = _createSuper(FuzzyMatch);
 
   function FuzzyMatch(pattern) {
-    var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
     var _this;
 
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+        _ref$findAllMatches = _ref.findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+        _ref$minMatchCharLeng = _ref.minMatchCharLength,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$isCaseSensitive = _ref.isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
     _classCallCheck(this, FuzzyMatch);
 
     _this = _super.call(this, pattern);
-    _this._bitapSearch = new BitapSearch(pattern, options);
+    _this._bitapSearch = new BitapSearch(pattern, {
+      location: location,
+      threshold: threshold,
+      distance: distance,
+      includeMatches: includeMatches,
+      findAllMatches: findAllMatches,
+      minMatchCharLength: minMatchCharLength,
+      isCaseSensitive: isCaseSensitive
+    });
     return _this;
   }
 
@@ -922,19 +1018,19 @@ var FuzzyMatch = /*#__PURE__*/function (_Match) {
       return 'fuzzy';
     }
   }, {
-    key: "literal",
+    key: "multiRegex",
     get: function get() {
       return /^"(.*)"$/;
     }
   }, {
-    key: "re",
+    key: "singleRegex",
     get: function get() {
       return /^(.*)$/;
     }
   }]);
 
   return FuzzyMatch;
-}(Match);
+}(BaseMatch);
 
 var searchers = [ExactMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
 var searchersLen = searchers.length; // Regex to split by spaces, but keep anything in quotes together
@@ -944,7 +1040,8 @@ var OR_TOKEN = '|'; // Return a 2D array representation of the query, for simple
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 
-function parseQuery(pattern, options) {
+function parseQuery(pattern) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   return pattern.split(OR_TOKEN).map(function (item) {
     var query = item.trim().split(SPACE_RE).filter(function (item) {
       return item && !!item.trim();
@@ -952,14 +1049,14 @@ function parseQuery(pattern, options) {
     var results = [];
 
     for (var i = 0, len = query.length; i < len; i += 1) {
-      var queryItem = query[i]; // 1. Handle literal queries (i.e, once that are quotes "hello world")
+      var queryItem = query[i]; // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
 
       var found = false;
       var idx = -1;
 
       while (!found && ++idx < searchersLen) {
         var searcher = searchers[idx];
-        var token = searcher.isLiteralMatch(queryItem);
+        var token = searcher.isMultiMatch(queryItem);
 
         if (token) {
           results.push(new searcher(token, options));
@@ -969,7 +1066,7 @@ function parseQuery(pattern, options) {
 
       if (found) {
         continue;
-      } // 2. Handle regular queries
+      } // 2. Handle single query matches (i.e, once that are *not* quoted)
 
 
       idx = -1;
@@ -977,7 +1074,7 @@ function parseQuery(pattern, options) {
       while (++idx < searchersLen) {
         var _searcher = searchers[idx];
 
-        var _token = _searcher.isRegMatch(queryItem);
+        var _token = _searcher.isSingleMatch(queryItem);
 
         if (_token) {
           results.push(new _searcher(_token, options));
@@ -990,6 +1087,9 @@ function parseQuery(pattern, options) {
   });
 }
 
+// to a singl match
+
+var MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type]);
 /**
  * Command-like searching
  * ======================
@@ -1020,16 +1120,36 @@ function parseQuery(pattern, options) {
 
 var ExtendedSearch = /*#__PURE__*/function () {
   function ExtendedSearch(pattern) {
-    var _ref, _ref$isCaseSensitive, _ref$includeMatches, _ref$minMatchCharLeng, _ref$findAllMatches, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches2;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches2 = _ref.includeMatches, includeMatches = _ref$includeMatches2 === void 0 ? Config.includeMatches : _ref$includeMatches2, _ref);
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$isCaseSensitive = _ref.isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+        _ref$includeMatches = _ref.includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+        _ref$minMatchCharLeng = _ref.minMatchCharLength,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$findAllMatches = _ref.findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
+        _ref$threshold = _ref.threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
 
     _classCallCheck(this, ExtendedSearch);
 
     this.query = null;
-    this.options = options;
-    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.query = parseQuery(this.pattern, options);
+    this.options = {
+      isCaseSensitive: isCaseSensitive,
+      includeMatches: includeMatches,
+      minMatchCharLength: minMatchCharLength,
+      findAllMatches: findAllMatches,
+      location: location,
+      threshold: threshold,
+      distance: distance
+    };
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    this.query = parseQuery(this.pattern, this.options);
   }
 
   _createClass(ExtendedSearch, [{
@@ -1050,7 +1170,8 @@ var ExtendedSearch = /*#__PURE__*/function () {
           isCaseSensitive = _this$options.isCaseSensitive;
       text = isCaseSensitive ? text : text.toLowerCase();
       var numMatches = 0;
-      var indices = []; // ORs
+      var indices = [];
+      var totalScore = 0; // ORs
 
       for (var i = 0, qLen = query.length; i < qLen; i += 1) {
         var searchers = query[i]; // Reset indices
@@ -1063,20 +1184,24 @@ var ExtendedSearch = /*#__PURE__*/function () {
 
           var _searcher$search = searcher.search(text),
               isMatch = _searcher$search.isMatch,
-              matchedIndices = _searcher$search.matchedIndices;
+              matchedIndices = _searcher$search.matchedIndices,
+              score = _searcher$search.score;
 
           if (isMatch) {
             numMatches += 1;
+            totalScore += score;
 
             if (includeMatches) {
-              if (searcher.constructor.type === FuzzyMatch.type) {
-                // FuzzyMatch returns is a 2D array
+              var type = searcher.constructor.type;
+
+              if (MultiMatchSet.has(type)) {
                 indices = [].concat(_toConsumableArray(indices), _toConsumableArray(matchedIndices));
               } else {
                 indices.push(matchedIndices);
               }
             }
           } else {
+            totalScore = 0;
             numMatches = 0;
             indices.length = 0;
             break;
@@ -1087,7 +1212,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
         if (numMatches) {
           var result = {
             isMatch: true,
-            score: 0
+            score: totalScore / numMatches
           };
 
           if (includeMatches) {
@@ -1114,164 +1239,11 @@ var ExtendedSearch = /*#__PURE__*/function () {
   return ExtendedSearch;
 }();
 
-var NGRAM_LEN = 3;
-function ngram(text, _ref) {
-  var _ref$n = _ref.n,
-      n = _ref$n === void 0 ? NGRAM_LEN : _ref$n,
-      _ref$pad = _ref.pad,
-      pad = _ref$pad === void 0 ? true : _ref$pad,
-      _ref$sort = _ref.sort,
-      sort = _ref$sort === void 0 ? false : _ref$sort;
-  var nGrams = [];
-
-  if (text === null || text === undefined) {
-    return nGrams;
-  }
-
-  text = text.toLowerCase();
-
-  if (pad) {
-    text = " ".concat(text, " ");
-  }
-
-  var index = text.length - n + 1;
-
-  if (index < 1) {
-    return nGrams;
-  }
-
-  while (index--) {
-    nGrams[index] = text.substr(index, n);
-  }
-
-  if (sort) {
-    nGrams.sort(function (a, b) {
-      return a == b ? 0 : a < b ? -1 : 1;
-    });
-  }
-
-  return nGrams;
-}
-
-// Assumes arrays are sorted
-function union (arr1, arr2) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    var item1 = arr1[i];
-    var item2 = arr2[j];
-
-    if (item1 < item2) {
-      result.push(item1);
-      i += 1;
-    } else if (item2 < item1) {
-      result.push(item2);
-      j += 1;
-    } else {
-      result.push(item2);
-      i += 1;
-      j += 1;
-    }
-  }
-
-  while (i < arr1.length) {
-    result.push(arr1[i]);
-    i += 1;
-  }
-
-  while (j < arr2.length) {
-    result.push(arr2[j]);
-    j += 1;
-  }
-
-  return result;
-}
-
-// Assumes arrays are sorted
-function intersection(arr1, arr2) {
-  var result = [];
-  var i = 0;
-  var j = 0;
-
-  while (i < arr1.length && j < arr2.length) {
-    var item1 = arr1[i];
-    var item2 = arr2[j];
-
-    if (item1 == item2) {
-      result.push(item1);
-      i += 1;
-      j += 1;
-    } else if (item1 < item2) {
-      i += 1;
-    } else if (item1 > item2) {
-      j += 1;
-    } else {
-      i += 1;
-      j += 1;
-    }
-  }
-
-  return result;
-}
-
-function jaccardDistance(nGram1, nGram2) {
-  var nGramUnion = union(nGram1, nGram2);
-  var nGramIntersection = intersection(nGram1, nGram2);
-  return 1 - nGramIntersection.length / nGramUnion.length;
-}
-
-var NGramSearch = /*#__PURE__*/function () {
-  function NGramSearch(pattern) {
-    var _ref, _ref$threshold;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref);
-
-    _classCallCheck(this, NGramSearch);
-
-    // Create the ngram, and sort it
-    this.options = options;
-    this.patternNgram = ngram(pattern, {
-      sort: true
-    });
-  }
-
-  _createClass(NGramSearch, [{
-    key: "searchIn",
-    value: function searchIn(value) {
-      var textNgram = value.ng;
-
-      if (!textNgram) {
-        textNgram = ngram(value.$, {
-          sort: true
-        });
-        value.ng = textNgram;
-      }
-
-      var jacardResult = jaccardDistance(this.patternNgram, textNgram);
-      var isMatch = jacardResult < this.options.threshold;
-      return {
-        score: isMatch ? jacardResult : 1,
-        isMatch: isMatch
-      };
-    }
-  }], [{
-    key: "condition",
-    value: function condition(pattern) {
-      return pattern.length > MAX_BITS;
-    }
-  }]);
-
-  return NGramSearch;
-}();
-
+var SPACE = /[^ ]+/g;
 function createIndex(keys, list) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
       _ref$getFn = _ref.getFn,
-      getFn = _ref$getFn === void 0 ? get : _ref$getFn,
-      _ref$ngrams = _ref.ngrams,
-      ngrams = _ref$ngrams === void 0 ? false : _ref$ngrams;
+      getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
 
   var indexedList = []; // List is Array<String>
 
@@ -1281,20 +1253,11 @@ function createIndex(keys, list) {
       var value = list[i];
 
       if (isDefined(value)) {
-        // if (!isCaseSensitive) {
-        //   value = value.toLowerCase()
-        // }
         var record = {
           $: value,
-          idx: i
+          idx: i,
+          t: value.match(SPACE).length
         };
-
-        if (ngrams) {
-          record.ng = ngram(value, {
-            sort: true
-          });
-        }
-
         indexedList.push(record);
       }
     }
@@ -1335,20 +1298,11 @@ function createIndex(keys, list) {
             }
 
             if (isString(_value2)) {
-              // if (!isCaseSensitive) {
-              //   v = v.toLowerCase()
-              // }
               var subRecord = {
                 $: _value2,
-                idx: arrayIndex
+                idx: arrayIndex,
+                t: _value2.match(SPACE).length
               };
-
-              if (ngrams) {
-                subRecord.ng = ngram(_value2, {
-                  sort: true
-                });
-              }
-
               subRecords.push(subRecord);
             } else if (isArray(_value2)) {
               for (var k = 0, arrLen = _value2.length; k < arrLen; k += 1) {
@@ -1362,19 +1316,10 @@ function createIndex(keys, list) {
 
           _record.$[key] = subRecords;
         } else {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
           var _subRecord = {
-            $: _value
+            $: _value,
+            t: _value.match(SPACE).length
           };
-
-          if (ngrams) {
-            _subRecord.ng = ngram(_value, {
-              sort: true
-            });
-          }
-
           _record.$[key] = _subRecord;
         }
       }
@@ -1504,6 +1449,9 @@ function transformScore(result, data) {
 }
 
 var registeredSearchers = [];
+function register() {
+  registeredSearchers.push.apply(registeredSearchers, arguments);
+}
 
 var Fuse = /*#__PURE__*/function () {
   function Fuse(list) {
@@ -1555,6 +1503,12 @@ var Fuse = /*#__PURE__*/function () {
       var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         limit: false
       };
+      pattern = pattern.trim();
+
+      if (!pattern.length) {
+        return [];
+      }
+
       var shouldSort = this.options.shouldSort;
       var searcher = null;
 
@@ -1597,7 +1551,8 @@ var Fuse = /*#__PURE__*/function () {
         for (var i = 0, len = list.length; i < len; i += 1) {
           var value = list[i];
           var text = value.$,
-              idx = value.idx;
+              idx = value.idx,
+              t = value.t;
 
           if (!isDefined(text)) {
             continue;
@@ -1613,7 +1568,8 @@ var Fuse = /*#__PURE__*/function () {
 
           var match = {
             score: score,
-            value: text
+            value: text,
+            t: t
           };
 
           if (includeMatches) {
@@ -1654,8 +1610,9 @@ var Fuse = /*#__PURE__*/function () {
             if (isArray(_value)) {
               for (var k = 0, _len2 = _value.length; k < _len2; k += 1) {
                 var arrItem = _value[k];
-                var _text = arrItem.$;
-                var _idx2 = arrItem.idx;
+                var _text = arrItem.$,
+                    _idx2 = arrItem.idx,
+                    _t = arrItem.t;
 
                 if (!isDefined(_text)) {
                   continue;
@@ -1674,7 +1631,8 @@ var Fuse = /*#__PURE__*/function () {
                   score: _score,
                   key: key,
                   value: _text,
-                  idx: _idx2
+                  idx: _idx2,
+                  t: _t
                 };
 
                 if (includeMatches) {
@@ -1684,7 +1642,8 @@ var Fuse = /*#__PURE__*/function () {
                 matches.push(_match);
               }
             } else {
-              var _text2 = _value.$;
+              var _text2 = _value.$,
+                  _t2 = _value.t;
 
               var _searchResult2 = searcher.searchIn(_value);
 
@@ -1698,7 +1657,8 @@ var Fuse = /*#__PURE__*/function () {
               var _match2 = {
                 score: _score2,
                 key: key,
-                value: _text2
+                value: _text2,
+                t: _t2
               };
 
               if (includeMatches) {
@@ -1720,28 +1680,34 @@ var Fuse = /*#__PURE__*/function () {
       }
 
       return results;
-    }
+    } // Practical scoring function
+
   }, {
     key: "_computeScore",
     value: function _computeScore(results) {
-      for (var i = 0, len = results.length; i < len; i += 1) {
+      var resultsLen = results.length;
+
+      for (var i = 0; i < resultsLen; i += 1) {
         var result = results[i];
         var matches = result.matches;
-        var scoreLen = matches.length;
-        var totalWeightedScore = 1;
+        var numMatches = matches.length;
+        var totalScore = 1;
 
-        for (var j = 0; j < scoreLen; j += 1) {
-          var item = matches[j];
-          var key = item.key;
+        for (var j = 0; j < numMatches; j += 1) {
+          var match = matches[j];
+          var key = match.key,
+              t = match.t;
 
           var keyWeight = this._keyStore.get(key, 'weight');
 
           var weight = keyWeight > -1 ? keyWeight : 1;
-          var score = item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
-          totalWeightedScore *= Math.pow(score, weight);
+          var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score; // Field-length norm: the shorter the field, the higher the weight.
+
+          var norm = 1 / Math.sqrt(t);
+          totalScore *= Math.pow(score, weight * norm);
         }
 
-        result.score = totalWeightedScore;
+        result.score = totalScore;
       }
     }
   }, {
@@ -1779,18 +1745,13 @@ var Fuse = /*#__PURE__*/function () {
 
       return finalOutput;
     }
-  }], [{
-    key: "register",
-    value: function register() {
-      registeredSearchers.push.apply(registeredSearchers, arguments);
-    }
   }]);
 
   return Fuse;
 }();
 
-Fuse.register(ExtendedSearch, NGramSearch);
-Fuse.version = '5.2.0-alpha.0';
+register(ExtendedSearch);
+Fuse.version = '5.2.0-alpha.6';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;
 

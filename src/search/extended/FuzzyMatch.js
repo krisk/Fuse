@@ -1,12 +1,11 @@
-import Match from './match'
-import BitapSearch from '../bitap-search'
+import BaseMatch from './BaseMatch'
+import BitapSearch from '../bitap'
 import Config from '../../core/config'
 
-export default class FuzzyMatch extends Match {
+export default class FuzzyMatch extends BaseMatch {
   constructor(
     pattern,
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       location = Config.location,
       threshold = Config.threshold,
       distance = Config.distance,
@@ -14,19 +13,26 @@ export default class FuzzyMatch extends Match {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive
-      /*eslint-enable no-undef*/
-    } = {})
+    } = {}
   ) {
     super(pattern)
-    this._bitapSearch = new BitapSearch(pattern, options)
+    this._bitapSearch = new BitapSearch(pattern, {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive
+    })
   }
   static get type() {
     return 'fuzzy'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^(.*)$/
   }
   search(text) {

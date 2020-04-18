@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.0-alpha.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.0-alpha.6 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -84,56 +84,37 @@
     return target;
   }
 
-  function bitapScore(pattern, _ref) {
-    var _ref$errors = _ref.errors,
-        errors = _ref$errors === void 0 ? 0 : _ref$errors,
-        _ref$currentLocation = _ref.currentLocation,
-        currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
-        _ref$expectedLocation = _ref.expectedLocation,
-        expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
-        _ref$distance = _ref.distance,
-        distance = _ref$distance === void 0 ? 100 : _ref$distance;
-    var accuracy = errors / pattern.length;
-    var proximity = Math.abs(expectedLocation - currentLocation);
-
-    if (!distance) {
-      // Dodge divide by zero error.
-      return proximity ? 1.0 : accuracy;
-    }
-
-    return accuracy + proximity / distance;
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
   }
 
-  function matchedIndiced() {
-    var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    var matchedIndices = [];
-    var start = -1;
-    var end = -1;
-    var i = 0;
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+  }
 
-    for (var len = matchmask.length; i < len; i += 1) {
-      var match = matchmask[i];
+  function _iterableToArray(iter) {
+    if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+  }
 
-      if (match && start === -1) {
-        start = i;
-      } else if (!match && start !== -1) {
-        end = i - 1;
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(n);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
 
-        if (end - start + 1 >= minMatchCharLength) {
-          matchedIndices.push([start, end]);
-        }
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
 
-        start = -1;
-      }
-    } // (i-1 - start) + 1 => i - start
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
 
+    return arr2;
+  }
 
-    if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-      matchedIndices.push([start, i - 1]);
-    }
-
-    return matchedIndices;
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   var INFINITY = 1 / 0;
@@ -258,7 +239,64 @@
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
-  function bitapSearch(text, pattern, patternAlphabet) {
+  function computeScore(pattern) {
+    var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref$errors = _ref.errors,
+        errors = _ref$errors === void 0 ? 0 : _ref$errors,
+        _ref$currentLocation = _ref.currentLocation,
+        currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
+        _ref$expectedLocation = _ref.expectedLocation,
+        expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
+        _ref$distance = _ref.distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
+
+    var accuracy = errors / pattern.length;
+    var proximity = Math.abs(expectedLocation - currentLocation);
+
+    if (!distance) {
+      // Dodge divide by zero error.
+      return proximity ? 1.0 : accuracy;
+    }
+
+    return accuracy + proximity / distance;
+  }
+
+  function convertMaskToIndices() {
+    var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
+    var matchedIndices = [];
+    var start = -1;
+    var end = -1;
+    var i = 0;
+
+    for (var len = matchmask.length; i < len; i += 1) {
+      var match = matchmask[i];
+
+      if (match && start === -1) {
+        start = i;
+      } else if (!match && start !== -1) {
+        end = i - 1;
+
+        if (end - start + 1 >= minMatchCharLength) {
+          matchedIndices.push([start, end]);
+        }
+
+        start = -1;
+      }
+    } // (i-1 - start) + 1 => i - start
+
+
+    if (matchmask[i - 1] && i - start >= minMatchCharLength) {
+      matchedIndices.push([start, i - 1]);
+    }
+
+    return matchedIndices;
+  }
+
+  // Machine word size
+  var MAX_BITS = 32;
+
+  function search(text, pattern, patternAlphabet) {
     var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
         _ref$location = _ref.location,
         location = _ref$location === void 0 ? Config.location : _ref$location,
@@ -273,6 +311,10 @@
         _ref$includeMatches = _ref.includeMatches,
         includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
 
+    if (pattern.length > MAX_BITS) {
+      throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+    }
+
     var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
 
     var textLen = text.length; // Handle the case when location > text.length
@@ -281,34 +323,34 @@
 
     var currentThreshold = threshold; // Is there a nearby exact match? (speedup)
 
-    var bestLocation = text.indexOf(pattern, expectedLocation); // a mask of the matches
+    var bestLocation = expectedLocation; // A mask of the matches, used for building the indices
 
     var matchMask = [];
 
-    for (var i = 0; i < textLen; i += 1) {
-      matchMask[i] = 0;
+    if (includeMatches) {
+      for (var i = 0; i < textLen; i += 1) {
+        matchMask[i] = 0;
+      }
     }
 
-    if (bestLocation !== -1) {
-      var score = bitapScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
+    var index; // Get all exact matches, here for speed up
+
+    while ((index = text.indexOf(pattern, bestLocation)) > -1) {
+      var score = computeScore(pattern, {
+        currentLocation: index,
         expectedLocation: expectedLocation,
         distance: distance
       });
-      currentThreshold = Math.min(score, currentThreshold); // What about in the other direction? (speed up)
+      currentThreshold = Math.min(score, currentThreshold);
+      bestLocation = index + patternLen;
 
-      bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
+      if (includeMatches) {
+        var _i = 0;
 
-      if (bestLocation !== -1) {
-        var _score = bitapScore(pattern, {
-          errors: 0,
-          currentLocation: bestLocation,
-          expectedLocation: expectedLocation,
-          distance: distance
-        });
-
-        currentThreshold = Math.min(_score, currentThreshold);
+        while (_i < patternLen) {
+          matchMask[index + _i] = 1;
+          _i += 1;
+        }
       }
     } // Reset the best location
 
@@ -317,9 +359,9 @@
     var lastBitArr = [];
     var finalScore = 1;
     var binMax = patternLen + textLen;
-    var mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
+    var mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
 
-    for (var _i = 0; _i < patternLen; _i += 1) {
+    for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
       // Scan for the best match; each iteration allows for one more error.
       // Run a binary search to determine how far from the match location we can stray
       // at this error level.
@@ -327,14 +369,14 @@
       var binMid = binMax;
 
       while (binMin < binMid) {
-        var _score3 = bitapScore(pattern, {
-          errors: _i,
+        var _score2 = computeScore(pattern, {
+          errors: _i2,
           currentLocation: expectedLocation + binMid,
           expectedLocation: expectedLocation,
           distance: distance
         });
 
-        if (_score3 <= currentThreshold) {
+        if (_score2 <= currentThreshold) {
           binMin = binMid;
         } else {
           binMax = binMid;
@@ -349,26 +391,26 @@
       var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
       var bitArr = Array(finish + 2);
-      bitArr[finish + 1] = (1 << _i) - 1;
+      bitArr[finish + 1] = (1 << _i2) - 1;
 
       for (var j = finish; j >= start; j -= 1) {
         var currentLocation = j - 1;
         var charMatch = patternAlphabet[text.charAt(currentLocation)];
 
-        if (charMatch) {
+        if (charMatch && includeMatches) {
           matchMask[currentLocation] = 1;
         } // First pass: exact match
 
 
         bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch; // Subsequent passes: fuzzy match
 
-        if (_i !== 0) {
+        if (_i2 !== 0) {
           bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
         }
 
         if (bitArr[j] & mask) {
-          finalScore = bitapScore(pattern, {
-            errors: _i,
+          finalScore = computeScore(pattern, {
+            errors: _i2,
             currentLocation: currentLocation,
             expectedLocation: expectedLocation,
             distance: distance
@@ -391,14 +433,14 @@
       } // No hope for a (better) match at greater error levels.
 
 
-      var _score2 = bitapScore(pattern, {
-        errors: _i + 1,
+      var _score = computeScore(pattern, {
+        errors: _i2 + 1,
         currentLocation: expectedLocation,
         expectedLocation: expectedLocation,
         distance: distance
       });
 
-      if (_score2 > currentThreshold) {
+      if (_score > currentThreshold) {
         break;
       }
 
@@ -412,13 +454,13 @@
     };
 
     if (includeMatches) {
-      result.matchedIndices = matchedIndiced(matchMask, minMatchCharLength);
+      result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
     }
 
     return result;
   }
 
-  function patternAlphabet(pattern) {
+  function createPatternAlphabet(pattern) {
     var mask = {};
     var len = pattern.length;
 
@@ -433,25 +475,48 @@
     return mask;
   }
 
-  // Machine word size
-  var MAX_BITS = 32;
-
   var BitapSearch = /*#__PURE__*/function () {
     function BitapSearch(pattern) {
-      var _ref, _ref$location, _ref$threshold, _ref$distance, _ref$includeMatches, _ref$findAllMatches, _ref$minMatchCharLeng, _ref$isCaseSensitive;
-
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (_ref = {}, _ref$location = _ref.location, location = _ref$location === void 0 ? Config.location : _ref$location, _ref$threshold = _ref.threshold, threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold, _ref$distance = _ref.distance, distance = _ref$distance === void 0 ? Config.distance : _ref$distance, _ref$includeMatches = _ref.includeMatches, includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches, _ref$findAllMatches = _ref.findAllMatches, findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches, _ref$minMatchCharLeng = _ref.minMatchCharLength, minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng, _ref$isCaseSensitive = _ref.isCaseSensitive, isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive, _ref);
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref$location = _ref.location,
+          location = _ref$location === void 0 ? Config.location : _ref$location,
+          _ref$threshold = _ref.threshold,
+          threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+          _ref$distance = _ref.distance,
+          distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+          _ref$includeMatches = _ref.includeMatches,
+          includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+          _ref$findAllMatches = _ref.findAllMatches,
+          findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+          _ref$minMatchCharLeng = _ref.minMatchCharLength,
+          minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+          _ref$isCaseSensitive = _ref.isCaseSensitive,
+          isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
 
       _classCallCheck(this, BitapSearch);
 
-      this.options = options;
+      this.options = {
+        location: location,
+        threshold: threshold,
+        distance: distance,
+        includeMatches: includeMatches,
+        findAllMatches: findAllMatches,
+        minMatchCharLength: minMatchCharLength,
+        isCaseSensitive: isCaseSensitive
+      };
+      this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+      this.chunks = [];
+      var index = 0;
 
-      if (pattern.length > MAX_BITS) {
-        throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+      while (index < this.pattern.length) {
+        var _pattern = this.pattern.substring(index, index + MAX_BITS);
+
+        this.chunks.push({
+          pattern: _pattern,
+          alphabet: createPatternAlphabet(_pattern)
+        });
+        index += MAX_BITS;
       }
-
-      this.pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
-      this.patternAlphabet = patternAlphabet(this.pattern);
     }
 
     _createClass(BitapSearch, [{
@@ -473,16 +538,16 @@
 
 
         if (this.pattern === text) {
-          var result = {
+          var _result = {
             isMatch: true,
             score: 0
           };
 
           if (includeMatches) {
-            result.matchedIndices = [[0, text.length - 1]];
+            _result.matchedIndices = [[0, text.length - 1]];
           }
 
-          return result;
+          return _result;
         } // Otherwise, use Bitap algorithm
 
 
@@ -492,65 +557,60 @@
             threshold = _this$options2.threshold,
             findAllMatches = _this$options2.findAllMatches,
             minMatchCharLength = _this$options2.minMatchCharLength;
-        return bitapSearch(text, this.pattern, this.patternAlphabet, {
-          location: location,
-          distance: distance,
-          threshold: threshold,
-          findAllMatches: findAllMatches,
-          minMatchCharLength: minMatchCharLength,
-          includeMatches: includeMatches
-        });
+        var allMatchedIndices = [];
+        var totalScore = 0;
+        var hasMatches = false;
+
+        for (var i = 0, len = this.chunks.length; i < len; i += 1) {
+          var _this$chunks$i = this.chunks[i],
+              pattern = _this$chunks$i.pattern,
+              alphabet = _this$chunks$i.alphabet;
+
+          var _result2 = search(text, pattern, alphabet, {
+            location: location + MAX_BITS * i,
+            distance: distance,
+            threshold: threshold,
+            findAllMatches: findAllMatches,
+            minMatchCharLength: minMatchCharLength,
+            includeMatches: includeMatches
+          });
+
+          var isMatch = _result2.isMatch,
+              score = _result2.score,
+              matchedIndices = _result2.matchedIndices;
+
+          if (isMatch) {
+            hasMatches = true;
+          }
+
+          totalScore += score;
+
+          if (isMatch && matchedIndices) {
+            allMatchedIndices = [].concat(_toConsumableArray(allMatchedIndices), _toConsumableArray(matchedIndices));
+          }
+        }
+
+        var result = {
+          isMatch: hasMatches,
+          score: hasMatches ? totalScore / this.chunks.length : 1
+        };
+
+        if (hasMatches && includeMatches) {
+          result.matchedIndices = allMatchedIndices;
+        }
+
+        return result;
       }
     }]);
 
     return BitapSearch;
   }();
 
-  var NGRAM_LEN = 3;
-  function ngram(text, _ref) {
-    var _ref$n = _ref.n,
-        n = _ref$n === void 0 ? NGRAM_LEN : _ref$n,
-        _ref$pad = _ref.pad,
-        pad = _ref$pad === void 0 ? true : _ref$pad,
-        _ref$sort = _ref.sort,
-        sort = _ref$sort === void 0 ? false : _ref$sort;
-    var nGrams = [];
-
-    if (text === null || text === undefined) {
-      return nGrams;
-    }
-
-    text = text.toLowerCase();
-
-    if (pad) {
-      text = " ".concat(text, " ");
-    }
-
-    var index = text.length - n + 1;
-
-    if (index < 1) {
-      return nGrams;
-    }
-
-    while (index--) {
-      nGrams[index] = text.substr(index, n);
-    }
-
-    if (sort) {
-      nGrams.sort(function (a, b) {
-        return a == b ? 0 : a < b ? -1 : 1;
-      });
-    }
-
-    return nGrams;
-  }
-
+  var SPACE = /[^ ]+/g;
   function createIndex(keys, list) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref$getFn = _ref.getFn,
-        getFn = _ref$getFn === void 0 ? get : _ref$getFn,
-        _ref$ngrams = _ref.ngrams,
-        ngrams = _ref$ngrams === void 0 ? false : _ref$ngrams;
+        getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
 
     var indexedList = []; // List is Array<String>
 
@@ -560,20 +620,11 @@
         var value = list[i];
 
         if (isDefined(value)) {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
           var record = {
             $: value,
-            idx: i
+            idx: i,
+            t: value.match(SPACE).length
           };
-
-          if (ngrams) {
-            record.ng = ngram(value, {
-              sort: true
-            });
-          }
-
           indexedList.push(record);
         }
       }
@@ -614,20 +665,11 @@
               }
 
               if (isString(_value2)) {
-                // if (!isCaseSensitive) {
-                //   v = v.toLowerCase()
-                // }
                 var subRecord = {
                   $: _value2,
-                  idx: arrayIndex
+                  idx: arrayIndex,
+                  t: _value2.match(SPACE).length
                 };
-
-                if (ngrams) {
-                  subRecord.ng = ngram(_value2, {
-                    sort: true
-                  });
-                }
-
                 subRecords.push(subRecord);
               } else if (isArray(_value2)) {
                 for (var k = 0, arrLen = _value2.length; k < arrLen; k += 1) {
@@ -641,19 +683,10 @@
 
             _record.$[key] = subRecords;
           } else {
-            // if (!isCaseSensitive) {
-            //   value = value.toLowerCase()
-            // }
             var _subRecord = {
-              $: _value
+              $: _value,
+              t: _value.match(SPACE).length
             };
-
-            if (ngrams) {
-              _subRecord.ng = ngram(_value, {
-                sort: true
-              });
-            }
-
             _record.$[key] = _subRecord;
           }
         }
@@ -834,6 +867,12 @@
         var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
           limit: false
         };
+        pattern = pattern.trim();
+
+        if (!pattern.length) {
+          return [];
+        }
+
         var shouldSort = this.options.shouldSort;
         var searcher = null;
 
@@ -876,7 +915,8 @@
           for (var i = 0, len = list.length; i < len; i += 1) {
             var value = list[i];
             var text = value.$,
-                idx = value.idx;
+                idx = value.idx,
+                t = value.t;
 
             if (!isDefined(text)) {
               continue;
@@ -892,7 +932,8 @@
 
             var match = {
               score: score,
-              value: text
+              value: text,
+              t: t
             };
 
             if (includeMatches) {
@@ -933,8 +974,9 @@
               if (isArray(_value)) {
                 for (var k = 0, _len2 = _value.length; k < _len2; k += 1) {
                   var arrItem = _value[k];
-                  var _text = arrItem.$;
-                  var _idx2 = arrItem.idx;
+                  var _text = arrItem.$,
+                      _idx2 = arrItem.idx,
+                      _t = arrItem.t;
 
                   if (!isDefined(_text)) {
                     continue;
@@ -953,7 +995,8 @@
                     score: _score,
                     key: key,
                     value: _text,
-                    idx: _idx2
+                    idx: _idx2,
+                    t: _t
                   };
 
                   if (includeMatches) {
@@ -963,7 +1006,8 @@
                   matches.push(_match);
                 }
               } else {
-                var _text2 = _value.$;
+                var _text2 = _value.$,
+                    _t2 = _value.t;
 
                 var _searchResult2 = searcher.searchIn(_value);
 
@@ -977,7 +1021,8 @@
                 var _match2 = {
                   score: _score2,
                   key: key,
-                  value: _text2
+                  value: _text2,
+                  t: _t2
                 };
 
                 if (includeMatches) {
@@ -999,28 +1044,34 @@
         }
 
         return results;
-      }
+      } // Practical scoring function
+
     }, {
       key: "_computeScore",
       value: function _computeScore(results) {
-        for (var i = 0, len = results.length; i < len; i += 1) {
+        var resultsLen = results.length;
+
+        for (var i = 0; i < resultsLen; i += 1) {
           var result = results[i];
           var matches = result.matches;
-          var scoreLen = matches.length;
-          var totalWeightedScore = 1;
+          var numMatches = matches.length;
+          var totalScore = 1;
 
-          for (var j = 0; j < scoreLen; j += 1) {
-            var item = matches[j];
-            var key = item.key;
+          for (var j = 0; j < numMatches; j += 1) {
+            var match = matches[j];
+            var key = match.key,
+                t = match.t;
 
             var keyWeight = this._keyStore.get(key, 'weight');
 
             var weight = keyWeight > -1 ? keyWeight : 1;
-            var score = item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
-            totalWeightedScore *= Math.pow(score, weight);
+            var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score; // Field-length norm: the shorter the field, the higher the weight.
+
+            var norm = 1 / Math.sqrt(t);
+            totalScore *= Math.pow(score, weight * norm);
           }
 
-          result.score = totalWeightedScore;
+          result.score = totalScore;
         }
       }
     }, {
@@ -1058,17 +1109,12 @@
 
         return finalOutput;
       }
-    }], [{
-      key: "register",
-      value: function register() {
-        registeredSearchers.push.apply(registeredSearchers, arguments);
-      }
     }]);
 
     return Fuse;
   }();
 
-  Fuse.version = '5.2.0-alpha.0';
+  Fuse.version = '5.2.0-alpha.6';
   Fuse.createIndex = createIndex;
   Fuse.config = Config;
 

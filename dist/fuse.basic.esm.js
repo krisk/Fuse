@@ -1,53 +1,11 @@
 /**
- * Fuse.js v5.2.0-alpha.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.0-alpha.6 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-
-function bitapScore(
-  pattern,
-  { errors = 0, currentLocation = 0, expectedLocation = 0, distance = 100 }
-) {
-  const accuracy = errors / pattern.length;
-  const proximity = Math.abs(expectedLocation - currentLocation);
-
-  if (!distance) {
-    // Dodge divide by zero error.
-    return proximity ? 1.0 : accuracy
-  }
-
-  return accuracy + proximity / distance
-}
-
-function matchedIndiced(matchmask = [], minMatchCharLength = 1) {
-  let matchedIndices = [];
-  let start = -1;
-  let end = -1;
-  let i = 0;
-
-  for (let len = matchmask.length; i < len; i += 1) {
-    let match = matchmask[i];
-    if (match && start === -1) {
-      start = i;
-    } else if (!match && start !== -1) {
-      end = i - 1;
-      if (end - start + 1 >= minMatchCharLength) {
-        matchedIndices.push([start, end]);
-      }
-      start = -1;
-    }
-  }
-
-  // (i-1 - start) + 1 => i - start
-  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1]);
-  }
-
-  return matchedIndices
-}
 
 const INFINITY = 1 / 0;
 
@@ -177,7 +135,60 @@ var Config = {
   ...AdvancedOptions
 };
 
-function bitapSearch(
+function computeScore(
+  pattern,
+  {
+    errors = 0,
+    currentLocation = 0,
+    expectedLocation = 0,
+    distance = Config.distance
+  } = {}
+) {
+  const accuracy = errors / pattern.length;
+  const proximity = Math.abs(expectedLocation - currentLocation);
+
+  if (!distance) {
+    // Dodge divide by zero error.
+    return proximity ? 1.0 : accuracy
+  }
+
+  return accuracy + proximity / distance
+}
+
+function convertMaskToIndices(
+  matchmask = [],
+  minMatchCharLength = Config.minMatchCharLength
+) {
+  let matchedIndices = [];
+  let start = -1;
+  let end = -1;
+  let i = 0;
+
+  for (let len = matchmask.length; i < len; i += 1) {
+    let match = matchmask[i];
+    if (match && start === -1) {
+      start = i;
+    } else if (!match && start !== -1) {
+      end = i - 1;
+      if (end - start + 1 >= minMatchCharLength) {
+        matchedIndices.push([start, end]);
+      }
+      start = -1;
+    }
+  }
+
+  // (i-1 - start) + 1 => i - start
+  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
+    matchedIndices.push([start, i - 1]);
+  }
+
+  return matchedIndices
+}
+
+// Machine word size
+const MAX_BITS = 32;
+
+function search(
   text,
   pattern,
   patternAlphabet,
@@ -190,6 +201,10 @@ function bitapSearch(
     includeMatches = Config.includeMatches
   } = {}
 ) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+  }
+
   const patternLen = pattern.length;
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length;
@@ -198,34 +213,36 @@ function bitapSearch(
   // Highest score beyond which we give up.
   let currentThreshold = threshold;
   // Is there a nearby exact match? (speedup)
-  let bestLocation = text.indexOf(pattern, expectedLocation);
+  let bestLocation = expectedLocation;
 
-  // a mask of the matches
+  // A mask of the matches, used for building the indices
   const matchMask = [];
-  for (let i = 0; i < textLen; i += 1) {
-    matchMask[i] = 0;
+
+  if (includeMatches) {
+    for (let i = 0; i < textLen; i += 1) {
+      matchMask[i] = 0;
+    }
   }
 
-  if (bestLocation !== -1) {
-    let score = bitapScore(pattern, {
-      errors: 0,
-      currentLocation: bestLocation,
+  let index;
+
+  // Get all exact matches, here for speed up
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
+    let score = computeScore(pattern, {
+      currentLocation: index,
       expectedLocation,
       distance
     });
+
     currentThreshold = Math.min(score, currentThreshold);
+    bestLocation = index + patternLen;
 
-    // What about in the other direction? (speed up)
-    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen);
-
-    if (bestLocation !== -1) {
-      let score = bitapScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
-        expectedLocation,
-        distance
-      });
-      currentThreshold = Math.min(score, currentThreshold);
+    if (includeMatches) {
+      let i = 0;
+      while (i < patternLen) {
+        matchMask[index + i] = 1;
+        i += 1;
+      }
     }
   }
 
@@ -236,7 +253,7 @@ function bitapSearch(
   let finalScore = 1;
   let binMax = patternLen + textLen;
 
-  const mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30);
+  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -246,7 +263,7 @@ function bitapSearch(
     let binMid = binMax;
 
     while (binMin < binMid) {
-      const score = bitapScore(pattern, {
+      const score = computeScore(pattern, {
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
@@ -279,7 +296,7 @@ function bitapSearch(
       let currentLocation = j - 1;
       let charMatch = patternAlphabet[text.charAt(currentLocation)];
 
-      if (charMatch) {
+      if (charMatch && includeMatches) {
         matchMask[currentLocation] = 1;
       }
 
@@ -293,7 +310,7 @@ function bitapSearch(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = bitapScore(pattern, {
+        finalScore = computeScore(pattern, {
           errors: i,
           currentLocation,
           expectedLocation,
@@ -319,7 +336,7 @@ function bitapSearch(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = bitapScore(pattern, {
+    const score = computeScore(pattern, {
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
@@ -340,13 +357,13 @@ function bitapSearch(
   };
 
   if (includeMatches) {
-    result.matchedIndices = matchedIndiced(matchMask, minMatchCharLength);
+    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
   return result
 }
 
-function patternAlphabet(pattern) {
+function createPatternAlphabet(pattern) {
   let mask = {};
   let len = pattern.length;
 
@@ -361,19 +378,10 @@ function patternAlphabet(pattern) {
   return mask
 }
 
-// Machine word size
-const MAX_BITS = 32;
-
 class BitapSearch {
   constructor(
     pattern,
-    // Deconstructed in this fashion purely for speed-up, since a new instance
-    // of this class is created every time a pattern is created. Otherwise, a spread
-    // operation would be performed directly withing the contructor, which may slow
-    // done searches.
-
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       location = Config.location,
       threshold = Config.threshold,
       distance = Config.distance,
@@ -381,19 +389,31 @@ class BitapSearch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive
-      /*eslint-enable no-undef*/
-    } = {})
+    } = {}
   ) {
-    this.options = options;
+    this.options = {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive
+    };
 
-    if (pattern.length > MAX_BITS) {
-      throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+
+    this.chunks = [];
+
+    let index = 0;
+    while (index < this.pattern.length) {
+      let pattern = this.pattern.substring(index, index + MAX_BITS);
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern)
+      });
+      index += MAX_BITS;
     }
-
-    this.pattern = this.options.isCaseSensitive
-      ? pattern
-      : pattern.toLowerCase();
-    this.patternAlphabet = patternAlphabet(this.pattern);
   }
 
   searchIn(value) {
@@ -430,55 +450,52 @@ class BitapSearch {
       findAllMatches,
       minMatchCharLength
     } = this.options;
-    return bitapSearch(text, this.pattern, this.patternAlphabet, {
-      location,
-      distance,
-      threshold,
-      findAllMatches,
-      minMatchCharLength,
-      includeMatches
-    })
+
+    let allMatchedIndices = [];
+    let totalScore = 0;
+    let hasMatches = false;
+
+    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
+      let { pattern, alphabet } = this.chunks[i];
+
+      let result = search(text, pattern, alphabet, {
+        location: location + MAX_BITS * i,
+        distance,
+        threshold,
+        findAllMatches,
+        minMatchCharLength,
+        includeMatches
+      });
+
+      const { isMatch, score, matchedIndices } = result;
+
+      if (isMatch) {
+        hasMatches = true;
+      }
+
+      totalScore += score;
+
+      if (isMatch && matchedIndices) {
+        allMatchedIndices = [...allMatchedIndices, ...matchedIndices];
+      }
+    }
+
+    let result = {
+      isMatch: hasMatches,
+      score: hasMatches ? totalScore / this.chunks.length : 1
+    };
+
+    if (hasMatches && includeMatches) {
+      result.matchedIndices = allMatchedIndices;
+    }
+
+    return result
   }
 }
 
-const NGRAM_LEN = 3;
+const SPACE = /[^ ]+/g;
 
-function ngram(
-  text,
-  { n = NGRAM_LEN, pad = true, sort = false }
-) {
-  let nGrams = [];
-
-  if (text === null || text === undefined) {
-    return nGrams
-  }
-
-  text = text.toLowerCase();
-  if (pad) {
-    text = ` ${text} `;
-  }
-
-  let index = text.length - n + 1;
-  if (index < 1) {
-    return nGrams
-  }
-
-  while (index--) {
-    nGrams[index] = text.substr(index, n);
-  }
-
-  if (sort) {
-    nGrams.sort((a, b) => (a == b ? 0 : a < b ? -1 : 1));
-  }
-
-  return nGrams
-}
-
-function createIndex(
-  keys,
-  list,
-  { getFn = get, ngrams = false } = {}
-) {
+function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = [];
 
   // List is Array<String>
@@ -488,18 +505,11 @@ function createIndex(
       const value = list[i];
 
       if (isDefined(value)) {
-        // if (!isCaseSensitive) {
-        //   value = value.toLowerCase()
-        // }
-
         let record = {
           $: value,
-          idx: i
+          idx: i,
+          t: value.match(SPACE).length
         };
-
-        if (ngrams) {
-          record.ng = ngram(value, { sort: true });
-        }
 
         indexedList.push(record);
       }
@@ -534,16 +544,11 @@ function createIndex(
             }
 
             if (isString(value)) {
-              // if (!isCaseSensitive) {
-              //   v = v.toLowerCase()
-              // }
-
-              let subRecord = { $: value, idx: arrayIndex };
-
-              if (ngrams) {
-                subRecord.ng = ngram(value, { sort: true });
-              }
-
+              let subRecord = {
+                $: value,
+                idx: arrayIndex,
+                t: value.match(SPACE).length
+              };
               subRecords.push(subRecord);
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
@@ -556,15 +561,10 @@ function createIndex(
           }
           record.$[key] = subRecords;
         } else {
-          // if (!isCaseSensitive) {
-          //   value = value.toLowerCase()
-          // }
-
-          let subRecord = { $: value };
-
-          if (ngrams) {
-            subRecord.ng = ngram(value, { sort: true });
-          }
+          let subRecord = {
+            $: value,
+            t: value.match(SPACE).length
+          };
 
           record.$[key] = subRecord;
         }
@@ -692,10 +692,6 @@ class Fuse {
     this.setCollection(list, index);
   }
 
-  static register(...args) {
-    registeredSearchers.push(...args);
-  }
-
   setCollection(list, index = null) {
     this.list = list;
     this.listIsStringArray = isString(list[0]);
@@ -722,6 +718,12 @@ class Fuse {
   }
 
   search(pattern, opts = { limit: false }) {
+    pattern = pattern.trim();
+
+    if (!pattern.length) {
+      return []
+    }
+
     const { shouldSort } = this.options;
 
     let searcher = null;
@@ -763,7 +765,7 @@ class Fuse {
       // Iterate over every string in the list
       for (let i = 0, len = list.length; i < len; i += 1) {
         let value = list[i];
-        let { $: text, idx } = value;
+        let { $: text, idx, t } = value;
 
         if (!isDefined(text)) {
           continue
@@ -777,7 +779,7 @@ class Fuse {
           continue
         }
 
-        let match = { score, value: text };
+        let match = { score, value: text, t };
 
         if (includeMatches) {
           match.indices = searchResult.matchedIndices;
@@ -815,8 +817,7 @@ class Fuse {
           if (isArray(value)) {
             for (let k = 0, len = value.length; k < len; k += 1) {
               let arrItem = value[k];
-              let text = arrItem.$;
-              let idx = arrItem.idx;
+              const { $: text, idx, t } = arrItem;
 
               if (!isDefined(text)) {
                 continue
@@ -830,7 +831,7 @@ class Fuse {
                 continue
               }
 
-              let match = { score, key, value: text, idx };
+              let match = { score, key, value: text, idx, t };
 
               if (includeMatches) {
                 match.indices = searchResult.matchedIndices;
@@ -839,7 +840,8 @@ class Fuse {
               matches.push(match);
             }
           } else {
-            let text = value.$;
+            const { $: text, t } = value;
+
             let searchResult = searcher.searchIn(value);
 
             const { isMatch, score } = searchResult;
@@ -848,7 +850,7 @@ class Fuse {
               continue
             }
 
-            let match = { score, key, value: text };
+            let match = { score, key, value: text, t };
 
             if (includeMatches) {
               match.indices = searchResult.matchedIndices;
@@ -871,26 +873,33 @@ class Fuse {
     return results
   }
 
+  // Practical scoring function
   _computeScore(results) {
-    for (let i = 0, len = results.length; i < len; i += 1) {
+    const resultsLen = results.length;
+
+    for (let i = 0; i < resultsLen; i += 1) {
       const result = results[i];
       const matches = result.matches;
-      const scoreLen = matches.length;
+      const numMatches = matches.length;
 
-      let totalWeightedScore = 1;
+      let totalScore = 1;
 
-      for (let j = 0; j < scoreLen; j += 1) {
-        const item = matches[j];
-        const key = item.key;
+      for (let j = 0; j < numMatches; j += 1) {
+        const match = matches[j];
+        const { key, t } = match;
+
         const keyWeight = this._keyStore.get(key, 'weight');
         const weight = keyWeight > -1 ? keyWeight : 1;
         const score =
-          item.score === 0 && keyWeight > -1 ? Number.EPSILON : item.score;
+          match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
 
-        totalWeightedScore *= Math.pow(score, weight);
+        // Field-length norm: the shorter the field, the higher the weight.
+        const norm = 1 / Math.sqrt(t);
+
+        totalScore *= Math.pow(score, weight * norm);
       }
 
-      result.score = totalWeightedScore;
+      result.score = totalScore;
     }
   }
 
@@ -930,7 +939,7 @@ class Fuse {
   }
 }
 
-Fuse.version = '5.2.0-alpha.0';
+Fuse.version = '5.2.0-alpha.6';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;
 

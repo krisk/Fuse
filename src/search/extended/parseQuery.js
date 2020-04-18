@@ -1,10 +1,10 @@
-import ExactMatch from './exact-match'
-import InverseExactMatch from './inverse-exact-match'
-import PrefixExactMatch from './prefix-exact-match'
-import InversePrefixExactMatch from './inverse-prefix-exact-match'
-import SuffixExactMatch from './suffix-exact-match'
-import InverseSuffixExactMatch from './inverse-suffix-exact-match'
-import FuzzyMatch from './fuzzy-match'
+import ExactMatch from './ExactMatch'
+import InverseExactMatch from './InverseExactMatch'
+import PrefixExactMatch from './PrefixExactMatch'
+import InversePrefixExactMatch from './InversePrefixExactMatch'
+import SuffixExactMatch from './SuffixExactMatch'
+import InverseSuffixExactMatch from './InverseSuffixExactMatch'
+import FuzzyMatch from './FuzzyMatch'
 
 // ❗Order is important. DO NOT CHANGE.
 const searchers = [
@@ -16,6 +16,7 @@ const searchers = [
   InverseExactMatch,
   FuzzyMatch
 ]
+
 const searchersLen = searchers.length
 
 // Regex to split by spaces, but keep anything in quotes together
@@ -25,7 +26,7 @@ const OR_TOKEN = '|'
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-export default function parseQuery(pattern, options) {
+export default function parseQuery(pattern, options = {}) {
   return pattern.split(OR_TOKEN).map((item) => {
     let query = item
       .trim()
@@ -36,12 +37,12 @@ export default function parseQuery(pattern, options) {
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i]
 
-      // 1. Handle literal queries (i.e, once that are quotes "hello world")
+      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
       let found = false
       let idx = -1
       while (!found && ++idx < searchersLen) {
         const searcher = searchers[idx]
-        let token = searcher.isLiteralMatch(queryItem)
+        let token = searcher.isMultiMatch(queryItem)
         if (token) {
           results.push(new searcher(token, options))
           found = true
@@ -52,11 +53,11 @@ export default function parseQuery(pattern, options) {
         continue
       }
 
-      // 2. Handle regular queries
+      // 2. Handle single query matches (i.e, once that are *not* quoted)
       idx = -1
       while (++idx < searchersLen) {
         const searcher = searchers[idx]
-        let token = searcher.isRegMatch(queryItem)
+        let token = searcher.isSingleMatch(queryItem)
         if (token) {
           results.push(new searcher(token, options))
           break

@@ -86,3 +86,14 @@ Determines how close the match must be to the fuzzy location (specified by `loca
 - Default: `false`
 
 When `true`, it enables the use of unix-like search commands. See [example](/examples.html#extended-search).
+
+### `getFn`
+
+- Type: `Function`
+- Default: `(obj: T, path: string) => string[] | string`
+
+The function to use to retrieve an object's value at the provided path (i.e, key). The default will search nested paths.
+
+::: danger
+There aren't many cases where you'd want to use your own `getFn`.
+:::

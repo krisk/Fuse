@@ -1,12 +1,12 @@
-export default class Match {
+export default class BaseMatch {
   constructor(pattern) {
     this.pattern = pattern
   }
-  static isLiteralMatch(pattern) {
-    return getMatch(pattern, this.literal)
+  static isMultiMatch(pattern) {
+    return getMatch(pattern, this.multiRegex)
   }
-  static isRegMatch(pattern) {
-    return getMatch(pattern, this.re)
+  static isSingleMatch(pattern) {
+    return getMatch(pattern, this.singleRegex)
   }
   search(/*text*/) {}
 }

@@ -1,6 +1,11 @@
-import parseQuery from './parse-query'
-import FuzzyMatch from './fuzzy-match'
+import parseQuery from './parseQuery'
+import FuzzyMatch from './FuzzyMatch'
+import ExactMatch from './ExactMatch'
 import Config from '../../core/config'
+
+// These extended matchers can return an array of matches, as opposed
+// to a singl match
+const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type])
 
 /**
  * Command-like searching
@@ -32,24 +37,29 @@ import Config from '../../core/config'
 export default class ExtendedSearch {
   constructor(
     pattern,
-    options = ({
-      /*eslint-disable no-undef*/
+    {
       isCaseSensitive = Config.isCaseSensitive,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
       findAllMatches = Config.findAllMatches,
       location = Config.location,
       threshold = Config.threshold,
-      distance = Config.distance,
-      includeMatches = Config.includeMatches
-      /*eslint-enable no-undef*/
-    } = {})
+      distance = Config.distance
+    } = {}
   ) {
     this.query = null
-    this.options = options
+    this.options = {
+      isCaseSensitive,
+      includeMatches,
+      minMatchCharLength,
+      findAllMatches,
+      location,
+      threshold,
+      distance
+    }
 
-    this.pattern = options.isCaseSensitive ? pattern : pattern.toLowerCase()
-    this.query = parseQuery(this.pattern, options)
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.query = parseQuery(this.pattern, this.options)
   }
 
   static condition(_, options) {
@@ -74,6 +84,7 @@ export default class ExtendedSearch {
 
     let numMatches = 0
     let indices = []
+    let totalScore = 0
 
     // ORs
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
@@ -86,19 +97,21 @@ export default class ExtendedSearch {
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
         const searcher = searchers[j]
-        const { isMatch, matchedIndices } = searcher.search(text)
+        const { isMatch, matchedIndices, score } = searcher.search(text)
 
         if (isMatch) {
           numMatches += 1
+          totalScore += score
           if (includeMatches) {
-            if (searcher.constructor.type === FuzzyMatch.type) {
-              // FuzzyMatch returns is a 2D array
+            const type = searcher.constructor.type
+            if (MultiMatchSet.has(type)) {
               indices = [...indices, ...matchedIndices]
             } else {
               indices.push(matchedIndices)
             }
           }
         } else {
+          totalScore = 0
           numMatches = 0
           indices.length = 0
           break
@@ -109,7 +122,7 @@ export default class ExtendedSearch {
       if (numMatches) {
         let result = {
           isMatch: true,
-          score: 0
+          score: totalScore / numMatches
         }
 
         if (includeMatches) {

@@ -1,4 +1,4 @@
-export default function patternAlphabet(pattern) {
+export default function createPatternAlphabet(pattern) {
   let mask = {}
   let len = pattern.length
 

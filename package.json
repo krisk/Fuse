@@ -13,7 +13,7 @@
   "files": [
     "dist"
   ],
-  "version": "5.2.0-alpha.0",
+  "version": "5.2.0-alpha.6",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {
@@ -67,6 +67,7 @@
     "vue-eslint-parser": "7.0.0",
     "vuepress": "1.4.0",
     "vuepress-plugin-element-tabs": "0.2.8",
+    "vuepress-plugin-mathjax": "1.2.8",
     "vuepress-plugin-smooth-scroll": "0.0.9",
     "vuepress-plugin-social-share": "0.2.1",
     "webpack": "4.42.0",

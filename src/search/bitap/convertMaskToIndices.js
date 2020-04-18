@@ -1,4 +1,9 @@
-export default function matchedIndiced(matchmask = [], minMatchCharLength = 1) {
+import Config from '../../core/config'
+
+export default function convertMaskToIndices(
+  matchmask = [],
+  minMatchCharLength = Config.minMatchCharLength
+) {
   let matchedIndices = []
   let start = -1
   let end = -1

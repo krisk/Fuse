@@ -2,19 +2,19 @@
 // Match type: inverse-prefix-exact-match
 // Description: Items that do not start with `fire`
 
-import Match from './match'
+import BaseMatch from './BaseMatch'
 
-export default class InversePrefixExactMatch extends Match {
+export default class InversePrefixExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }
   static get type() {
     return 'inverse-prefix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^!\^"(.*)"$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^!\^(.*)$/
   }
   search(text) {

@@ -1,8 +1,9 @@
-import bitapScore from './bitap-score'
-import matchedIndices from './bitap-matched-indices'
+import computeScore from './computeScore'
+import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
+import { MAX_BITS } from './constants'
 
-export default function bitapSearch(
+export default function search(
   text,
   pattern,
   patternAlphabet,
@@ -15,6 +16,10 @@ export default function bitapSearch(
     includeMatches = Config.includeMatches
   } = {}
 ) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+  }
+
   const patternLen = pattern.length
   // Set starting location at beginning text and initialize the alphabet.
   const textLen = text.length
@@ -23,34 +28,36 @@ export default function bitapSearch(
   // Highest score beyond which we give up.
   let currentThreshold = threshold
   // Is there a nearby exact match? (speedup)
-  let bestLocation = text.indexOf(pattern, expectedLocation)
+  let bestLocation = expectedLocation
 
-  // a mask of the matches
+  // A mask of the matches, used for building the indices
   const matchMask = []
-  for (let i = 0; i < textLen; i += 1) {
-    matchMask[i] = 0
+
+  if (includeMatches) {
+    for (let i = 0; i < textLen; i += 1) {
+      matchMask[i] = 0
+    }
   }
 
-  if (bestLocation !== -1) {
-    let score = bitapScore(pattern, {
-      errors: 0,
-      currentLocation: bestLocation,
+  let index
+
+  // Get all exact matches, here for speed up
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
+    let score = computeScore(pattern, {
+      currentLocation: index,
       expectedLocation,
       distance
     })
+
     currentThreshold = Math.min(score, currentThreshold)
+    bestLocation = index + patternLen
 
-    // What about in the other direction? (speed up)
-    bestLocation = text.lastIndexOf(pattern, expectedLocation + patternLen)
-
-    if (bestLocation !== -1) {
-      let score = bitapScore(pattern, {
-        errors: 0,
-        currentLocation: bestLocation,
-        expectedLocation,
-        distance
-      })
-      currentThreshold = Math.min(score, currentThreshold)
+    if (includeMatches) {
+      let i = 0
+      while (i < patternLen) {
+        matchMask[index + i] = 1
+        i += 1
+      }
     }
   }
 
@@ -61,7 +68,7 @@ export default function bitapSearch(
   let finalScore = 1
   let binMax = patternLen + textLen
 
-  const mask = 1 << (patternLen <= 31 ? patternLen - 1 : 30)
+  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2)
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -71,7 +78,7 @@ export default function bitapSearch(
     let binMid = binMax
 
     while (binMin < binMid) {
-      const score = bitapScore(pattern, {
+      const score = computeScore(pattern, {
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
@@ -104,7 +111,7 @@ export default function bitapSearch(
       let currentLocation = j - 1
       let charMatch = patternAlphabet[text.charAt(currentLocation)]
 
-      if (charMatch) {
+      if (charMatch && includeMatches) {
         matchMask[currentLocation] = 1
       }
 
@@ -118,7 +125,7 @@ export default function bitapSearch(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = bitapScore(pattern, {
+        finalScore = computeScore(pattern, {
           errors: i,
           currentLocation,
           expectedLocation,
@@ -144,7 +151,7 @@ export default function bitapSearch(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = bitapScore(pattern, {
+    const score = computeScore(pattern, {
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
@@ -165,7 +172,7 @@ export default function bitapSearch(
   }
 
   if (includeMatches) {
-    result.matchedIndices = matchedIndices(matchMask, minMatchCharLength)
+    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength)
   }
 
   return result

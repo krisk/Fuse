@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v5.2.0-alpha.0
+// Type definitions for Fuse.js v5.2.0-alpha.6
 // TypeScript v3.8.3
 
 export = Fuse
@@ -86,7 +86,6 @@ declare namespace Fuse {
 
   export type FuseIndexOptions<T> = {
     getFn: FuseGetFunction<T>
-    ngrams: boolean
   }
 
   // {
@@ -144,25 +143,17 @@ declare namespace Fuse {
 
   // title: {
   //   '$': "Old Man's War",
-  //   ng: [
-  //     ' ma', ' ol', ' wa',
-  //     "'s ", "an'", 'ar ',
-  //     'd m', 'ld ', 'man',
-  //     "n's", 'old', 's w',
-  //     'war'
-  //   ]
+  //   't': 3
   // }
-  type RecordEntryObject = { $: string; ng?: ReadonlyArray<string> }
+  type RecordEntryObject = {
+    $: string // The original text entry
+    t: number // The number of tokens in the text
+  }
 
   // 'author.tags.name': [{
   //   '$': 'pizza lover',
   //   idx: 2,
-  //   ng: [
-  //     ' lo', ' pi', 'a l',
-  //     'er ', 'izz', 'lov',
-  //     'ove', 'piz', 'ver',
-  //     'za ', 'zza'
-  //   ]
+  //   't': 2
   // }
   type RecordEntryArrayItem = ReadonlyArray<RecordEntryObject & { idx: number }>
 

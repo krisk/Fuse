@@ -1,19 +1,19 @@
 // Token: .file$
 // Match type: suffix-exact-match
 // Description: Items that end with `.file`
-import Match from './match'
+import BaseMatch from './BaseMatch'
 
-export default class SuffixExactMatch extends Match {
+export default class SuffixExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }
   static get type() {
     return 'suffix-exact'
   }
-  static get literal() {
+  static get multiRegex() {
     return /^"(.*)"\$$/
   }
-  static get re() {
+  static get singleRegex() {
     return /^(.*)\$$/
   }
   search(text) {
