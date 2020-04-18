@@ -175,7 +175,7 @@ declare namespace Fuse {
   }
 
   export interface IFuseOptions<T> {
-    caseSensitive?: boolean
+    isCaseSensitive?: boolean
     distance?: number
     findAllMatches?: boolean
     getFn?: FuseGetFunction<T>
