@@ -1,4 +1,4 @@
-export = Fuse
+export default Fuse
 export as namespace Fuse
 
 declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {

@@ -1,7 +1,7 @@
 // Type definitions for Fuse.js v5.2.0
 // TypeScript v3.8.3
 
-export = Fuse
+export default Fuse
 export as namespace Fuse
 
 declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
