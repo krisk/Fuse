@@ -22,8 +22,15 @@ export const BasicOptions = {
   keys: [],
   // Whether to sort the result list, by score
   shouldSort: true,
-  // Default sort function
-  sortFn: (a, b) => a.score - b.score
+  // Default sort function: sort by ascending score, ascending index
+  sortFn: (a, b) =>
+    a.score === b.score
+      ? a.refIndex < b.refIndex
+        ? -1
+        : 1
+      : a.score < b.score
+      ? -1
+      : 1
 }
 
 export const FuzzyOptions = {

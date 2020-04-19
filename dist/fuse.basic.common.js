@@ -208,9 +208,9 @@ var BasicOptions = {
   keys: [],
   // Whether to sort the result list, by score
   shouldSort: true,
-  // Default sort function
+  // Default sort function: sort by ascending score, ascending index
   sortFn: function sortFn(a, b) {
-    return a.score - b.score;
+    return a.score === b.score ? a.refIndex < b.refIndex ? -1 : 1 : a.score < b.score ? -1 : 1;
   }
 };
 var FuzzyOptions = {
