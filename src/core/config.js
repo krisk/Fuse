@@ -23,7 +23,7 @@ export const BasicOptions = {
   // Whether to sort the result list, by score
   shouldSort: true,
   // Default sort function
-  sortFn: (a, b) => a.score - b.score
+  sortFn: (a, b) => a.$score - b.$score
 }
 
 export const FuzzyOptions = {

@@ -291,7 +291,7 @@
     shouldSort: true,
     // Default sort function
     sortFn: function sortFn(a, b) {
-      return a.score - b.score;
+      return a.$score - b.$score;
     }
   };
   var FuzzyOptions = {
@@ -1696,6 +1696,7 @@
           var matches = result.matches;
           var numMatches = matches.length;
           var totalScore = 1;
+          var minScore = 1;
 
           for (var j = 0; j < numMatches; j += 1) {
             var match = matches[j];
@@ -1709,9 +1710,11 @@
 
             var norm = 1 / Math.sqrt(t);
             totalScore *= Math.pow(score, weight * norm);
+            minScore = Math.min(minScore, match.score);
           }
 
-          result.score = totalScore;
+          result.$score = totalScore;
+          result.score = minScore;
         }
       }
     }, {

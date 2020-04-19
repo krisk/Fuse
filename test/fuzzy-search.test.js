@@ -1,24 +1,8 @@
 const Fuse = require('../dist/fuse')
-const { get } = require('../src/helpers/get')
-
-const verbose = false
 
 const defaultList = ['Apple', 'Orange', 'Banana']
 const defaultOptions = {
-  location: 0,
-  distance: 100,
-  threshold: 0.6,
-  isCaseSensitive: false,
-  findAllMatches: false,
-  minMatchCharLength: 1,
-  id: null,
-  keys: [],
-  shouldSort: true,
-  getFn: get,
-  sortFn: (a, b) => a.score - b.score,
-  includeMatches: false,
-  includeScore: false,
-  verbose
+  includeScore: false
 }
 
 const setup = (itemList, overwriteOptions) => {
@@ -517,13 +501,9 @@ describe('Weighted search', () => {
       return (result = fuse.search('John Smith'))
     })
 
-    test('We get the the exactly matching object', () => {
+    test('We get the exact matching object', () => {
       expect(result[0]).toMatchObject({
-        item: {
-          title: 'The life of Jane',
-          author: 'John Smith',
-          tags: ['john', 'smith']
-        },
+        item: customBookList[2],
         refIndex: 2
       })
     })
@@ -543,13 +523,9 @@ describe('Weighted search', () => {
       return (result = fuse.search('John Smith'))
     })
 
-    test('We get the the exactly matching object', () => {
+    test('We get the exact matching object', () => {
       expect(result[0]).toMatchObject({
-        item: {
-          title: 'John Smith',
-          author: 'Steve Pearson',
-          tags: ['steve', 'pearson']
-        },
+        item: customBookList[3],
         refIndex: 3
       })
     })
@@ -569,13 +545,9 @@ describe('Weighted search', () => {
       return (result = fuse.search('Man'))
     })
 
-    test('We get the the exactly matching object', () => {
+    test('We get the exact matching object', () => {
       expect(result[0]).toMatchObject({
-        item: {
-          title: 'Right Ho Jeeves',
-          author: 'P.D. Mans',
-          tags: ['fiction', 'war']
-        },
+        item: customBookList[1],
         refIndex: 1
       })
     })
@@ -595,13 +567,9 @@ describe('Weighted search', () => {
       return (result = fuse.search('Man'))
     })
 
-    test('We get the the exactly matching object', () => {
+    test('We get the exact matching object', () => {
       expect(result[0]).toMatchObject({
-        item: {
-          title: "Old Man's War fiction",
-          author: 'John X',
-          tags: ['war']
-        },
+        item: customBookList[0],
         refIndex: 0
       })
     })
@@ -624,11 +592,7 @@ describe('Weighted search', () => {
 
     test('We get the exactly matching object', () => {
       expect(result[0]).toMatchObject({
-        item: {
-          title: "Old Man's War fiction",
-          author: 'John X',
-          tags: ['war']
-        },
+        item: customBookList[0],
         refIndex: 0
       })
     })

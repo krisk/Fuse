@@ -103,7 +103,7 @@ const BasicOptions = {
   // Whether to sort the result list, by score
   shouldSort: true,
   // Default sort function
-  sortFn: (a, b) => a.score - b.score
+  sortFn: (a, b) => a.$score - b.$score
 };
 
 const FuzzyOptions = {
@@ -1312,6 +1312,7 @@ class Fuse {
       const numMatches = matches.length;
 
       let totalScore = 1;
+      let minScore = 1;
 
       for (let j = 0; j < numMatches; j += 1) {
         const match = matches[j];
@@ -1326,9 +1327,12 @@ class Fuse {
         const norm = 1 / Math.sqrt(t);
 
         totalScore *= Math.pow(score, weight * norm);
+
+        minScore = Math.min(minScore, match.score);
       }
 
-      result.score = totalScore;
+      result.$score = totalScore;
+      result.score = minScore;
     }
   }
 
