@@ -2,7 +2,7 @@
 name: "\U0001F680 Feature request"
 about: Suggest a feature for Fuse.js.
 title: ''
-labels: ''
+labels: feature
 assignees: ''
 
 ---

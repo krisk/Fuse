@@ -2,7 +2,7 @@
 name: "\U0001F4DA Docs on fusejs.io"
 about: Report an issue in Fuse.js documentation or fusejs.io
 title: ''
-labels: ''
+labels: docs
 assignees: ''
 
 ---
