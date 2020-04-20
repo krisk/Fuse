@@ -13,10 +13,11 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
       const value = list[i]
 
       if (isDefined(value) && !isBlank(value)) {
+        const match = value.match(SPACE);
         let record = {
           $: value,
           idx: i,
-          t: value.match(SPACE).length
+          t: match == null ? 0 : match.length
         }
 
         indexedList.push(record)
@@ -52,10 +53,11 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
             }
 
             if (isString(value) && !isBlank(value)) {
+              const match = value.match(SPACE);
               let subRecord = {
                 $: value,
                 idx: arrayIndex,
-                t: value.match(SPACE).length
+                t: match == null ? 0 : match.length
               }
               subRecords.push(subRecord)
             } else if (isArray(value)) {
@@ -72,9 +74,10 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
           }
           record.$[key] = subRecords
         } else if (!isBlank(value)) {
+          const match = value.match(SPACE);
           let subRecord = {
             $: value,
-            t: value.match(SPACE).length
+            t: match == null ? 0 : match.length
           }
 
           record.$[key] = subRecord
