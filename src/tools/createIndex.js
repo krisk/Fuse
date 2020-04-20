@@ -1,4 +1,4 @@
-import { isArray, isDefined, isString } from '../helpers/type-checkers'
+import { isArray, isDefined, isString, isBlank } from '../helpers/type-checkers'
 import Config from '../core/config'
 
 const SPACE = /[^ ]+/g
@@ -12,7 +12,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
     for (let i = 0, len = list.length; i < len; i += 1) {
       const value = list[i]
 
-      if (isDefined(value)) {
+      if (isDefined(value) && !isBlank(value)) {
         let record = {
           $: value,
           idx: i,
@@ -51,7 +51,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
               continue
             }
 
-            if (isString(value)) {
+            if (isString(value) && !isBlank(value)) {
               let subRecord = {
                 $: value,
                 idx: arrayIndex,
@@ -71,7 +71,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
             }
           }
           record.$[key] = subRecords
-        } else {
+        } else if (!isBlank(value)) {
           let subRecord = {
             $: value,
             t: value.match(SPACE).length

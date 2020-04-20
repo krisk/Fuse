@@ -33,6 +33,8 @@ const isNumber = (value) => typeof value === 'number';
 
 const isDefined = (value) => value !== undefined && value !== null;
 
+const isBlank = (value) => !value.trim().length;
+
 function get(obj, path) {
   let list = [];
   let arr = false;
@@ -936,7 +938,7 @@ function createIndex(keys, list, { getFn = Config.getFn } = {}) {
     for (let i = 0, len = list.length; i < len; i += 1) {
       const value = list[i];
 
-      if (isDefined(value)) {
+      if (isDefined(value) && !isBlank(value)) {
         let record = {
           $: value,
           idx: i,
@@ -975,7 +977,7 @@ function createIndex(keys, list, { getFn = Config.getFn } = {}) {
               continue
             }
 
-            if (isString(value)) {
+            if (isString(value) && !isBlank(value)) {
               let subRecord = {
                 $: value,
                 idx: arrayIndex,
@@ -992,7 +994,7 @@ function createIndex(keys, list, { getFn = Config.getFn } = {}) {
             }
           }
           record.$[key] = subRecords;
-        } else {
+        } else if (!isBlank(value)) {
           let subRecord = {
             $: value,
             t: value.match(SPACE).length

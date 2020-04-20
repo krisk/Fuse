@@ -221,6 +221,9 @@
   var isDefined = function isDefined(value) {
     return value !== undefined && value !== null;
   };
+  var isBlank = function isBlank(value) {
+    return !value.trim().length;
+  };
 
   function get(obj, path) {
     var list = [];
@@ -1256,7 +1259,7 @@
       for (var i = 0, len = list.length; i < len; i += 1) {
         var value = list[i];
 
-        if (isDefined(value)) {
+        if (isDefined(value) && !isBlank(value)) {
           var record = {
             $: value,
             idx: i,
@@ -1301,7 +1304,7 @@
                 continue;
               }
 
-              if (isString(_value2)) {
+              if (isString(_value2) && !isBlank(_value2)) {
                 var subRecord = {
                   $: _value2,
                   idx: arrayIndex,
@@ -1319,7 +1322,7 @@
             }
 
             _record.$[key] = subRecords;
-          } else {
+          } else if (!isBlank(_value)) {
             var _subRecord = {
               $: _value,
               t: _value.match(SPACE).length

@@ -25,3 +25,5 @@ export const isNumber = (value) => typeof value === 'number'
 export const isObject = (value) => typeof value === 'object'
 
 export const isDefined = (value) => value !== undefined && value !== null
+
+export const isBlank = (value) => !value.trim().length
