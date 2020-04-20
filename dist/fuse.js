@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.2 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -293,9 +293,13 @@
     // Whether to sort the result list, by score
     shouldSort: true,
     // Default sort function: sort by ascending score, ascending index
+
+    /* eslint-disable indent */
     sortFn: function sortFn(a, b) {
       return a.score === b.score ? a.refIndex < b.refIndex ? -1 : 1 : a.score < b.score ? -1 : 1;
     }
+    /* eslint-enable indent */
+
   };
   var FuzzyOptions = {
     // Approximately where in the text is the pattern expected to be found?
@@ -1758,7 +1762,7 @@
   }();
 
   register(ExtendedSearch);
-  Fuse.version = '5.2.1';
+  Fuse.version = '5.2.2';
   Fuse.createIndex = createIndex;
   Fuse.config = Config;
 
