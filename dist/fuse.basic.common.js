@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v5.2.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1113,7 +1113,7 @@ var Fuse = /*#__PURE__*/function () {
   return Fuse;
 }();
 
-Fuse.version = '5.2.2';
+Fuse.version = '5.2.3';
 Fuse.createIndex = createIndex;
 Fuse.config = Config;
 
