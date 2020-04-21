@@ -20,10 +20,7 @@ describe('Searching using extended search', () => {
     useExtendedSearch: true,
     includeMatches: true,
     includeScore: true,
-    shouldSort: true,
     threshold: 0.5,
-    location: 0,
-    distance: 0,
     minMatchCharLength: 4,
     keys: ['text']
   }

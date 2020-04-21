@@ -293,13 +293,9 @@
     // Whether to sort the result list, by score
     shouldSort: true,
     // Default sort function: sort by ascending score, ascending index
-
-    /* eslint-disable indent */
     sortFn: function sortFn(a, b) {
-      return a.score === b.score ? a.refIndex < b.refIndex ? -1 : 1 : a.score < b.score ? -1 : 1;
+      return a.score === b.score ? a.idx < b.idx ? -1 : 1 : a.score < b.score ? -1 : 1;
     }
-    /* eslint-enable indent */
-
   };
   var FuzzyOptions = {
     // Approximately where in the text is the pattern expected to be found?
