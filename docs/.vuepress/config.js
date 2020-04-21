@@ -80,15 +80,6 @@ module.exports = {
         isPlain: false,
         noGlobalSocialShare: true
       }
-    ],
-    [
-      'vuepress-plugin-mathjax',
-      {
-        target: 'svg',
-        macros: {
-          '*': '\\times'
-        }
-      }
     ]
   ],
   serviceWorker: true,
@@ -138,8 +129,8 @@ module.exports = {
               collapsable: false,
               children: ['/api/options', '/api/indexing']
             },
-            '/examples'
-            // '/scoring'
+            '/examples',
+            '/scoring_theory'
           ]
         }
       }

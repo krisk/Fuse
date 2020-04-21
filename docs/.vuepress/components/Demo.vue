@@ -74,16 +74,16 @@ import 'codemirror/theme/monokai.css'
 
 const code = (pattern) => {
   return `const options = {
-  isCaseSensitive: ${Fuse.config.isCaseSensitive},
-  findAllMatches: ${Fuse.config.findAllMatches},
-  includeMatches: ${Fuse.config.includeMatches},
-  includeScore: ${Fuse.config.includeScore},
-  useExtendedSearch: ${Fuse.config.useExtendedSearch},
-  minMatchCharLength: ${Fuse.config.minMatchCharLength},
-  shouldSort: ${Fuse.config.shouldSort},
-  threshold:${Fuse.config.threshold},
-  location: ${Fuse.config.location},
-  distance: ${Fuse.config.distance},
+  // isCaseSensitive: ${Fuse.config.isCaseSensitive},
+  // findAllMatches: ${Fuse.config.findAllMatches},
+  // includeMatches: ${Fuse.config.includeMatches},
+  // includeScore: ${Fuse.config.includeScore},
+  // useExtendedSearch: ${Fuse.config.useExtendedSearch},
+  // minMatchCharLength: ${Fuse.config.minMatchCharLength},
+  // shouldSort: ${Fuse.config.shouldSort},
+  // threshold:${Fuse.config.threshold},
+  // location: ${Fuse.config.location},
+  // distance: ${Fuse.config.distance},
   keys: [
     "title",
     "author.firstName"
