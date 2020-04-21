@@ -51,7 +51,7 @@ Available on CDN via [jsDelivr](https://cdn.jsdelivr.net/npm/fuse.js/dist/).
 
 ### Explanation of Different Builds
 
-In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](dist/README.md) of the difference between them.
+In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](https://fusejs.io/getting-started/different-builds.html) of the difference between them.
 
 ## Issues
 
