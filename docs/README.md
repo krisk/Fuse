@@ -18,6 +18,48 @@ Generally speaking, fuzzy searching (more formally known as _approximate string 
 1. With Fuse.js, you don’t need to setup a dedicated backend just to handle search.
 2. Simplicity and performance were the main criteria when developing this library.
 
+```js
+// List of items to search in
+const books = [
+  {
+    title: "Old Man's War",
+    author: {
+      firstName: 'John',
+      lastName: 'Scalzi'
+    }
+  },
+  {
+    title: 'The Lock Artist',
+    author: {
+      firstName: 'Steve',
+      lastName: 'Hamilton'
+    }
+  }
+]
+
+// Setup
+const fuse = new Fuse(books, {
+  keys: ['title', 'author.firstName']
+})
+
+// Search
+fuse.search('jon')
+
+// Output:
+// [
+//   {
+//     item: {
+//       title: "Old Man's War",
+//       author: {
+//         firstName: 'John',
+//         lastName: 'Scalzi'
+//       }
+//     },
+//     refIndex: 0
+//   }
+// ]
+```
+
 ### When should I use It?
 
 It might not make sense for every situation, but can be ideal depending on your search requirements. For example:

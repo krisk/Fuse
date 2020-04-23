@@ -1,3 +1,8 @@
+---
+tags:
+  - configuration
+---
+
 # Options
 
 ## Basic Options
