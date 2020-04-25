@@ -168,12 +168,10 @@ export default {
     },
     parse() {
       try {
-        const func = () => {
-          let body = `(Fuse, list) => {${this.code}}`
-          return eval(body)(DemoFuse, this.list)
-        }
+        let func = eval(`[function (Fuse, list){${this.code}}][0]`)
+
         let start = new Date().getTime()
-        const { pattern, results } = func()
+        const { pattern, results } = func(DemoFuse, this.list)
         this.result = results
         this.pattern = pattern
         let end = new Date().getTime()
