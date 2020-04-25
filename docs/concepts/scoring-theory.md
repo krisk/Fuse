@@ -12,7 +12,7 @@ The fuzziness score is internally calculated via a modified implementation of th
 
 #### Distance, Threshold, and Location
 
-The calculation for something to be considered a match (whether fuzzy or exact) takes into account how far the pattern is from the expected location, with a threshold calculation.
+The calculation for something to be considered a match (whether fuzzy or exact) takes into account how far the pattern is from the expected location, within a threshold.
 
 To illustrate, consider the following options:
 

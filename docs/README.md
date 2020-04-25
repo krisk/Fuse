@@ -15,11 +15,13 @@ Generally speaking, fuzzy searching (more formally known as _approximate string 
 
 ### Why should I use it?
 
-1. With Fuse.js, you don’t need to setup a dedicated backend just to handle search.
-2. Simplicity and performance were the main criteria when developing this library.
+- With Fuse.js, you don’t need to setup a dedicated backend just to handle search.
+- Simplicity and performance were the main criteria when developing this library.
+
+::: details As easy as 1, 2, 3
 
 ```js
-// List of items to search in
+// 1. List of items to search in
 const books = [
   {
     title: "Old Man's War",
@@ -37,12 +39,12 @@ const books = [
   }
 ]
 
-// Setup
+// 2. Set up the Fuse instance
 const fuse = new Fuse(books, {
   keys: ['title', 'author.firstName']
 })
 
-// Search
+// 3. Now search!
 fuse.search('jon')
 
 // Output:
@@ -60,12 +62,14 @@ fuse.search('jon')
 // ]
 ```
 
+:::
+
 ### When should I use It?
 
 It might not make sense for every situation, but can be ideal depending on your search requirements. For example:
 
-1. When you want client-side fuzzy searching of small to moderately large data sets.
-2. When you can't justify setting up a dedicated backend simply to handle search. ElasticSearch or Algolia, although both great services, may be overkill for your particular use cases.
+- When you want client-side fuzzy searching of small to moderately large data sets.
+- When you can't justify setting up a dedicated backend simply to handle search. ElasticSearch or Algolia, although both great services, may be overkill for your particular use cases.
 
 ### Can I still use it on the backend?
 
