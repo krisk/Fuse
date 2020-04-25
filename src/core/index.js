@@ -34,8 +34,8 @@ export default class Fuse {
     }
   }
 
-  setIndex(listIndex) {
-    this._indexedList = listIndex
+  setIndex(index) {
+    this._index = index
   }
 
   _processKeys(keys) {
@@ -71,12 +71,12 @@ export default class Fuse {
       searcher = new BitapSearch(pattern, this.options)
     }
 
-    let results = this._searchUsing(searcher)
+    let results = this._searchWith(searcher)
 
     this._computeScore(results)
 
     if (shouldSort) {
-      this._sort(results)
+      results.sort(this.options.sortFn)
     }
 
     if (opts.limit && isNumber(opts.limit)) {
@@ -86,8 +86,8 @@ export default class Fuse {
     return this._format(results)
   }
 
-  _searchUsing(searcher) {
-    const list = this._indexedList
+  _searchWith(searcher) {
+    const { keys, list } = this._index
     const results = []
     const { includeMatches } = this.options
 
@@ -96,7 +96,7 @@ export default class Fuse {
       // Iterate over every string in the list
       for (let i = 0, len = list.length; i < len; i += 1) {
         let value = list[i]
-        let { $: text, idx, t } = value
+        let { v: text, i: idx, n: norm } = value
 
         if (!isDefined(text)) {
           continue
@@ -110,7 +110,7 @@ export default class Fuse {
           continue
         }
 
-        let match = { score, value: text, t }
+        let match = { score, value: text, norm }
 
         if (includeMatches) {
           match.indices = searchResult.matchedIndices
@@ -124,11 +124,10 @@ export default class Fuse {
       }
     } else {
       // List is Array<Object>
-      const keyNames = this._keyStore.keys()
-      const keysLen = this._keyStore.count()
+      const keysLen = keys.length
 
       for (let i = 0, len = list.length; i < len; i += 1) {
-        let { $: item, idx } = list[i]
+        let { $: item, i: idx } = list[i]
 
         if (!isDefined(item)) {
           continue
@@ -138,8 +137,8 @@ export default class Fuse {
 
         // Iterate over every key (i.e, path), and fetch the value at that key
         for (let j = 0; j < keysLen; j += 1) {
-          let key = keyNames[j]
-          let value = item[key]
+          const key = keys[j]
+          const value = item[j]
 
           if (!isDefined(value)) {
             continue
@@ -148,7 +147,7 @@ export default class Fuse {
           if (isArray(value)) {
             for (let k = 0, len = value.length; k < len; k += 1) {
               let arrItem = value[k]
-              const { $: text, idx, t } = arrItem
+              const { v: text, i: idx, n: norm } = arrItem
 
               if (!isDefined(text)) {
                 continue
@@ -162,7 +161,7 @@ export default class Fuse {
                 continue
               }
 
-              let match = { score, key, value: text, idx, t }
+              let match = { score, key, value: text, idx, norm }
 
               if (includeMatches) {
                 match.indices = searchResult.matchedIndices
@@ -171,7 +170,7 @@ export default class Fuse {
               matches.push(match)
             }
           } else {
-            const { $: text, t } = value
+            const { v: text, n: norm } = value
 
             let searchResult = searcher.searchIn(value)
 
@@ -181,7 +180,7 @@ export default class Fuse {
               continue
             }
 
-            let match = { score, key, value: text, t }
+            let match = { score, key, value: text, norm }
 
             if (includeMatches) {
               match.indices = searchResult.matchedIndices
@@ -217,25 +216,18 @@ export default class Fuse {
 
       for (let j = 0; j < numMatches; j += 1) {
         const match = matches[j]
-        const { key, t } = match
+        const { key, norm } = match
 
         const keyWeight = this._keyStore.get(key, 'weight')
         const weight = keyWeight > -1 ? keyWeight : 1
         const score =
           match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score
 
-        // Field-length norm: the shorter the field, the higher the weight.
-        const norm = 1 / Math.sqrt(t)
-
         totalScore *= Math.pow(score, weight * norm)
       }
 
       result.score = totalScore
     }
-  }
-
-  _sort(results) {
-    results.sort(this.options.sortFn)
   }
 
   _format(results) {

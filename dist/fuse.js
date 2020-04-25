@@ -602,7 +602,7 @@
     _createClass(BitapSearch, [{
       key: "searchIn",
       value: function searchIn(value) {
-        var text = value.$;
+        var text = value.v;
         return this.searchInString(text);
       }
     }, {
@@ -1171,7 +1171,7 @@
           };
         }
 
-        var text = value.$;
+        var text = value.v;
         var _this$options = this.options,
             includeMatches = _this$options.includeMatches,
             isCaseSensitive = _this$options.isCaseSensitive;
@@ -1246,7 +1246,12 @@
     return ExtendedSearch;
   }();
 
-  var SPACE = /[^ ]+/g;
+  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
+
+  var norm = function norm(numTerms) {
+    return 1 / Math.sqrt(numTerms);
+  };
+
   function createIndex(keys, list) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref$getFn = _ref.getFn,
@@ -1261,9 +1266,9 @@
 
         if (isDefined(value) && !isBlank(value)) {
           var record = {
-            $: value,
-            idx: i,
-            t: value.match(SPACE).length
+            v: value,
+            i: i,
+            n: norm(value.match(SPACE).length)
           };
           indexedList.push(record);
         }
@@ -1275,7 +1280,7 @@
       for (var _i = 0, _len = list.length; _i < _len; _i += 1) {
         var item = list[_i];
         var _record = {
-          idx: _i,
+          i: _i,
           $: {}
         }; // Iterate over every key (i.e, path), and fetch the value at that key
 
@@ -1306,9 +1311,9 @@
 
               if (isString(_value2) && !isBlank(_value2)) {
                 var subRecord = {
-                  $: _value2,
-                  idx: arrayIndex,
-                  t: _value2.match(SPACE).length
+                  v: _value2,
+                  i: arrayIndex,
+                  n: norm(_value2.match(SPACE).length)
                 };
                 subRecords.push(subRecord);
               } else if (isArray(_value2)) {
@@ -1321,13 +1326,13 @@
               }
             }
 
-            _record.$[key] = subRecords;
+            _record.$[j] = subRecords;
           } else if (!isBlank(_value)) {
             var _subRecord = {
-              $: _value,
-              t: _value.match(SPACE).length
+              v: _value,
+              n: norm(_value.match(SPACE).length)
             };
-            _record.$[key] = _subRecord;
+            _record.$[j] = _subRecord;
           }
         }
 
@@ -1335,7 +1340,10 @@
       }
     }
 
-    return indexedList;
+    return {
+      keys: keys,
+      list: indexedList
+    };
   }
 
   var KeyStore = /*#__PURE__*/function () {
@@ -1489,8 +1497,8 @@
       }
     }, {
       key: "setIndex",
-      value: function setIndex(listIndex) {
-        this._indexedList = listIndex;
+      value: function setIndex(index) {
+        this._index = index;
       }
     }, {
       key: "_processKeys",
@@ -1532,12 +1540,12 @@
           searcher = new BitapSearch(pattern, this.options);
         }
 
-        var results = this._searchUsing(searcher);
+        var results = this._searchWith(searcher);
 
         this._computeScore(results);
 
         if (shouldSort) {
-          this._sort(results);
+          results.sort(this.options.sortFn);
         }
 
         if (opts.limit && isNumber(opts.limit)) {
@@ -1547,9 +1555,11 @@
         return this._format(results);
       }
     }, {
-      key: "_searchUsing",
-      value: function _searchUsing(searcher) {
-        var list = this._indexedList;
+      key: "_searchWith",
+      value: function _searchWith(searcher) {
+        var _this$_index = this._index,
+            keys = _this$_index.keys,
+            list = _this$_index.list;
         var results = [];
         var includeMatches = this.options.includeMatches; // List is Array<String>
 
@@ -1557,9 +1567,9 @@
           // Iterate over every string in the list
           for (var i = 0, len = list.length; i < len; i += 1) {
             var value = list[i];
-            var text = value.$,
-                idx = value.idx,
-                t = value.t;
+            var text = value.v,
+                idx = value.i,
+                norm = value.n;
 
             if (!isDefined(text)) {
               continue;
@@ -1576,7 +1586,7 @@
             var match = {
               score: score,
               value: text,
-              t: t
+              norm: norm
             };
 
             if (includeMatches) {
@@ -1591,14 +1601,12 @@
           }
         } else {
           // List is Array<Object>
-          var keyNames = this._keyStore.keys();
-
-          var keysLen = this._keyStore.count();
+          var keysLen = keys.length;
 
           for (var _i = 0, _len = list.length; _i < _len; _i += 1) {
             var _list$_i = list[_i],
                 item = _list$_i.$,
-                _idx = _list$_i.idx;
+                _idx = _list$_i.i;
 
             if (!isDefined(item)) {
               continue;
@@ -1607,8 +1615,8 @@
             var matches = []; // Iterate over every key (i.e, path), and fetch the value at that key
 
             for (var j = 0; j < keysLen; j += 1) {
-              var key = keyNames[j];
-              var _value = item[key];
+              var key = keys[j];
+              var _value = item[j];
 
               if (!isDefined(_value)) {
                 continue;
@@ -1617,9 +1625,9 @@
               if (isArray(_value)) {
                 for (var k = 0, _len2 = _value.length; k < _len2; k += 1) {
                   var arrItem = _value[k];
-                  var _text = arrItem.$,
-                      _idx2 = arrItem.idx,
-                      _t = arrItem.t;
+                  var _text = arrItem.v,
+                      _idx2 = arrItem.i,
+                      _norm = arrItem.n;
 
                   if (!isDefined(_text)) {
                     continue;
@@ -1639,7 +1647,7 @@
                     key: key,
                     value: _text,
                     idx: _idx2,
-                    t: _t
+                    norm: _norm
                   };
 
                   if (includeMatches) {
@@ -1649,8 +1657,8 @@
                   matches.push(_match);
                 }
               } else {
-                var _text2 = _value.$,
-                    _t2 = _value.t;
+                var _text2 = _value.v,
+                    _norm2 = _value.n;
 
                 var _searchResult2 = searcher.searchIn(_value);
 
@@ -1665,7 +1673,7 @@
                   score: _score2,
                   key: key,
                   value: _text2,
-                  t: _t2
+                  norm: _norm2
                 };
 
                 if (includeMatches) {
@@ -1703,24 +1711,17 @@
           for (var j = 0; j < numMatches; j += 1) {
             var match = matches[j];
             var key = match.key,
-                t = match.t;
+                norm = match.norm;
 
             var keyWeight = this._keyStore.get(key, 'weight');
 
             var weight = keyWeight > -1 ? keyWeight : 1;
-            var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score; // Field-length norm: the shorter the field, the higher the weight.
-
-            var norm = 1 / Math.sqrt(t);
+            var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
             totalScore *= Math.pow(score, weight * norm);
           }
 
           result.score = totalScore;
         }
-      }
-    }, {
-      key: "_sort",
-      value: function _sort(results) {
-        results.sort(this.options.sortFn);
       }
     }, {
       key: "_format",

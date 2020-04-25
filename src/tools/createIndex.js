@@ -3,6 +3,9 @@ import Config from '../core/config'
 
 const SPACE = /[^ ]+/g
 
+// Field-length norm: the shorter the field, the higher the weight.
+const norm = (numTerms) => 1 / Math.sqrt(numTerms)
+
 export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = []
 
@@ -14,9 +17,9 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
 
       if (isDefined(value) && !isBlank(value)) {
         let record = {
-          $: value,
-          idx: i,
-          t: value.match(SPACE).length
+          v: value,
+          i,
+          n: norm(value.match(SPACE).length)
         }
 
         indexedList.push(record)
@@ -29,7 +32,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
     for (let i = 0, len = list.length; i < len; i += 1) {
       let item = list[i]
 
-      let record = { idx: i, $: {} }
+      let record = { i, $: {} }
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       for (let j = 0; j < keysLen; j += 1) {
@@ -53,10 +56,11 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
 
             if (isString(value) && !isBlank(value)) {
               let subRecord = {
-                $: value,
-                idx: arrayIndex,
-                t: value.match(SPACE).length
+                v: value,
+                i: arrayIndex,
+                n: norm(value.match(SPACE).length)
               }
+
               subRecords.push(subRecord)
             } else if (isArray(value)) {
               for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
@@ -70,14 +74,14 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
               // console.error(new Error(`Path "${key}" points to a non-string value. Received: ${value}`))
             }
           }
-          record.$[key] = subRecords
+          record.$[j] = subRecords
         } else if (!isBlank(value)) {
           let subRecord = {
-            $: value,
-            t: value.match(SPACE).length
+            v: value,
+            n: norm(value.match(SPACE).length)
           }
 
-          record.$[key] = subRecord
+          record.$[j] = subRecord
         }
       }
 
@@ -85,5 +89,8 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
     }
   }
 
-  return indexedList
+  return {
+    keys,
+    list: indexedList
+  }
 }

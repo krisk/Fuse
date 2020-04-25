@@ -42,7 +42,7 @@ export default class BitapSearch {
   }
 
   searchIn(value) {
-    let text = value.$
+    let text = value.v
     return this.searchInString(text)
   }
 

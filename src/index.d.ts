@@ -30,12 +30,9 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     options?: Fuse.FuseSearchOptions
   ): Fuse.FuseResult<R>[]
 
-  setCollection(
-    list: ReadonlyArray<T>,
-    index?: ReadonlyArray<Fuse.FuseIndexRecord>
-  ): void
+  setCollection(list: ReadonlyArray<T>, index?: Fuse.FuseIndex): void
 
-  setIndex(index: ReadonlyArray<Fuse.FuseIndexRecord>): void
+  setIndex(index: Fuse.FuseIndex): void
 
   /**
    * Return the current version
@@ -72,7 +69,7 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     keys: Fuse.FuseOptionKeyObject[] | string[],
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
-  ): ReadonlyArray<Fuse.FuseIndexRecord>
+  ): Fuse.FuseIndex
 }
 
 declare namespace Fuse {
@@ -94,8 +91,8 @@ declare namespace Fuse {
   //
   // {
   //   tags: [
-  //     { $: 'nonfiction', idx: 1 },
-  //     { $: 'web development', idx: 0 },
+  //     { $: 'nonfiction', idx: 0 },
+  //     { $: 'web development', idx: 1 },
   //   ]
   // }
   export type FuseSortFunctionItem = {
@@ -140,26 +137,59 @@ declare namespace Fuse {
 
   // title: {
   //   '$': "Old Man's War",
-  //   't': 3
+  //   'n': 0.5773502691896258
   // }
   type RecordEntryObject = {
-    $: string // The original text entry
-    t: number // The number of tokens in the text
+    v: string // The text value
+    n: number // The field-length norm
   }
 
   // 'author.tags.name': [{
-  //   '$': 'pizza lover',
-  //   idx: 2,
-  //   't': 2
+  //   'v': 'pizza lover',
+  //   'i': 2,
+  //   'n: 0.7071067811865475
   // }
-  type RecordEntryArrayItem = ReadonlyArray<RecordEntryObject & { idx: number }>
+  type RecordEntryArrayItem = ReadonlyArray<RecordEntryObject & { i: number }>
 
   // TODO: this makes it difficult to infer the type. Need to think more about this
   type RecordEntry = { [key: string]: RecordEntryObject | RecordEntryArrayItem }
 
-  type FuseIndexRecord = {
-    idx: number
+  // {
+  //   i: 0,
+  //   '$': {
+  //     '0': { v: "Old Man's War", n: 0.5773502691896258 },
+  //     '1': { v: 'Codenar', n: 1 },
+  //     '2': [
+  //       { v: 'pizza lover', i: 2, n: 0.7071067811865475 },
+  //       { v: 'helo wold', i: 1, n: 0.7071067811865475 },
+  //       { v: 'hello world', i: 0, n: 0.7071067811865475 }
+  //     ]
+  //   }
+  // }
+  type FuseIndexObjectRecord = {
+    i: number // The index of the record in the source list
     $: RecordEntry
+  }
+
+  // {
+  //   keys: null,
+  //   list: [
+  //     { v: 'one', i: 0, n: 1 },
+  //     { v: 'two', i: 1, n: 1 },
+  //     { v: 'three', i: 2, n: 1 }
+  //   ]
+  // }
+  type FuseIndexStringRecord = {
+    i: number // The index of the record in the source list
+    v: string // The text value
+    n: number // The field-length norm
+  }
+
+  type FuseIndex = {
+    keys: ReadonlyArray<string>
+    list:
+      | ReadonlyArray<FuseIndexObjectRecord>
+      | ReadonlyArray<FuseIndexStringRecord>
   }
 
   // {

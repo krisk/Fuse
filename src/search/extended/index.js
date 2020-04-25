@@ -76,7 +76,7 @@ export default class ExtendedSearch {
       }
     }
 
-    let text = value.$
+    let text = value.v
 
     const { includeMatches, isCaseSensitive } = this.options
 

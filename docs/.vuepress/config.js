@@ -116,7 +116,6 @@ module.exports = {
           }
         ],
         sidebar: {
-          '/blog/': ['/blog/one'],
           '/': [
             {
               title: 'Getting Started',
@@ -134,7 +133,11 @@ module.exports = {
               children: ['/api/options', '/api/indexing']
             },
             '/examples',
-            '/scoring_theory'
+            {
+              title: 'Concepts',
+              collapsable: false,
+              children: ['/concepts/scoring-theory']
+            }
           ]
         }
       }
