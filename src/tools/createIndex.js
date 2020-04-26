@@ -3,9 +3,6 @@ import Config from '../core/config'
 
 const SPACE = /[^ ]+/g
 
-// Field-length norm: the shorter the field, the higher the weight.
-const norm = (numTerms) => 1 / Math.sqrt(numTerms)
-
 export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = []
 
@@ -94,3 +91,10 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
     list: indexedList
   }
 }
+
+// Field-length norm: the shorter the field, the higher the weight.
+// Set to 3 decimals to reduce index size.
+const NORM_CACHE = {}
+const norm = (n, mantissa = 3) =>
+  NORM_CACHE[n] ||
+  (NORM_CACHE[n] = parseFloat((1 / Math.sqrt(n)).toFixed(mantissa)))

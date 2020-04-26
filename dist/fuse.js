@@ -1246,12 +1246,7 @@
     return ExtendedSearch;
   }();
 
-  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
-
-  var norm = function norm(numTerms) {
-    return 1 / Math.sqrt(numTerms);
-  };
-
+  var SPACE = /[^ ]+/g;
   function createIndex(keys, list) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref$getFn = _ref.getFn,
@@ -1344,7 +1339,15 @@
       keys: keys,
       list: indexedList
     };
-  }
+  } // Field-length norm: the shorter the field, the higher the weight.
+  // Set to 3 decimals to reduce index size.
+
+  var NORM_CACHE = {};
+
+  var norm = function norm(n) {
+    var mantissa = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+    return NORM_CACHE[n] || (NORM_CACHE[n] = parseFloat((1 / Math.sqrt(n)).toFixed(mantissa)));
+  };
 
   var KeyStore = /*#__PURE__*/function () {
     function KeyStore(keys) {
