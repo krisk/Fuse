@@ -1,5 +1,7 @@
 # Explanation of Different Builds
 
+In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an overview of the difference between them.
+
 |                        | UMD               | CommonJS             | ES Module (for bundlers) |
 | ---------------------- | ----------------- | -------------------- | ------------------------ |
 | **Full**               | fuse.js           | fuse.common.js       | fuse.esm.js              |
@@ -9,7 +11,7 @@
 
 ### Terms
 
-- **Full**: Builds that contain standard fuzzy searching and [extended](/examples.html#extended-search). These builds are larger.
+- **Full**: Builds that contain standard fuzzy searching and [extended searching](/examples.html#extended-search). These builds are larger.
 
 - **Basic**: Builds that contain only standard fuzzy searching. Use these if you're not going to enable extended searching.
 

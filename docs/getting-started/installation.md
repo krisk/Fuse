@@ -39,4 +39,4 @@ You can browse the source of the NPM package at cdn.jsdelivr.net/npm/fuse.js.
 Fuse.js is also available on [unpkg](https://unpkg.com/fuse.js).
 
 Make sure to read about the different builds of Fuse.js and use the production
-version in your published site, replacing fuse.js with fuse.min.js. This is a smaller build optimized for speed instead of development experience.
+version in your published site, replacing `fuse.js` with `fuse.min.js`. This is a smaller build optimized for speed instead of development experience.
