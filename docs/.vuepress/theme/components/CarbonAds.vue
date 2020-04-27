@@ -22,7 +22,7 @@ export default {
     load() {
       const s = document.createElement('script')
       s.id = '_carbonads_js'
-      s.src = `//cdn.carbonads.com/carbon.js?serve=CKYIK2QU&placement=vuejsorg`
+      s.src = `//cdn.carbonads.com/carbon.js?serve=CE7IC27U&placement=fusejsio`
       this.$el.appendChild(s)
     }
   },

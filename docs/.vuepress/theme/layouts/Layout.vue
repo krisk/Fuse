@@ -3,23 +3,23 @@
     <!-- <template #sidebar-top>
       <Version />
     </template> -->
-    <!-- <template #sidebar-top>
+    <template #sidebar-top>
       <CarbonAds />
-    </template> -->
+    </template>
   </ParentLayout>
 </template>
 
 <script>
 import ParentLayout from '@parent-theme/layouts/Layout.vue'
-// import CarbonAds from '@theme/components/CarbonAds.vue'
+import CarbonAds from '@theme/components/CarbonAds.vue'
 // import Version from '@theme/components/Version.vue'
 
 export default {
   name: 'Layout',
   components: {
-    ParentLayout
+    ParentLayout,
     // Version
-    // CarbonAds
+    CarbonAds
   }
 }
 </script>
