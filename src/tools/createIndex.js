@@ -1,10 +1,10 @@
 import { isArray, isDefined, isString, isBlank } from '../helpers/type-checkers'
 import Config from '../core/config'
-
-const SPACE = /[^ ]+/g
+import normGenerator from './norm'
 
 export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
   let indexedList = []
+  let norm = normGenerator(3)
 
   // List is Array<String>
   if (isString(list[0])) {
@@ -16,7 +16,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
         let record = {
           v: value,
           i,
-          n: norm(value.match(SPACE).length)
+          n: norm.get(value)
         }
 
         indexedList.push(record)
@@ -55,7 +55,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
               let subRecord = {
                 v: value,
                 i: arrayIndex,
-                n: norm(value.match(SPACE).length)
+                n: norm.get(value)
               }
 
               subRecords.push(subRecord)
@@ -75,7 +75,7 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
         } else if (!isBlank(value)) {
           let subRecord = {
             v: value,
-            n: norm(value.match(SPACE).length)
+            n: norm.get(value)
           }
 
           record.$[j] = subRecord
@@ -86,15 +86,10 @@ export default function createIndex(keys, list, { getFn = Config.getFn } = {}) {
     }
   }
 
+  norm.clear()
+
   return {
     keys,
     list: indexedList
   }
 }
-
-// Field-length norm: the shorter the field, the higher the weight.
-// Set to 3 decimals to reduce index size.
-const NORM_CACHE = {}
-const norm = (n, mantissa = 3) =>
-  NORM_CACHE[n] ||
-  (NORM_CACHE[n] = parseFloat((1 / Math.sqrt(n)).toFixed(mantissa)))

@@ -1246,13 +1246,37 @@
     return ExtendedSearch;
   }();
 
-  var SPACE = /[^ ]+/g;
+  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
+  // Set to 3 decimals to reduce index size.
+
+  function norm() {
+    var mantissa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
+    var cache = new Map();
+    return {
+      get: function get(value) {
+        var numTokens = value.match(SPACE).length;
+
+        if (cache.has(numTokens)) {
+          return cache.get(numTokens);
+        }
+
+        var n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
+        cache.set(numTokens, n);
+        return n;
+      },
+      clear: function clear() {
+        cache.clear();
+      }
+    };
+  }
+
   function createIndex(keys, list) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref$getFn = _ref.getFn,
         getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
 
-    var indexedList = []; // List is Array<String>
+    var indexedList = [];
+    var norm$1 = norm(3); // List is Array<String>
 
     if (isString(list[0])) {
       // Iterate over every string in the list
@@ -1263,7 +1287,7 @@
           var record = {
             v: value,
             i: i,
-            n: norm(value.match(SPACE).length)
+            n: norm$1.get(value)
           };
           indexedList.push(record);
         }
@@ -1308,7 +1332,7 @@
                 var subRecord = {
                   v: _value2,
                   i: arrayIndex,
-                  n: norm(_value2.match(SPACE).length)
+                  n: norm$1.get(_value2)
                 };
                 subRecords.push(subRecord);
               } else if (isArray(_value2)) {
@@ -1325,7 +1349,7 @@
           } else if (!isBlank(_value)) {
             var _subRecord = {
               v: _value,
-              n: norm(_value.match(SPACE).length)
+              n: norm$1.get(_value)
             };
             _record.$[j] = _subRecord;
           }
@@ -1335,19 +1359,12 @@
       }
     }
 
+    norm$1.clear();
     return {
       keys: keys,
       list: indexedList
     };
-  } // Field-length norm: the shorter the field, the higher the weight.
-  // Set to 3 decimals to reduce index size.
-
-  var NORM_CACHE = {};
-
-  var norm = function norm(n) {
-    var mantissa = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
-    return NORM_CACHE[n] || (NORM_CACHE[n] = parseFloat((1 / Math.sqrt(n)).toFixed(mantissa)));
-  };
+  }
 
   var KeyStore = /*#__PURE__*/function () {
     function KeyStore(keys) {
