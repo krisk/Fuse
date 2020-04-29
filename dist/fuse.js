@@ -1366,16 +1366,18 @@
     };
   }
 
+  var hasOwn = Object.prototype.hasOwnProperty;
+
   var KeyStore = /*#__PURE__*/function () {
     function KeyStore(keys) {
       _classCallCheck(this, KeyStore);
 
       this._keys = {};
       this._keyNames = [];
-      this._length = keys.length; // Iterate over every key
+      var len = keys.length; // Iterate over every key
 
       if (keys.length && isString(keys[0])) {
-        for (var i = 0; i < this._length; i += 1) {
+        for (var i = 0; i < len; i += 1) {
           var key = keys[i];
           this._keys[key] = {
             weight: 1
@@ -1386,10 +1388,10 @@
       } else {
         var totalWeight = 0;
 
-        for (var _i = 0; _i < this._length; _i += 1) {
+        for (var _i = 0; _i < len; _i += 1) {
           var _key = keys[_i];
 
-          if (!Object.prototype.hasOwnProperty.call(_key, 'name')) {
+          if (!hasOwn.call(_key, 'name')) {
             throw new Error('Missing "name" property in key object');
           }
 
@@ -1397,7 +1399,7 @@
 
           this._keyNames.push(keyName);
 
-          if (!Object.prototype.hasOwnProperty.call(_key, 'weight')) {
+          if (!hasOwn.call(_key, 'weight')) {
             throw new Error('Missing "weight" property in key object');
           }
 
@@ -1414,10 +1416,8 @@
         } // Normalize weights so that their sum is equal to 1
 
 
-        for (var _i2 = 0; _i2 < this._length; _i2 += 1) {
-          var _keyName = this._keyNames[_i2];
-          var keyWeight = this._keys[_keyName].weight;
-          this._keys[_keyName].weight = keyWeight / totalWeight;
+        for (var _i2 = 0; _i2 < len; _i2 += 1) {
+          this._keys[this._keyNames[_i2]].weight /= totalWeight;
         }
       }
     }
@@ -1431,11 +1431,6 @@
       key: "keys",
       value: function keys() {
         return this._keyNames;
-      }
-    }, {
-      key: "count",
-      value: function count() {
-        return this._length;
       }
     }, {
       key: "toJSON",
@@ -1491,53 +1486,31 @@
   var Fuse = /*#__PURE__*/function () {
     function Fuse(list) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      var index = arguments.length > 2 ? arguments[2] : undefined;
 
       _classCallCheck(this, Fuse);
 
       this.options = _objectSpread2({}, Config, {}, options);
-
-      this._processKeys(this.options.keys);
-
+      this._keyStore = new KeyStore(this.options.keys);
       this.setCollection(list, index);
     }
 
     _createClass(Fuse, [{
       key: "setCollection",
-      value: function setCollection(list) {
-        var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-        this.list = list;
-        this.listIsStringArray = isString(list[0]);
-
-        if (index) {
-          this.setIndex(index);
-        } else {
-          this.setIndex(this._createIndex());
-        }
-      }
-    }, {
-      key: "setIndex",
-      value: function setIndex(index) {
-        this._index = index;
-      }
-    }, {
-      key: "_processKeys",
-      value: function _processKeys(keys) {
-        this._keyStore = new KeyStore(keys);
-      }
-    }, {
-      key: "_createIndex",
-      value: function _createIndex() {
-        return createIndex(this._keyStore.keys(), this.list, {
+      value: function setCollection(list, index) {
+        this._list = list;
+        this._listIsStringArray = isString(list[0]);
+        this._index = index || createIndex(this._keyStore.keys(), this._list, {
           getFn: this.options.getFn
         });
       }
     }, {
       key: "search",
       value: function search(pattern) {
-        var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-          limit: false
-        };
+        var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+            _ref$limit = _ref.limit,
+            limit = _ref$limit === void 0 ? -1 : _ref$limit;
+
         pattern = pattern.trim();
 
         if (!pattern.length) {
@@ -1568,8 +1541,8 @@
           results.sort(this.options.sortFn);
         }
 
-        if (opts.limit && isNumber(opts.limit)) {
-          results = results.slice(0, opts.limit);
+        if (isNumber(limit) && limit > -1) {
+          results = results.slice(0, limit);
         }
 
         return this._format(results);
@@ -1581,11 +1554,12 @@
             keys = _this$_index.keys,
             list = _this$_index.list;
         var results = [];
-        var includeMatches = this.options.includeMatches; // List is Array<String>
+        var includeMatches = this.options.includeMatches;
+        var len = list.length; // List is Array<String>
 
-        if (this.listIsStringArray) {
+        if (this._listIsStringArray) {
           // Iterate over every string in the list
-          for (var i = 0, len = list.length; i < len; i += 1) {
+          for (var i = 0; i < len; i += 1) {
             var value = list[i];
             var text = value.v,
                 idx = value.i,
@@ -1623,7 +1597,7 @@
           // List is Array<Object>
           var keysLen = keys.length;
 
-          for (var _i = 0, _len = list.length; _i < _len; _i += 1) {
+          for (var _i = 0; _i < len; _i += 1) {
             var _list$_i = list[_i],
                 item = _list$_i.$,
                 _idx = _list$_i.i;
@@ -1643,7 +1617,7 @@
               }
 
               if (isArray(_value)) {
-                for (var k = 0, _len2 = _value.length; k < _len2; k += 1) {
+                for (var k = 0, _len = _value.length; k < _len; k += 1) {
                   var arrItem = _value[k];
                   var _text = arrItem.v,
                       _idx2 = arrItem.i,
@@ -1720,9 +1694,7 @@
     }, {
       key: "_computeScore",
       value: function _computeScore(results) {
-        var resultsLen = results.length;
-
-        for (var i = 0; i < resultsLen; i += 1) {
+        for (var i = 0, len = results.length; i < len; i += 1) {
           var result = results[i];
           var matches = result.matches;
           var numMatches = matches.length;
@@ -1746,7 +1718,7 @@
     }, {
       key: "_format",
       value: function _format(results) {
-        var finalOutput = [];
+        var output = [];
         var _this$options = this.options,
             includeMatches = _this$options.includeMatches,
             includeScore = _this$options.includeScore;
@@ -1758,20 +1730,20 @@
           var result = results[i];
           var idx = result.idx;
           var data = {
-            item: this.list[idx],
+            item: this._list[idx],
             refIndex: idx
           };
 
           if (transformers.length) {
-            for (var j = 0, _len3 = transformers.length; j < _len3; j += 1) {
+            for (var j = 0, _len2 = transformers.length; j < _len2; j += 1) {
               transformers[j](result, data);
             }
           }
 
-          finalOutput.push(data);
+          output.push(data);
         }
 
-        return finalOutput;
+        return output;
       }
     }]);
 

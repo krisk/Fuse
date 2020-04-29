@@ -14,10 +14,6 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
   let fuse
   beforeEach(() => (fuse = setup()))
 
-  it('should have the list property', () => {
-    expect(fuse.list).toBe(defaultList)
-  })
-
   describe('When searching for the term "Apple"', () => {
     let result
     beforeEach(() => (result = fuse.search('Apple')))
@@ -803,32 +799,6 @@ describe('Sorted search results', () => {
       expect(result[0].item.title).toBe('The Code of the Wooster')
       expect(result[1].item.title).toBe('Right Ho Jeeves')
       expect(result[2].item.title).toBe('Thank You Jeeves')
-    })
-  })
-})
-
-describe('Searching through a deeply nested object', () => {
-  const customList = {}
-  const customOptions = {
-    includeMatches: true,
-    minMatchCharLength: 2
-  }
-  let fuse
-
-  customList.o = customList
-
-  beforeEach(() => (fuse = new Fuse(customList, customOptions)))
-
-  describe('When working with a deeply nested JSON data structure', () => {
-    let resultThunk
-    beforeEach(() => {
-      resultThunk = jest.fn(() => fuse._format(fuse))
-      resultThunk()
-    })
-
-    test('we should get no JSON circular', () => {
-      expect(resultThunk).toHaveBeenCalledTimes(1)
-      expect(resultThunk).not.toThrow()
     })
   })
 })

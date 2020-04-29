@@ -16,39 +16,25 @@ export function register(...args) {
 }
 
 export default class Fuse {
-  constructor(list, options = {}, index = null) {
+  constructor(list, options = {}, index) {
     this.options = { ...Config, ...options }
 
-    this._processKeys(this.options.keys)
+    this._keyStore = new KeyStore(this.options.keys)
     this.setCollection(list, index)
   }
 
-  setCollection(list, index = null) {
-    this.list = list
-    this.listIsStringArray = isString(list[0])
+  setCollection(list, index) {
+    this._list = list
+    this._listIsStringArray = isString(list[0])
 
-    if (index) {
-      this.setIndex(index)
-    } else {
-      this.setIndex(this._createIndex())
-    }
+    this._index =
+      index ||
+      createIndex(this._keyStore.keys(), this._list, {
+        getFn: this.options.getFn
+      })
   }
 
-  setIndex(index) {
-    this._index = index
-  }
-
-  _processKeys(keys) {
-    this._keyStore = new KeyStore(keys)
-  }
-
-  _createIndex() {
-    return createIndex(this._keyStore.keys(), this.list, {
-      getFn: this.options.getFn
-    })
-  }
-
-  search(pattern, opts = { limit: false }) {
+  search(pattern, { limit = -1 } = {}) {
     pattern = pattern.trim()
 
     if (!pattern.length) {
@@ -79,8 +65,8 @@ export default class Fuse {
       results.sort(this.options.sortFn)
     }
 
-    if (opts.limit && isNumber(opts.limit)) {
-      results = results.slice(0, opts.limit)
+    if (isNumber(limit) && limit > -1) {
+      results = results.slice(0, limit)
     }
 
     return this._format(results)
@@ -90,11 +76,12 @@ export default class Fuse {
     const { keys, list } = this._index
     const results = []
     const { includeMatches } = this.options
+    const len = list.length
 
     // List is Array<String>
-    if (this.listIsStringArray) {
+    if (this._listIsStringArray) {
       // Iterate over every string in the list
-      for (let i = 0, len = list.length; i < len; i += 1) {
+      for (let i = 0; i < len; i += 1) {
         let value = list[i]
         let { v: text, i: idx, n: norm } = value
 
@@ -126,7 +113,7 @@ export default class Fuse {
       // List is Array<Object>
       const keysLen = keys.length
 
-      for (let i = 0, len = list.length; i < len; i += 1) {
+      for (let i = 0; i < len; i += 1) {
         let { $: item, i: idx } = list[i]
 
         if (!isDefined(item)) {
@@ -205,9 +192,7 @@ export default class Fuse {
 
   // Practical scoring function
   _computeScore(results) {
-    const resultsLen = results.length
-
-    for (let i = 0; i < resultsLen; i += 1) {
+    for (let i = 0, len = results.length; i < len; i += 1) {
       const result = results[i]
       const matches = result.matches
       const numMatches = matches.length
@@ -231,7 +216,7 @@ export default class Fuse {
   }
 
   _format(results) {
-    const finalOutput = []
+    const output = []
 
     const { includeMatches, includeScore } = this.options
 
@@ -245,7 +230,7 @@ export default class Fuse {
       const { idx } = result
 
       const data = {
-        item: this.list[idx],
+        item: this._list[idx],
         refIndex: idx
       }
 
@@ -255,9 +240,9 @@ export default class Fuse {
         }
       }
 
-      finalOutput.push(data)
+      output.push(data)
     }
 
-    return finalOutput
+    return output
   }
 }
