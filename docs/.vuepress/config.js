@@ -133,9 +133,13 @@ function getHead() {
 
   const meta = [
     { name: 'msapplication-TileColor', content: '#ffffff' },
-    { name: 'msapplication-TileImage', content: '/ms-icon-144x144.png' },
-    { name: 'theme-color', content: '#ffffff' }
-  ].map(({ name, content }) => ['meta', { name, content: `/icons/${content}` }])
+    { name: 'msapplication-TileImage', content: '/icons/ms-icon-144x144.png' },
+    { name: 'theme-color', content: '#ffffff' },
+    {
+      name: 'google-site-verification',
+      content: '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
+    }
+  ].map(({ name, content }) => ['meta', { name, content }])
 
   return [
     ...appleTouchIcons,
