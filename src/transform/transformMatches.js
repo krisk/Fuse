@@ -15,9 +15,11 @@ export default function transformMatches(result, data) {
       continue
     }
 
+    const { indices, value } = match
+
     let obj = {
-      indices: match.indices,
-      value: match.value
+      indices,
+      value
     }
 
     if (match.key) {

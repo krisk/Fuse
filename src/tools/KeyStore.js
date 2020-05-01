@@ -23,6 +23,8 @@ export default class KeyStore {
       for (let i = 0; i < len; i += 1) {
         const key = keys[i]
 
+        let obj = {}
+
         if (!hasOwn.call(key, 'name')) {
           throw new Error('Missing "name" property in key object')
         }
@@ -42,9 +44,13 @@ export default class KeyStore {
           )
         }
 
-        this._keys[keyName] = {
-          weight
+        obj.weight = weight
+
+        if (hasOwn.call(key, 'threshold')) {
+          obj.threshold = key.threshold
         }
+
+        this._keys[keyName] = obj
 
         totalWeight += weight
       }
