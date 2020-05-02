@@ -1,30 +1,14 @@
-import { BitapSearch } from '../search'
 import {
   isArray,
   isDefined,
   isString,
-  isNumber,
-  isObject
+  isNumber
 } from '../helpers/type-checkers'
 import { createIndex, KeyStore } from '../tools'
 import { transformMatches, transformScore } from '../transform'
+import { LogicalOperator, parse } from './queryParser'
+import { createSearcher } from './register'
 import Config from './config'
-
-const registeredSearchers = []
-
-const LogicalOperator = {
-  AND: '$and',
-  OR: '$or'
-}
-
-const OperatorSet = new Set(Object.values(LogicalOperator))
-
-////////
-const util = require('util')
-const print = (result) => {
-  console.log(util.inspect(result, false, null, true /* enable colors */))
-}
-///////
 
 export default class Fuse {
   constructor(list, options = {}, index) {
@@ -44,40 +28,39 @@ export default class Fuse {
       })
   }
 
-  search(criteria, { limit = -1 } = {}) {
+  search(query, { limit = -1 } = {}) {
     let results = []
-    const options = this.options
 
-    if (isString(criteria)) {
-      const searcher = createSearcher(criteria, options)
+    const { includeMatches, includeScore, shouldSort, sortFn } = this.options
 
-      if (isString(this._list[0])) {
-        results = this._searchStringArrayWith(searcher)
-      } else {
-        results = this._searchAllWith(searcher)
-      }
+    if (isString(query)) {
+      const searcher = createSearcher(query, this.options)
+
+      results = isString(this._list[0])
+        ? this._searchStringArrayWith(searcher)
+        : this._searchAllWith(searcher)
     } else {
-      let root = parseQuery(criteria, options)
+      let expression = parse(query, this.options)
 
       const { keys, list } = this._index
 
-      const _results = []
+      const resultMap = {}
 
-      for (let i = 0, len = list.length; i < len; i += 1) {
-        let { $: item, i: idx } = list[i]
+      list.forEach((listItem) => {
+        let { $: item, i: idx } = listItem
 
         if (!isDefined(item)) {
-          continue
+          return
         }
 
-        const walkTree = (node) => {
+        const evaluateExpression = (node) => {
           if (node.children) {
             const operator = node.operator
             let res = []
 
             for (let k = 0; k < node.children.length; k += 1) {
               let child = node.children[k]
-              let matches = walkTree(child)
+              let matches = evaluateExpression(child)
 
               if (matches && matches.length) {
                 res.push({
@@ -90,14 +73,23 @@ export default class Fuse {
                 break
               }
             }
+
             if (res.length) {
-              _results.push(...res)
+              // Dedupe when adding
+              if (!resultMap[idx]) {
+                resultMap[idx] = { idx, item, matches: [] }
+                results.push(resultMap[idx])
+              }
+              res.forEach((item) => {
+                resultMap[idx].matches.push(...item.matches)
+              })
             }
           } else {
             const { key, searcher } = node
             const keyIndex = keys.indexOf(key)
             const value = item[keyIndex]
-            let matches = this._searchNestedWith({
+
+            let matches = this._findMatches({
               key,
               value,
               searcher
@@ -106,15 +98,11 @@ export default class Fuse {
           }
         }
 
-        walkTree(root)
-      }
-
-      results = dedupe(_results)
+        evaluateExpression(expression)
+      })
     }
 
-    const { shouldSort, sortFn } = this.options
-
-    this._computeScore(results)
+    computeScore(results, this._keyStore)
 
     if (shouldSort) {
       results.sort(sortFn)
@@ -124,7 +112,10 @@ export default class Fuse {
       results = results.slice(0, limit)
     }
 
-    return this._format(results)
+    return format(results, this._list, {
+      includeMatches,
+      includeScore
+    })
   }
 
   _searchStringArrayWith(searcher) {
@@ -134,20 +125,19 @@ export default class Fuse {
     const results = []
 
     // Iterate over every string in the list
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      let value = list[i]
-      let { v: text, i: idx, n: norm } = value
+    list.forEach((listItem) => {
+      let { v: text, i: idx, n: norm } = listItem
 
       if (!isDefined(text)) {
-        continue
+        return
       }
 
-      let searchResult = searcher.searchIn(value)
+      let searchResult = searcher.searchIn(listItem)
 
       const { isMatch, score } = searchResult
 
       if (!isMatch) {
-        continue
+        return
       }
 
       let match = { score, value: text, norm }
@@ -161,7 +151,7 @@ export default class Fuse {
         idx,
         matches: [match]
       })
-    }
+    })
 
     return results
   }
@@ -171,20 +161,16 @@ export default class Fuse {
     const { keys, list } = this._index
     const keyIndex = keys.indexOf(key)
 
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      let { $: item, i: idx } = list[i]
+    list.forEach((listItem) => {
+      let { $: item, i: idx } = listItem
 
       if (!isDefined(item)) {
-        continue
+        return
       }
 
-      const value = item[keyIndex]
-
-      // console.log({ key, value })
-
-      let matches = this._searchNestedWith({
+      let matches = this._findMatches({
         key,
-        value,
+        value: item[keyIndex],
         searcher
       })
 
@@ -195,42 +181,35 @@ export default class Fuse {
           matches
         })
       }
-    }
+    })
 
     return results
   }
 
   _searchAllWith(searcher) {
+    const { keys, list } = this._index
     const results = []
 
-    const { keys, list } = this._index
-    const len = list.length
-
     // List is Array<Object>
-    const keysLen = keys.length
-
-    for (let i = 0; i < len; i += 1) {
-      let { $: item, i: idx } = list[i]
+    list.forEach((listItem) => {
+      let { $: item, i: idx } = listItem
 
       if (!isDefined(item)) {
-        continue
+        return
       }
 
       let matches = []
 
       // Iterate over every key (i.e, path), and fetch the value at that key
-      for (let j = 0; j < keysLen; j += 1) {
-        const key = keys[j]
-        const value = item[j]
-
+      keys.forEach((key, j) => {
         matches.push(
-          ...this._searchNestedWith({
+          ...this._findMatches({
             key,
-            value,
+            value: item[j],
             searcher
           })
         )
-      }
+      })
 
       if (matches.length) {
         results.push({
@@ -239,12 +218,11 @@ export default class Fuse {
           matches
         })
       }
-    }
+    })
 
     return results
   }
-
-  _searchNestedWith({ key, value, searcher }) {
+  _findMatches({ key, value, searcher }) {
     let matches = []
 
     if (!isDefined(value)) {
@@ -254,20 +232,19 @@ export default class Fuse {
     const { includeMatches } = this.options
 
     if (isArray(value)) {
-      for (let k = 0, len = value.length; k < len; k += 1) {
-        let arrItem = value[k]
-        const { v: text, i: idx, n: norm } = arrItem
+      value.forEach((arrValue) => {
+        const { v: text, i: idx, n: norm } = arrValue
 
         if (!isDefined(text)) {
-          continue
+          return
         }
 
-        let searchResult = searcher.searchIn(arrItem)
+        let searchResult = searcher.searchIn(arrValue)
 
         const { isMatch, score } = searchResult
 
         if (!isMatch) {
-          continue
+          return
         }
 
         let match = {
@@ -283,7 +260,7 @@ export default class Fuse {
         }
 
         matches.push(match)
-      }
+      })
     } else {
       const { v: text, n: norm } = value
 
@@ -306,133 +283,56 @@ export default class Fuse {
 
     return matches
   }
-
-  // Practical scoring function
-  _computeScore(results) {
-    for (let i = 0, len = results.length; i < len; i += 1) {
-      const result = results[i]
-      const matches = result.matches
-      const numMatches = matches.length
-
-      let totalScore = 1
-
-      for (let j = 0; j < numMatches; j += 1) {
-        const match = matches[j]
-        const { key, norm } = match
-
-        const keyWeight = this._keyStore.get(key, 'weight')
-        const weight = keyWeight > -1 ? keyWeight : 1
-        const score =
-          match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score
-
-        totalScore *= Math.pow(score, weight * norm)
-      }
-
-      result.score = totalScore
-    }
-  }
-
-  _format(results) {
-    const output = []
-
-    const { includeMatches, includeScore } = this.options
-
-    let transformers = []
-
-    if (includeMatches) transformers.push(transformMatches)
-    if (includeScore) transformers.push(transformScore)
-
-    for (let i = 0, len = results.length; i < len; i += 1) {
-      const result = results[i]
-      const { idx } = result
-
-      const data = {
-        item: this._list[idx],
-        refIndex: idx
-      }
-
-      if (transformers.length) {
-        for (let j = 0, len = transformers.length; j < len; j += 1) {
-          transformers[j](result, data)
-        }
-      }
-
-      output.push(data)
-    }
-
-    return output
-  }
 }
 
-export function register(...args) {
-  registeredSearchers.push(...args)
-}
+// Practical scoring function
+function computeScore(results, keyStore) {
+  results.forEach((result) => {
+    let totalScore = 1
 
-function createSearcher(pattern, options) {
-  for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
-    let searcherClass = registeredSearchers[i]
-    if (searcherClass.condition(pattern, options)) {
-      return new searcherClass(pattern, options)
-    }
-  }
+    result.matches.forEach((match) => {
+      const { key, norm } = match
 
-  return new BitapSearch(pattern, options)
-}
+      const keyWeight = keyStore.get(key, 'weight') || -1
+      const weight = keyWeight > -1 ? keyWeight : 1
 
-function parseQuery(query, options) {
-  const next = (query) => {
-    const keys = Object.keys(query)
-    const key = keys[0]
+      const score =
+        match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score
 
-    if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
-      const pattern = query[key]
-
-      return {
-        key,
-        pattern,
-        searcher: createSearcher(pattern, options)
-      }
-    }
-
-    let node = {
-      children: [],
-      operator: key
-    }
-
-    keys.forEach((key) => {
-      const value = query[key]
-      if (isArray(value)) {
-        value.forEach((item) => {
-          node.children.push(next(item))
-        })
-      }
+      totalScore *= Math.pow(score, weight * norm)
     })
 
-    return node
-  }
-
-  if (!query[LogicalOperator.AND] || !query[LogicalOperator.OR]) {
-    query = {
-      [LogicalOperator.AND]: Object.keys(query).map((key) => ({
-        [key]: query[key]
-      }))
-    }
-  }
-
-  return next(query)
+    result.score = totalScore
+  })
 }
 
-function dedupe(items) {
-  const results = []
-  let map = {}
-  for (let i = 0, len = items.length; i < len; i += 1) {
-    let item = items[i]
-    if (map[item.idx]) {
-      map[item.idx].matches.push(...item.matches)
-    } else {
-      map[item.idx] = item
-      results.push(item)
+function format(
+  results,
+  list,
+  {
+    includeMatches = Config.includeMatches,
+    includeScore = Config.includeScore
+  } = {}
+) {
+  const transformers = []
+
+  if (includeMatches) transformers.push(transformMatches)
+  if (includeScore) transformers.push(transformScore)
+
+  return results.map((result) => {
+    const { idx } = result
+
+    const data = {
+      item: list[idx],
+      refIndex: idx
     }
-  }
-  return results
+
+    if (transformers.length) {
+      transformers.forEach((transformer) => {
+        transformer(result, data)
+      })
+    }
+
+    return data
+  })
 }

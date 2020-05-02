@@ -62,7 +62,7 @@ export default class KeyStore {
     }
   }
   get(key, name) {
-    return this._keys[key] ? this._keys[key][name] : -1
+    return this._keys[key] && this._keys[key][name]
   }
   keys() {
     return this._keyNames

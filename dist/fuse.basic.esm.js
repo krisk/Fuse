@@ -140,6 +140,226 @@ var Config = {
   ...AdvancedOptions
 };
 
+const SPACE = /[^ ]+/g;
+
+// Field-length norm: the shorter the field, the higher the weight.
+// Set to 3 decimals to reduce index size.
+function norm(mantissa = 3) {
+  const cache = new Map();
+
+  return {
+    get(value) {
+      const numTokens = value.match(SPACE).length;
+
+      if (cache.has(numTokens)) {
+        return cache.get(numTokens)
+      }
+
+      const n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
+
+      cache.set(numTokens, n);
+
+      return n
+    },
+    clear() {
+      cache.clear();
+    }
+  }
+}
+
+function createIndex(keys, list, { getFn = Config.getFn } = {}) {
+  let indexedList = [];
+  let norm$1 = norm(3);
+
+  // List is Array<String>
+  if (isString(list[0])) {
+    list.forEach((item, itemIndex) => {
+      if (!isDefined(item) || isBlank(item)) {
+        return
+      }
+
+      let record = {
+        v: item,
+        i: itemIndex,
+        n: norm$1.get(item)
+      };
+
+      indexedList.push(record);
+    });
+  } else {
+    // List is Array<Object>
+    list.forEach((item, itemIndex) => {
+      let record = { i: itemIndex, $: {} };
+
+      // Iterate over every key (i.e, path), and fetch the value at that key
+      keys.forEach((key, keyIndex) => {
+        let value = getFn(item, key);
+
+        if (!isDefined(value)) {
+          return
+        }
+
+        if (isArray(value)) {
+          let subRecords = [];
+          const stack = [{ nestedArrIndex: -1, value }];
+
+          while (stack.length) {
+            const { nestedArrIndex, value } = stack.pop();
+
+            if (!isDefined(value)) {
+              continue
+            }
+
+            if (isString(value) && !isBlank(value)) {
+              let subRecord = {
+                v: value,
+                i: nestedArrIndex,
+                n: norm$1.get(value)
+              };
+
+              subRecords.push(subRecord);
+            } else if (isArray(value)) {
+              value.forEach((item, k) => {
+                stack.push({
+                  nestedArrIndex: k,
+                  value: item
+                });
+              });
+            }
+          }
+          record.$[keyIndex] = subRecords;
+        } else if (!isBlank(value)) {
+          let subRecord = {
+            v: value,
+            n: norm$1.get(value)
+          };
+
+          record.$[keyIndex] = subRecord;
+        }
+      });
+
+      indexedList.push(record);
+    });
+  }
+
+  norm$1.clear();
+
+  return {
+    keys,
+    list: indexedList
+  }
+}
+
+const hasOwn = Object.prototype.hasOwnProperty;
+
+class KeyStore {
+  constructor(keys) {
+    this._keys = {};
+    this._keyNames = [];
+    const len = keys.length;
+
+    // Iterate over every key
+    if (keys.length && isString(keys[0])) {
+      for (let i = 0; i < len; i += 1) {
+        const key = keys[i];
+        this._keys[key] = {
+          weight: 1
+        };
+        this._keyNames.push(key);
+      }
+    } else {
+      let totalWeight = 0;
+
+      for (let i = 0; i < len; i += 1) {
+        const key = keys[i];
+
+        let obj = {};
+
+        if (!hasOwn.call(key, 'name')) {
+          throw new Error('Missing "name" property in key object')
+        }
+
+        const keyName = key.name;
+        this._keyNames.push(keyName);
+
+        if (!hasOwn.call(key, 'weight')) {
+          throw new Error('Missing "weight" property in key object')
+        }
+
+        const weight = key.weight;
+
+        if (weight <= 0 || weight >= 1) {
+          throw new Error(
+            '"weight" property in key must be in the range of (0, 1)'
+          )
+        }
+
+        obj.weight = weight;
+
+        if (hasOwn.call(key, 'threshold')) {
+          obj.threshold = key.threshold;
+        }
+
+        this._keys[keyName] = obj;
+
+        totalWeight += weight;
+      }
+
+      // Normalize weights so that their sum is equal to 1
+      for (let i = 0; i < len; i += 1) {
+        this._keys[this._keyNames[i]].weight /= totalWeight;
+      }
+    }
+  }
+  get(key, name) {
+    return this._keys[key] && this._keys[key][name]
+  }
+  keys() {
+    return this._keyNames
+  }
+  toJSON() {
+    return JSON.stringify(this._keys)
+  }
+}
+
+function transformMatches(result, data) {
+  const matches = result.matches;
+  data.matches = [];
+
+  if (!isDefined(matches)) {
+    return
+  }
+
+  for (let i = 0, len = matches.length; i < len; i += 1) {
+    let match = matches[i];
+
+    if (!isDefined(match.indices) || match.indices.length === 0) {
+      continue
+    }
+
+    const { indices, value } = match;
+
+    let obj = {
+      indices,
+      value
+    };
+
+    if (match.key) {
+      obj.key = match.key;
+    }
+
+    if (match.idx > -1) {
+      obj.refIndex = match.idx;
+    }
+
+    data.matches.push(obj);
+  }
+}
+
+function transformScore(result, data) {
+  data.score = result.score;
+}
+
 function computeScore(
   pattern,
   {
@@ -498,235 +718,68 @@ class BitapSearch {
   }
 }
 
-const SPACE = /[^ ]+/g;
-
-// Field-length norm: the shorter the field, the higher the weight.
-// Set to 3 decimals to reduce index size.
-function norm(mantissa = 3) {
-  const cache = new Map();
-
-  return {
-    get(value) {
-      const numTokens = value.match(SPACE).length;
-
-      if (cache.has(numTokens)) {
-        return cache.get(numTokens)
-      }
-
-      const n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
-
-      cache.set(numTokens, n);
-
-      return n
-    },
-    clear() {
-      cache.clear();
-    }
-  }
-}
-
-function createIndex(keys, list, { getFn = Config.getFn } = {}) {
-  let indexedList = [];
-  let norm$1 = norm(3);
-
-  // List is Array<String>
-  if (isString(list[0])) {
-    // Iterate over every string in the list
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      const value = list[i];
-
-      if (isDefined(value) && !isBlank(value)) {
-        let record = {
-          v: value,
-          i,
-          n: norm$1.get(value)
-        };
-
-        indexedList.push(record);
-      }
-    }
-  } else {
-    // List is Array<Object>
-    const keysLen = keys.length;
-
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      let item = list[i];
-
-      let record = { i, $: {} };
-
-      // Iterate over every key (i.e, path), and fetch the value at that key
-      for (let j = 0; j < keysLen; j += 1) {
-        let key = keys[j];
-        let value = getFn(item, key);
-
-        if (!isDefined(value)) {
-          continue
-        }
-
-        if (isArray(value)) {
-          let subRecords = [];
-          const stack = [{ arrayIndex: -1, value }];
-
-          while (stack.length) {
-            const { arrayIndex, value } = stack.pop();
-
-            if (!isDefined(value)) {
-              continue
-            }
-
-            if (isString(value) && !isBlank(value)) {
-              let subRecord = {
-                v: value,
-                i: arrayIndex,
-                n: norm$1.get(value)
-              };
-
-              subRecords.push(subRecord);
-            } else if (isArray(value)) {
-              for (let k = 0, arrLen = value.length; k < arrLen; k += 1) {
-                stack.push({
-                  arrayIndex: k,
-                  value: value[k]
-                });
-              }
-            }
-          }
-          record.$[j] = subRecords;
-        } else if (!isBlank(value)) {
-          let subRecord = {
-            v: value,
-            n: norm$1.get(value)
-          };
-
-          record.$[j] = subRecord;
-        }
-      }
-
-      indexedList.push(record);
-    }
-  }
-
-  norm$1.clear();
-
-  return {
-    keys,
-    list: indexedList
-  }
-}
-
-const hasOwn = Object.prototype.hasOwnProperty;
-
-class KeyStore {
-  constructor(keys) {
-    this._keys = {};
-    this._keyNames = [];
-    const len = keys.length;
-
-    // Iterate over every key
-    if (keys.length && isString(keys[0])) {
-      for (let i = 0; i < len; i += 1) {
-        const key = keys[i];
-        this._keys[key] = {
-          weight: 1
-        };
-        this._keyNames.push(key);
-      }
-    } else {
-      let totalWeight = 0;
-
-      for (let i = 0; i < len; i += 1) {
-        const key = keys[i];
-
-        let obj = {};
-
-        if (!hasOwn.call(key, 'name')) {
-          throw new Error('Missing "name" property in key object')
-        }
-
-        const keyName = key.name;
-        this._keyNames.push(keyName);
-
-        if (!hasOwn.call(key, 'weight')) {
-          throw new Error('Missing "weight" property in key object')
-        }
-
-        const weight = key.weight;
-
-        if (weight <= 0 || weight >= 1) {
-          throw new Error(
-            '"weight" property in key must be in the range of (0, 1)'
-          )
-        }
-
-        obj.weight = weight;
-
-        if (hasOwn.call(key, 'threshold')) {
-          obj.threshold = key.threshold;
-        }
-
-        this._keys[keyName] = obj;
-
-        totalWeight += weight;
-      }
-
-      // Normalize weights so that their sum is equal to 1
-      for (let i = 0; i < len; i += 1) {
-        this._keys[this._keyNames[i]].weight /= totalWeight;
-      }
-    }
-  }
-  get(key, name) {
-    return this._keys[key] ? this._keys[key][name] : -1
-  }
-  keys() {
-    return this._keyNames
-  }
-  toJSON() {
-    return JSON.stringify(this._keys)
-  }
-}
-
-function transformMatches(result, data) {
-  const matches = result.matches;
-  data.matches = [];
-
-  if (!isDefined(matches)) {
-    return
-  }
-
-  for (let i = 0, len = matches.length; i < len; i += 1) {
-    let match = matches[i];
-
-    if (!isDefined(match.indices) || match.indices.length === 0) {
-      continue
-    }
-
-    let obj = {
-      indices: match.indices,
-      value: match.value
-    };
-
-    if (match.key) {
-      obj.key = match.key;
-    }
-
-    if (match.idx > -1) {
-      obj.refIndex = match.idx;
-    }
-
-    data.matches.push(obj);
-  }
-}
-
-function transformScore(result, data) {
-  data.score = result.score;
-}
-
 const registeredSearchers = [];
 
-const OperatorSet = new Set(['$and', '$or']);
+function createSearcher(pattern, options) {
+  for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
+    let searcherClass = registeredSearchers[i];
+    if (searcherClass.condition(pattern, options)) {
+      return new searcherClass(pattern, options)
+    }
+  }
 
-const util = require('util');
+  return new BitapSearch(pattern, options)
+}
+
+const LogicalOperator = {
+  AND: '$and',
+  OR: '$or'
+};
+
+const OperatorSet = new Set(Object.values(LogicalOperator));
+
+function parseQuery(query, options) {
+  const next = (query) => {
+    const keys = Object.keys(query);
+    const key = keys[0];
+
+    if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
+      const pattern = query[key];
+
+      return {
+        key,
+        pattern,
+        searcher: createSearcher(pattern, options)
+      }
+    }
+
+    let node = {
+      children: [],
+      operator: key
+    };
+
+    keys.forEach((key) => {
+      const value = query[key];
+      if (isArray(value)) {
+        value.forEach((item) => {
+          node.children.push(next(item));
+        });
+      }
+    });
+
+    return node
+  };
+
+  if (!query[LogicalOperator.AND] || !query[LogicalOperator.OR]) {
+    query = {
+      [LogicalOperator.AND]: Object.keys(query).map((key) => ({
+        [key]: query[key]
+      }))
+    };
+  }
+
+  return next(query)
+}
 
 class Fuse {
   constructor(list, options = {}, index) {
@@ -738,7 +791,6 @@ class Fuse {
 
   setCollection(list, index) {
     this._list = list;
-    this._listIsStringArray = isString(list[0]);
 
     this._index =
       index ||
@@ -747,125 +799,81 @@ class Fuse {
       });
   }
 
-  search(criteria, { limit = -1 } = {}) {
+  search(query, { limit = -1 } = {}) {
     let results = [];
-    const options = this.options;
 
-    const createSearcher = (pattern) => {
-      for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
-        let searcherClass = registeredSearchers[i];
-        if (searcherClass.condition(pattern, options)) {
-          return new searcherClass(pattern, options)
-        }
-      }
+    const { includeMatches, includeScore, shouldSort, sortFn } = this.options;
 
-      return new BitapSearch(pattern, options)
-    };
+    if (isString(query)) {
+      const searcher = createSearcher(query, this.options);
 
-    if (isString(criteria)) {
-      const searcher = createSearcher(criteria);
-
-      if (this._listIsStringArray) {
-        results = this._searchStringArrayWith(searcher);
-      } else {
-        results = this._searchAllWith(searcher);
-      }
+      results = isString(this._list[0])
+        ? this._searchStringArrayWith(searcher)
+        : this._searchAllWith(searcher);
     } else {
-      const parse = (query) => {
-        const keys = Object.keys(query);
-        const key = keys[0];
-        if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
-          const pattern = query[key];
+      let expression = parseQuery(query, this.options);
 
-          return {
-            key,
-            pattern,
-            searcher: createSearcher(pattern, this.options)
-          }
+      const { keys, list } = this._index;
+
+      const resultMap = {};
+
+      list.forEach((listItem) => {
+        let { $: item, i: idx } = listItem;
+
+        if (!isDefined(item)) {
+          return
         }
 
-        let node = {
-          children: [],
-          operator: key
+        const evaluateExpression = (node) => {
+          if (node.children) {
+            const operator = node.operator;
+            let res = [];
+
+            for (let k = 0; k < node.children.length; k += 1) {
+              let child = node.children[k];
+              let matches = evaluateExpression(child);
+
+              if (matches && matches.length) {
+                res.push({
+                  idx,
+                  item,
+                  matches
+                });
+              } else if (operator === LogicalOperator.AND) {
+                res.length = 0;
+                break
+              }
+            }
+
+            if (res.length) {
+              // Dedupe when adding
+              if (!resultMap[idx]) {
+                resultMap[idx] = { idx, item, matches: [] };
+                results.push(resultMap[idx]);
+              }
+              res.forEach((item) => {
+                resultMap[idx].matches.push(...item.matches);
+              });
+            }
+          } else {
+            const { key, searcher } = node;
+            const keyIndex = keys.indexOf(key);
+            const value = item[keyIndex];
+
+            let matches = this._findMatches({
+              key,
+              value,
+              searcher
+            });
+            return matches
+          }
         };
 
-        for (let i = 0, len = keys.length; i < len; i += 1) {
-          const key = keys[i];
-          const value = query[key];
-
-          if (isArray(value)) {
-            for (let i = 0, len = value.length; i < len; i += 1) {
-              node.children.push(parse(value[i]));
-            }
-          }
-        }
-
-        return node
-      };
-
-      let root = parse(criteria);
-
-      // print(root)
-
-      const evaluate = (node) => {
-        if (node.operator === '$and') {
-          const children = node.children;
-
-          const results = [];
-
-          for (let i = 0, len = children.length; i < len; i += 1) {
-            let child = children[i];
-            let result = evaluate(child);
-
-            if (result.length) {
-              results.push(...result);
-            } else {
-              results.length = 0;
-              break
-            }
-          }
-
-          return results
-        } else if (node.operator === '$or') {
-          const children = node.children;
-
-          const results = [];
-
-          for (let i = 0, len = children.length; i < len; i += 1) {
-            let child = children[i];
-            let result = evaluate(child);
-
-            if (result.length) {
-              results.push(...result);
-            }
-          }
-
-          return results
-        } else {
-          return this._searchLogicalWith(node)
-        }
-      };
-
-      // print({ root })
-
-      let tree = evaluate(root);
-
-      let map = {};
-
-      for (let i = 0, len = tree.length; i < len; i += 1) {
-        let item = tree[i];
-        if (map[item.idx]) {
-          map[item.idx].matches.push(...item.matches);
-        } else {
-          map[item.idx] = item;
-          results.push(item);
-        }
-      }
+        evaluateExpression(expression);
+      });
     }
 
-    const { shouldSort, sortFn } = this.options;
-
-    this._computeScore(results);
+    computeScore$1(results, this._keyStore);
 
     if (shouldSort) {
       results.sort(sortFn);
@@ -875,7 +883,10 @@ class Fuse {
       results = results.slice(0, limit);
     }
 
-    return this._format(results)
+    return format(results, this._list, {
+      includeMatches,
+      includeScore
+    })
   }
 
   _searchStringArrayWith(searcher) {
@@ -885,20 +896,19 @@ class Fuse {
     const results = [];
 
     // Iterate over every string in the list
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      let value = list[i];
-      let { v: text, i: idx, n: norm } = value;
+    list.forEach((listItem) => {
+      let { v: text, i: idx, n: norm } = listItem;
 
       if (!isDefined(text)) {
-        continue
+        return
       }
 
-      let searchResult = searcher.searchIn(value);
+      let searchResult = searcher.searchIn(listItem);
 
       const { isMatch, score } = searchResult;
 
       if (!isMatch) {
-        continue
+        return
       }
 
       let match = { score, value: text, norm };
@@ -912,7 +922,7 @@ class Fuse {
         idx,
         matches: [match]
       });
-    }
+    });
 
     return results
   }
@@ -922,18 +932,16 @@ class Fuse {
     const { keys, list } = this._index;
     const keyIndex = keys.indexOf(key);
 
-    for (let i = 0, len = list.length; i < len; i += 1) {
-      let { $: item, i: idx } = list[i];
+    list.forEach((listItem) => {
+      let { $: item, i: idx } = listItem;
 
       if (!isDefined(item)) {
-        continue
+        return
       }
 
-      const value = item[keyIndex];
-
-      let matches = this._searchNestedWith({
+      let matches = this._findMatches({
         key,
-        value,
+        value: item[keyIndex],
         searcher
       });
 
@@ -944,42 +952,35 @@ class Fuse {
           matches
         });
       }
-    }
+    });
 
     return results
   }
 
   _searchAllWith(searcher) {
+    const { keys, list } = this._index;
     const results = [];
 
-    const { keys, list } = this._index;
-    const len = list.length;
-
     // List is Array<Object>
-    const keysLen = keys.length;
-
-    for (let i = 0; i < len; i += 1) {
-      let { $: item, i: idx } = list[i];
+    list.forEach((listItem) => {
+      let { $: item, i: idx } = listItem;
 
       if (!isDefined(item)) {
-        continue
+        return
       }
 
       let matches = [];
 
       // Iterate over every key (i.e, path), and fetch the value at that key
-      for (let j = 0; j < keysLen; j += 1) {
-        const key = keys[j];
-        const value = item[j];
-
+      keys.forEach((key, j) => {
         matches.push(
-          ...this._searchNestedWith({
+          ...this._findMatches({
             key,
-            value,
+            value: item[j],
             searcher
           })
         );
-      }
+      });
 
       if (matches.length) {
         results.push({
@@ -988,12 +989,11 @@ class Fuse {
           matches
         });
       }
-    }
+    });
 
     return results
   }
-
-  _searchNestedWith({ key, value, searcher }) {
+  _findMatches({ key, value, searcher }) {
     let matches = [];
 
     if (!isDefined(value)) {
@@ -1003,20 +1003,19 @@ class Fuse {
     const { includeMatches } = this.options;
 
     if (isArray(value)) {
-      for (let k = 0, len = value.length; k < len; k += 1) {
-        let arrItem = value[k];
-        const { v: text, i: idx, n: norm } = arrItem;
+      value.forEach((arrValue) => {
+        const { v: text, i: idx, n: norm } = arrValue;
 
         if (!isDefined(text)) {
-          continue
+          return
         }
 
-        let searchResult = searcher.searchIn(arrItem);
+        let searchResult = searcher.searchIn(arrValue);
 
         const { isMatch, score } = searchResult;
 
         if (!isMatch) {
-          continue
+          return
         }
 
         let match = {
@@ -1032,7 +1031,7 @@ class Fuse {
         }
 
         matches.push(match);
-      }
+      });
     } else {
       const { v: text, n: norm } = value;
 
@@ -1055,62 +1054,58 @@ class Fuse {
 
     return matches
   }
+}
 
-  // Practical scoring function
-  _computeScore(results) {
-    for (let i = 0, len = results.length; i < len; i += 1) {
-      const result = results[i];
-      const matches = result.matches;
-      const numMatches = matches.length;
+// Practical scoring function
+function computeScore$1(results, keyStore) {
+  results.forEach((result) => {
+    let totalScore = 1;
 
-      let totalScore = 1;
+    result.matches.forEach((match) => {
+      const { key, norm } = match;
 
-      for (let j = 0; j < numMatches; j += 1) {
-        const match = matches[j];
-        const { key, norm } = match;
+      const keyWeight = keyStore.get(key, 'weight') || -1;
+      const weight = keyWeight > -1 ? keyWeight : 1;
 
-        const keyWeight = this._keyStore.get(key, 'weight');
-        const weight = keyWeight > -1 ? keyWeight : 1;
-        const score =
-          match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
+      const score =
+        match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
 
-        totalScore *= Math.pow(score, weight * norm);
-      }
+      totalScore *= Math.pow(score, weight * norm);
+    });
 
-      result.score = totalScore;
-    }
-  }
+    result.score = totalScore;
+  });
+}
 
-  _format(results) {
-    const output = [];
+function format(
+  results,
+  list,
+  {
+    includeMatches = Config.includeMatches,
+    includeScore = Config.includeScore
+  } = {}
+) {
+  const transformers = [];
 
-    const { includeMatches, includeScore } = this.options;
+  if (includeMatches) transformers.push(transformMatches);
+  if (includeScore) transformers.push(transformScore);
 
-    let transformers = [];
+  return results.map((result) => {
+    const { idx } = result;
 
-    if (includeMatches) transformers.push(transformMatches);
-    if (includeScore) transformers.push(transformScore);
+    const data = {
+      item: list[idx],
+      refIndex: idx
+    };
 
-    for (let i = 0, len = results.length; i < len; i += 1) {
-      const result = results[i];
-      const { idx } = result;
-
-      const data = {
-        item: this._list[idx],
-        refIndex: idx
-      };
-
-      if (transformers.length) {
-        for (let j = 0, len = transformers.length; j < len; j += 1) {
-          transformers[j](result, data);
-        }
-      }
-
-      output.push(data);
+    if (transformers.length) {
+      transformers.forEach((transformer) => {
+        transformer(result, data);
+      });
     }
 
-    return output
-  }
+    return data
+  })
 }
 
 Fuse.version = '5.2.3';

@@ -54,7 +54,7 @@ function getGuideSidebar() {
     {
       title: 'API Reference',
       collapsable: false,
-      children: ['/api/options', '/api/indexing']
+      children: ['/api/options', '/api/indexing', 'api/query']
     },
     '/examples',
     {
