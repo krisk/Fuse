@@ -300,3 +300,18 @@ fuse.search("'Man 'Old | Artist$")
 
 :::
 ::::
+
+<!-- ```js
+const result = fuse.search({
+  $and: [
+    { title: 'old war' }, // Fuzzy "old war"
+    { color: "'blue" }, // Exact match for blue
+    {
+      $or: [
+        { title: '!arts' }, // Does not have "arts"
+        { title: '^lock' } // Starts with "lock"
+      ]
+    }
+  ]
+})
+``` -->

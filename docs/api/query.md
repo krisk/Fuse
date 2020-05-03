@@ -3,10 +3,10 @@
 ## `$and`
 
 ```js
-{ $and: [ { <expression1> }, { <expression2> } , ... , { <expressionN> } ] }
+{ $and: [ { <expression_1> }, { <expression_2> } , ... , { <expression_N> } ] }
 ```
 
-`$and`performs a logical **AND** operation on an array of one or more expressions (e.g. `<expression1>,` `<expression2>`, etc.) and selects the documents that satisfy all the expressions in the array. The `$and` operator uses short-circuit evaluation. If the first expression (e.g. `<expression1>`) evaluates to false, Fuse.js will not evaluate the remaining expressions.
+`$and` performs a logical **AND** operation on an array of expressions and selects the entries that satisfy all the expressions. The `$and` operator uses short-circuit evaluation (i.e, if the first expression evaluates to false, `Fuse.js` will not evaluate the remaining expressions).
 
 ::: tip
 Fuse.js provides an implicit **AND** operation when specifying a comma separated list of expressions. Using an explicit **AND** with the `$and` operator is necessary when the same field or operator has to be specified in multiple expressions.
@@ -22,7 +22,7 @@ const result = fuse.search({
 
 ## `$or`
 
-The `$or` operator performs a logical **OR** operation on an array of two or more `<expressions>` and selects the documents that satisfy at least one of the `<expressions>`.
+The `$or` operator performs a logical **OR** operation on an array of two or more `<expressions>` and selects the entries that satisfy at least one of the expressions.
 
 ### Examples
 
@@ -31,3 +31,11 @@ const result = fuse.search({
   $or: [{ author: 'abc' }, { author: 'def' }]
 })
 ```
+
+<!--
+
+```js
+const result = fuse.search({
+  $and: [{ author: 'abc' }, { $or: [{ title: 'nonfic' }, { title: 'html' }] }]
+})
+``` -->
