@@ -2,11 +2,7 @@ export default Fuse
 export as namespace Fuse
 
 declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
-  constructor(
-    list: ReadonlyArray<T>,
-    options?: O,
-    index?: ReadonlyArray<Fuse.FuseIndexRecord>
-  )
+  constructor(list: ReadonlyArray<T>, options?: O, index?: FuseIndex<T>)
   /**
    * Search function for the Fuse instance.
    *
@@ -30,9 +26,9 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     options?: Fuse.FuseSearchOptions
   ): Fuse.FuseResult<R>[]
 
-  setCollection(list: ReadonlyArray<T>, index?: Fuse.FuseIndex): void
+  setCollection(docs: ReadonlyArray<T>, index?: FuseIndex<T>): void
 
-  setIndex(index: Fuse.FuseIndex): void
+  add(doc: T): void
 
   /**
    * Return the current version
@@ -69,7 +65,24 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     keys: Fuse.FuseOptionKeyObject[] | string[],
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
-  ): Fuse.FuseIndex
+  ): FuseIndex<U>
+
+  static parseIndex<U>(
+    index: any,
+    options?: Fuse.FuseIndexOptions<U>
+  ): FuseIndex<U>
+}
+
+declare class FuseIndex<T> {
+  constructor(options?: Fuse.FuseIndexOptions<T>)
+  setCollection(docs: ReadonlyArray<T>): void
+  setKeys(keys: ReadonlyArray<string>): void
+  setIndex(index: Fuse.FuseIndexCollection): void
+  create(): void
+  toJSON(): {
+    keys: ReadonlyArray<string>
+    collection: Fuse.FuseIndexCollection
+  }
 }
 
 declare namespace Fuse {
@@ -185,12 +198,9 @@ declare namespace Fuse {
     n: number // The field-length norm
   }
 
-  type FuseIndex = {
-    keys: ReadonlyArray<string>
-    list:
-      | ReadonlyArray<FuseIndexObjectRecord>
-      | ReadonlyArray<FuseIndexStringRecord>
-  }
+  type FuseIndexCollection =
+    | ReadonlyArray<FuseIndexObjectRecord>
+    | ReadonlyArray<FuseIndexStringRecord>
 
   // {
   //   name: 'title',

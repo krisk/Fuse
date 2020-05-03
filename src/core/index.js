@@ -4,28 +4,49 @@ import {
   isString,
   isNumber
 } from '../helpers/type-checkers'
-import { createIndex, KeyStore } from '../tools'
+import KeyStore from '../tools/KeyStore'
+import FuseIndex, { createIndex } from '../tools/FuseIndex'
 import { transformMatches, transformScore } from '../transform'
 import { LogicalOperator, parse } from './queryParser'
 import { createSearcher } from './register'
 import Config from './config'
 
 export default class Fuse {
-  constructor(list, options = {}, index) {
+  constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options }
 
     this._keyStore = new KeyStore(this.options.keys)
-    this.setCollection(list, index)
+    this.setCollection(docs, index)
   }
 
-  setCollection(list, index) {
-    this._list = list
+  setCollection(docs, index) {
+    this._docs = docs
 
-    this._index =
+    if (index && !(index instanceof FuseIndex)) {
+      throw new Error('Incorrect index type')
+    }
+
+    this._myIndex =
       index ||
-      createIndex(this._keyStore.keys(), this._list, {
+      createIndex(this._keyStore.keys(), this._docs, {
         getFn: this.options.getFn
       })
+  }
+
+  add(doc) {
+    if (!isDefined(doc)) {
+      return
+    }
+
+    this._docs.push(doc)
+
+    const lastIndex = this._docs.length - 1
+
+    if (isString(doc)) {
+      this._myIndex.addString(doc, lastIndex)
+    } else {
+      this._myIndex.addObject(doc, lastIndex)
+    }
   }
 
   search(query, { limit = -1 } = {}) {
@@ -36,18 +57,18 @@ export default class Fuse {
     if (isString(query)) {
       const searcher = createSearcher(query, this.options)
 
-      results = isString(this._list[0])
+      results = isString(this._docs[0])
         ? this._searchStringArrayWith(searcher)
         : this._searchAllWith(searcher)
     } else {
       let expression = parse(query, this.options)
 
-      const { keys, list } = this._index
+      const { keys, index } = this._myIndex
 
       const resultMap = {}
 
-      list.forEach((listItem) => {
-        let { $: item, i: idx } = listItem
+      index.forEach((indexItem) => {
+        let { $: item, i: idx } = indexItem
 
         if (!isDefined(item)) {
           return
@@ -112,27 +133,27 @@ export default class Fuse {
       results = results.slice(0, limit)
     }
 
-    return format(results, this._list, {
+    return format(results, this._docs, {
       includeMatches,
       includeScore
     })
   }
 
   _searchStringArrayWith(searcher) {
-    const { list } = this._index
+    const { index } = this._myIndex
     const { includeMatches } = this.options
 
     const results = []
 
-    // Iterate over every string in the list
-    list.forEach((listItem) => {
-      let { v: text, i: idx, n: norm } = listItem
+    // Iterate over every string in the index
+    index.forEach((indexItem) => {
+      let { v: text, i: idx, n: norm } = indexItem
 
       if (!isDefined(text)) {
         return
       }
 
-      let searchResult = searcher.searchIn(listItem)
+      let searchResult = searcher.searchIn(indexItem)
 
       const { isMatch, score } = searchResult
 
@@ -158,11 +179,11 @@ export default class Fuse {
 
   _searchLogicalWith({ key, searcher }) {
     const results = []
-    const { keys, list } = this._index
+    const { keys, index } = this._myIndex
     const keyIndex = keys.indexOf(key)
 
-    list.forEach((listItem) => {
-      let { $: item, i: idx } = listItem
+    index.forEach((indexItem) => {
+      let { $: item, i: idx } = indexItem
 
       if (!isDefined(item)) {
         return
@@ -187,12 +208,12 @@ export default class Fuse {
   }
 
   _searchAllWith(searcher) {
-    const { keys, list } = this._index
+    const { keys, index } = this._myIndex
     const results = []
 
     // List is Array<Object>
-    list.forEach((listItem) => {
-      let { $: item, i: idx } = listItem
+    index.forEach((indexItem) => {
+      let { $: item, i: idx } = indexItem
 
       if (!isDefined(item)) {
         return
@@ -308,7 +329,7 @@ function computeScore(results, keyStore) {
 
 function format(
   results,
-  list,
+  docs,
   {
     includeMatches = Config.includeMatches,
     includeScore = Config.includeScore
@@ -323,7 +344,7 @@ function format(
     const { idx } = result
 
     const data = {
-      item: list[idx],
+      item: docs[idx],
       refIndex: idx
     }
 

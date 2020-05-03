@@ -1265,121 +1265,6 @@
     return ExtendedSearch;
   }();
 
-  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
-  // Set to 3 decimals to reduce index size.
-
-  function norm() {
-    var mantissa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var cache = new Map();
-    return {
-      get: function get(value) {
-        var numTokens = value.match(SPACE).length;
-
-        if (cache.has(numTokens)) {
-          return cache.get(numTokens);
-        }
-
-        var n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
-        cache.set(numTokens, n);
-        return n;
-      },
-      clear: function clear() {
-        cache.clear();
-      }
-    };
-  }
-
-  function createIndex(keys, list) {
-    var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-        _ref$getFn = _ref.getFn,
-        getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
-
-    var indexedList = [];
-    var norm$1 = norm(3); // List is Array<String>
-
-    if (isString(list[0])) {
-      list.forEach(function (item, itemIndex) {
-        if (!isDefined(item) || isBlank(item)) {
-          return;
-        }
-
-        var record = {
-          v: item,
-          i: itemIndex,
-          n: norm$1.get(item)
-        };
-        indexedList.push(record);
-      });
-    } else {
-      // List is Array<Object>
-      list.forEach(function (item, itemIndex) {
-        var record = {
-          i: itemIndex,
-          $: {}
-        }; // Iterate over every key (i.e, path), and fetch the value at that key
-
-        keys.forEach(function (key, keyIndex) {
-          var value = getFn(item, key);
-
-          if (!isDefined(value)) {
-            return;
-          }
-
-          if (isArray(value)) {
-            (function () {
-              var subRecords = [];
-              var stack = [{
-                nestedArrIndex: -1,
-                value: value
-              }];
-
-              while (stack.length) {
-                var _stack$pop = stack.pop(),
-                    nestedArrIndex = _stack$pop.nestedArrIndex,
-                    _value = _stack$pop.value;
-
-                if (!isDefined(_value)) {
-                  continue;
-                }
-
-                if (isString(_value) && !isBlank(_value)) {
-                  var subRecord = {
-                    v: _value,
-                    i: nestedArrIndex,
-                    n: norm$1.get(_value)
-                  };
-                  subRecords.push(subRecord);
-                } else if (isArray(_value)) {
-                  _value.forEach(function (item, k) {
-                    stack.push({
-                      nestedArrIndex: k,
-                      value: item
-                    });
-                  });
-                }
-              }
-
-              record.$[keyIndex] = subRecords;
-            })();
-          } else if (!isBlank(value)) {
-            var subRecord = {
-              v: value,
-              n: norm$1.get(value)
-            };
-            record.$[keyIndex] = subRecord;
-          }
-        });
-        indexedList.push(record);
-      });
-    }
-
-    norm$1.clear();
-    return {
-      keys: keys,
-      list: indexedList
-    };
-  }
-
   var hasOwn = Object.prototype.hasOwnProperty;
 
   var KeyStore = /*#__PURE__*/function () {
@@ -1460,6 +1345,203 @@
 
     return KeyStore;
   }();
+
+  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
+  // Set to 3 decimals to reduce index size.
+
+  function norm() {
+    var mantissa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
+    var cache = new Map();
+    return {
+      get: function get(value) {
+        var numTokens = value.match(SPACE).length;
+
+        if (cache.has(numTokens)) {
+          return cache.get(numTokens);
+        }
+
+        var n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
+        cache.set(numTokens, n);
+        return n;
+      },
+      clear: function clear() {
+        cache.clear();
+      }
+    };
+  }
+
+  var FuseIndex = /*#__PURE__*/function () {
+    function FuseIndex() {
+      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+          _ref$getFn = _ref.getFn,
+          getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
+
+      _classCallCheck(this, FuseIndex);
+
+      this.norm = norm(3);
+      this.getFn = getFn;
+      this.isCreated = false;
+      this.setIndex();
+    }
+
+    _createClass(FuseIndex, [{
+      key: "setCollection",
+      value: function setCollection() {
+        var docs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        this.docs = docs;
+      }
+    }, {
+      key: "setIndex",
+      value: function setIndex() {
+        var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        this.index = index;
+      }
+    }, {
+      key: "setKeys",
+      value: function setKeys() {
+        var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        this.keys = keys;
+      }
+    }, {
+      key: "create",
+      value: function create() {
+        var _this = this;
+
+        if (this.isCreated) {
+          return;
+        }
+
+        this.isCreated = true; // List is Array<String>
+
+        if (isString(this.docs[0])) {
+          this.docs.forEach(function (item, itemIndex) {
+            _this.addString(item, itemIndex);
+          });
+        } else {
+          // List is Array<Object>
+          this.docs.forEach(function (item, itemIndex) {
+            _this.addObject(item, itemIndex);
+          });
+        }
+
+        this.norm.clear();
+      }
+    }, {
+      key: "addString",
+      value: function addString(item, itemIndex) {
+        if (!isDefined(item) || isBlank(item)) {
+          return;
+        }
+
+        var record = {
+          v: item,
+          i: itemIndex,
+          n: this.norm.get(item)
+        };
+        this.index.push(record);
+      }
+    }, {
+      key: "addObject",
+      value: function addObject(item, itemIndex) {
+        var _this2 = this;
+
+        var record = {
+          i: itemIndex,
+          $: {}
+        }; // Iterate over every key (i.e, path), and fetch the value at that key
+
+        this.keys.forEach(function (key, keyIndex) {
+          var value = _this2.getFn(item, key);
+
+          if (!isDefined(value)) {
+            return;
+          }
+
+          if (isArray(value)) {
+            (function () {
+              var subRecords = [];
+              var stack = [{
+                nestedArrIndex: -1,
+                value: value
+              }];
+
+              while (stack.length) {
+                var _stack$pop = stack.pop(),
+                    nestedArrIndex = _stack$pop.nestedArrIndex,
+                    _value = _stack$pop.value;
+
+                if (!isDefined(_value)) {
+                  continue;
+                }
+
+                if (isString(_value) && !isBlank(_value)) {
+                  var subRecord = {
+                    v: _value,
+                    i: nestedArrIndex,
+                    n: _this2.norm.get(_value)
+                  };
+                  subRecords.push(subRecord);
+                } else if (isArray(_value)) {
+                  _value.forEach(function (item, k) {
+                    stack.push({
+                      nestedArrIndex: k,
+                      value: item
+                    });
+                  });
+                }
+              }
+
+              record.$[keyIndex] = subRecords;
+            })();
+          } else if (!isBlank(value)) {
+            var subRecord = {
+              v: value,
+              n: _this2.norm.get(value)
+            };
+            record.$[keyIndex] = subRecord;
+          }
+        });
+        this.index.push(record);
+      }
+    }, {
+      key: "toJSON",
+      value: function toJSON() {
+        return {
+          keys: this.keys,
+          index: this.index
+        };
+      }
+    }]);
+
+    return FuseIndex;
+  }();
+  function createIndex(keys, docs) {
+    var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref2$getFn = _ref2.getFn,
+        getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn;
+
+    var myIndex = new FuseIndex({
+      getFn: getFn
+    });
+    myIndex.setKeys(keys);
+    myIndex.setCollection(docs);
+    myIndex.create();
+    return myIndex;
+  }
+  function parseIndex(data) {
+    var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref3$getFn = _ref3.getFn,
+        getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn;
+
+    var keys = data.keys,
+        index = data.index;
+    var myIndex = new FuseIndex({
+      getFn: getFn
+    });
+    myIndex.setKeys(keys);
+    myIndex.setIndex(index);
+    return myIndex;
+  }
 
   function transformMatches(result, data) {
     var matches = result.matches;
@@ -1560,7 +1642,7 @@
   }
 
   var Fuse = /*#__PURE__*/function () {
-    function Fuse(list) {
+    function Fuse(docs) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var index = arguments.length > 2 ? arguments[2] : undefined;
 
@@ -1568,16 +1650,38 @@
 
       this.options = _objectSpread2({}, Config, {}, options);
       this._keyStore = new KeyStore(this.options.keys);
-      this.setCollection(list, index);
+      this.setCollection(docs, index);
     }
 
     _createClass(Fuse, [{
       key: "setCollection",
-      value: function setCollection(list, index) {
-        this._list = list;
-        this._index = index || createIndex(this._keyStore.keys(), this._list, {
+      value: function setCollection(docs, index) {
+        this._docs = docs;
+
+        if (index && !(index instanceof FuseIndex)) {
+          throw new Error('Incorrect index type');
+        }
+
+        this._myIndex = index || createIndex(this._keyStore.keys(), this._docs, {
           getFn: this.options.getFn
         });
+      }
+    }, {
+      key: "add",
+      value: function add(doc) {
+        if (!isDefined(doc)) {
+          return;
+        }
+
+        this._docs.push(doc);
+
+        var lastIndex = this._docs.length - 1;
+
+        if (isString(doc)) {
+          this._myIndex.addString(doc, lastIndex);
+        } else {
+          this._myIndex.addObject(doc, lastIndex);
+        }
       }
     }, {
       key: "search",
@@ -1597,16 +1701,16 @@
 
         if (isString(query)) {
           var searcher = createSearcher(query, this.options);
-          results = isString(this._list[0]) ? this._searchStringArrayWith(searcher) : this._searchAllWith(searcher);
+          results = isString(this._docs[0]) ? this._searchStringArrayWith(searcher) : this._searchAllWith(searcher);
         } else {
           var expression = parse(query, this.options);
-          var _this$_index = this._index,
-              keys = _this$_index.keys,
-              list = _this$_index.list;
+          var _this$_myIndex = this._myIndex,
+              keys = _this$_myIndex.keys,
+              index = _this$_myIndex.index;
           var resultMap = {};
-          list.forEach(function (listItem) {
-            var item = listItem.$,
-                idx = listItem.i;
+          index.forEach(function (indexItem) {
+            var item = indexItem.$,
+                idx = indexItem.i;
 
             if (!isDefined(item)) {
               return;
@@ -1680,7 +1784,7 @@
           results = results.slice(0, limit);
         }
 
-        return format(results, this._list, {
+        return format(results, this._docs, {
           includeMatches: includeMatches,
           includeScore: includeScore
         });
@@ -1688,20 +1792,20 @@
     }, {
       key: "_searchStringArrayWith",
       value: function _searchStringArrayWith(searcher) {
-        var list = this._index.list;
+        var index = this._myIndex.index;
         var includeMatches = this.options.includeMatches;
-        var results = []; // Iterate over every string in the list
+        var results = []; // Iterate over every string in the index
 
-        list.forEach(function (listItem) {
-          var text = listItem.v,
-              idx = listItem.i,
-              norm = listItem.n;
+        index.forEach(function (indexItem) {
+          var text = indexItem.v,
+              idx = indexItem.i,
+              norm = indexItem.n;
 
           if (!isDefined(text)) {
             return;
           }
 
-          var searchResult = searcher.searchIn(listItem);
+          var searchResult = searcher.searchIn(indexItem);
           var isMatch = searchResult.isMatch,
               score = searchResult.score;
 
@@ -1735,13 +1839,13 @@
         var key = _ref2.key,
             searcher = _ref2.searcher;
         var results = [];
-        var _this$_index2 = this._index,
-            keys = _this$_index2.keys,
-            list = _this$_index2.list;
+        var _this$_myIndex2 = this._myIndex,
+            keys = _this$_myIndex2.keys,
+            index = _this$_myIndex2.index;
         var keyIndex = keys.indexOf(key);
-        list.forEach(function (listItem) {
-          var item = listItem.$,
-              idx = listItem.i;
+        index.forEach(function (indexItem) {
+          var item = indexItem.$,
+              idx = indexItem.i;
 
           if (!isDefined(item)) {
             return;
@@ -1768,14 +1872,14 @@
       value: function _searchAllWith(searcher) {
         var _this3 = this;
 
-        var _this$_index3 = this._index,
-            keys = _this$_index3.keys,
-            list = _this$_index3.list;
+        var _this$_myIndex3 = this._myIndex,
+            keys = _this$_myIndex3.keys,
+            index = _this$_myIndex3.index;
         var results = []; // List is Array<Object>
 
-        list.forEach(function (listItem) {
-          var item = listItem.$,
-              idx = listItem.i;
+        index.forEach(function (indexItem) {
+          var item = indexItem.$,
+              idx = indexItem.i;
 
           if (!isDefined(item)) {
             return;
@@ -1894,7 +1998,7 @@
     });
   }
 
-  function format(results, list) {
+  function format(results, docs) {
     var _ref4 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref4$includeMatches = _ref4.includeMatches,
         includeMatches = _ref4$includeMatches === void 0 ? Config.includeMatches : _ref4$includeMatches,
@@ -1907,7 +2011,7 @@
     return results.map(function (result) {
       var idx = result.idx;
       var data = {
-        item: list[idx],
+        item: docs[idx],
         refIndex: idx
       };
 
@@ -1924,6 +2028,7 @@
   register(ExtendedSearch);
   Fuse.version = '5.2.3';
   Fuse.createIndex = createIndex;
+  Fuse.parseIndex = parseIndex;
   Fuse.config = Config;
 
   return Fuse;
