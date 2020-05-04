@@ -10,7 +10,7 @@
 # Version 5.0.8-beta
 
 - Changed bundler to Rollup.
-- Added ES6 modules for bundlers and browsers (`fuse.esm.js`) (fixed #262)
+- Added ES6 modules for bundlers and browsers (`fuse.esm.js`) (fixed [#262](#262))
 - Added CommonJS builds (`fuse.common.js`)
 
 ## Breaking Changes
