@@ -28,7 +28,17 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
 
   setCollection(docs: ReadonlyArray<T>, index?: FuseIndex<T>): void
 
+  /**
+   * Adds a doc to the end the list.
+   */
   add(doc: T): void
+
+  /**
+   * Removes the doc at the specified index
+   */
+  removeAt(idx: number): void
+
+  getIndex(): FuseIndex<T>
 
   /**
    * Return the current version
@@ -77,11 +87,12 @@ declare class FuseIndex<T> {
   constructor(options?: Fuse.FuseIndexOptions<T>)
   setCollection(docs: ReadonlyArray<T>): void
   setKeys(keys: ReadonlyArray<string>): void
-  setIndex(index: Fuse.FuseIndexCollection): void
+  setRecords(records: Fuse.FuseIndexRecords): void
   create(): void
+  add(doc: T): void
   toJSON(): {
     keys: ReadonlyArray<string>
-    collection: Fuse.FuseIndexCollection
+    collection: Fuse.FuseIndexRecords
   }
 }
 
@@ -198,7 +209,7 @@ declare namespace Fuse {
     n: number // The field-length norm
   }
 
-  type FuseIndexCollection =
+  type FuseIndexRecords =
     | ReadonlyArray<FuseIndexObjectRecord>
     | ReadonlyArray<FuseIndexStringRecord>
 

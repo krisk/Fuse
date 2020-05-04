@@ -66,7 +66,7 @@ export default class ExtendedSearch {
     return options.useExtendedSearch
   }
 
-  searchIn(value) {
+  searchIn(text) {
     const query = this.query
 
     if (!query) {
@@ -75,8 +75,6 @@ export default class ExtendedSearch {
         score: 1
       }
     }
-
-    let text = value.v
 
     const { includeMatches, isCaseSensitive } = this.options
 

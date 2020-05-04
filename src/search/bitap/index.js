@@ -41,12 +41,7 @@ export default class BitapSearch {
     }
   }
 
-  searchIn(value) {
-    let text = value.v
-    return this.searchInString(text)
-  }
-
-  searchInString(text) {
+  searchIn(text) {
     const { isCaseSensitive, includeMatches } = this.options
 
     if (!isCaseSensitive) {

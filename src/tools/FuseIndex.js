@@ -8,19 +8,19 @@ export default class FuseIndex {
     this.getFn = getFn
     this.isCreated = false
 
-    this.setIndex()
+    this.setRecords()
   }
   setCollection(docs = []) {
     this.docs = docs
   }
-  setIndex(index = []) {
-    this.index = index
+  setRecords(records = []) {
+    this.records = records
   }
   setKeys(keys = []) {
     this.keys = keys
   }
   create() {
-    if (this.isCreated) {
+    if (this.isCreated || !this.docs.length) {
       return
     }
 
@@ -28,37 +28,59 @@ export default class FuseIndex {
 
     // List is Array<String>
     if (isString(this.docs[0])) {
-      this.docs.forEach((item, itemIndex) => {
-        this.addString(item, itemIndex)
+      this.docs.forEach((doc, docIndex) => {
+        this._addString(doc, docIndex)
       })
     } else {
       // List is Array<Object>
-      this.docs.forEach((item, itemIndex) => {
-        this.addObject(item, itemIndex)
+      this.docs.forEach((doc, docIndex) => {
+        this._addObject(doc, docIndex)
       })
     }
 
     this.norm.clear()
   }
-  addString(item, itemIndex) {
-    if (!isDefined(item) || isBlank(item)) {
+  // Adds a doc to the end of the index
+  add(doc) {
+    const idx = this.size()
+
+    if (isString(doc)) {
+      this._addString(doc, idx)
+    } else {
+      this._addObject(doc, idx)
+    }
+  }
+  // Removes the doc at the specified index of the index
+  removeAt(idx) {
+    this.records.splice(idx, 1)
+
+    // Change ref index of every subsquent doc
+    for (let i = idx, len = this.size(); i < len; i += 1) {
+      this.records[i].i -= 1
+    }
+  }
+  size() {
+    return this.records.length
+  }
+  _addString(doc, docIndex) {
+    if (!isDefined(doc) || isBlank(doc)) {
       return
     }
 
     let record = {
-      v: item,
-      i: itemIndex,
-      n: this.norm.get(item)
+      v: doc,
+      i: docIndex,
+      n: this.norm.get(doc)
     }
 
-    this.index.push(record)
+    this.records.push(record)
   }
-  addObject(item, itemIndex) {
-    let record = { i: itemIndex, $: {} }
+  _addObject(doc, docIndex) {
+    let record = { i: docIndex, $: {} }
 
     // Iterate over every key (i.e, path), and fetch the value at that key
     this.keys.forEach((key, keyIndex) => {
-      let value = this.getFn(item, key)
+      let value = this.getFn(doc, key)
 
       if (!isDefined(value)) {
         return
@@ -106,12 +128,12 @@ export default class FuseIndex {
       }
     })
 
-    this.index.push(record)
+    this.records.push(record)
   }
   toJSON() {
     return {
       keys: this.keys,
-      index: this.index
+      records: this.records
     }
   }
 }
@@ -125,9 +147,9 @@ export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
 }
 
 export function parseIndex(data, { getFn = Config.getFn } = {}) {
-  const { keys, index } = data
+  const { keys, records } = data
   let myIndex = new FuseIndex({ getFn })
   myIndex.setKeys(keys)
-  myIndex.setIndex(index)
+  myIndex.setRecords(records)
   return myIndex
 }

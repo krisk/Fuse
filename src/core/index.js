@@ -39,14 +39,16 @@ export default class Fuse {
     }
 
     this._docs.push(doc)
+    this._myIndex.add(doc)
+  }
 
-    const lastIndex = this._docs.length - 1
+  removeAt(idx) {
+    this._docs.splice(idx, 1)
+    this._myIndex.removeAt(idx)
+  }
 
-    if (isString(doc)) {
-      this._myIndex.addString(doc, lastIndex)
-    } else {
-      this._myIndex.addObject(doc, lastIndex)
-    }
+  getIndex() {
+    return this._myIndex
   }
 
   search(query, { limit = -1 } = {}) {
@@ -59,68 +61,9 @@ export default class Fuse {
 
       results = isString(this._docs[0])
         ? this._searchStringArrayWith(searcher)
-        : this._searchAllWith(searcher)
+        : this._searchObjectArrayWith(searcher)
     } else {
-      let expression = parse(query, this.options)
-
-      const { keys, index } = this._myIndex
-
-      const resultMap = {}
-
-      index.forEach((indexItem) => {
-        let { $: item, i: idx } = indexItem
-
-        if (!isDefined(item)) {
-          return
-        }
-
-        const evaluateExpression = (node) => {
-          if (node.children) {
-            const operator = node.operator
-            let res = []
-
-            for (let k = 0; k < node.children.length; k += 1) {
-              let child = node.children[k]
-              let matches = evaluateExpression(child)
-
-              if (matches && matches.length) {
-                res.push({
-                  idx,
-                  item,
-                  matches
-                })
-              } else if (operator === LogicalOperator.AND) {
-                res.length = 0
-                break
-              }
-            }
-
-            if (res.length) {
-              // Dedupe when adding
-              if (!resultMap[idx]) {
-                resultMap[idx] = { idx, item, matches: [] }
-                results.push(resultMap[idx])
-              }
-              res.forEach((item) => {
-                resultMap[idx].matches.push(...item.matches)
-              })
-            }
-          } else {
-            const { key, searcher } = node
-            const keyIndex = keys.indexOf(key)
-            const value = item[keyIndex]
-
-            let matches = this._findMatches({
-              key,
-              value,
-              searcher
-            })
-            return matches
-          }
-        }
-
-        evaluateExpression(expression)
-      })
+      results = this._searchLogical(query)
     }
 
     computeScore(results, this._keyStore)
@@ -140,81 +83,101 @@ export default class Fuse {
   }
 
   _searchStringArrayWith(searcher) {
-    const { index } = this._myIndex
-    const { includeMatches } = this.options
-
+    const { records } = this._myIndex
     const results = []
 
     // Iterate over every string in the index
-    index.forEach((indexItem) => {
-      let { v: text, i: idx, n: norm } = indexItem
-
+    records.forEach(({ v: text, i: idx, n: norm }) => {
+      // let { v: text, i: idx, n: norm } = indexItem
       if (!isDefined(text)) {
         return
       }
 
-      let searchResult = searcher.searchIn(indexItem)
-
-      const { isMatch, score } = searchResult
+      const { isMatch, score, matchedIndices: indices } = searcher.searchIn(
+        text
+      )
 
       if (!isMatch) {
         return
       }
 
-      let match = { score, value: text, norm }
-
-      if (includeMatches) {
-        match.indices = searchResult.matchedIndices
-      }
-
       results.push({
         item: text,
         idx,
-        matches: [match]
+        matches: [{ score, value: text, norm, indices: indices || [] }]
       })
     })
 
     return results
   }
 
-  _searchLogicalWith({ key, searcher }) {
+  _searchLogical(query) {
+    const expression = parse(query, this.options)
+    const { keys, records } = this._myIndex
+    const resultMap = {}
     const results = []
-    const { keys, index } = this._myIndex
-    const keyIndex = keys.indexOf(key)
 
-    index.forEach((indexItem) => {
-      let { $: item, i: idx } = indexItem
+    const evaluateExpression = (node, item, idx) => {
+      if (node.children) {
+        const operator = node.operator
+        let res = []
 
+        for (let k = 0; k < node.children.length; k += 1) {
+          let child = node.children[k]
+          let matches = evaluateExpression(child, item, idx)
+
+          if (matches && matches.length) {
+            res.push({
+              idx,
+              item,
+              matches
+            })
+          } else if (operator === LogicalOperator.AND) {
+            res.length = 0
+            // Short-circuit
+            break
+          }
+        }
+
+        if (res.length) {
+          // Dedupe when adding
+          if (!resultMap[idx]) {
+            resultMap[idx] = { idx, item, matches: [] }
+            results.push(resultMap[idx])
+          }
+          res.forEach(({ matches }) => {
+            resultMap[idx].matches.push(...matches)
+          })
+        }
+      } else {
+        const { key, searcher } = node
+        const value = item[keys.indexOf(key)]
+
+        return this._findMatches({
+          key,
+          value,
+          searcher
+        })
+      }
+    }
+
+    records.forEach(({ $: item, i: idx }) => {
       if (!isDefined(item)) {
         return
       }
 
-      let matches = this._findMatches({
-        key,
-        value: item[keyIndex],
-        searcher
-      })
-
-      if (matches.length) {
-        results.push({
-          idx,
-          item,
-          matches
-        })
-      }
+      evaluateExpression(expression, item, idx)
     })
 
     return results
   }
 
-  _searchAllWith(searcher) {
-    const { keys, index } = this._myIndex
+  _searchObjectArrayWith(searcher) {
+    const { keys, records } = this._myIndex
     const results = []
 
     // List is Array<Object>
-    index.forEach((indexItem) => {
-      let { $: item, i: idx } = indexItem
-
+    records.forEach(({ $: item, i: idx }) => {
       if (!isDefined(item)) {
         return
       }
@@ -250,56 +213,41 @@ export default class Fuse {
       return matches
     }
 
-    const { includeMatches } = this.options
-
     if (isArray(value)) {
-      value.forEach((arrValue) => {
-        const { v: text, i: idx, n: norm } = arrValue
-
+      value.forEach(({ v: text, i: idx, n: norm }) => {
         if (!isDefined(text)) {
           return
         }
 
-        let searchResult = searcher.searchIn(arrValue)
-
-        const { isMatch, score } = searchResult
+        const { isMatch, score, matchedIndices: indices } = searcher.searchIn(
+          text
+        )
 
         if (!isMatch) {
           return
         }
 
-        let match = {
+        matches.push({
           score,
           key,
           value: text,
           idx,
-          norm
-        }
-
-        if (includeMatches) {
-          match.indices = searchResult.matchedIndices
-        }
-
-        matches.push(match)
+          norm,
+          indices: indices || []
+        })
       })
     } else {
       const { v: text, n: norm } = value
 
-      let searchResult = searcher.searchIn(value)
-
-      const { isMatch, score } = searchResult
+      const { isMatch, score, matchedIndices: indices } = searcher.searchIn(
+        text
+      )
 
       if (!isMatch) {
         return []
       }
 
-      let match = { score, key, value: text, norm }
-
-      if (includeMatches) {
-        match.indices = searchResult.matchedIndices
-      }
-
-      matches.push(match)
+      matches.push({ score, key, value: text, norm, indices: indices || [] })
     }
 
     return matches
@@ -311,16 +259,14 @@ function computeScore(results, keyStore) {
   results.forEach((result) => {
     let totalScore = 1
 
-    result.matches.forEach((match) => {
-      const { key, norm } = match
-
+    result.matches.forEach(({ key, norm, score }) => {
       const keyWeight = keyStore.get(key, 'weight') || -1
       const weight = keyWeight > -1 ? keyWeight : 1
 
-      const score =
-        match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score
-
-      totalScore *= Math.pow(score, weight * norm)
+      totalScore *= Math.pow(
+        score === 0 && keyWeight > -1 ? Number.EPSILON : score,
+        weight * norm
+      )
     })
 
     result.score = totalScore
