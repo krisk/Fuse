@@ -1262,61 +1262,48 @@
 
   var KeyStore = /*#__PURE__*/function () {
     function KeyStore(keys) {
+      var _this = this;
+
       _classCallCheck(this, KeyStore);
 
       this._keys = {};
       this._keyNames = [];
-      var len = keys.length; // Iterate over every key
+      var len = keys.length;
+      var totalWeight = 0;
 
-      if (keys.length && isString(keys[0])) {
-        for (var i = 0; i < len; i += 1) {
-          var key = keys[i];
-          this._keys[key] = {
-            weight: 1
-          };
+      for (var i = 0; i < len; i += 1) {
+        var key = keys[i];
+        var keyName = void 0;
+        var weight = 1;
 
-          this._keyNames.push(key);
+        if (isString(key)) {
+          keyName = key;
+        } else {
+          if (hasOwn.call(key, 'name')) {
+            keyName = key.name;
+          }
+
+          if (hasOwn.call(key, 'weight')) {
+            weight = key.weight;
+
+            if (weight <= 0) {
+              throw new Error('"weight" property in key must be a positive integer');
+            }
+          }
         }
-      } else {
-        var totalWeight = 0;
 
-        for (var _i = 0; _i < len; _i += 1) {
-          var _key = keys[_i];
-          var obj = {};
+        this._keyNames.push(keyName);
 
-          if (!hasOwn.call(_key, 'name')) {
-            throw new Error('Missing "name" property in key object');
-          }
-
-          var keyName = _key.name;
-
-          this._keyNames.push(keyName);
-
-          if (!hasOwn.call(_key, 'weight')) {
-            throw new Error('Missing "weight" property in key object');
-          }
-
-          var weight = _key.weight;
-
-          if (weight <= 0 || weight >= 1) {
-            throw new Error('"weight" property in key must be in the range of (0, 1)');
-          }
-
-          obj.weight = weight;
-
-          if (hasOwn.call(_key, 'threshold')) {
-            obj.threshold = _key.threshold;
-          }
-
-          this._keys[keyName] = obj;
-          totalWeight += weight;
-        } // Normalize weights so that their sum is equal to 1
+        this._keys[keyName] = {
+          weight: weight
+        };
+        totalWeight += weight;
+      } // Normalize weights so that their sum is equal to 1
 
 
-        for (var _i2 = 0; _i2 < len; _i2 += 1) {
-          this._keys[this._keyNames[_i2]].weight /= totalWeight;
-        }
-      }
+      this._keyNames.forEach(function (key) {
+        _this._keys[key].weight /= totalWeight;
+      });
     }
 
     _createClass(KeyStore, [{

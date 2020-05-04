@@ -507,6 +507,30 @@ describe('Weighted search', () => {
     })
   })
 
+  describe('When searching for the term "John Smith" with author weighted higher, with mixed key types', () => {
+    const customOptions = {
+      keys: ['title', { name: 'author', weight: 2 }]
+    }
+
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('John Smith'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'The life of Jane',
+          author: 'John Smith',
+          tags: ['john', 'smith']
+        },
+        refIndex: 2
+      })
+    })
+  })
+
   describe('When searching for the term "John Smith" with title weighted higher', () => {
     const customOptions = {
       keys: [
