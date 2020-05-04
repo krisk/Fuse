@@ -12,7 +12,7 @@
 Fuse.js provides an implicit **AND** operation when specifying a comma separated list of expressions. Using an explicit **AND** with the `$and` operator is necessary when the same field or operator has to be specified in multiple expressions.
 :::
 
-### Examples
+#### Examples
 
 ```js
 const result = fuse.search({
@@ -24,7 +24,7 @@ const result = fuse.search({
 
 The `$or` operator performs a logical **OR** operation on an array of two or more `<expressions>` and selects the entries that satisfy at least one of the expressions.
 
-### Examples
+#### Examples
 
 ```js
 const result = fuse.search({
@@ -32,10 +32,23 @@ const result = fuse.search({
 })
 ```
 
-<!--
+---
+
+### Use with Extended Searching
+
+Logical query operations pair quite nicely with [extended searching](/examples.html#extended-search).
 
 ```js
 const result = fuse.search({
-  $and: [{ author: 'abc' }, { $or: [{ title: 'nonfic' }, { title: 'html' }] }]
+  $and: [
+    { title: 'old war' }, // Fuzzy "old war"
+    { color: "'blue" }, // Exact match for blue
+    {
+      $or: [
+        { title: '^lock' }, // Starts with "lock"
+        { title: '!arts' } // Does not have "arts"
+      ]
+    }
+  ]
 })
-``` -->
+```

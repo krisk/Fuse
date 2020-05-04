@@ -1,3 +1,10 @@
+# Version 6.0.0
+
+- Added [logical query expressions](https://fusejs.io/api/query.html) (#411)
+- Added ability to dynamically add/remove items (#412)
+- Mix different `options:key` types during intialization (#413)
+- Improved indexing performances, as well storage savings (#405, #407)
+
 # Version 5.2.0
 
 - Addresses #390, #376, #382, #385
