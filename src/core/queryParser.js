@@ -1,4 +1,4 @@
-import { isArray, isObject } from '../helpers/type-checkers'
+import { isArray, isObject, isString } from '../helpers/type-checkers'
 import { createSearcher } from './register'
 
 export const LogicalOperator = {
@@ -32,6 +32,10 @@ export function parse(query, options, { auto = true } = {}) {
 
     if (isLeaf(query)) {
       const pattern = query[key]
+
+      if (!isString(pattern)) {
+        throw new Error(`Invalid value for key "${key}"`)
+      }
 
       const obj = {
         key,

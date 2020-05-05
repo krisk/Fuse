@@ -210,13 +210,13 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  var INFINITY = 1 / 0;
-  var isArray = function isArray(value) {
+  function isArray(value) {
     return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
-  }; // Adapted from:
+  } // Adapted from:
   // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
 
-  var baseToString = function baseToString(value) {
+  var INFINITY = 1 / 0;
+  function baseToString(value) {
     // Exit early for strings to avoid a performance hit in some environments.
     if (typeof value == 'string') {
       return value;
@@ -224,25 +224,25 @@
 
     var result = value + '';
     return result == '0' && 1 / value == -INFINITY ? '-0' : result;
-  };
-  var toString = function toString(value) {
+  }
+  function toString(value) {
     return value == null ? '' : baseToString(value);
-  };
-  var isString = function isString(value) {
+  }
+  function isString(value) {
     return typeof value === 'string';
-  };
-  var isNumber = function isNumber(value) {
+  }
+  function isNumber(value) {
     return typeof value === 'number';
-  };
-  var isObject = function isObject(value) {
+  }
+  function isObject(value) {
     return _typeof(value) === 'object';
-  };
-  var isDefined = function isDefined(value) {
+  }
+  function isDefined(value) {
     return value !== undefined && value !== null;
-  };
-  var isBlank = function isBlank(value) {
+  }
+  function isBlank(value) {
     return !value.trim().length;
-  };
+  }
 
   var hasOwn = Object.prototype.hasOwnProperty;
 
@@ -1639,6 +1639,11 @@
 
       if (isLeaf(query)) {
         var pattern = query[key];
+
+        if (!isString(pattern)) {
+          throw new Error("Invalid value for key \"".concat(key, "\""));
+        }
+
         var obj = {
           key: key,
           pattern: pattern
@@ -1787,7 +1792,7 @@
                 score: score,
                 value: text,
                 norm: norm,
-                indices: indices || []
+                indices: indices
               }]
             });
           }
@@ -1947,7 +1952,7 @@
                 value: text,
                 idx: idx,
                 norm: norm,
-                indices: indices || []
+                indices: indices
               });
             }
           });
@@ -1966,7 +1971,7 @@
               key: key,
               value: text,
               norm: norm,
-              indices: indices || []
+              indices: indices
             });
           }
         }

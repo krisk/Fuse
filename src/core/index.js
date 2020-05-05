@@ -99,7 +99,7 @@ export default class Fuse {
         results.push({
           item: text,
           idx,
-          matches: [{ score, value: text, norm, indices: indices || [] }]
+          matches: [{ score, value: text, norm, indices }]
         })
       }
     })
@@ -226,7 +226,7 @@ export default class Fuse {
             value: text,
             idx,
             norm,
-            indices: indices || []
+            indices
           })
         }
       })
@@ -236,7 +236,7 @@ export default class Fuse {
       const { isMatch, score, indices } = searcher.searchIn(text)
 
       if (isMatch) {
-        matches.push({ score, key, value: text, norm, indices: indices || [] })
+        matches.push({ score, key, value: text, norm, indices })
       }
     }
 

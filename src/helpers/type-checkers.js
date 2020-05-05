@@ -1,13 +1,13 @@
-const INFINITY = 1 / 0
-
-export const isArray = (value) =>
-  !Array.isArray
+export function isArray(value) {
+  return !Array.isArray
     ? Object.prototype.toString.call(value) === '[object Array]'
     : Array.isArray(value)
+}
 
 // Adapted from:
 // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-export const baseToString = (value) => {
+const INFINITY = 1 / 0
+export function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
   if (typeof value == 'string') {
     return value
@@ -16,14 +16,26 @@ export const baseToString = (value) => {
   return result == '0' && 1 / value == -INFINITY ? '-0' : result
 }
 
-export const toString = (value) => (value == null ? '' : baseToString(value))
+export function toString(value) {
+  return value == null ? '' : baseToString(value)
+}
 
-export const isString = (value) => typeof value === 'string'
+export function isString(value) {
+  return typeof value === 'string'
+}
 
-export const isNumber = (value) => typeof value === 'number'
+export function isNumber(value) {
+  return typeof value === 'number'
+}
 
-export const isObject = (value) => typeof value === 'object'
+export function isObject(value) {
+  return typeof value === 'object'
+}
 
-export const isDefined = (value) => value !== undefined && value !== null
+export function isDefined(value) {
+  return value !== undefined && value !== null
+}
 
-export const isBlank = (value) => !value.trim().length
+export function isBlank(value) {
+  return !value.trim().length
+}
