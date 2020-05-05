@@ -6,21 +6,43 @@ export const LogicalOperator = {
   OR: '$or'
 }
 
-const OperatorSet = new Set(Object.values(LogicalOperator))
+const isExpression = (query) =>
+  query[LogicalOperator.AND] || query[LogicalOperator.OR]
 
-export function parse(query, options) {
+const isLeaf = (query) =>
+  !isArray(query) && isObject(query) && !isExpression(query)
+
+const transformImplicit = (query) => ({
+  [LogicalOperator.AND]: Object.keys(query).map((key) => ({
+    [key]: query[key]
+  }))
+})
+
+// When `auto` is `true`, the parse function will infer and initialize and add
+// the appropriate `Searcher` instance
+export function parse(query, options, { auto = true } = {}) {
   const next = (query) => {
-    const keys = Object.keys(query)
-    const key = keys[0]
+    let keys = Object.keys(query)
 
-    if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
+    if (keys.length > 1 && !isExpression(query)) {
+      return next(transformImplicit(query))
+    }
+
+    let key = keys[0]
+
+    if (isLeaf(query)) {
       const pattern = query[key]
 
-      return {
+      const obj = {
         key,
-        pattern,
-        searcher: createSearcher(pattern, options)
+        pattern
       }
+
+      if (auto) {
+        obj.searcher = createSearcher(pattern, options)
+      }
+
+      return obj
     }
 
     let node = {
@@ -30,6 +52,7 @@ export function parse(query, options) {
 
     keys.forEach((key) => {
       const value = query[key]
+
       if (isArray(value)) {
         value.forEach((item) => {
           node.children.push(next(item))
@@ -40,12 +63,8 @@ export function parse(query, options) {
     return node
   }
 
-  if (!query[LogicalOperator.AND] || !query[LogicalOperator.OR]) {
-    query = {
-      [LogicalOperator.AND]: Object.keys(query).map((key) => ({
-        [key]: query[key]
-      }))
-    }
+  if (!isExpression(query)) {
+    query = transformImplicit(query)
   }
 
   return next(query)

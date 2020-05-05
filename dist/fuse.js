@@ -244,6 +244,74 @@
     return !value.trim().length;
   };
 
+  var hasOwn = Object.prototype.hasOwnProperty;
+
+  var KeyStore = /*#__PURE__*/function () {
+    function KeyStore(keys) {
+      var _this = this;
+
+      _classCallCheck(this, KeyStore);
+
+      this._keys = {};
+      this._keyNames = [];
+      var len = keys.length;
+      var totalWeight = 0;
+
+      for (var i = 0; i < len; i += 1) {
+        var key = keys[i];
+        var keyName = void 0;
+        var weight = 1;
+
+        if (isString(key)) {
+          keyName = key;
+        } else {
+          if (hasOwn.call(key, 'name')) {
+            keyName = key.name;
+          }
+
+          if (hasOwn.call(key, 'weight')) {
+            weight = key.weight;
+
+            if (weight <= 0) {
+              throw new Error('"weight" property in key must be a positive integer');
+            }
+          }
+        }
+
+        this._keyNames.push(keyName);
+
+        this._keys[keyName] = {
+          weight: weight
+        };
+        totalWeight += weight;
+      } // Normalize weights so that their sum is equal to 1
+
+
+      this._keyNames.forEach(function (key) {
+        _this._keys[key].weight /= totalWeight;
+      });
+    }
+
+    _createClass(KeyStore, [{
+      key: "get",
+      value: function get(key, name) {
+        return this._keys[key] && this._keys[key][name];
+      }
+    }, {
+      key: "keys",
+      value: function keys() {
+        return this._keyNames;
+      }
+    }, {
+      key: "toJSON",
+      value: function toJSON() {
+        return JSON.stringify(this._keys);
+      }
+    }]);
+
+    return KeyStore;
+  }();
+
   function get(obj, path) {
     var list = [];
     var arr = false;
@@ -337,6 +405,268 @@
     getFn: get
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
+
+  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
+  // Set to 3 decimals to reduce index size.
+
+  function norm() {
+    var mantissa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
+    var cache = new Map();
+    return {
+      get: function get(value) {
+        var numTokens = value.match(SPACE).length;
+
+        if (cache.has(numTokens)) {
+          return cache.get(numTokens);
+        }
+
+        var n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
+        cache.set(numTokens, n);
+        return n;
+      },
+      clear: function clear() {
+        cache.clear();
+      }
+    };
+  }
+
+  var FuseIndex = /*#__PURE__*/function () {
+    function FuseIndex() {
+      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+          _ref$getFn = _ref.getFn,
+          getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
+
+      _classCallCheck(this, FuseIndex);
+
+      this.norm = norm(3);
+      this.getFn = getFn;
+      this.isCreated = false;
+      this.setRecords();
+    }
+
+    _createClass(FuseIndex, [{
+      key: "setCollection",
+      value: function setCollection() {
+        var docs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        this.docs = docs;
+      }
+    }, {
+      key: "setRecords",
+      value: function setRecords() {
+        var records = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        this.records = records;
+      }
+    }, {
+      key: "setKeys",
+      value: function setKeys() {
+        var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        this.keys = keys;
+      }
+    }, {
+      key: "create",
+      value: function create() {
+        var _this = this;
+
+        if (this.isCreated || !this.docs.length) {
+          return;
+        }
+
+        this.isCreated = true; // List is Array<String>
+
+        if (isString(this.docs[0])) {
+          this.docs.forEach(function (doc, docIndex) {
+            _this._addString(doc, docIndex);
+          });
+        } else {
+          // List is Array<Object>
+          this.docs.forEach(function (doc, docIndex) {
+            _this._addObject(doc, docIndex);
+          });
+        }
+
+        this.norm.clear();
+      } // Adds a doc to the end of the index
+
+    }, {
+      key: "add",
+      value: function add(doc) {
+        var idx = this.size();
+
+        if (isString(doc)) {
+          this._addString(doc, idx);
+        } else {
+          this._addObject(doc, idx);
+        }
+      } // Removes the doc at the specified index of the index
+
+    }, {
+      key: "removeAt",
+      value: function removeAt(idx) {
+        this.records.splice(idx, 1); // Change ref index of every subsquent doc
+
+        for (var i = idx, len = this.size(); i < len; i += 1) {
+          this.records[i].i -= 1;
+        }
+      }
+    }, {
+      key: "size",
+      value: function size() {
+        return this.records.length;
+      }
+    }, {
+      key: "_addString",
+      value: function _addString(doc, docIndex) {
+        if (!isDefined(doc) || isBlank(doc)) {
+          return;
+        }
+
+        var record = {
+          v: doc,
+          i: docIndex,
+          n: this.norm.get(doc)
+        };
+        this.records.push(record);
+      }
+    }, {
+      key: "_addObject",
+      value: function _addObject(doc, docIndex) {
+        var _this2 = this;
+
+        var record = {
+          i: docIndex,
+          $: {}
+        }; // Iterate over every key (i.e, path), and fetch the value at that key
+
+        this.keys.forEach(function (key, keyIndex) {
+          var value = _this2.getFn(doc, key);
+
+          if (!isDefined(value)) {
+            return;
+          }
+
+          if (isArray(value)) {
+            (function () {
+              var subRecords = [];
+              var stack = [{
+                nestedArrIndex: -1,
+                value: value
+              }];
+
+              while (stack.length) {
+                var _stack$pop = stack.pop(),
+                    nestedArrIndex = _stack$pop.nestedArrIndex,
+                    _value = _stack$pop.value;
+
+                if (!isDefined(_value)) {
+                  continue;
+                }
+
+                if (isString(_value) && !isBlank(_value)) {
+                  var subRecord = {
+                    v: _value,
+                    i: nestedArrIndex,
+                    n: _this2.norm.get(_value)
+                  };
+                  subRecords.push(subRecord);
+                } else if (isArray(_value)) {
+                  _value.forEach(function (item, k) {
+                    stack.push({
+                      nestedArrIndex: k,
+                      value: item
+                    });
+                  });
+                }
+              }
+
+              record.$[keyIndex] = subRecords;
+            })();
+          } else if (!isBlank(value)) {
+            var subRecord = {
+              v: value,
+              n: _this2.norm.get(value)
+            };
+            record.$[keyIndex] = subRecord;
+          }
+        });
+        this.records.push(record);
+      }
+    }, {
+      key: "toJSON",
+      value: function toJSON() {
+        return {
+          keys: this.keys,
+          records: this.records
+        };
+      }
+    }]);
+
+    return FuseIndex;
+  }();
+  function createIndex(keys, docs) {
+    var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref2$getFn = _ref2.getFn,
+        getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn;
+
+    var myIndex = new FuseIndex({
+      getFn: getFn
+    });
+    myIndex.setKeys(keys);
+    myIndex.setCollection(docs);
+    myIndex.create();
+    return myIndex;
+  }
+  function parseIndex(data) {
+    var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        _ref3$getFn = _ref3.getFn,
+        getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn;
+
+    var keys = data.keys,
+        records = data.records;
+    var myIndex = new FuseIndex({
+      getFn: getFn
+    });
+    myIndex.setKeys(keys);
+    myIndex.setRecords(records);
+    return myIndex;
+  }
+
+  function transformMatches(result, data) {
+    var matches = result.matches;
+    data.matches = [];
+
+    if (!isDefined(matches)) {
+      return;
+    }
+
+    for (var i = 0, len = matches.length; i < len; i += 1) {
+      var match = matches[i];
+
+      if (!isDefined(match.indices) || match.indices.length === 0) {
+        continue;
+      }
+
+      var indices = match.indices,
+          value = match.value;
+      var obj = {
+        indices: indices,
+        value: value
+      };
+
+      if (match.key) {
+        obj.key = match.key;
+      }
+
+      if (match.idx > -1) {
+        obj.refIndex = match.idx;
+      }
+
+      data.matches.push(obj);
+    }
+  }
+
+  function transformScore(result, data) {
+    data.score = result.score;
+  }
 
   function computeScore(pattern) {
     var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
@@ -1258,336 +1588,6 @@
     return ExtendedSearch;
   }();
 
-  var hasOwn = Object.prototype.hasOwnProperty;
-
-  var KeyStore = /*#__PURE__*/function () {
-    function KeyStore(keys) {
-      var _this = this;
-
-      _classCallCheck(this, KeyStore);
-
-      this._keys = {};
-      this._keyNames = [];
-      var len = keys.length;
-      var totalWeight = 0;
-
-      for (var i = 0; i < len; i += 1) {
-        var key = keys[i];
-        var keyName = void 0;
-        var weight = 1;
-
-        if (isString(key)) {
-          keyName = key;
-        } else {
-          if (hasOwn.call(key, 'name')) {
-            keyName = key.name;
-          }
-
-          if (hasOwn.call(key, 'weight')) {
-            weight = key.weight;
-
-            if (weight <= 0) {
-              throw new Error('"weight" property in key must be a positive integer');
-            }
-          }
-        }
-
-        this._keyNames.push(keyName);
-
-        this._keys[keyName] = {
-          weight: weight
-        };
-        totalWeight += weight;
-      } // Normalize weights so that their sum is equal to 1
-
-
-      this._keyNames.forEach(function (key) {
-        _this._keys[key].weight /= totalWeight;
-      });
-    }
-
-    _createClass(KeyStore, [{
-      key: "get",
-      value: function get(key, name) {
-        return this._keys[key] && this._keys[key][name];
-      }
-    }, {
-      key: "keys",
-      value: function keys() {
-        return this._keyNames;
-      }
-    }, {
-      key: "toJSON",
-      value: function toJSON() {
-        return JSON.stringify(this._keys);
-      }
-    }]);
-
-    return KeyStore;
-  }();
-
-  var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
-  // Set to 3 decimals to reduce index size.
-
-  function norm() {
-    var mantissa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
-    var cache = new Map();
-    return {
-      get: function get(value) {
-        var numTokens = value.match(SPACE).length;
-
-        if (cache.has(numTokens)) {
-          return cache.get(numTokens);
-        }
-
-        var n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
-        cache.set(numTokens, n);
-        return n;
-      },
-      clear: function clear() {
-        cache.clear();
-      }
-    };
-  }
-
-  var FuseIndex = /*#__PURE__*/function () {
-    function FuseIndex() {
-      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-          _ref$getFn = _ref.getFn,
-          getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
-
-      _classCallCheck(this, FuseIndex);
-
-      this.norm = norm(3);
-      this.getFn = getFn;
-      this.isCreated = false;
-      this.setRecords();
-    }
-
-    _createClass(FuseIndex, [{
-      key: "setCollection",
-      value: function setCollection() {
-        var docs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-        this.docs = docs;
-      }
-    }, {
-      key: "setRecords",
-      value: function setRecords() {
-        var records = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-        this.records = records;
-      }
-    }, {
-      key: "setKeys",
-      value: function setKeys() {
-        var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-        this.keys = keys;
-      }
-    }, {
-      key: "create",
-      value: function create() {
-        var _this = this;
-
-        if (this.isCreated || !this.docs.length) {
-          return;
-        }
-
-        this.isCreated = true; // List is Array<String>
-
-        if (isString(this.docs[0])) {
-          this.docs.forEach(function (doc, docIndex) {
-            _this._addString(doc, docIndex);
-          });
-        } else {
-          // List is Array<Object>
-          this.docs.forEach(function (doc, docIndex) {
-            _this._addObject(doc, docIndex);
-          });
-        }
-
-        this.norm.clear();
-      } // Adds a doc to the end of the index
-
-    }, {
-      key: "add",
-      value: function add(doc) {
-        var idx = this.size();
-
-        if (isString(doc)) {
-          this._addString(doc, idx);
-        } else {
-          this._addObject(doc, idx);
-        }
-      } // Removes the doc at the specified index of the index
-
-    }, {
-      key: "removeAt",
-      value: function removeAt(idx) {
-        this.records.splice(idx, 1); // Change ref index of every subsquent doc
-
-        for (var i = idx, len = this.size(); i < len; i += 1) {
-          this.records[i].i -= 1;
-        }
-      }
-    }, {
-      key: "size",
-      value: function size() {
-        return this.records.length;
-      }
-    }, {
-      key: "_addString",
-      value: function _addString(doc, docIndex) {
-        if (!isDefined(doc) || isBlank(doc)) {
-          return;
-        }
-
-        var record = {
-          v: doc,
-          i: docIndex,
-          n: this.norm.get(doc)
-        };
-        this.records.push(record);
-      }
-    }, {
-      key: "_addObject",
-      value: function _addObject(doc, docIndex) {
-        var _this2 = this;
-
-        var record = {
-          i: docIndex,
-          $: {}
-        }; // Iterate over every key (i.e, path), and fetch the value at that key
-
-        this.keys.forEach(function (key, keyIndex) {
-          var value = _this2.getFn(doc, key);
-
-          if (!isDefined(value)) {
-            return;
-          }
-
-          if (isArray(value)) {
-            (function () {
-              var subRecords = [];
-              var stack = [{
-                nestedArrIndex: -1,
-                value: value
-              }];
-
-              while (stack.length) {
-                var _stack$pop = stack.pop(),
-                    nestedArrIndex = _stack$pop.nestedArrIndex,
-                    _value = _stack$pop.value;
-
-                if (!isDefined(_value)) {
-                  continue;
-                }
-
-                if (isString(_value) && !isBlank(_value)) {
-                  var subRecord = {
-                    v: _value,
-                    i: nestedArrIndex,
-                    n: _this2.norm.get(_value)
-                  };
-                  subRecords.push(subRecord);
-                } else if (isArray(_value)) {
-                  _value.forEach(function (item, k) {
-                    stack.push({
-                      nestedArrIndex: k,
-                      value: item
-                    });
-                  });
-                }
-              }
-
-              record.$[keyIndex] = subRecords;
-            })();
-          } else if (!isBlank(value)) {
-            var subRecord = {
-              v: value,
-              n: _this2.norm.get(value)
-            };
-            record.$[keyIndex] = subRecord;
-          }
-        });
-        this.records.push(record);
-      }
-    }, {
-      key: "toJSON",
-      value: function toJSON() {
-        return {
-          keys: this.keys,
-          records: this.records
-        };
-      }
-    }]);
-
-    return FuseIndex;
-  }();
-  function createIndex(keys, docs) {
-    var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-        _ref2$getFn = _ref2.getFn,
-        getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn;
-
-    var myIndex = new FuseIndex({
-      getFn: getFn
-    });
-    myIndex.setKeys(keys);
-    myIndex.setCollection(docs);
-    myIndex.create();
-    return myIndex;
-  }
-  function parseIndex(data) {
-    var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        _ref3$getFn = _ref3.getFn,
-        getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn;
-
-    var keys = data.keys,
-        records = data.records;
-    var myIndex = new FuseIndex({
-      getFn: getFn
-    });
-    myIndex.setKeys(keys);
-    myIndex.setRecords(records);
-    return myIndex;
-  }
-
-  function transformMatches(result, data) {
-    var matches = result.matches;
-    data.matches = [];
-
-    if (!isDefined(matches)) {
-      return;
-    }
-
-    for (var i = 0, len = matches.length; i < len; i += 1) {
-      var match = matches[i];
-
-      if (!isDefined(match.indices) || match.indices.length === 0) {
-        continue;
-      }
-
-      var indices = match.indices,
-          value = match.value;
-      var obj = {
-        indices: indices,
-        value: value
-      };
-
-      if (match.key) {
-        obj.key = match.key;
-      }
-
-      if (match.idx > -1) {
-        obj.refIndex = match.idx;
-      }
-
-      data.matches.push(obj);
-    }
-  }
-
-  function transformScore(result, data) {
-    data.score = result.score;
-  }
-
   var registeredSearchers = [];
   function register() {
     registeredSearchers.push.apply(registeredSearchers, arguments);
@@ -1608,19 +1608,49 @@
     AND: '$and',
     OR: '$or'
   };
-  var OperatorSet = new Set(Object.values(LogicalOperator));
+
+  var isExpression = function isExpression(query) {
+    return query[LogicalOperator.AND] || query[LogicalOperator.OR];
+  };
+
+  var isLeaf = function isLeaf(query) {
+    return !isArray(query) && isObject(query) && !isExpression(query);
+  };
+
+  var transformImplicit = function transformImplicit(query) {
+    return _defineProperty({}, LogicalOperator.AND, Object.keys(query).map(function (key) {
+      return _defineProperty({}, key, query[key]);
+    }));
+  }; // When `auto` is `true`, the parse function will infer and initialize and add
+  // the appropriate `Searcher` instance
+
+
   function parse(query, options) {
+    var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref3$auto = _ref3.auto,
+        auto = _ref3$auto === void 0 ? true : _ref3$auto;
+
     var next = function next(query) {
       var keys = Object.keys(query);
+
+      if (keys.length > 1 && !isExpression(query)) {
+        return next(transformImplicit(query));
+      }
+
       var key = keys[0];
 
-      if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
+      if (isLeaf(query)) {
         var pattern = query[key];
-        return {
+        var obj = {
           key: key,
-          pattern: pattern,
-          searcher: createSearcher(pattern, options)
+          pattern: pattern
         };
+
+        if (auto) {
+          obj.searcher = createSearcher(pattern, options);
+        }
+
+        return obj;
       }
 
       var node = {
@@ -1639,10 +1669,8 @@
       return node;
     };
 
-    if (!query[LogicalOperator.AND] || !query[LogicalOperator.OR]) {
-      query = _defineProperty({}, LogicalOperator.AND, Object.keys(query).map(function (key) {
-        return _defineProperty({}, key, query[key]);
-      }));
+    if (!isExpression(query)) {
+      query = transformImplicit(query);
     }
 
     return next(query);
@@ -1996,11 +2024,16 @@
     });
   }
 
-  register(ExtendedSearch);
   Fuse.version = '5.2.3';
   Fuse.createIndex = createIndex;
   Fuse.parseIndex = parseIndex;
   Fuse.config = Config;
+
+  {
+    Fuse.parseQuery = parse;
+  }
+
+  register(ExtendedSearch);
 
   return Fuse;
 

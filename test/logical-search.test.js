@@ -9,6 +9,43 @@ const print = (result) => {
 
 const idx = (result) => result.map((obj) => obj.refIndex)
 
+describe('Logical parser', () => {
+  const options = {
+    useExtendedSearch: true,
+    includeMatches: true,
+    includeScore: true,
+    keys: ['title', 'author.firstName', 'author.lastName']
+  }
+
+  test('Tree structure', () => {
+    const query = {
+      $and: [
+        { title: 'old war' },
+        {
+          $or: [{ title: '!arts' }, { title: '^lock' }]
+        }
+      ]
+    }
+    let root = Fuse.parseQuery(query, options, { auto: false })
+
+    expect(root).toMatchSnapshot()
+  })
+
+  test('Implicit operations', () => {
+    const query = {
+      $and: [
+        { title: 'old war' },
+        {
+          $or: [{ title: '!arts', tags: 'kiro' }, { title: '^lock' }]
+        }
+      ]
+    }
+    let root = Fuse.parseQuery(query, options, { auto: false })
+
+    expect(root).toMatchSnapshot()
+  })
+})
+
 describe('Searching using logical search', () => {
   const options = {
     useExtendedSearch: true,
