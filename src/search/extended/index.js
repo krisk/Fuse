@@ -81,7 +81,7 @@ export default class ExtendedSearch {
     text = isCaseSensitive ? text : text.toLowerCase()
 
     let numMatches = 0
-    let indices = []
+    let allIndices = []
     let totalScore = 0
 
     // ORs
@@ -89,13 +89,13 @@ export default class ExtendedSearch {
       const searchers = query[i]
 
       // Reset indices
-      indices.length = 0
+      allIndices.length = 0
       numMatches = 0
 
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
         const searcher = searchers[j]
-        const { isMatch, matchedIndices, score } = searcher.search(text)
+        const { isMatch, indices, score } = searcher.search(text)
 
         if (isMatch) {
           numMatches += 1
@@ -103,15 +103,15 @@ export default class ExtendedSearch {
           if (includeMatches) {
             const type = searcher.constructor.type
             if (MultiMatchSet.has(type)) {
-              indices = [...indices, ...matchedIndices]
+              allIndices = [...allIndices, ...indices]
             } else {
-              indices.push(matchedIndices)
+              allIndices.push(indices)
             }
           }
         } else {
           totalScore = 0
           numMatches = 0
-          indices.length = 0
+          allIndices.length = 0
           break
         }
       }
@@ -124,7 +124,7 @@ export default class ExtendedSearch {
         }
 
         if (includeMatches) {
-          result.matchedIndices = indices
+          result.indices = allIndices
         }
 
         return result

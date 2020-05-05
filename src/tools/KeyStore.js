@@ -7,22 +7,20 @@ export default class KeyStore {
     this._keys = {}
     this._keyNames = []
 
-    const len = keys.length
-
     let totalWeight = 0
 
-    for (let i = 0; i < len; i += 1) {
-      const key = keys[i]
-
+    keys.forEach((key) => {
       let keyName
       let weight = 1
 
       if (isString(key)) {
         keyName = key
       } else {
-        if (hasOwn.call(key, 'name')) {
-          keyName = key.name
+        if (!hasOwn.call(key, 'name')) {
+          throw new Error('Key must contain a name')
         }
+        keyName = key.name
+
         if (hasOwn.call(key, 'weight')) {
           weight = key.weight
 
@@ -39,7 +37,7 @@ export default class KeyStore {
       this._keys[keyName] = { weight }
 
       totalWeight += weight
-    }
+    })
 
     // Normalize weights so that their sum is equal to 1
     this._keyNames.forEach((key) => {

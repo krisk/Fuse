@@ -56,7 +56,7 @@ export default class BitapSearch {
       }
 
       if (includeMatches) {
-        result.matchedIndices = [[0, text.length - 1]]
+        result.indices = [[0, text.length - 1]]
       }
 
       return result
@@ -71,7 +71,7 @@ export default class BitapSearch {
       minMatchCharLength
     } = this.options
 
-    let allMatchedIndices = []
+    let allIndices = []
     let totalScore = 0
     let hasMatches = false
 
@@ -87,7 +87,7 @@ export default class BitapSearch {
         includeMatches
       })
 
-      const { isMatch, score, matchedIndices } = result
+      const { isMatch, score, indices } = result
 
       if (isMatch) {
         hasMatches = true
@@ -95,8 +95,8 @@ export default class BitapSearch {
 
       totalScore += score
 
-      if (isMatch && matchedIndices) {
-        allMatchedIndices = [...allMatchedIndices, ...matchedIndices]
+      if (isMatch && indices) {
+        allIndices = [...allIndices, ...indices]
       }
     }
 
@@ -106,7 +106,7 @@ export default class BitapSearch {
     }
 
     if (hasMatches && includeMatches) {
-      result.matchedIndices = allMatchedIndices
+      result.indices = allIndices
     }
 
     return result

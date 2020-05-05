@@ -21,21 +21,21 @@ export default class ExactMatch extends BaseMatch {
     let location = 0
     let index
 
-    const matchedIndices = []
+    const indices = []
     const patternLen = this.pattern.length
 
     // Get all exact matches
     while ((index = text.indexOf(this.pattern, location)) > -1) {
       location = index + patternLen
-      matchedIndices.push([index, location - 1])
+      indices.push([index, location - 1])
     }
 
-    const isMatch = !!matchedIndices.length
+    const isMatch = !!indices.length
 
     return {
       isMatch,
       score: isMatch ? 1 : 0,
-      matchedIndices
+      indices
     }
   }
 }

@@ -172,7 +172,7 @@ export default function search(
   }
 
   if (includeMatches) {
-    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength)
+    result.indices = convertMaskToIndices(matchMask, minMatchCharLength)
   }
 
   return result

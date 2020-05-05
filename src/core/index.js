@@ -93,19 +93,15 @@ export default class Fuse {
         return
       }
 
-      const { isMatch, score, matchedIndices: indices } = searcher.searchIn(
-        text
-      )
+      const { isMatch, score, indices } = searcher.searchIn(text)
 
-      if (!isMatch) {
-        return
+      if (isMatch) {
+        results.push({
+          item: text,
+          idx,
+          matches: [{ score, value: text, norm, indices: indices || [] }]
+        })
       }
-
-      results.push({
-        item: text,
-        idx,
-        matches: [{ score, value: text, norm, indices: indices || [] }]
-      })
     })
 
     return results
@@ -132,6 +128,10 @@ export default class Fuse {
               item,
               matches
             })
+            if (operator === LogicalOperator.OR) {
+              // Short-circuit
+              break
+            }
           } else if (operator === LogicalOperator.AND) {
             res.length = 0
             // Short-circuit
@@ -162,11 +162,9 @@ export default class Fuse {
     }
 
     records.forEach(({ $: item, i: idx }) => {
-      if (!isDefined(item)) {
-        return
+      if (isDefined(item)) {
+        evaluateExpression(expression, item, idx)
       }
-
-      evaluateExpression(expression, item, idx)
     })
 
     return results
@@ -185,11 +183,11 @@ export default class Fuse {
       let matches = []
 
       // Iterate over every key (i.e, path), and fetch the value at that key
-      keys.forEach((key, j) => {
+      keys.forEach((key, keyIndex) => {
         matches.push(
           ...this._findMatches({
             key,
-            value: item[j],
+            value: item[keyIndex],
             searcher
           })
         )
@@ -207,11 +205,11 @@ export default class Fuse {
     return results
   }
   _findMatches({ key, value, searcher }) {
-    let matches = []
-
     if (!isDefined(value)) {
-      return matches
+      return []
     }
+
+    let matches = []
 
     if (isArray(value)) {
       value.forEach(({ v: text, i: idx, n: norm }) => {
@@ -219,35 +217,27 @@ export default class Fuse {
           return
         }
 
-        const { isMatch, score, matchedIndices: indices } = searcher.searchIn(
-          text
-        )
+        const { isMatch, score, indices } = searcher.searchIn(text)
 
-        if (!isMatch) {
-          return
+        if (isMatch) {
+          matches.push({
+            score,
+            key,
+            value: text,
+            idx,
+            norm,
+            indices: indices || []
+          })
         }
-
-        matches.push({
-          score,
-          key,
-          value: text,
-          idx,
-          norm,
-          indices: indices || []
-        })
       })
     } else {
       const { v: text, n: norm } = value
 
-      const { isMatch, score, matchedIndices: indices } = searcher.searchIn(
-        text
-      )
+      const { isMatch, score, indices } = searcher.searchIn(text)
 
-      if (!isMatch) {
-        return []
+      if (isMatch) {
+        matches.push({ score, key, value: text, norm, indices: indices || [] })
       }
-
-      matches.push({ score, key, value: text, norm, indices: indices || [] })
     }
 
     return matches
@@ -260,12 +250,11 @@ function computeScore(results, keyStore) {
     let totalScore = 1
 
     result.matches.forEach(({ key, norm, score }) => {
-      const keyWeight = keyStore.get(key, 'weight') || -1
-      const weight = keyWeight > -1 ? keyWeight : 1
+      const weight = keyStore.get(key, 'weight')
 
       totalScore *= Math.pow(
-        score === 0 && keyWeight > -1 ? Number.EPSILON : score,
-        weight * norm
+        score === 0 && weight ? Number.EPSILON : score,
+        (weight || 1) * norm
       )
     })
 

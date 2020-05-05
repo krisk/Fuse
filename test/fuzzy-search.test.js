@@ -529,6 +529,14 @@ describe('Weighted search', () => {
         refIndex: 2
       })
     })
+
+    test('Throws when key does not have a name property', () => {
+      expect(() => {
+        new Fuse(customBookList, {
+          keys: ['title', { weight: 2 }]
+        })
+      }).toThrow()
+    })
   })
 
   describe('When searching for the term "John Smith" with title weighted higher', () => {

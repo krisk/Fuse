@@ -7,12 +7,12 @@ export const LogicalOperator = {
 }
 
 const isExpression = (query) =>
-  query[LogicalOperator.AND] || query[LogicalOperator.OR]
+  !!(query[LogicalOperator.AND] || query[LogicalOperator.OR])
 
 const isLeaf = (query) =>
   !isArray(query) && isObject(query) && !isExpression(query)
 
-const transformImplicit = (query) => ({
+const convertToExplicit = (query) => ({
   [LogicalOperator.AND]: Object.keys(query).map((key) => ({
     [key]: query[key]
   }))
@@ -25,7 +25,7 @@ export function parse(query, options, { auto = true } = {}) {
     let keys = Object.keys(query)
 
     if (keys.length > 1 && !isExpression(query)) {
-      return next(transformImplicit(query))
+      return next(convertToExplicit(query))
     }
 
     let key = keys[0]
@@ -64,7 +64,7 @@ export function parse(query, options, { auto = true } = {}) {
   }
 
   if (!isExpression(query)) {
-    query = transformImplicit(query)
+    query = convertToExplicit(query)
   }
 
   return next(query)

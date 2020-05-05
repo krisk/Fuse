@@ -254,20 +254,19 @@
 
       this._keys = {};
       this._keyNames = [];
-      var len = keys.length;
       var totalWeight = 0;
-
-      for (var i = 0; i < len; i += 1) {
-        var key = keys[i];
-        var keyName = void 0;
+      keys.forEach(function (key) {
+        var keyName;
         var weight = 1;
 
         if (isString(key)) {
           keyName = key;
         } else {
-          if (hasOwn.call(key, 'name')) {
-            keyName = key.name;
+          if (!hasOwn.call(key, 'name')) {
+            throw new Error('Key must contain a name');
           }
+
+          keyName = key.name;
 
           if (hasOwn.call(key, 'weight')) {
             weight = key.weight;
@@ -278,14 +277,13 @@
           }
         }
 
-        this._keyNames.push(keyName);
+        _this._keyNames.push(keyName);
 
-        this._keys[keyName] = {
+        _this._keys[keyName] = {
           weight: weight
         };
         totalWeight += weight;
-      } // Normalize weights so that their sum is equal to 1
-
+      }); // Normalize weights so that their sum is equal to 1
 
       this._keyNames.forEach(function (key) {
         _this._keys[key].weight /= totalWeight;
@@ -693,7 +691,7 @@
   function convertMaskToIndices() {
     var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
     var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
-    var matchedIndices = [];
+    var indices = [];
     var start = -1;
     var end = -1;
     var i = 0;
@@ -707,7 +705,7 @@
         end = i - 1;
 
         if (end - start + 1 >= minMatchCharLength) {
-          matchedIndices.push([start, end]);
+          indices.push([start, end]);
         }
 
         start = -1;
@@ -716,10 +714,10 @@
 
 
     if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-      matchedIndices.push([start, i - 1]);
+      indices.push([start, i - 1]);
     }
 
-    return matchedIndices;
+    return indices;
   }
 
   // Machine word size
@@ -883,7 +881,7 @@
     };
 
     if (includeMatches) {
-      result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
+      result.indices = convertMaskToIndices(matchMask, minMatchCharLength);
     }
 
     return result;
@@ -967,7 +965,7 @@
           };
 
           if (includeMatches) {
-            _result.matchedIndices = [[0, text.length - 1]];
+            _result.indices = [[0, text.length - 1]];
           }
 
           return _result;
@@ -980,7 +978,7 @@
             threshold = _this$options2.threshold,
             findAllMatches = _this$options2.findAllMatches,
             minMatchCharLength = _this$options2.minMatchCharLength;
-        var allMatchedIndices = [];
+        var allIndices = [];
         var totalScore = 0;
         var hasMatches = false;
 
@@ -1000,7 +998,7 @@
 
           var isMatch = _result2.isMatch,
               score = _result2.score,
-              matchedIndices = _result2.matchedIndices;
+              indices = _result2.indices;
 
           if (isMatch) {
             hasMatches = true;
@@ -1008,8 +1006,8 @@
 
           totalScore += score;
 
-          if (isMatch && matchedIndices) {
-            allMatchedIndices = [].concat(_toConsumableArray(allMatchedIndices), _toConsumableArray(matchedIndices));
+          if (isMatch && indices) {
+            allIndices = [].concat(_toConsumableArray(allIndices), _toConsumableArray(indices));
           }
         }
 
@@ -1019,7 +1017,7 @@
         };
 
         if (hasMatches && includeMatches) {
-          result.matchedIndices = allMatchedIndices;
+          result.indices = allIndices;
         }
 
         return result;
@@ -1077,19 +1075,19 @@
       value: function search(text) {
         var location = 0;
         var index;
-        var matchedIndices = [];
+        var indices = [];
         var patternLen = this.pattern.length; // Get all exact matches
 
         while ((index = text.indexOf(this.pattern, location)) > -1) {
           location = index + patternLen;
-          matchedIndices.push([index, location - 1]);
+          indices.push([index, location - 1]);
         }
 
-        var isMatch = !!matchedIndices.length;
+        var isMatch = !!indices.length;
         return {
           isMatch: isMatch,
           score: isMatch ? 1 : 0,
-          matchedIndices: matchedIndices
+          indices: indices
         };
       }
     }], [{
@@ -1131,7 +1129,7 @@
         return {
           isMatch: isMatch,
           score: isMatch ? 0 : 1,
-          matchedIndices: [0, text.length - 1]
+          indices: [0, text.length - 1]
         };
       }
     }], [{
@@ -1172,7 +1170,7 @@
         return {
           isMatch: isMatch,
           score: isMatch ? 0 : 1,
-          matchedIndices: [0, this.pattern.length - 1]
+          indices: [0, this.pattern.length - 1]
         };
       }
     }], [{
@@ -1213,7 +1211,7 @@
         return {
           isMatch: isMatch,
           score: isMatch ? 0 : 1,
-          matchedIndices: [0, text.length - 1]
+          indices: [0, text.length - 1]
         };
       }
     }], [{
@@ -1254,7 +1252,7 @@
         return {
           isMatch: isMatch,
           score: isMatch ? 0 : 1,
-          matchedIndices: [text.length - this.pattern.length, text.length - 1]
+          indices: [text.length - this.pattern.length, text.length - 1]
         };
       }
     }], [{
@@ -1295,7 +1293,7 @@
         return {
           isMatch: isMatch,
           score: isMatch ? 0 : 1,
-          matchedIndices: [0, text.length - 1]
+          indices: [0, text.length - 1]
         };
       }
     }], [{
@@ -1519,13 +1517,13 @@
             isCaseSensitive = _this$options.isCaseSensitive;
         text = isCaseSensitive ? text : text.toLowerCase();
         var numMatches = 0;
-        var indices = [];
+        var allIndices = [];
         var totalScore = 0; // ORs
 
         for (var i = 0, qLen = query.length; i < qLen; i += 1) {
           var searchers = query[i]; // Reset indices
 
-          indices.length = 0;
+          allIndices.length = 0;
           numMatches = 0; // ANDs
 
           for (var j = 0, pLen = searchers.length; j < pLen; j += 1) {
@@ -1533,7 +1531,7 @@
 
             var _searcher$search = searcher.search(text),
                 isMatch = _searcher$search.isMatch,
-                matchedIndices = _searcher$search.matchedIndices,
+                indices = _searcher$search.indices,
                 score = _searcher$search.score;
 
             if (isMatch) {
@@ -1544,15 +1542,15 @@
                 var type = searcher.constructor.type;
 
                 if (MultiMatchSet.has(type)) {
-                  indices = [].concat(_toConsumableArray(indices), _toConsumableArray(matchedIndices));
+                  allIndices = [].concat(_toConsumableArray(allIndices), _toConsumableArray(indices));
                 } else {
-                  indices.push(matchedIndices);
+                  allIndices.push(indices);
                 }
               }
             } else {
               totalScore = 0;
               numMatches = 0;
-              indices.length = 0;
+              allIndices.length = 0;
               break;
             }
           } // OR condition, so if TRUE, return
@@ -1565,7 +1563,7 @@
             };
 
             if (includeMatches) {
-              result.matchedIndices = indices;
+              result.indices = allIndices;
             }
 
             return result;
@@ -1610,14 +1608,14 @@
   };
 
   var isExpression = function isExpression(query) {
-    return query[LogicalOperator.AND] || query[LogicalOperator.OR];
+    return !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
   };
 
   var isLeaf = function isLeaf(query) {
     return !isArray(query) && isObject(query) && !isExpression(query);
   };
 
-  var transformImplicit = function transformImplicit(query) {
+  var convertToExplicit = function convertToExplicit(query) {
     return _defineProperty({}, LogicalOperator.AND, Object.keys(query).map(function (key) {
       return _defineProperty({}, key, query[key]);
     }));
@@ -1634,7 +1632,7 @@
       var keys = Object.keys(query);
 
       if (keys.length > 1 && !isExpression(query)) {
-        return next(transformImplicit(query));
+        return next(convertToExplicit(query));
       }
 
       var key = keys[0];
@@ -1670,7 +1668,7 @@
     };
 
     if (!isExpression(query)) {
-      query = transformImplicit(query);
+      query = convertToExplicit(query);
     }
 
     return next(query);
@@ -1779,22 +1777,20 @@
           var _searcher$searchIn = searcher.searchIn(text),
               isMatch = _searcher$searchIn.isMatch,
               score = _searcher$searchIn.score,
-              indices = _searcher$searchIn.matchedIndices;
+              indices = _searcher$searchIn.indices;
 
-          if (!isMatch) {
-            return;
+          if (isMatch) {
+            results.push({
+              item: text,
+              idx: idx,
+              matches: [{
+                score: score,
+                value: text,
+                norm: norm,
+                indices: indices || []
+              }]
+            });
           }
-
-          results.push({
-            item: text,
-            idx: idx,
-            matches: [{
-              score: score,
-              value: text,
-              norm: norm,
-              indices: indices || []
-            }]
-          });
         });
         return results;
       }
@@ -1825,6 +1821,11 @@
                   item: item,
                   matches: matches
                 });
+
+                if (operator === LogicalOperator.OR) {
+                  // Short-circuit
+                  break;
+                }
               } else if (operator === LogicalOperator.AND) {
                 res.length = 0; // Short-circuit
 
@@ -1867,11 +1868,9 @@
           var item = _ref4.$,
               idx = _ref4.i;
 
-          if (!isDefined(item)) {
-            return;
+          if (isDefined(item)) {
+            evaluateExpression(expression, item, idx);
           }
-
-          evaluateExpression(expression, item, idx);
         });
         return results;
       }
@@ -1895,10 +1894,10 @@
 
           var matches = []; // Iterate over every key (i.e, path), and fetch the value at that key
 
-          keys.forEach(function (key, j) {
+          keys.forEach(function (key, keyIndex) {
             matches.push.apply(matches, _toConsumableArray(_this2._findMatches({
               key: key,
-              value: item[j],
+              value: item[keyIndex],
               searcher: searcher
             })));
           });
@@ -1919,11 +1918,12 @@
         var key = _ref6.key,
             value = _ref6.value,
             searcher = _ref6.searcher;
-        var matches = [];
 
         if (!isDefined(value)) {
-          return matches;
+          return [];
         }
+
+        var matches = [];
 
         if (isArray(value)) {
           value.forEach(function (_ref7) {
@@ -1938,20 +1938,18 @@
             var _searcher$searchIn2 = searcher.searchIn(text),
                 isMatch = _searcher$searchIn2.isMatch,
                 score = _searcher$searchIn2.score,
-                indices = _searcher$searchIn2.matchedIndices;
+                indices = _searcher$searchIn2.indices;
 
-            if (!isMatch) {
-              return;
+            if (isMatch) {
+              matches.push({
+                score: score,
+                key: key,
+                value: text,
+                idx: idx,
+                norm: norm,
+                indices: indices || []
+              });
             }
-
-            matches.push({
-              score: score,
-              key: key,
-              value: text,
-              idx: idx,
-              norm: norm,
-              indices: indices || []
-            });
           });
         } else {
           var text = value.v,
@@ -1960,19 +1958,17 @@
           var _searcher$searchIn3 = searcher.searchIn(text),
               isMatch = _searcher$searchIn3.isMatch,
               score = _searcher$searchIn3.score,
-              indices = _searcher$searchIn3.matchedIndices;
+              indices = _searcher$searchIn3.indices;
 
-          if (!isMatch) {
-            return [];
+          if (isMatch) {
+            matches.push({
+              score: score,
+              key: key,
+              value: text,
+              norm: norm,
+              indices: indices || []
+            });
           }
-
-          matches.push({
-            score: score,
-            key: key,
-            value: text,
-            norm: norm,
-            indices: indices || []
-          });
         }
 
         return matches;
@@ -1989,9 +1985,8 @@
         var key = _ref8.key,
             norm = _ref8.norm,
             score = _ref8.score;
-        var keyWeight = keyStore.get(key, 'weight') || -1;
-        var weight = keyWeight > -1 ? keyWeight : 1;
-        totalScore *= Math.pow(score === 0 && keyWeight > -1 ? Number.EPSILON : score, weight * norm);
+        var weight = keyStore.get(key, 'weight');
+        totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * norm);
       });
       result.score = totalScore;
     });

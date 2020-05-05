@@ -109,4 +109,12 @@ describe('Searching using logical search', () => {
     expect(result.length).toBe(2)
     expect(idx(result)).toMatchObject([7, 0])
   })
+
+  // test('Search: OR with multiple entries', () => {
+  //   let result = fuse.search({
+  //     $or: [{ title: 'bakwrds' }, { 'author.firstName': 'rob' }]
+  //   })
+  //   expect(result.length).toBe(2)
+  //   // expect(idx(result)).toMatchObject([7, 0])
+  // })
 })
