@@ -88,7 +88,6 @@ export default class Fuse {
 
     // Iterate over every string in the index
     records.forEach(({ v: text, i: idx, n: norm }) => {
-      // let { v: text, i: idx, n: norm } = indexItem
       if (!isDefined(text)) {
         return
       }

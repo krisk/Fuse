@@ -168,7 +168,7 @@ export default function search(
   let result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
-    score: !finalScore ? 0.001 : finalScore
+    score: Math.max(0.001, finalScore)
   }
 
   if (includeMatches) {
