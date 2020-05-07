@@ -981,24 +981,21 @@
         var allIndices = [];
         var totalScore = 0;
         var hasMatches = false;
+        this.chunks.forEach(function (_ref2, i) {
+          var pattern = _ref2.pattern,
+              alphabet = _ref2.alphabet;
 
-        for (var i = 0, len = this.chunks.length; i < len; i += 1) {
-          var _this$chunks$i = this.chunks[i],
-              pattern = _this$chunks$i.pattern,
-              alphabet = _this$chunks$i.alphabet;
-
-          var _result2 = search(text, pattern, alphabet, {
+          var _search = search(text, pattern, alphabet, {
             location: location + MAX_BITS * i,
             distance: distance,
             threshold: threshold,
             findAllMatches: findAllMatches,
             minMatchCharLength: minMatchCharLength,
             includeMatches: includeMatches
-          });
-
-          var isMatch = _result2.isMatch,
-              score = _result2.score,
-              indices = _result2.indices;
+          }),
+              isMatch = _search.isMatch,
+              score = _search.score,
+              indices = _search.indices;
 
           if (isMatch) {
             hasMatches = true;
@@ -1009,8 +1006,7 @@
           if (isMatch && indices) {
             allIndices = [].concat(_toConsumableArray(allIndices), _toConsumableArray(indices));
           }
-        }
-
+        });
         var result = {
           isMatch: hasMatches,
           score: hasMatches ? totalScore / this.chunks.length : 1

@@ -75,10 +75,8 @@ export default class BitapSearch {
     let totalScore = 0
     let hasMatches = false
 
-    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
-      let { pattern, alphabet } = this.chunks[i]
-
-      let result = search(text, pattern, alphabet, {
+    this.chunks.forEach(({ pattern, alphabet }, i) => {
+      const { isMatch, score, indices } = search(text, pattern, alphabet, {
         location: location + MAX_BITS * i,
         distance,
         threshold,
@@ -86,8 +84,6 @@ export default class BitapSearch {
         minMatchCharLength,
         includeMatches
       })
-
-      const { isMatch, score, indices } = result
 
       if (isMatch) {
         hasMatches = true
@@ -98,7 +94,7 @@ export default class BitapSearch {
       if (isMatch && indices) {
         allIndices = [...allIndices, ...indices]
       }
-    }
+    })
 
     let result = {
       isMatch: hasMatches,
