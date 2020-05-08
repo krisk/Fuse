@@ -1,4 +1,4 @@
-import { isString, isArray } from '../helpers/type-checkers'
+import { isString } from '../helpers/type-checkers'
 
 const hasOwn = Object.prototype.hasOwnProperty
 

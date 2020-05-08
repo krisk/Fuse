@@ -1,12 +1,6 @@
 const Fuse = require('../dist/fuse')
 const Books = require('./fixtures/books.json')
 
-const util = require('util')
-
-const print = (result) => {
-  console.log(util.inspect(result, false, null, true /* enable colors */))
-}
-
 const idx = (result) => result.map((obj) => obj.refIndex)
 
 describe('Logical parser', () => {

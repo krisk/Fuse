@@ -1,12 +1,6 @@
 const Fuse = require('../dist/fuse')
 const Books = require('./fixtures/books.json')
 
-const util = require('util')
-
-const print = (result) => {
-  console.log(util.inspect(result, false, null, true /* enable colors */))
-}
-
 const idx = (result) => result.map((obj) => obj.refIndex)
 const idxMap = (fuse) => fuse.getIndex().records.map((item) => [item.v, item.i])
 
