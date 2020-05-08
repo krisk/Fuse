@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.3 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.0-beta.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -7,35 +7,102 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-const INFINITY = 1 / 0;
-
-const isArray = (value) =>
-  !Array.isArray
+function isArray(value) {
+  return !Array.isArray
     ? Object.prototype.toString.call(value) === '[object Array]'
-    : Array.isArray(value);
+    : Array.isArray(value)
+}
 
 // Adapted from:
 // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
-const baseToString = (value) => {
+const INFINITY = 1 / 0;
+function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
   if (typeof value == 'string') {
     return value
   }
   let result = value + '';
   return result == '0' && 1 / value == -INFINITY ? '-0' : result
-};
+}
 
-const toString = (value) => (value == null ? '' : baseToString(value));
+function toString(value) {
+  return value == null ? '' : baseToString(value)
+}
 
-const isString = (value) => typeof value === 'string';
+function isString(value) {
+  return typeof value === 'string'
+}
 
-const isNumber = (value) => typeof value === 'number';
+function isNumber(value) {
+  return typeof value === 'number'
+}
 
-const isObject = (value) => typeof value === 'object';
+function isObject(value) {
+  return typeof value === 'object'
+}
 
-const isDefined = (value) => value !== undefined && value !== null;
+function isDefined(value) {
+  return value !== undefined && value !== null
+}
 
-const isBlank = (value) => !value.trim().length;
+function isBlank(value) {
+  return !value.trim().length
+}
+
+const hasOwn = Object.prototype.hasOwnProperty;
+
+class KeyStore {
+  constructor(keys) {
+    this._keys = {};
+    this._keyNames = [];
+
+    let totalWeight = 0;
+
+    keys.forEach((key) => {
+      let keyName;
+      let weight = 1;
+
+      if (isString(key)) {
+        keyName = key;
+      } else {
+        if (!hasOwn.call(key, 'name')) {
+          throw new Error('Key must contain a name')
+        }
+        keyName = key.name;
+
+        if (hasOwn.call(key, 'weight')) {
+          weight = key.weight;
+
+          if (weight <= 0) {
+            throw new Error(
+              '"weight" property in key must be a positive integer'
+            )
+          }
+        }
+      }
+
+      this._keyNames.push(keyName);
+
+      this._keys[keyName] = { weight };
+
+      totalWeight += weight;
+    });
+
+    // Normalize weights so that their sum is equal to 1
+    this._keyNames.forEach((key) => {
+      this._keys[key].weight /= totalWeight;
+    });
+  }
+  get(key, name) {
+    return this._keys[key] && this._keys[key][name]
+  }
+  keys() {
+    return this._keyNames
+  }
+  toJSON() {
+    return JSON.stringify(this._keys)
+  }
+}
 
 function get(obj, path) {
   let list = [];
@@ -167,159 +234,153 @@ function norm(mantissa = 3) {
   }
 }
 
-function createIndex(keys, list, { getFn = Config.getFn } = {}) {
-  let indexedList = [];
-  let norm$1 = norm(3);
+class FuseIndex {
+  constructor({ getFn = Config.getFn } = {}) {
+    this.norm = norm(3);
+    this.getFn = getFn;
+    this.isCreated = false;
 
-  // List is Array<String>
-  if (isString(list[0])) {
-    list.forEach((item, itemIndex) => {
-      if (!isDefined(item) || isBlank(item)) {
+    this.setRecords();
+  }
+  setCollection(docs = []) {
+    this.docs = docs;
+  }
+  setRecords(records = []) {
+    this.records = records;
+  }
+  setKeys(keys = []) {
+    this.keys = keys;
+  }
+  create() {
+    if (this.isCreated || !this.docs.length) {
+      return
+    }
+
+    this.isCreated = true;
+
+    // List is Array<String>
+    if (isString(this.docs[0])) {
+      this.docs.forEach((doc, docIndex) => {
+        this._addString(doc, docIndex);
+      });
+    } else {
+      // List is Array<Object>
+      this.docs.forEach((doc, docIndex) => {
+        this._addObject(doc, docIndex);
+      });
+    }
+
+    this.norm.clear();
+  }
+  // Adds a doc to the end of the index
+  add(doc) {
+    const idx = this.size();
+
+    if (isString(doc)) {
+      this._addString(doc, idx);
+    } else {
+      this._addObject(doc, idx);
+    }
+  }
+  // Removes the doc at the specified index of the index
+  removeAt(idx) {
+    this.records.splice(idx, 1);
+
+    // Change ref index of every subsquent doc
+    for (let i = idx, len = this.size(); i < len; i += 1) {
+      this.records[i].i -= 1;
+    }
+  }
+  size() {
+    return this.records.length
+  }
+  _addString(doc, docIndex) {
+    if (!isDefined(doc) || isBlank(doc)) {
+      return
+    }
+
+    let record = {
+      v: doc,
+      i: docIndex,
+      n: this.norm.get(doc)
+    };
+
+    this.records.push(record);
+  }
+  _addObject(doc, docIndex) {
+    let record = { i: docIndex, $: {} };
+
+    // Iterate over every key (i.e, path), and fetch the value at that key
+    this.keys.forEach((key, keyIndex) => {
+      let value = this.getFn(doc, key);
+
+      if (!isDefined(value)) {
         return
       }
 
-      let record = {
-        v: item,
-        i: itemIndex,
-        n: norm$1.get(item)
-      };
+      if (isArray(value)) {
+        let subRecords = [];
+        const stack = [{ nestedArrIndex: -1, value }];
 
-      indexedList.push(record);
-    });
-  } else {
-    // List is Array<Object>
-    list.forEach((item, itemIndex) => {
-      let record = { i: itemIndex, $: {} };
+        while (stack.length) {
+          const { nestedArrIndex, value } = stack.pop();
 
-      // Iterate over every key (i.e, path), and fetch the value at that key
-      keys.forEach((key, keyIndex) => {
-        let value = getFn(item, key);
-
-        if (!isDefined(value)) {
-          return
-        }
-
-        if (isArray(value)) {
-          let subRecords = [];
-          const stack = [{ nestedArrIndex: -1, value }];
-
-          while (stack.length) {
-            const { nestedArrIndex, value } = stack.pop();
-
-            if (!isDefined(value)) {
-              continue
-            }
-
-            if (isString(value) && !isBlank(value)) {
-              let subRecord = {
-                v: value,
-                i: nestedArrIndex,
-                n: norm$1.get(value)
-              };
-
-              subRecords.push(subRecord);
-            } else if (isArray(value)) {
-              value.forEach((item, k) => {
-                stack.push({
-                  nestedArrIndex: k,
-                  value: item
-                });
-              });
-            }
+          if (!isDefined(value)) {
+            continue
           }
-          record.$[keyIndex] = subRecords;
-        } else if (!isBlank(value)) {
-          let subRecord = {
-            v: value,
-            n: norm$1.get(value)
-          };
 
-          record.$[keyIndex] = subRecord;
+          if (isString(value) && !isBlank(value)) {
+            let subRecord = {
+              v: value,
+              i: nestedArrIndex,
+              n: this.norm.get(value)
+            };
+
+            subRecords.push(subRecord);
+          } else if (isArray(value)) {
+            value.forEach((item, k) => {
+              stack.push({
+                nestedArrIndex: k,
+                value: item
+              });
+            });
+          }
         }
-      });
+        record.$[keyIndex] = subRecords;
+      } else if (!isBlank(value)) {
+        let subRecord = {
+          v: value,
+          n: this.norm.get(value)
+        };
 
-      indexedList.push(record);
+        record.$[keyIndex] = subRecord;
+      }
     });
+
+    this.records.push(record);
   }
-
-  norm$1.clear();
-
-  return {
-    keys,
-    list: indexedList
+  toJSON() {
+    return {
+      keys: this.keys,
+      records: this.records
+    }
   }
 }
 
-const hasOwn = Object.prototype.hasOwnProperty;
+function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
+  let myIndex = new FuseIndex({ getFn });
+  myIndex.setKeys(keys);
+  myIndex.setCollection(docs);
+  myIndex.create();
+  return myIndex
+}
 
-class KeyStore {
-  constructor(keys) {
-    this._keys = {};
-    this._keyNames = [];
-    const len = keys.length;
-
-    // Iterate over every key
-    if (keys.length && isString(keys[0])) {
-      for (let i = 0; i < len; i += 1) {
-        const key = keys[i];
-        this._keys[key] = {
-          weight: 1
-        };
-        this._keyNames.push(key);
-      }
-    } else {
-      let totalWeight = 0;
-
-      for (let i = 0; i < len; i += 1) {
-        const key = keys[i];
-
-        let obj = {};
-
-        if (!hasOwn.call(key, 'name')) {
-          throw new Error('Missing "name" property in key object')
-        }
-
-        const keyName = key.name;
-        this._keyNames.push(keyName);
-
-        if (!hasOwn.call(key, 'weight')) {
-          throw new Error('Missing "weight" property in key object')
-        }
-
-        const weight = key.weight;
-
-        if (weight <= 0 || weight >= 1) {
-          throw new Error(
-            '"weight" property in key must be in the range of (0, 1)'
-          )
-        }
-
-        obj.weight = weight;
-
-        if (hasOwn.call(key, 'threshold')) {
-          obj.threshold = key.threshold;
-        }
-
-        this._keys[keyName] = obj;
-
-        totalWeight += weight;
-      }
-
-      // Normalize weights so that their sum is equal to 1
-      for (let i = 0; i < len; i += 1) {
-        this._keys[this._keyNames[i]].weight /= totalWeight;
-      }
-    }
-  }
-  get(key, name) {
-    return this._keys[key] && this._keys[key][name]
-  }
-  keys() {
-    return this._keyNames
-  }
-  toJSON() {
-    return JSON.stringify(this._keys)
-  }
+function parseIndex(data, { getFn = Config.getFn } = {}) {
+  const { keys, records } = data;
+  let myIndex = new FuseIndex({ getFn });
+  myIndex.setKeys(keys);
+  myIndex.setRecords(records);
+  return myIndex
 }
 
 function transformMatches(result, data) {
@@ -384,7 +445,7 @@ function convertMaskToIndices(
   matchmask = [],
   minMatchCharLength = Config.minMatchCharLength
 ) {
-  let matchedIndices = [];
+  let indices = [];
   let start = -1;
   let end = -1;
   let i = 0;
@@ -396,7 +457,7 @@ function convertMaskToIndices(
     } else if (!match && start !== -1) {
       end = i - 1;
       if (end - start + 1 >= minMatchCharLength) {
-        matchedIndices.push([start, end]);
+        indices.push([start, end]);
       }
       start = -1;
     }
@@ -404,10 +465,10 @@ function convertMaskToIndices(
 
   // (i-1 - start) + 1 => i - start
   if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1]);
+    indices.push([start, i - 1]);
   }
 
-  return matchedIndices
+  return indices
 }
 
 // Machine word size
@@ -578,11 +639,11 @@ function search(
   let result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
-    score: !finalScore ? 0.001 : finalScore
+    score: Math.max(0.001, finalScore)
   };
 
   if (includeMatches) {
-    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
+    result.indices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
   return result
@@ -641,12 +702,7 @@ class BitapSearch {
     }
   }
 
-  searchIn(value) {
-    let text = value.v;
-    return this.searchInString(text)
-  }
-
-  searchInString(text) {
+  searchIn(text) {
     const { isCaseSensitive, includeMatches } = this.options;
 
     if (!isCaseSensitive) {
@@ -661,7 +717,7 @@ class BitapSearch {
       };
 
       if (includeMatches) {
-        result.matchedIndices = [[0, text.length - 1]];
+        result.indices = [[0, text.length - 1]];
       }
 
       return result
@@ -676,14 +732,12 @@ class BitapSearch {
       minMatchCharLength
     } = this.options;
 
-    let allMatchedIndices = [];
+    let allIndices = [];
     let totalScore = 0;
     let hasMatches = false;
 
-    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
-      let { pattern, alphabet } = this.chunks[i];
-
-      let result = search(text, pattern, alphabet, {
+    this.chunks.forEach(({ pattern, alphabet }, i) => {
+      const { isMatch, score, indices } = search(text, pattern, alphabet, {
         location: location + MAX_BITS * i,
         distance,
         threshold,
@@ -692,18 +746,16 @@ class BitapSearch {
         includeMatches
       });
 
-      const { isMatch, score, matchedIndices } = result;
-
       if (isMatch) {
         hasMatches = true;
       }
 
       totalScore += score;
 
-      if (isMatch && matchedIndices) {
-        allMatchedIndices = [...allMatchedIndices, ...matchedIndices];
+      if (isMatch && indices) {
+        allIndices = [...allIndices, ...indices];
       }
-    }
+    });
 
     let result = {
       isMatch: hasMatches,
@@ -711,7 +763,7 @@ class BitapSearch {
     };
 
     if (hasMatches && includeMatches) {
-      result.matchedIndices = allMatchedIndices;
+      result.indices = allIndices;
     }
 
     return result
@@ -736,21 +788,47 @@ const LogicalOperator = {
   OR: '$or'
 };
 
-const OperatorSet = new Set(Object.values(LogicalOperator));
+const isExpression = (query) =>
+  !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
 
-function parseQuery(query, options) {
+const isLeaf = (query) =>
+  !isArray(query) && isObject(query) && !isExpression(query);
+
+const convertToExplicit = (query) => ({
+  [LogicalOperator.AND]: Object.keys(query).map((key) => ({
+    [key]: query[key]
+  }))
+});
+
+// When `auto` is `true`, the parse function will infer and initialize and add
+// the appropriate `Searcher` instance
+function parse(query, options, { auto = true } = {}) {
   const next = (query) => {
-    const keys = Object.keys(query);
-    const key = keys[0];
+    let keys = Object.keys(query);
 
-    if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
+    if (keys.length > 1 && !isExpression(query)) {
+      return next(convertToExplicit(query))
+    }
+
+    let key = keys[0];
+
+    if (isLeaf(query)) {
       const pattern = query[key];
 
-      return {
-        key,
-        pattern,
-        searcher: createSearcher(pattern, options)
+      if (!isString(pattern)) {
+        throw new Error(`Invalid value for key "${key}"`)
       }
+
+      const obj = {
+        key,
+        pattern
+      };
+
+      if (auto) {
+        obj.searcher = createSearcher(pattern, options);
+      }
+
+      return obj
     }
 
     let node = {
@@ -760,6 +838,7 @@ function parseQuery(query, options) {
 
     keys.forEach((key) => {
       const value = query[key];
+
       if (isArray(value)) {
         value.forEach((item) => {
           node.children.push(next(item));
@@ -770,33 +849,51 @@ function parseQuery(query, options) {
     return node
   };
 
-  if (!query[LogicalOperator.AND] || !query[LogicalOperator.OR]) {
-    query = {
-      [LogicalOperator.AND]: Object.keys(query).map((key) => ({
-        [key]: query[key]
-      }))
-    };
+  if (!isExpression(query)) {
+    query = convertToExplicit(query);
   }
 
   return next(query)
 }
 
 class Fuse {
-  constructor(list, options = {}, index) {
+  constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options };
 
     this._keyStore = new KeyStore(this.options.keys);
-    this.setCollection(list, index);
+    this.setCollection(docs, index);
   }
 
-  setCollection(list, index) {
-    this._list = list;
+  setCollection(docs, index) {
+    this._docs = docs;
 
-    this._index =
+    if (index && !(index instanceof FuseIndex)) {
+      throw new Error('Incorrect index type')
+    }
+
+    this._myIndex =
       index ||
-      createIndex(this._keyStore.keys(), this._list, {
+      createIndex(this._keyStore.keys(), this._docs, {
         getFn: this.options.getFn
       });
+  }
+
+  add(doc) {
+    if (!isDefined(doc)) {
+      return
+    }
+
+    this._docs.push(doc);
+    this._myIndex.add(doc);
+  }
+
+  removeAt(idx) {
+    this._docs.splice(idx, 1);
+    this._myIndex.removeAt(idx);
+  }
+
+  getIndex() {
+    return this._myIndex
   }
 
   search(query, { limit = -1 } = {}) {
@@ -807,70 +904,11 @@ class Fuse {
     if (isString(query)) {
       const searcher = createSearcher(query, this.options);
 
-      results = isString(this._list[0])
+      results = isString(this._docs[0])
         ? this._searchStringArrayWith(searcher)
-        : this._searchAllWith(searcher);
+        : this._searchObjectArrayWith(searcher);
     } else {
-      let expression = parseQuery(query, this.options);
-
-      const { keys, list } = this._index;
-
-      const resultMap = {};
-
-      list.forEach((listItem) => {
-        let { $: item, i: idx } = listItem;
-
-        if (!isDefined(item)) {
-          return
-        }
-
-        const evaluateExpression = (node) => {
-          if (node.children) {
-            const operator = node.operator;
-            let res = [];
-
-            for (let k = 0; k < node.children.length; k += 1) {
-              let child = node.children[k];
-              let matches = evaluateExpression(child);
-
-              if (matches && matches.length) {
-                res.push({
-                  idx,
-                  item,
-                  matches
-                });
-              } else if (operator === LogicalOperator.AND) {
-                res.length = 0;
-                break
-              }
-            }
-
-            if (res.length) {
-              // Dedupe when adding
-              if (!resultMap[idx]) {
-                resultMap[idx] = { idx, item, matches: [] };
-                results.push(resultMap[idx]);
-              }
-              res.forEach((item) => {
-                resultMap[idx].matches.push(...item.matches);
-              });
-            }
-          } else {
-            const { key, searcher } = node;
-            const keyIndex = keys.indexOf(key);
-            const value = item[keyIndex];
-
-            let matches = this._findMatches({
-              key,
-              value,
-              searcher
-            });
-            return matches
-          }
-        };
-
-        evaluateExpression(expression);
-      });
+      results = this._searchLogical(query);
     }
 
     computeScore$1(results, this._keyStore);
@@ -883,73 +921,29 @@ class Fuse {
       results = results.slice(0, limit);
     }
 
-    return format(results, this._list, {
+    return format(results, this._docs, {
       includeMatches,
       includeScore
     })
   }
 
   _searchStringArrayWith(searcher) {
-    const { list } = this._index;
-    const { includeMatches } = this.options;
-
+    const { records } = this._myIndex;
     const results = [];
 
-    // Iterate over every string in the list
-    list.forEach((listItem) => {
-      let { v: text, i: idx, n: norm } = listItem;
-
+    // Iterate over every string in the index
+    records.forEach(({ v: text, i: idx, n: norm }) => {
       if (!isDefined(text)) {
         return
       }
 
-      let searchResult = searcher.searchIn(listItem);
+      const { isMatch, score, indices } = searcher.searchIn(text);
 
-      const { isMatch, score } = searchResult;
-
-      if (!isMatch) {
-        return
-      }
-
-      let match = { score, value: text, norm };
-
-      if (includeMatches) {
-        match.indices = searchResult.matchedIndices;
-      }
-
-      results.push({
-        item: text,
-        idx,
-        matches: [match]
-      });
-    });
-
-    return results
-  }
-
-  _searchLogicalWith({ key, searcher }) {
-    const results = [];
-    const { keys, list } = this._index;
-    const keyIndex = keys.indexOf(key);
-
-    list.forEach((listItem) => {
-      let { $: item, i: idx } = listItem;
-
-      if (!isDefined(item)) {
-        return
-      }
-
-      let matches = this._findMatches({
-        key,
-        value: item[keyIndex],
-        searcher
-      });
-
-      if (matches.length) {
+      if (isMatch) {
         results.push({
+          item: text,
           idx,
-          item,
-          matches
+          matches: [{ score, value: text, norm, indices }]
         });
       }
     });
@@ -957,14 +951,75 @@ class Fuse {
     return results
   }
 
-  _searchAllWith(searcher) {
-    const { keys, list } = this._index;
+  _searchLogical(query) {
+    const expression = parse(query, this.options);
+    const { keys, records } = this._myIndex;
+    const resultMap = {};
+    const results = [];
+
+    const evaluateExpression = (node, item, idx) => {
+      if (node.children) {
+        const operator = node.operator;
+        let res = [];
+
+        for (let k = 0; k < node.children.length; k += 1) {
+          let child = node.children[k];
+          let matches = evaluateExpression(child, item, idx);
+
+          if (matches && matches.length) {
+            res.push({
+              idx,
+              item,
+              matches
+            });
+            if (operator === LogicalOperator.OR) {
+              // Short-circuit
+              break
+            }
+          } else if (operator === LogicalOperator.AND) {
+            res.length = 0;
+            // Short-circuit
+            break
+          }
+        }
+
+        if (res.length) {
+          // Dedupe when adding
+          if (!resultMap[idx]) {
+            resultMap[idx] = { idx, item, matches: [] };
+            results.push(resultMap[idx]);
+          }
+          res.forEach(({ matches }) => {
+            resultMap[idx].matches.push(...matches);
+          });
+        }
+      } else {
+        const { key, searcher } = node;
+        const value = item[keys.indexOf(key)];
+
+        return this._findMatches({
+          key,
+          value,
+          searcher
+        })
+      }
+    };
+
+    records.forEach(({ $: item, i: idx }) => {
+      if (isDefined(item)) {
+        evaluateExpression(expression, item, idx);
+      }
+    });
+
+    return results
+  }
+
+  _searchObjectArrayWith(searcher) {
+    const { keys, records } = this._myIndex;
     const results = [];
 
     // List is Array<Object>
-    list.forEach((listItem) => {
-      let { $: item, i: idx } = listItem;
-
+    records.forEach(({ $: item, i: idx }) => {
       if (!isDefined(item)) {
         return
       }
@@ -972,11 +1027,11 @@ class Fuse {
       let matches = [];
 
       // Iterate over every key (i.e, path), and fetch the value at that key
-      keys.forEach((key, j) => {
+      keys.forEach((key, keyIndex) => {
         matches.push(
           ...this._findMatches({
             key,
-            value: item[j],
+            value: item[keyIndex],
             searcher
           })
         );
@@ -994,62 +1049,39 @@ class Fuse {
     return results
   }
   _findMatches({ key, value, searcher }) {
-    let matches = [];
-
     if (!isDefined(value)) {
-      return matches
+      return []
     }
 
-    const { includeMatches } = this.options;
+    let matches = [];
 
     if (isArray(value)) {
-      value.forEach((arrValue) => {
-        const { v: text, i: idx, n: norm } = arrValue;
-
+      value.forEach(({ v: text, i: idx, n: norm }) => {
         if (!isDefined(text)) {
           return
         }
 
-        let searchResult = searcher.searchIn(arrValue);
+        const { isMatch, score, indices } = searcher.searchIn(text);
 
-        const { isMatch, score } = searchResult;
-
-        if (!isMatch) {
-          return
+        if (isMatch) {
+          matches.push({
+            score,
+            key,
+            value: text,
+            idx,
+            norm,
+            indices
+          });
         }
-
-        let match = {
-          score,
-          key,
-          value: text,
-          idx,
-          norm
-        };
-
-        if (includeMatches) {
-          match.indices = searchResult.matchedIndices;
-        }
-
-        matches.push(match);
       });
     } else {
       const { v: text, n: norm } = value;
 
-      let searchResult = searcher.searchIn(value);
+      const { isMatch, score, indices } = searcher.searchIn(text);
 
-      const { isMatch, score } = searchResult;
-
-      if (!isMatch) {
-        return []
+      if (isMatch) {
+        matches.push({ score, key, value: text, norm, indices });
       }
-
-      let match = { score, key, value: text, norm };
-
-      if (includeMatches) {
-        match.indices = searchResult.matchedIndices;
-      }
-
-      matches.push(match);
     }
 
     return matches
@@ -1061,16 +1093,13 @@ function computeScore$1(results, keyStore) {
   results.forEach((result) => {
     let totalScore = 1;
 
-    result.matches.forEach((match) => {
-      const { key, norm } = match;
+    result.matches.forEach(({ key, norm, score }) => {
+      const weight = keyStore.get(key, 'weight');
 
-      const keyWeight = keyStore.get(key, 'weight') || -1;
-      const weight = keyWeight > -1 ? keyWeight : 1;
-
-      const score =
-        match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
-
-      totalScore *= Math.pow(score, weight * norm);
+      totalScore *= Math.pow(
+        score === 0 && weight ? Number.EPSILON : score,
+        (weight || 1) * norm
+      );
     });
 
     result.score = totalScore;
@@ -1079,7 +1108,7 @@ function computeScore$1(results, keyStore) {
 
 function format(
   results,
-  list,
+  docs,
   {
     includeMatches = Config.includeMatches,
     includeScore = Config.includeScore
@@ -1094,7 +1123,7 @@ function format(
     const { idx } = result;
 
     const data = {
-      item: list[idx],
+      item: docs[idx],
       refIndex: idx
     };
 
@@ -1108,8 +1137,13 @@ function format(
   })
 }
 
-Fuse.version = '5.2.3';
+Fuse.version = '6.0.0-beta.0';
 Fuse.createIndex = createIndex;
+Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
+
+{
+  Fuse.parseQuery = parse;
+}
 
 export default Fuse;

@@ -1,5 +1,5 @@
 /**
- * Fuse.js v5.2.3 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.0-beta.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -129,13 +129,13 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-var INFINITY = 1 / 0;
-var isArray = function isArray(value) {
+function isArray(value) {
   return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
-}; // Adapted from:
+} // Adapted from:
 // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
 
-var baseToString = function baseToString(value) {
+var INFINITY = 1 / 0;
+function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
   if (typeof value == 'string') {
     return value;
@@ -143,25 +143,91 @@ var baseToString = function baseToString(value) {
 
   var result = value + '';
   return result == '0' && 1 / value == -INFINITY ? '-0' : result;
-};
-var toString = function toString(value) {
+}
+function toString(value) {
   return value == null ? '' : baseToString(value);
-};
-var isString = function isString(value) {
+}
+function isString(value) {
   return typeof value === 'string';
-};
-var isNumber = function isNumber(value) {
+}
+function isNumber(value) {
   return typeof value === 'number';
-};
-var isObject = function isObject(value) {
+}
+function isObject(value) {
   return _typeof(value) === 'object';
-};
-var isDefined = function isDefined(value) {
+}
+function isDefined(value) {
   return value !== undefined && value !== null;
-};
-var isBlank = function isBlank(value) {
+}
+function isBlank(value) {
   return !value.trim().length;
-};
+}
+
+var hasOwn = Object.prototype.hasOwnProperty;
+
+var KeyStore = /*#__PURE__*/function () {
+  function KeyStore(keys) {
+    var _this = this;
+
+    _classCallCheck(this, KeyStore);
+
+    this._keys = {};
+    this._keyNames = [];
+    var totalWeight = 0;
+    keys.forEach(function (key) {
+      var keyName;
+      var weight = 1;
+
+      if (isString(key)) {
+        keyName = key;
+      } else {
+        if (!hasOwn.call(key, 'name')) {
+          throw new Error('Key must contain a name');
+        }
+
+        keyName = key.name;
+
+        if (hasOwn.call(key, 'weight')) {
+          weight = key.weight;
+
+          if (weight <= 0) {
+            throw new Error('"weight" property in key must be a positive integer');
+          }
+        }
+      }
+
+      _this._keyNames.push(keyName);
+
+      _this._keys[keyName] = {
+        weight: weight
+      };
+      totalWeight += weight;
+    }); // Normalize weights so that their sum is equal to 1
+
+    this._keyNames.forEach(function (key) {
+      _this._keys[key].weight /= totalWeight;
+    });
+  }
+
+  _createClass(KeyStore, [{
+    key: "get",
+    value: function get(key, name) {
+      return this._keys[key] && this._keys[key][name];
+    }
+  }, {
+    key: "keys",
+    value: function keys() {
+      return this._keyNames;
+    }
+  }, {
+    key: "toJSON",
+    value: function toJSON() {
+      return JSON.stringify(this._keys);
+    }
+  }]);
+
+  return KeyStore;
+}();
 
 function get(obj, path) {
   var list = [];
@@ -281,37 +347,115 @@ function norm() {
   };
 }
 
-function createIndex(keys, list) {
-  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-      _ref$getFn = _ref.getFn,
-      getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
+var FuseIndex = /*#__PURE__*/function () {
+  function FuseIndex() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$getFn = _ref.getFn,
+        getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
 
-  var indexedList = [];
-  var norm$1 = norm(3); // List is Array<String>
+    _classCallCheck(this, FuseIndex);
 
-  if (isString(list[0])) {
-    list.forEach(function (item, itemIndex) {
-      if (!isDefined(item) || isBlank(item)) {
+    this.norm = norm(3);
+    this.getFn = getFn;
+    this.isCreated = false;
+    this.setRecords();
+  }
+
+  _createClass(FuseIndex, [{
+    key: "setCollection",
+    value: function setCollection() {
+      var docs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      this.docs = docs;
+    }
+  }, {
+    key: "setRecords",
+    value: function setRecords() {
+      var records = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      this.records = records;
+    }
+  }, {
+    key: "setKeys",
+    value: function setKeys() {
+      var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      this.keys = keys;
+    }
+  }, {
+    key: "create",
+    value: function create() {
+      var _this = this;
+
+      if (this.isCreated || !this.docs.length) {
+        return;
+      }
+
+      this.isCreated = true; // List is Array<String>
+
+      if (isString(this.docs[0])) {
+        this.docs.forEach(function (doc, docIndex) {
+          _this._addString(doc, docIndex);
+        });
+      } else {
+        // List is Array<Object>
+        this.docs.forEach(function (doc, docIndex) {
+          _this._addObject(doc, docIndex);
+        });
+      }
+
+      this.norm.clear();
+    } // Adds a doc to the end of the index
+
+  }, {
+    key: "add",
+    value: function add(doc) {
+      var idx = this.size();
+
+      if (isString(doc)) {
+        this._addString(doc, idx);
+      } else {
+        this._addObject(doc, idx);
+      }
+    } // Removes the doc at the specified index of the index
+
+  }, {
+    key: "removeAt",
+    value: function removeAt(idx) {
+      this.records.splice(idx, 1); // Change ref index of every subsquent doc
+
+      for (var i = idx, len = this.size(); i < len; i += 1) {
+        this.records[i].i -= 1;
+      }
+    }
+  }, {
+    key: "size",
+    value: function size() {
+      return this.records.length;
+    }
+  }, {
+    key: "_addString",
+    value: function _addString(doc, docIndex) {
+      if (!isDefined(doc) || isBlank(doc)) {
         return;
       }
 
       var record = {
-        v: item,
-        i: itemIndex,
-        n: norm$1.get(item)
+        v: doc,
+        i: docIndex,
+        n: this.norm.get(doc)
       };
-      indexedList.push(record);
-    });
-  } else {
-    // List is Array<Object>
-    list.forEach(function (item, itemIndex) {
+      this.records.push(record);
+    }
+  }, {
+    key: "_addObject",
+    value: function _addObject(doc, docIndex) {
+      var _this2 = this;
+
       var record = {
-        i: itemIndex,
+        i: docIndex,
         $: {}
       }; // Iterate over every key (i.e, path), and fetch the value at that key
 
-      keys.forEach(function (key, keyIndex) {
-        var value = getFn(item, key);
+      this.keys.forEach(function (key, keyIndex) {
+        var value = _this2.getFn(doc, key);
 
         if (!isDefined(value)) {
           return;
@@ -338,7 +482,7 @@ function createIndex(keys, list) {
                 var subRecord = {
                   v: _value,
                   i: nestedArrIndex,
-                  n: norm$1.get(_value)
+                  n: _this2.norm.get(_value)
                 };
                 subRecords.push(subRecord);
               } else if (isArray(_value)) {
@@ -356,102 +500,52 @@ function createIndex(keys, list) {
         } else if (!isBlank(value)) {
           var subRecord = {
             v: value,
-            n: norm$1.get(value)
+            n: _this2.norm.get(value)
           };
           record.$[keyIndex] = subRecord;
         }
       });
-      indexedList.push(record);
-    });
-  }
-
-  norm$1.clear();
-  return {
-    keys: keys,
-    list: indexedList
-  };
-}
-
-var hasOwn = Object.prototype.hasOwnProperty;
-
-var KeyStore = /*#__PURE__*/function () {
-  function KeyStore(keys) {
-    _classCallCheck(this, KeyStore);
-
-    this._keys = {};
-    this._keyNames = [];
-    var len = keys.length; // Iterate over every key
-
-    if (keys.length && isString(keys[0])) {
-      for (var i = 0; i < len; i += 1) {
-        var key = keys[i];
-        this._keys[key] = {
-          weight: 1
-        };
-
-        this._keyNames.push(key);
-      }
-    } else {
-      var totalWeight = 0;
-
-      for (var _i = 0; _i < len; _i += 1) {
-        var _key = keys[_i];
-        var obj = {};
-
-        if (!hasOwn.call(_key, 'name')) {
-          throw new Error('Missing "name" property in key object');
-        }
-
-        var keyName = _key.name;
-
-        this._keyNames.push(keyName);
-
-        if (!hasOwn.call(_key, 'weight')) {
-          throw new Error('Missing "weight" property in key object');
-        }
-
-        var weight = _key.weight;
-
-        if (weight <= 0 || weight >= 1) {
-          throw new Error('"weight" property in key must be in the range of (0, 1)');
-        }
-
-        obj.weight = weight;
-
-        if (hasOwn.call(_key, 'threshold')) {
-          obj.threshold = _key.threshold;
-        }
-
-        this._keys[keyName] = obj;
-        totalWeight += weight;
-      } // Normalize weights so that their sum is equal to 1
-
-
-      for (var _i2 = 0; _i2 < len; _i2 += 1) {
-        this._keys[this._keyNames[_i2]].weight /= totalWeight;
-      }
-    }
-  }
-
-  _createClass(KeyStore, [{
-    key: "get",
-    value: function get(key, name) {
-      return this._keys[key] && this._keys[key][name];
-    }
-  }, {
-    key: "keys",
-    value: function keys() {
-      return this._keyNames;
+      this.records.push(record);
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
-      return JSON.stringify(this._keys);
+      return {
+        keys: this.keys,
+        records: this.records
+      };
     }
   }]);
 
-  return KeyStore;
+  return FuseIndex;
 }();
+function createIndex(keys, docs) {
+  var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      _ref2$getFn = _ref2.getFn,
+      getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn;
+
+  var myIndex = new FuseIndex({
+    getFn: getFn
+  });
+  myIndex.setKeys(keys);
+  myIndex.setCollection(docs);
+  myIndex.create();
+  return myIndex;
+}
+function parseIndex(data) {
+  var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref3$getFn = _ref3.getFn,
+      getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn;
+
+  var keys = data.keys,
+      records = data.records;
+  var myIndex = new FuseIndex({
+    getFn: getFn
+  });
+  myIndex.setKeys(keys);
+  myIndex.setRecords(records);
+  return myIndex;
+}
 
 function transformMatches(result, data) {
   var matches = result.matches;
@@ -516,7 +610,7 @@ function computeScore(pattern) {
 function convertMaskToIndices() {
   var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
   var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
-  var matchedIndices = [];
+  var indices = [];
   var start = -1;
   var end = -1;
   var i = 0;
@@ -530,7 +624,7 @@ function convertMaskToIndices() {
       end = i - 1;
 
       if (end - start + 1 >= minMatchCharLength) {
-        matchedIndices.push([start, end]);
+        indices.push([start, end]);
       }
 
       start = -1;
@@ -539,10 +633,10 @@ function convertMaskToIndices() {
 
 
   if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1]);
+    indices.push([start, i - 1]);
   }
 
-  return matchedIndices;
+  return indices;
 }
 
 // Machine word size
@@ -702,11 +796,11 @@ function search(text, pattern, patternAlphabet) {
   var result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
-    score: !finalScore ? 0.001 : finalScore
+    score: Math.max(0.001, finalScore)
   };
 
   if (includeMatches) {
-    result.matchedIndices = convertMaskToIndices(matchMask, minMatchCharLength);
+    result.indices = convertMaskToIndices(matchMask, minMatchCharLength);
   }
 
   return result;
@@ -773,13 +867,7 @@ var BitapSearch = /*#__PURE__*/function () {
 
   _createClass(BitapSearch, [{
     key: "searchIn",
-    value: function searchIn(value) {
-      var text = value.v;
-      return this.searchInString(text);
-    }
-  }, {
-    key: "searchInString",
-    value: function searchInString(text) {
+    value: function searchIn(text) {
       var _this$options = this.options,
           isCaseSensitive = _this$options.isCaseSensitive,
           includeMatches = _this$options.includeMatches;
@@ -796,7 +884,7 @@ var BitapSearch = /*#__PURE__*/function () {
         };
 
         if (includeMatches) {
-          _result.matchedIndices = [[0, text.length - 1]];
+          _result.indices = [[0, text.length - 1]];
         }
 
         return _result;
@@ -809,27 +897,24 @@ var BitapSearch = /*#__PURE__*/function () {
           threshold = _this$options2.threshold,
           findAllMatches = _this$options2.findAllMatches,
           minMatchCharLength = _this$options2.minMatchCharLength;
-      var allMatchedIndices = [];
+      var allIndices = [];
       var totalScore = 0;
       var hasMatches = false;
+      this.chunks.forEach(function (_ref2, i) {
+        var pattern = _ref2.pattern,
+            alphabet = _ref2.alphabet;
 
-      for (var i = 0, len = this.chunks.length; i < len; i += 1) {
-        var _this$chunks$i = this.chunks[i],
-            pattern = _this$chunks$i.pattern,
-            alphabet = _this$chunks$i.alphabet;
-
-        var _result2 = search(text, pattern, alphabet, {
+        var _search = search(text, pattern, alphabet, {
           location: location + MAX_BITS * i,
           distance: distance,
           threshold: threshold,
           findAllMatches: findAllMatches,
           minMatchCharLength: minMatchCharLength,
           includeMatches: includeMatches
-        });
-
-        var isMatch = _result2.isMatch,
-            score = _result2.score,
-            matchedIndices = _result2.matchedIndices;
+        }),
+            isMatch = _search.isMatch,
+            score = _search.score,
+            indices = _search.indices;
 
         if (isMatch) {
           hasMatches = true;
@@ -837,18 +922,17 @@ var BitapSearch = /*#__PURE__*/function () {
 
         totalScore += score;
 
-        if (isMatch && matchedIndices) {
-          allMatchedIndices = [].concat(_toConsumableArray(allMatchedIndices), _toConsumableArray(matchedIndices));
+        if (isMatch && indices) {
+          allIndices = [].concat(_toConsumableArray(allIndices), _toConsumableArray(indices));
         }
-      }
-
+      });
       var result = {
         isMatch: hasMatches,
         score: hasMatches ? totalScore / this.chunks.length : 1
       };
 
       if (hasMatches && includeMatches) {
-        result.matchedIndices = allMatchedIndices;
+        result.indices = allIndices;
       }
 
       return result;
@@ -875,19 +959,54 @@ var LogicalOperator = {
   AND: '$and',
   OR: '$or'
 };
-var OperatorSet = new Set(Object.values(LogicalOperator));
-function parseQuery(query, options) {
+
+var isExpression = function isExpression(query) {
+  return !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
+};
+
+var isLeaf = function isLeaf(query) {
+  return !isArray(query) && isObject(query) && !isExpression(query);
+};
+
+var convertToExplicit = function convertToExplicit(query) {
+  return _defineProperty({}, LogicalOperator.AND, Object.keys(query).map(function (key) {
+    return _defineProperty({}, key, query[key]);
+  }));
+}; // When `auto` is `true`, the parse function will infer and initialize and add
+// the appropriate `Searcher` instance
+
+
+function parse(query, options) {
+  var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      _ref3$auto = _ref3.auto,
+      auto = _ref3$auto === void 0 ? true : _ref3$auto;
+
   var next = function next(query) {
     var keys = Object.keys(query);
+
+    if (keys.length > 1 && !isExpression(query)) {
+      return next(convertToExplicit(query));
+    }
+
     var key = keys[0];
 
-    if (!isArray(query) && isObject(query) && !OperatorSet.has(key)) {
+    if (isLeaf(query)) {
       var pattern = query[key];
-      return {
+
+      if (!isString(pattern)) {
+        throw new Error("Invalid value for key \"".concat(key, "\""));
+      }
+
+      var obj = {
         key: key,
-        pattern: pattern,
-        searcher: createSearcher(pattern, options)
+        pattern: pattern
       };
+
+      if (auto) {
+        obj.searcher = createSearcher(pattern, options);
+      }
+
+      return obj;
     }
 
     var node = {
@@ -906,17 +1025,15 @@ function parseQuery(query, options) {
     return node;
   };
 
-  if (!query[LogicalOperator.AND] || !query[LogicalOperator.OR]) {
-    query = _defineProperty({}, LogicalOperator.AND, Object.keys(query).map(function (key) {
-      return _defineProperty({}, key, query[key]);
-    }));
+  if (!isExpression(query)) {
+    query = convertToExplicit(query);
   }
 
   return next(query);
 }
 
 var Fuse = /*#__PURE__*/function () {
-  function Fuse(list) {
+  function Fuse(docs) {
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     var index = arguments.length > 2 ? arguments[2] : undefined;
 
@@ -924,22 +1041,48 @@ var Fuse = /*#__PURE__*/function () {
 
     this.options = _objectSpread2({}, Config, {}, options);
     this._keyStore = new KeyStore(this.options.keys);
-    this.setCollection(list, index);
+    this.setCollection(docs, index);
   }
 
   _createClass(Fuse, [{
     key: "setCollection",
-    value: function setCollection(list, index) {
-      this._list = list;
-      this._index = index || createIndex(this._keyStore.keys(), this._list, {
+    value: function setCollection(docs, index) {
+      this._docs = docs;
+
+      if (index && !(index instanceof FuseIndex)) {
+        throw new Error('Incorrect index type');
+      }
+
+      this._myIndex = index || createIndex(this._keyStore.keys(), this._docs, {
         getFn: this.options.getFn
       });
     }
   }, {
+    key: "add",
+    value: function add(doc) {
+      if (!isDefined(doc)) {
+        return;
+      }
+
+      this._docs.push(doc);
+
+      this._myIndex.add(doc);
+    }
+  }, {
+    key: "removeAt",
+    value: function removeAt(idx) {
+      this._docs.splice(idx, 1);
+
+      this._myIndex.removeAt(idx);
+    }
+  }, {
+    key: "getIndex",
+    value: function getIndex() {
+      return this._myIndex;
+    }
+  }, {
     key: "search",
     value: function search(query) {
-      var _this = this;
-
       var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
           _ref$limit = _ref.limit,
           limit = _ref$limit === void 0 ? -1 : _ref$limit;
@@ -953,77 +1096,9 @@ var Fuse = /*#__PURE__*/function () {
 
       if (isString(query)) {
         var searcher = createSearcher(query, this.options);
-        results = isString(this._list[0]) ? this._searchStringArrayWith(searcher) : this._searchAllWith(searcher);
+        results = isString(this._docs[0]) ? this._searchStringArrayWith(searcher) : this._searchObjectArrayWith(searcher);
       } else {
-        var expression = parseQuery(query, this.options);
-        var _this$_index = this._index,
-            keys = _this$_index.keys,
-            list = _this$_index.list;
-        var resultMap = {};
-        list.forEach(function (listItem) {
-          var item = listItem.$,
-              idx = listItem.i;
-
-          if (!isDefined(item)) {
-            return;
-          }
-
-          var evaluateExpression = function evaluateExpression(node) {
-            if (node.children) {
-              var operator = node.operator;
-              var res = [];
-
-              for (var k = 0; k < node.children.length; k += 1) {
-                var child = node.children[k];
-                var matches = evaluateExpression(child);
-
-                if (matches && matches.length) {
-                  res.push({
-                    idx: idx,
-                    item: item,
-                    matches: matches
-                  });
-                } else if (operator === LogicalOperator.AND) {
-                  res.length = 0;
-                  break;
-                }
-              }
-
-              if (res.length) {
-                // Dedupe when adding
-                if (!resultMap[idx]) {
-                  resultMap[idx] = {
-                    idx: idx,
-                    item: item,
-                    matches: []
-                  };
-                  results.push(resultMap[idx]);
-                }
-
-                res.forEach(function (item) {
-                  var _resultMap$idx$matche;
-
-                  (_resultMap$idx$matche = resultMap[idx].matches).push.apply(_resultMap$idx$matche, _toConsumableArray(item.matches));
-                });
-              }
-            } else {
-              var key = node.key,
-                  _searcher = node.searcher;
-              var keyIndex = keys.indexOf(key);
-              var value = item[keyIndex];
-
-              var _matches = _this._findMatches({
-                key: key,
-                value: value,
-                searcher: _searcher
-              });
-
-              return _matches;
-            }
-          };
-
-          evaluateExpression(expression);
-        });
+        results = this._searchLogical(query);
       }
 
       computeScore$1(results, this._keyStore);
@@ -1036,7 +1111,7 @@ var Fuse = /*#__PURE__*/function () {
         results = results.slice(0, limit);
       }
 
-      return format(results, this._list, {
+      return format(results, this._docs, {
         includeMatches: includeMatches,
         includeScore: includeScore
       });
@@ -1044,94 +1119,131 @@ var Fuse = /*#__PURE__*/function () {
   }, {
     key: "_searchStringArrayWith",
     value: function _searchStringArrayWith(searcher) {
-      var list = this._index.list;
-      var includeMatches = this.options.includeMatches;
-      var results = []; // Iterate over every string in the list
+      var records = this._myIndex.records;
+      var results = []; // Iterate over every string in the index
 
-      list.forEach(function (listItem) {
-        var text = listItem.v,
-            idx = listItem.i,
-            norm = listItem.n;
+      records.forEach(function (_ref2) {
+        var text = _ref2.v,
+            idx = _ref2.i,
+            norm = _ref2.n;
 
         if (!isDefined(text)) {
           return;
         }
 
-        var searchResult = searcher.searchIn(listItem);
-        var isMatch = searchResult.isMatch,
-            score = searchResult.score;
+        var _searcher$searchIn = searcher.searchIn(text),
+            isMatch = _searcher$searchIn.isMatch,
+            score = _searcher$searchIn.score,
+            indices = _searcher$searchIn.indices;
 
-        if (!isMatch) {
-          return;
-        }
-
-        var match = {
-          score: score,
-          value: text,
-          norm: norm
-        };
-
-        if (includeMatches) {
-          match.indices = searchResult.matchedIndices;
-        }
-
-        results.push({
-          item: text,
-          idx: idx,
-          matches: [match]
-        });
-      });
-      return results;
-    }
-  }, {
-    key: "_searchLogicalWith",
-    value: function _searchLogicalWith(_ref2) {
-      var _this2 = this;
-
-      var key = _ref2.key,
-          searcher = _ref2.searcher;
-      var results = [];
-      var _this$_index2 = this._index,
-          keys = _this$_index2.keys,
-          list = _this$_index2.list;
-      var keyIndex = keys.indexOf(key);
-      list.forEach(function (listItem) {
-        var item = listItem.$,
-            idx = listItem.i;
-
-        if (!isDefined(item)) {
-          return;
-        }
-
-        var matches = _this2._findMatches({
-          key: key,
-          value: item[keyIndex],
-          searcher: searcher
-        });
-
-        if (matches.length) {
+        if (isMatch) {
           results.push({
+            item: text,
             idx: idx,
-            item: item,
-            matches: matches
+            matches: [{
+              score: score,
+              value: text,
+              norm: norm,
+              indices: indices
+            }]
           });
         }
       });
       return results;
     }
   }, {
-    key: "_searchAllWith",
-    value: function _searchAllWith(searcher) {
-      var _this3 = this;
+    key: "_searchLogical",
+    value: function _searchLogical(query) {
+      var _this = this;
 
-      var _this$_index3 = this._index,
-          keys = _this$_index3.keys,
-          list = _this$_index3.list;
+      var expression = parse(query, this.options);
+      var _this$_myIndex = this._myIndex,
+          keys = _this$_myIndex.keys,
+          records = _this$_myIndex.records;
+      var resultMap = {};
+      var results = [];
+
+      var evaluateExpression = function evaluateExpression(node, item, idx) {
+        if (node.children) {
+          var operator = node.operator;
+          var res = [];
+
+          for (var k = 0; k < node.children.length; k += 1) {
+            var child = node.children[k];
+            var matches = evaluateExpression(child, item, idx);
+
+            if (matches && matches.length) {
+              res.push({
+                idx: idx,
+                item: item,
+                matches: matches
+              });
+
+              if (operator === LogicalOperator.OR) {
+                // Short-circuit
+                break;
+              }
+            } else if (operator === LogicalOperator.AND) {
+              res.length = 0; // Short-circuit
+
+              break;
+            }
+          }
+
+          if (res.length) {
+            // Dedupe when adding
+            if (!resultMap[idx]) {
+              resultMap[idx] = {
+                idx: idx,
+                item: item,
+                matches: []
+              };
+              results.push(resultMap[idx]);
+            }
+
+            res.forEach(function (_ref3) {
+              var _resultMap$idx$matche;
+
+              var matches = _ref3.matches;
+
+              (_resultMap$idx$matche = resultMap[idx].matches).push.apply(_resultMap$idx$matche, _toConsumableArray(matches));
+            });
+          }
+        } else {
+          var key = node.key,
+              searcher = node.searcher;
+          var value = item[keys.indexOf(key)];
+          return _this._findMatches({
+            key: key,
+            value: value,
+            searcher: searcher
+          });
+        }
+      };
+
+      records.forEach(function (_ref4) {
+        var item = _ref4.$,
+            idx = _ref4.i;
+
+        if (isDefined(item)) {
+          evaluateExpression(expression, item, idx);
+        }
+      });
+      return results;
+    }
+  }, {
+    key: "_searchObjectArrayWith",
+    value: function _searchObjectArrayWith(searcher) {
+      var _this2 = this;
+
+      var _this$_myIndex2 = this._myIndex,
+          keys = _this$_myIndex2.keys,
+          records = _this$_myIndex2.records;
       var results = []; // List is Array<Object>
 
-      list.forEach(function (listItem) {
-        var item = listItem.$,
-            idx = listItem.i;
+      records.forEach(function (_ref5) {
+        var item = _ref5.$,
+            idx = _ref5.i;
 
         if (!isDefined(item)) {
           return;
@@ -1139,10 +1251,10 @@ var Fuse = /*#__PURE__*/function () {
 
         var matches = []; // Iterate over every key (i.e, path), and fetch the value at that key
 
-        keys.forEach(function (key, j) {
-          matches.push.apply(matches, _toConsumableArray(_this3._findMatches({
+        keys.forEach(function (key, keyIndex) {
+          matches.push.apply(matches, _toConsumableArray(_this2._findMatches({
             key: key,
-            value: item[j],
+            value: item[keyIndex],
             searcher: searcher
           })));
         });
@@ -1159,73 +1271,61 @@ var Fuse = /*#__PURE__*/function () {
     }
   }, {
     key: "_findMatches",
-    value: function _findMatches(_ref3) {
-      var key = _ref3.key,
-          value = _ref3.value,
-          searcher = _ref3.searcher;
-      var matches = [];
+    value: function _findMatches(_ref6) {
+      var key = _ref6.key,
+          value = _ref6.value,
+          searcher = _ref6.searcher;
 
       if (!isDefined(value)) {
-        return matches;
+        return [];
       }
 
-      var includeMatches = this.options.includeMatches;
+      var matches = [];
 
       if (isArray(value)) {
-        value.forEach(function (arrValue) {
-          var text = arrValue.v,
-              idx = arrValue.i,
-              norm = arrValue.n;
+        value.forEach(function (_ref7) {
+          var text = _ref7.v,
+              idx = _ref7.i,
+              norm = _ref7.n;
 
           if (!isDefined(text)) {
             return;
           }
 
-          var searchResult = searcher.searchIn(arrValue);
-          var isMatch = searchResult.isMatch,
-              score = searchResult.score;
+          var _searcher$searchIn2 = searcher.searchIn(text),
+              isMatch = _searcher$searchIn2.isMatch,
+              score = _searcher$searchIn2.score,
+              indices = _searcher$searchIn2.indices;
 
-          if (!isMatch) {
-            return;
+          if (isMatch) {
+            matches.push({
+              score: score,
+              key: key,
+              value: text,
+              idx: idx,
+              norm: norm,
+              indices: indices
+            });
           }
-
-          var match = {
-            score: score,
-            key: key,
-            value: text,
-            idx: idx,
-            norm: norm
-          };
-
-          if (includeMatches) {
-            match.indices = searchResult.matchedIndices;
-          }
-
-          matches.push(match);
         });
       } else {
         var text = value.v,
             norm = value.n;
-        var searchResult = searcher.searchIn(value);
-        var isMatch = searchResult.isMatch,
-            score = searchResult.score;
 
-        if (!isMatch) {
-          return [];
+        var _searcher$searchIn3 = searcher.searchIn(text),
+            isMatch = _searcher$searchIn3.isMatch,
+            score = _searcher$searchIn3.score,
+            indices = _searcher$searchIn3.indices;
+
+        if (isMatch) {
+          matches.push({
+            score: score,
+            key: key,
+            value: text,
+            norm: norm,
+            indices: indices
+          });
         }
-
-        var match = {
-          score: score,
-          key: key,
-          value: text,
-          norm: norm
-        };
-
-        if (includeMatches) {
-          match.indices = searchResult.matchedIndices;
-        }
-
-        matches.push(match);
       }
 
       return matches;
@@ -1238,24 +1338,23 @@ var Fuse = /*#__PURE__*/function () {
 function computeScore$1(results, keyStore) {
   results.forEach(function (result) {
     var totalScore = 1;
-    result.matches.forEach(function (match) {
-      var key = match.key,
-          norm = match.norm;
-      var keyWeight = keyStore.get(key, 'weight') || -1;
-      var weight = keyWeight > -1 ? keyWeight : 1;
-      var score = match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score;
-      totalScore *= Math.pow(score, weight * norm);
+    result.matches.forEach(function (_ref8) {
+      var key = _ref8.key,
+          norm = _ref8.norm,
+          score = _ref8.score;
+      var weight = keyStore.get(key, 'weight');
+      totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * norm);
     });
     result.score = totalScore;
   });
 }
 
-function format(results, list) {
-  var _ref4 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-      _ref4$includeMatches = _ref4.includeMatches,
-      includeMatches = _ref4$includeMatches === void 0 ? Config.includeMatches : _ref4$includeMatches,
-      _ref4$includeScore = _ref4.includeScore,
-      includeScore = _ref4$includeScore === void 0 ? Config.includeScore : _ref4$includeScore;
+function format(results, docs) {
+  var _ref9 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      _ref9$includeMatches = _ref9.includeMatches,
+      includeMatches = _ref9$includeMatches === void 0 ? Config.includeMatches : _ref9$includeMatches,
+      _ref9$includeScore = _ref9.includeScore,
+      includeScore = _ref9$includeScore === void 0 ? Config.includeScore : _ref9$includeScore;
 
   var transformers = [];
   if (includeMatches) transformers.push(transformMatches);
@@ -1263,7 +1362,7 @@ function format(results, list) {
   return results.map(function (result) {
     var idx = result.idx;
     var data = {
-      item: list[idx],
+      item: docs[idx],
       refIndex: idx
     };
 
@@ -1277,8 +1376,13 @@ function format(results, list) {
   });
 }
 
-Fuse.version = '5.2.3';
+Fuse.version = '6.0.0-beta.0';
 Fuse.createIndex = createIndex;
+Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
+
+{
+  Fuse.parseQuery = parse;
+}
 
 module.exports = Fuse;
