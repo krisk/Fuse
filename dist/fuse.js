@@ -263,7 +263,7 @@
           keyName = key;
         } else {
           if (!hasOwn.call(key, 'name')) {
-            throw new Error('Key must contain a name');
+            throw new Error('Key must contain a `name`');
           }
 
           keyName = key.name;
@@ -272,7 +272,7 @@
             weight = key.weight;
 
             if (weight <= 0) {
-              throw new Error('"weight" property in key must be a positive integer');
+              throw new Error('`weight` property in key must be a positive integer');
             }
           }
         }
@@ -314,9 +314,9 @@
     var list = [];
     var arr = false;
 
-    var _get = function _get(obj, path) {
+    var deepGet = function deepGet(obj, path) {
       if (!path) {
-        // If there's no path left, we've gotten to the object we care about.
+        // If there's no path left, we've arrived at the object we care about.
         list.push(obj);
       } else {
         var dotIndex = path.indexOf('.');
@@ -330,30 +330,27 @@
 
         var value = obj[key];
 
-        if (isDefined(value)) {
-          if (!remaining && (isString(value) || isNumber(value))) {
-            list.push(toString(value));
-          } else if (isArray(value)) {
-            arr = true; // Search each item in the array.
+        if (!isDefined(value)) {
+          return;
+        }
 
-            for (var i = 0, len = value.length; i < len; i += 1) {
-              _get(value[i], remaining);
-            }
-          } else if (remaining) {
-            // An object. Recurse further.
-            _get(value, remaining);
+        if (!remaining && (isString(value) || isNumber(value))) {
+          list.push(toString(value));
+        } else if (isArray(value)) {
+          arr = true; // Search each item in the array.
+
+          for (var i = 0, len = value.length; i < len; i += 1) {
+            deepGet(value[i], remaining);
           }
+        } else if (remaining) {
+          // An object. Recurse further.
+          deepGet(value, remaining);
         }
       }
     };
 
-    _get(obj, path);
-
-    if (arr) {
-      return list;
-    }
-
-    return list[0];
+    deepGet(obj, path);
+    return arr ? list : list[0];
   }
 
   var MatchOptions = {
@@ -1693,7 +1690,7 @@
         this._docs = docs;
 
         if (index && !(index instanceof FuseIndex)) {
-          throw new Error('Incorrect index type');
+          throw new Error('Incorrect `index` type');
         }
 
         this._myIndex = index || createIndex(this._keyStore.keys(), this._docs, {
@@ -1730,20 +1727,12 @@
             _ref$limit = _ref.limit,
             limit = _ref$limit === void 0 ? -1 : _ref$limit;
 
-        var results = [];
         var _this$options = this.options,
             includeMatches = _this$options.includeMatches,
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
             sortFn = _this$options.sortFn;
-
-        if (isString(query)) {
-          var searcher = createSearcher(query, this.options);
-          results = isString(this._docs[0]) ? this._searchStringArrayWith(searcher) : this._searchObjectArrayWith(searcher);
-        } else {
-          results = this._searchLogical(query);
-        }
-
+        var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
         computeScore$1(results, this._keyStore);
 
         if (shouldSort) {
@@ -1760,8 +1749,9 @@
         });
       }
     }, {
-      key: "_searchStringArrayWith",
-      value: function _searchStringArrayWith(searcher) {
+      key: "_searchStringList",
+      value: function _searchStringList(query) {
+        var searcher = createSearcher(query, this.options);
         var records = this._myIndex.records;
         var results = []; // Iterate over every string in the index
 
@@ -1875,10 +1865,11 @@
         return results;
       }
     }, {
-      key: "_searchObjectArrayWith",
-      value: function _searchObjectArrayWith(searcher) {
+      key: "_searchObjectList",
+      value: function _searchObjectList(query) {
         var _this2 = this;
 
+        var searcher = createSearcher(query, this.options);
         var _this$_myIndex2 = this._myIndex,
             keys = _this$_myIndex2.keys,
             records = _this$_myIndex2.records;

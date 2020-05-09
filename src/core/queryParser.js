@@ -1,4 +1,4 @@
-import { isArray, isObject, isString } from '../helpers/type-checkers'
+import { isArray, isObject, isString } from '../helpers/types'
 import { createSearcher } from './register'
 
 export const LogicalOperator = {

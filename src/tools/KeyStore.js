@@ -1,4 +1,4 @@
-import { isString } from '../helpers/type-checkers'
+import { isString } from '../helpers/types'
 
 const hasOwn = Object.prototype.hasOwnProperty
 
@@ -17,7 +17,7 @@ export default class KeyStore {
         keyName = key
       } else {
         if (!hasOwn.call(key, 'name')) {
-          throw new Error('Key must contain a name')
+          throw new Error('Key must contain a `name`')
         }
         keyName = key.name
 
@@ -26,7 +26,7 @@ export default class KeyStore {
 
           if (weight <= 0) {
             throw new Error(
-              '"weight" property in key must be a positive integer'
+              '`weight` property in key must be a positive integer'
             )
           }
         }

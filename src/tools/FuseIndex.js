@@ -1,4 +1,4 @@
-import { isArray, isDefined, isString, isBlank } from '../helpers/type-checkers'
+import { isArray, isDefined, isString, isBlank } from '../helpers/types'
 import Config from '../core/config'
 import normGenerator from './norm'
 

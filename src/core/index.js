@@ -1,9 +1,4 @@
-import {
-  isArray,
-  isDefined,
-  isString,
-  isNumber
-} from '../helpers/type-checkers'
+import { isArray, isDefined, isString, isNumber } from '../helpers/types'
 import KeyStore from '../tools/KeyStore'
 import FuseIndex, { createIndex } from '../tools/FuseIndex'
 import { transformMatches, transformScore } from '../transform'
@@ -16,6 +11,7 @@ export default class Fuse {
     this.options = { ...Config, ...options }
 
     this._keyStore = new KeyStore(this.options.keys)
+
     this.setCollection(docs, index)
   }
 
@@ -23,7 +19,7 @@ export default class Fuse {
     this._docs = docs
 
     if (index && !(index instanceof FuseIndex)) {
-      throw new Error('Incorrect index type')
+      throw new Error('Incorrect `index` type')
     }
 
     this._myIndex =
@@ -52,19 +48,13 @@ export default class Fuse {
   }
 
   search(query, { limit = -1 } = {}) {
-    let results = []
-
     const { includeMatches, includeScore, shouldSort, sortFn } = this.options
 
-    if (isString(query)) {
-      const searcher = createSearcher(query, this.options)
-
-      results = isString(this._docs[0])
-        ? this._searchStringArrayWith(searcher)
-        : this._searchObjectArrayWith(searcher)
-    } else {
-      results = this._searchLogical(query)
-    }
+    let results = isString(query)
+      ? isString(this._docs[0])
+        ? this._searchStringList(query)
+        : this._searchObjectList(query)
+      : this._searchLogical(query)
 
     computeScore(results, this._keyStore)
 
@@ -82,7 +72,8 @@ export default class Fuse {
     })
   }
 
-  _searchStringArrayWith(searcher) {
+  _searchStringList(query) {
+    const searcher = createSearcher(query, this.options)
     const { records } = this._myIndex
     const results = []
 
@@ -169,7 +160,8 @@ export default class Fuse {
     return results
   }
 
-  _searchObjectArrayWith(searcher) {
+  _searchObjectList(query) {
+    const searcher = createSearcher(query, this.options)
     const { keys, records } = this._myIndex
     const results = []
 

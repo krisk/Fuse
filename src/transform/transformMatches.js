@@ -1,4 +1,4 @@
-import { isDefined } from '../helpers/type-checkers'
+import { isDefined } from '../helpers/types'
 
 export default function transformMatches(result, data) {
   const matches = result.matches
