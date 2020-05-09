@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.0-beta.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.0-beta.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -66,7 +66,7 @@ class KeyStore {
         keyName = key;
       } else {
         if (!hasOwn.call(key, 'name')) {
-          throw new Error('Key must contain a name')
+          throw new Error('Key must contain a `name`')
         }
         keyName = key.name;
 
@@ -75,7 +75,7 @@ class KeyStore {
 
           if (weight <= 0) {
             throw new Error(
-              '"weight" property in key must be a positive integer'
+              '`weight` property in key must be a positive integer'
             )
           }
         }
@@ -108,9 +108,9 @@ function get(obj, path) {
   let list = [];
   let arr = false;
 
-  const _get = (obj, path) => {
+  const deepGet = (obj, path) => {
     if (!path) {
-      // If there's no path left, we've gotten to the object we care about.
+      // If there's no path left, we've arrived at the object we care about.
       list.push(obj);
     } else {
       const dotIndex = path.indexOf('.');
@@ -125,30 +125,28 @@ function get(obj, path) {
 
       const value = obj[key];
 
-      if (isDefined(value)) {
-        if (!remaining && (isString(value) || isNumber(value))) {
-          list.push(toString(value));
-        } else if (isArray(value)) {
-          arr = true;
-          // Search each item in the array.
-          for (let i = 0, len = value.length; i < len; i += 1) {
-            _get(value[i], remaining);
-          }
-        } else if (remaining) {
-          // An object. Recurse further.
-          _get(value, remaining);
+      if (!isDefined(value)) {
+        return
+      }
+
+      if (!remaining && (isString(value) || isNumber(value))) {
+        list.push(toString(value));
+      } else if (isArray(value)) {
+        arr = true;
+        // Search each item in the array.
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          deepGet(value[i], remaining);
         }
+      } else if (remaining) {
+        // An object. Recurse further.
+        deepGet(value, remaining);
       }
     }
   };
 
-  _get(obj, path);
+  deepGet(obj, path);
 
-  if (arr) {
-    return list
-  }
-
-  return list[0]
+  return arr ? list : list[0]
 }
 
 const MatchOptions = {
@@ -861,6 +859,7 @@ class Fuse {
     this.options = { ...Config, ...options };
 
     this._keyStore = new KeyStore(this.options.keys);
+
     this.setCollection(docs, index);
   }
 
@@ -868,7 +867,7 @@ class Fuse {
     this._docs = docs;
 
     if (index && !(index instanceof FuseIndex)) {
-      throw new Error('Incorrect index type')
+      throw new Error('Incorrect `index` type')
     }
 
     this._myIndex =
@@ -897,19 +896,13 @@ class Fuse {
   }
 
   search(query, { limit = -1 } = {}) {
-    let results = [];
-
     const { includeMatches, includeScore, shouldSort, sortFn } = this.options;
 
-    if (isString(query)) {
-      const searcher = createSearcher(query, this.options);
-
-      results = isString(this._docs[0])
-        ? this._searchStringArrayWith(searcher)
-        : this._searchObjectArrayWith(searcher);
-    } else {
-      results = this._searchLogical(query);
-    }
+    let results = isString(query)
+      ? isString(this._docs[0])
+        ? this._searchStringList(query)
+        : this._searchObjectList(query)
+      : this._searchLogical(query);
 
     computeScore$1(results, this._keyStore);
 
@@ -927,7 +920,8 @@ class Fuse {
     })
   }
 
-  _searchStringArrayWith(searcher) {
+  _searchStringList(query) {
+    const searcher = createSearcher(query, this.options);
     const { records } = this._myIndex;
     const results = [];
 
@@ -1014,7 +1008,8 @@ class Fuse {
     return results
   }
 
-  _searchObjectArrayWith(searcher) {
+  _searchObjectList(query) {
+    const searcher = createSearcher(query, this.options);
     const { keys, records } = this._myIndex;
     const results = [];
 
@@ -1137,7 +1132,7 @@ function format(
   })
 }
 
-Fuse.version = '6.0.0-beta.0';
+Fuse.version = '6.0.0-beta.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
