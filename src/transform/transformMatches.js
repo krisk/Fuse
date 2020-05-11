@@ -8,11 +8,9 @@ export default function transformMatches(result, data) {
     return
   }
 
-  for (let i = 0, len = matches.length; i < len; i += 1) {
-    let match = matches[i]
-
-    if (!isDefined(match.indices) || match.indices.length === 0) {
-      continue
+  matches.forEach((match) => {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return
     }
 
     const { indices, value } = match
@@ -31,5 +29,5 @@ export default function transformMatches(result, data) {
     }
 
     data.matches.push(obj)
-  }
+  })
 }

@@ -1,5 +1,4 @@
 const path = require('path')
-// const buble = require('@rollup/plugin-buble')
 const replace = require('@rollup/plugin-replace')
 const node = require('@rollup/plugin-node-resolve')
 const babel = require('rollup-plugin-babel')
@@ -143,7 +142,6 @@ function genConfig(options) {
 
   if (options.transpile !== false) {
     config.plugins.push(babel())
-    // config.plugins.push(buble())
   }
 
   return config
