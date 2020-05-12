@@ -26,7 +26,7 @@ export default class KeyStore {
           weight = key.weight
 
           if (weight <= 0) {
-            throw new Error(ErrorMsg.INVALID_KEY_WEIGHT_VALUE)
+            throw new Error(ErrorMsg.INVALID_KEY_WEIGHT_VALUE(keyName))
           }
         }
       }

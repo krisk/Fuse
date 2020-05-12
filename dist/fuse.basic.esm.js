@@ -53,18 +53,18 @@ const EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
 
 const LOGICAL_SEARCH_UNAVAILABLE = 'Logical search is not available';
 
-const INCORRECT_INDEX_TYPE = 'Incorrect `index` type';
+const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
 
 const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) =>
   `Invalid value for key ${key}`;
 
-const PATTER_LENGTH_TOO_LARGE = (max) =>
+const PATTERN_LENGTH_TOO_LARGE = (max) =>
   `Pattern length exceeds max of ${max}.`;
 
 const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
 
-const INVALID_KEY_WEIGHT_VALUE =
-  '`weight` property in key must be a positive integer';
+const INVALID_KEY_WEIGHT_VALUE = (key) =>
+  `Property 'weight' in key '${key}' must be a positive integer`;
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
@@ -91,7 +91,7 @@ class KeyStore {
           weight = key.weight;
 
           if (weight <= 0) {
-            throw new Error(INVALID_KEY_WEIGHT_VALUE)
+            throw new Error(INVALID_KEY_WEIGHT_VALUE(keyName))
           }
         }
       }
@@ -499,7 +499,7 @@ function search(
   } = {}
 ) {
   if (pattern.length > MAX_BITS) {
-    throw new Error(PATTER_LENGTH_TOO_LARGE(MAX_BITS))
+    throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS))
   }
 
   const patternLen = pattern.length;

@@ -3,7 +3,7 @@ const Fuse = require('../dist/fuse.basic')
 import * as ErrorMsg from '../src/core/errorMessages'
 const Books = require('./fixtures/books.json')
 
-describe('Searching', () => {
+describe('Initialization errors', () => {
   test('Errors are thrown', () => {
     expect(() => {
       new Fuse(Books, {

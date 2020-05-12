@@ -18,7 +18,7 @@ export default function search(
   } = {}
 ) {
   if (pattern.length > MAX_BITS) {
-    throw new Error(ErrorMsg.PATTER_LENGTH_TOO_LARGE(MAX_BITS))
+    throw new Error(ErrorMsg.PATTERN_LENGTH_TOO_LARGE(MAX_BITS))
   }
 
   const patternLen = pattern.length

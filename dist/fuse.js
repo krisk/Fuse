@@ -245,17 +245,19 @@
   }
 
   var EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
-  var INCORRECT_INDEX_TYPE = 'Incorrect `index` type';
+  var INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
   var LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = function LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key) {
     return "Invalid value for key ".concat(key);
   };
-  var PATTER_LENGTH_TOO_LARGE = function PATTER_LENGTH_TOO_LARGE(max) {
+  var PATTERN_LENGTH_TOO_LARGE = function PATTERN_LENGTH_TOO_LARGE(max) {
     return "Pattern length exceeds max of ".concat(max, ".");
   };
   var MISSING_KEY_PROPERTY = function MISSING_KEY_PROPERTY(name) {
     return "Missing ".concat(name, " property in key");
   };
-  var INVALID_KEY_WEIGHT_VALUE = '`weight` property in key must be a positive integer';
+  var INVALID_KEY_WEIGHT_VALUE = function INVALID_KEY_WEIGHT_VALUE(key) {
+    return "Property 'weight' in key '".concat(key, "' must be a positive integer");
+  };
 
   var hasOwn = Object.prototype.hasOwnProperty;
 
@@ -285,7 +287,7 @@
             weight = key.weight;
 
             if (weight <= 0) {
-              throw new Error(INVALID_KEY_WEIGHT_VALUE);
+              throw new Error(INVALID_KEY_WEIGHT_VALUE(keyName));
             }
           }
         }
@@ -747,7 +749,7 @@
         includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
 
     if (pattern.length > MAX_BITS) {
-      throw new Error(PATTER_LENGTH_TOO_LARGE(MAX_BITS));
+      throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
     }
 
     var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.

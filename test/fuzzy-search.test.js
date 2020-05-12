@@ -1,4 +1,5 @@
 const Fuse = require('../dist/fuse')
+import * as ErrorMsg from '../src/core/errorMessages'
 
 const defaultList = ['Apple', 'Orange', 'Banana']
 const defaultOptions = {}
@@ -480,6 +481,23 @@ describe('Weighted search', () => {
       tags: ['steve', 'pearson']
     }
   ]
+
+  test('Invalid key entries throw errors', () => {
+    expect(() => {
+      fuse = setup(customBookList, {
+        keys: [
+          { name: 'title', weight: -10 },
+          { name: 'author', weight: 0.7 }
+        ]
+      })
+    }).toThrowError(ErrorMsg.INVALID_KEY_WEIGHT_VALUE('title'))
+
+    expect(() => {
+      fuse = setup(customBookList, {
+        keys: [{ weight: 10 }, { name: 'author', weight: 0.7 }]
+      })
+    }).toThrowError(ErrorMsg.MISSING_KEY_PROPERTY('name'))
+  })
 
   describe('When searching for the term "John Smith" with author weighted higher', () => {
     const customOptions = {
