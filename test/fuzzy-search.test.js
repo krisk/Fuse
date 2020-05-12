@@ -484,7 +484,7 @@ describe('Weighted search', () => {
 
   test('Invalid key entries throw errors', () => {
     expect(() => {
-      fuse = setup(customBookList, {
+      setup(customBookList, {
         keys: [
           { name: 'title', weight: -10 },
           { name: 'author', weight: 0.7 }
@@ -493,7 +493,7 @@ describe('Weighted search', () => {
     }).toThrowError(ErrorMsg.INVALID_KEY_WEIGHT_VALUE('title'))
 
     expect(() => {
-      fuse = setup(customBookList, {
+      setup(customBookList, {
         keys: [{ weight: 10 }, { name: 'author', weight: 0.7 }]
       })
     }).toThrowError(ErrorMsg.MISSING_KEY_PROPERTY('name'))
