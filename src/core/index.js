@@ -5,10 +5,18 @@ import { transformMatches, transformScore } from '../transform'
 import { LogicalOperator, parse } from './queryParser'
 import { createSearcher } from './register'
 import Config from './config'
+import * as ErrorMsg from './errorMessages'
 
 export default class Fuse {
   constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options }
+
+    if (
+      this.options.useExtendedSearch &&
+      !process.env.EXTENDED_SEARCH_ENABLED
+    ) {
+      throw new Error(ErrorMsg.EXTENDED_SEARCH_UNAVAILABLE)
+    }
 
     this._keyStore = new KeyStore(this.options.keys)
 
@@ -19,7 +27,7 @@ export default class Fuse {
     this._docs = docs
 
     if (index && !(index instanceof FuseIndex)) {
-      throw new Error('Incorrect `index` type')
+      throw new Error(ErrorMsg.INCORRECT_INDEX_TYPE)
     }
 
     this._myIndex =
@@ -98,6 +106,10 @@ export default class Fuse {
   }
 
   _searchLogical(query) {
+    if (!process.env.LOGICAL_SEARCH_ENABLED) {
+      throw new Error(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
+    }
+
     const expression = parse(query, this.options)
     const { keys, records } = this._myIndex
     const resultMap = {}

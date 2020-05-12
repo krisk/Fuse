@@ -1,4 +1,5 @@
 import { isString } from '../helpers/types'
+import * as ErrorMsg from '../core/errorMessages'
 
 const hasOwn = Object.prototype.hasOwnProperty
 
@@ -17,7 +18,7 @@ export default class KeyStore {
         keyName = key
       } else {
         if (!hasOwn.call(key, 'name')) {
-          throw new Error('Key must contain a `name`')
+          throw new Error(ErrorMsg.MISSING_KEY_PROPERTY('name'))
         }
         keyName = key.name
 
@@ -25,9 +26,7 @@ export default class KeyStore {
           weight = key.weight
 
           if (weight <= 0) {
-            throw new Error(
-              '`weight` property in key must be a positive integer'
-            )
+            throw new Error(ErrorMsg.INVALID_KEY_WEIGHT_VALUE)
           }
         }
       }

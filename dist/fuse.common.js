@@ -240,6 +240,19 @@ function isBlank(value) {
   return !value.trim().length;
 }
 
+var EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
+var INCORRECT_INDEX_TYPE = 'Incorrect `index` type';
+var LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = function LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key) {
+  return "Invalid value for key ".concat(key);
+};
+var PATTER_LENGTH_TOO_LARGE = function PATTER_LENGTH_TOO_LARGE(max) {
+  return "Pattern length exceeds max of ".concat(max, ".");
+};
+var MISSING_KEY_PROPERTY = function MISSING_KEY_PROPERTY(name) {
+  return "Missing ".concat(name, " property in key");
+};
+var INVALID_KEY_WEIGHT_VALUE = '`weight` property in key must be a positive integer';
+
 var hasOwn = Object.prototype.hasOwnProperty;
 
 var KeyStore = /*#__PURE__*/function () {
@@ -259,7 +272,7 @@ var KeyStore = /*#__PURE__*/function () {
         keyName = key;
       } else {
         if (!hasOwn.call(key, 'name')) {
-          throw new Error('Key must contain a `name`');
+          throw new Error(MISSING_KEY_PROPERTY('name'));
         }
 
         keyName = key.name;
@@ -268,7 +281,7 @@ var KeyStore = /*#__PURE__*/function () {
           weight = key.weight;
 
           if (weight <= 0) {
-            throw new Error('`weight` property in key must be a positive integer');
+            throw new Error(INVALID_KEY_WEIGHT_VALUE);
           }
         }
       }
@@ -629,11 +642,9 @@ function transformMatches(result, data) {
     return;
   }
 
-  for (var i = 0, len = matches.length; i < len; i += 1) {
-    var match = matches[i];
-
-    if (!isDefined(match.indices) || match.indices.length === 0) {
-      continue;
+  matches.forEach(function (match) {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return;
     }
 
     var indices = match.indices,
@@ -652,7 +663,7 @@ function transformMatches(result, data) {
     }
 
     data.matches.push(obj);
-  }
+  });
 }
 
 function transformScore(result, data) {
@@ -732,7 +743,7 @@ function search(text, pattern, patternAlphabet) {
       includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
 
   if (pattern.length > MAX_BITS) {
-    throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+    throw new Error(PATTER_LENGTH_TOO_LARGE(MAX_BITS));
   }
 
   var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
@@ -1630,7 +1641,7 @@ function parse(query, options) {
       var pattern = query[key];
 
       if (!isString(pattern)) {
-        throw new Error("Invalid value for key \"".concat(key, "\""));
+        throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
       }
 
       var obj = {
@@ -1676,6 +1687,11 @@ var Fuse = /*#__PURE__*/function () {
     _classCallCheck(this, Fuse);
 
     this.options = _objectSpread2({}, Config, {}, options);
+
+    if (this.options.useExtendedSearch && !true) {
+      throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
+    }
+
     this._keyStore = new KeyStore(this.options.keys);
     this.setCollection(docs, index);
   }
@@ -1686,7 +1702,7 @@ var Fuse = /*#__PURE__*/function () {
       this._docs = docs;
 
       if (index && !(index instanceof FuseIndex)) {
-        throw new Error('Incorrect `index` type');
+        throw new Error(INCORRECT_INDEX_TYPE);
       }
 
       this._myIndex = index || createIndex(this._keyStore.keys(), this._docs, {
@@ -2015,6 +2031,8 @@ Fuse.config = Config;
   Fuse.parseQuery = parse;
 }
 
-register(ExtendedSearch);
+{
+  register(ExtendedSearch);
+}
 
 module.exports = Fuse;

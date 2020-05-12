@@ -3,7 +3,6 @@ const replace = require('@rollup/plugin-replace')
 const node = require('@rollup/plugin-node-resolve')
 const babel = require('rollup-plugin-babel')
 const copy = require('rollup-plugin-copy')
-const featureFlags = require('./feature-flags')
 const pckg = require('../package.json')
 const typescript = require('typescript')
 
@@ -24,13 +23,26 @@ const banner = `/**
 
 const resolve = (_path) => path.resolve(__dirname, '../', _path)
 
+const FeatureFlags = {
+  LOGICAL_SEARCH_ENABLED: false,
+  EXTENDED_SEARCH_ENABLED: false
+}
+
+const fullBuildFeatures = {
+  LOGICAL_SEARCH_ENABLED: true,
+  EXTENDED_SEARCH_ENABLED: true
+}
+
 const builds = {
   // UMD full build
   'umd-dev-full': {
-    entry: resolve('src/entry-full.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.js`),
     format: 'umd',
     env: 'development',
+    features: {
+      ...fullBuildFeatures
+    },
     plugins: [
       copy({
         targets: [
@@ -48,62 +60,74 @@ const builds = {
   },
   // UMD production build
   'umd-prod-full': {
-    entry: resolve('src/entry-full.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.min.js`),
     format: 'umd',
-    env: 'production'
+    env: 'production',
+    features: {
+      ...fullBuildFeatures
+    }
   },
   // UMD basic build
   'umd-dev-basic': {
-    entry: resolve('src/entry-basic.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.basic.js`),
     format: 'umd',
     env: 'development'
   },
   'umd-prod-basic': {
-    entry: resolve('src/entry-basic.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.basic.min.js`),
     format: 'umd',
     env: 'production'
   },
   // CommonJS full build
   'commonjs-full': {
-    entry: resolve('src/entry-full.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.common.js`),
     env: 'development',
+    features: {
+      ...fullBuildFeatures
+    },
     format: 'cjs'
   },
   // CommonJS basic build
   'commonjs-basic': {
-    entry: resolve('src/entry-basic.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.basic.common.js`),
     env: 'development',
     format: 'cjs'
   },
   // ES modules build (for bundlers)
   'esm-dev-full': {
-    entry: resolve('src/entry-full.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.esm.js`),
     format: 'es',
     env: 'development',
+    features: {
+      ...fullBuildFeatures
+    },
     transpile: false
   },
   'esm-prod-full': {
-    entry: resolve('src/entry-full.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.esm.min.js`),
     format: 'es',
     env: 'production',
+    features: {
+      ...fullBuildFeatures
+    },
     transpile: false
   },
   'esm-basic': {
-    entry: resolve('src/entry-basic.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.basic.esm.js`),
     format: 'es',
     env: 'development',
     transpile: false
   },
   'esm-prod-basic': {
-    entry: resolve('src/entry-basic.js'),
+    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.basic.esm.min.js`),
     format: 'es',
     env: 'production',
@@ -111,12 +135,19 @@ const builds = {
   }
 }
 
-// built-in vars
-const vars = {
+const defaultVars = {
   __VERSION__: VERSION
 }
 
+const defaultFeatures = Object.keys(FeatureFlags).reduce((map, key) => {
+  map[`process.env.${key}`] = FeatureFlags[key]
+  return map
+}, {})
+
 function genConfig(options) {
+  // built-in vars
+  const vars = { ...defaultVars, ...defaultFeatures }
+
   const config = {
     input: options.entry,
     plugins: [node(), ...(options.plugins || [])],
@@ -134,9 +165,11 @@ function genConfig(options) {
   }
 
   // feature flags
-  Object.keys(featureFlags).forEach((key) => {
-    vars[`process.env.${key}`] = featureFlags[key]
-  })
+  if (options.features) {
+    Object.keys(options.features).forEach((key) => {
+      vars[`process.env.${key}`] = JSON.stringify(options.features[key])
+    })
+  }
 
   config.plugins.push(replace(vars))
 

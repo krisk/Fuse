@@ -49,6 +49,21 @@ function isBlank(value) {
   return !value.trim().length
 }
 
+const EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
+
+const INCORRECT_INDEX_TYPE = 'Incorrect `index` type';
+
+const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) =>
+  `Invalid value for key ${key}`;
+
+const PATTER_LENGTH_TOO_LARGE = (max) =>
+  `Pattern length exceeds max of ${max}.`;
+
+const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
+
+const INVALID_KEY_WEIGHT_VALUE =
+  '`weight` property in key must be a positive integer';
+
 const hasOwn = Object.prototype.hasOwnProperty;
 
 class KeyStore {
@@ -66,7 +81,7 @@ class KeyStore {
         keyName = key;
       } else {
         if (!hasOwn.call(key, 'name')) {
-          throw new Error('Key must contain a `name`')
+          throw new Error(MISSING_KEY_PROPERTY('name'))
         }
         keyName = key.name;
 
@@ -74,9 +89,7 @@ class KeyStore {
           weight = key.weight;
 
           if (weight <= 0) {
-            throw new Error(
-              '`weight` property in key must be a positive integer'
-            )
+            throw new Error(INVALID_KEY_WEIGHT_VALUE)
           }
         }
       }
@@ -389,11 +402,9 @@ function transformMatches(result, data) {
     return
   }
 
-  for (let i = 0, len = matches.length; i < len; i += 1) {
-    let match = matches[i];
-
-    if (!isDefined(match.indices) || match.indices.length === 0) {
-      continue
+  matches.forEach((match) => {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return
     }
 
     const { indices, value } = match;
@@ -412,7 +423,7 @@ function transformMatches(result, data) {
     }
 
     data.matches.push(obj);
-  }
+  });
 }
 
 function transformScore(result, data) {
@@ -486,7 +497,7 @@ function search(
   } = {}
 ) {
   if (pattern.length > MAX_BITS) {
-    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+    throw new Error(PATTER_LENGTH_TOO_LARGE(MAX_BITS))
   }
 
   const patternLen = pattern.length;
@@ -1241,7 +1252,7 @@ function parse(query, options, { auto = true } = {}) {
       const pattern = query[key];
 
       if (!isString(pattern)) {
-        throw new Error(`Invalid value for key "${key}"`)
+        throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key))
       }
 
       const obj = {
@@ -1285,6 +1296,13 @@ class Fuse {
   constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options };
 
+    if (
+      this.options.useExtendedSearch &&
+      !true
+    ) {
+      throw new Error(EXTENDED_SEARCH_UNAVAILABLE)
+    }
+
     this._keyStore = new KeyStore(this.options.keys);
 
     this.setCollection(docs, index);
@@ -1294,7 +1312,7 @@ class Fuse {
     this._docs = docs;
 
     if (index && !(index instanceof FuseIndex)) {
-      throw new Error('Incorrect `index` type')
+      throw new Error(INCORRECT_INDEX_TYPE)
     }
 
     this._myIndex =
@@ -1373,6 +1391,7 @@ class Fuse {
   }
 
   _searchLogical(query) {
+
     const expression = parse(query, this.options);
     const { keys, records } = this._myIndex;
     const resultMap = {};
@@ -1568,6 +1587,8 @@ Fuse.config = Config;
   Fuse.parseQuery = parse;
 }
 
-register(ExtendedSearch);
+{
+  register(ExtendedSearch);
+}
 
 export default Fuse;

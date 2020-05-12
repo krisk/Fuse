@@ -2,6 +2,7 @@ import computeScore from './computeScore'
 import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
 import { MAX_BITS } from './constants'
+import * as ErrorMsg from '../../core/errorMessages'
 
 export default function search(
   text,
@@ -17,7 +18,7 @@ export default function search(
   } = {}
 ) {
   if (pattern.length > MAX_BITS) {
-    throw new Error(`Pattern length exceeds max of ${MAX_BITS}.`)
+    throw new Error(ErrorMsg.PATTER_LENGTH_TOO_LARGE(MAX_BITS))
   }
 
   const patternLen = pattern.length

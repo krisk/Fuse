@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.0-beta.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.0-beta.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -244,6 +244,19 @@
     return !value.trim().length;
   }
 
+  var EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
+  var INCORRECT_INDEX_TYPE = 'Incorrect `index` type';
+  var LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = function LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key) {
+    return "Invalid value for key ".concat(key);
+  };
+  var PATTER_LENGTH_TOO_LARGE = function PATTER_LENGTH_TOO_LARGE(max) {
+    return "Pattern length exceeds max of ".concat(max, ".");
+  };
+  var MISSING_KEY_PROPERTY = function MISSING_KEY_PROPERTY(name) {
+    return "Missing ".concat(name, " property in key");
+  };
+  var INVALID_KEY_WEIGHT_VALUE = '`weight` property in key must be a positive integer';
+
   var hasOwn = Object.prototype.hasOwnProperty;
 
   var KeyStore = /*#__PURE__*/function () {
@@ -263,7 +276,7 @@
           keyName = key;
         } else {
           if (!hasOwn.call(key, 'name')) {
-            throw new Error('Key must contain a `name`');
+            throw new Error(MISSING_KEY_PROPERTY('name'));
           }
 
           keyName = key.name;
@@ -272,7 +285,7 @@
             weight = key.weight;
 
             if (weight <= 0) {
-              throw new Error('`weight` property in key must be a positive integer');
+              throw new Error(INVALID_KEY_WEIGHT_VALUE);
             }
           }
         }
@@ -734,7 +747,7 @@
         includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
 
     if (pattern.length > MAX_BITS) {
-      throw new Error("Pattern length exceeds max of ".concat(MAX_BITS, "."));
+      throw new Error(PATTER_LENGTH_TOO_LARGE(MAX_BITS));
     }
 
     var patternLen = pattern.length; // Set starting location at beginning text and initialize the alphabet.
@@ -1632,7 +1645,7 @@
         var pattern = query[key];
 
         if (!isString(pattern)) {
-          throw new Error("Invalid value for key \"".concat(key, "\""));
+          throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
         }
 
         var obj = {
@@ -1678,6 +1691,11 @@
       _classCallCheck(this, Fuse);
 
       this.options = _objectSpread2({}, Config, {}, options);
+
+      if (this.options.useExtendedSearch && !true) {
+        throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
+      }
+
       this._keyStore = new KeyStore(this.options.keys);
       this.setCollection(docs, index);
     }
@@ -1688,7 +1706,7 @@
         this._docs = docs;
 
         if (index && !(index instanceof FuseIndex)) {
-          throw new Error('Incorrect `index` type');
+          throw new Error(INCORRECT_INDEX_TYPE);
         }
 
         this._myIndex = index || createIndex(this._keyStore.keys(), this._docs, {
@@ -2008,7 +2026,7 @@
     });
   }
 
-  Fuse.version = '6.0.0-beta.0';
+  Fuse.version = '6.0.0-beta.1';
   Fuse.createIndex = createIndex;
   Fuse.parseIndex = parseIndex;
   Fuse.config = Config;
@@ -2017,7 +2035,9 @@
     Fuse.parseQuery = parse;
   }
 
-  register(ExtendedSearch);
+  {
+    register(ExtendedSearch);
+  }
 
   return Fuse;
 

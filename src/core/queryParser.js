@@ -1,5 +1,6 @@
 import { isArray, isObject, isString } from '../helpers/types'
 import { createSearcher } from './register'
+import * as ErrorMsg from './errorMessages'
 
 export const LogicalOperator = {
   AND: '$and',
@@ -34,7 +35,7 @@ export function parse(query, options, { auto = true } = {}) {
       const pattern = query[key]
 
       if (!isString(pattern)) {
-        throw new Error(`Invalid value for key "${key}"`)
+        throw new Error(ErrorMsg.LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key))
       }
 
       const obj = {
