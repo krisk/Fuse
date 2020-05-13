@@ -911,6 +911,10 @@ class Fuse {
     this._myIndex.removeAt(idx);
   }
 
+  getDocs() {
+    return this._docs
+  }
+
   getIndex() {
     return this._myIndex
   }

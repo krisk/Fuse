@@ -1096,6 +1096,11 @@
         this._myIndex.removeAt(idx);
       }
     }, {
+      key: "getDocs",
+      value: function getDocs() {
+        return this._docs;
+      }
+    }, {
       key: "getIndex",
       value: function getIndex() {
         return this._myIndex;

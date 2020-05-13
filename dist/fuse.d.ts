@@ -43,6 +43,8 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
 
   getIndex(): FuseIndex<T>
 
+  getDocs(): ReadonlyArray<T>
+
   /**
    * Return the current version
    */
