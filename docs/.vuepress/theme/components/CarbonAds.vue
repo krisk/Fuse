@@ -1,4 +1,8 @@
 <script>
+const SCRIPT_ID = '_carbonads_js'
+const ACCOUNT_ID = 'CE7IC27U'
+const PLACEMENT = 'fusejsio'
+
 export default {
   name: 'CarbonAds',
   watch: {
@@ -21,8 +25,8 @@ export default {
   methods: {
     load() {
       const s = document.createElement('script')
-      s.id = '_carbonads_js'
-      s.src = `//cdn.carbonads.com/carbon.js?serve=CE7IC27U&placement=fusejsio`
+      s.id = SCRIPT_ID
+      s.src = `//cdn.carbonads.com/carbon.js?serve=${ACCOUNT_ID}&placement=${PLACEMENT}`
       this.$el.appendChild(s)
     }
   },
