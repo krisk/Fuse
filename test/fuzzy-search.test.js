@@ -212,38 +212,6 @@ describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
     })
   })
 })
-
-// describe('Only include ID in result list, with "ISBN"', () => {
-//  const customBookList = [{
-//     ISBN: '0765348276',
-//     title: "Old Man's War",
-//     author: 'John Scalzi'
-//   }, {
-//     ISBN: '0312696957',
-//     title: 'The Lock Artist',
-//     author: 'Steve Hamilton'
-//   }]
-//   const customOptions = {
-//     keys: ['title', 'author'],
-//     id: 'ISBN'
-//   }
-//   let fuse
-//   beforeEach(() => fuse = setup(customBookList, customOptions))
-
-//   describe('When searching for the term "Stve"', () => {
-//     let result
-//     beforeEach(() => result = fuse.search('Stve'))
-
-//     test('we get a list containing exactly 1 item', () => {
-//       expect(result).toHaveLength(1)
-//     })
-
-//     test('whose value is the ISBN of the book', () => {
-//       expect(result[0].item.ISBN).toBe('0312696957')
-//     })
-//   })
-// })
-
 describe('Include both ID and score in results list', () => {
   const customBookList = [
     {
