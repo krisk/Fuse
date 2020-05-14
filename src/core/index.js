@@ -1,248 +1,297 @@
-import { BitapSearch } from '../search'
-import {
-  isArray,
-  isDefined,
-  isString,
-  isNumber
-} from '../helpers/type-checkers'
-import { createIndex, KeyStore } from '../tools'
+import { isArray, isDefined, isString, isNumber } from '../helpers/types'
+import KeyStore from '../tools/KeyStore'
+import FuseIndex, { createIndex } from '../tools/FuseIndex'
 import { transformMatches, transformScore } from '../transform'
+import { LogicalOperator, parse } from './queryParser'
+import { createSearcher } from './register'
 import Config from './config'
-
-const registeredSearchers = []
-
-export function register(...args) {
-  registeredSearchers.push(...args)
-}
+import * as ErrorMsg from './errorMessages'
 
 export default class Fuse {
-  constructor(list, options = {}, index) {
+  constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options }
 
+    if (
+      this.options.useExtendedSearch &&
+      !process.env.EXTENDED_SEARCH_ENABLED
+    ) {
+      throw new Error(ErrorMsg.EXTENDED_SEARCH_UNAVAILABLE)
+    }
+
     this._keyStore = new KeyStore(this.options.keys)
-    this.setCollection(list, index)
+
+    this.setCollection(docs, index)
   }
 
-  setCollection(list, index) {
-    this._list = list
-    this._listIsStringArray = isString(list[0])
+  setCollection(docs, index) {
+    this._docs = docs
 
-    this._index =
+    if (index && !(index instanceof FuseIndex)) {
+      throw new Error(ErrorMsg.INCORRECT_INDEX_TYPE)
+    }
+
+    this._myIndex =
       index ||
-      createIndex(this._keyStore.keys(), this._list, {
+      createIndex(this._keyStore.keys(), this._docs, {
         getFn: this.options.getFn
       })
   }
 
-  search(pattern, { limit = -1 } = {}) {
-    pattern = pattern.trim()
-
-    if (!pattern.length) {
-      return []
+  add(doc) {
+    if (!isDefined(doc)) {
+      return
     }
 
-    const { shouldSort } = this.options
+    this._docs.push(doc)
+    this._myIndex.add(doc)
+  }
 
-    let searcher = null
+  removeAt(idx) {
+    this._docs.splice(idx, 1)
+    this._myIndex.removeAt(idx)
+  }
 
-    for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
-      let searcherClass = registeredSearchers[i]
-      if (searcherClass.condition(pattern, this.options)) {
-        searcher = new searcherClass(pattern, this.options)
-        break
-      }
-    }
+  getIndex() {
+    return this._myIndex
+  }
 
-    if (!searcher) {
-      searcher = new BitapSearch(pattern, this.options)
-    }
+  search(query, { limit = -1 } = {}) {
+    const { includeMatches, includeScore, shouldSort, sortFn } = this.options
 
-    let results = this._searchWith(searcher)
+    let results = isString(query)
+      ? isString(this._docs[0])
+        ? this._searchStringList(query)
+        : this._searchObjectList(query)
+      : this._searchLogical(query)
 
-    this._computeScore(results)
+    computeScore(results, this._keyStore)
 
     if (shouldSort) {
-      results.sort(this.options.sortFn)
+      results.sort(sortFn)
     }
 
     if (isNumber(limit) && limit > -1) {
       results = results.slice(0, limit)
     }
 
-    return this._format(results)
+    return format(results, this._docs, {
+      includeMatches,
+      includeScore
+    })
   }
 
-  _searchWith(searcher) {
-    const { keys, list } = this._index
+  _searchStringList(query) {
+    const searcher = createSearcher(query, this.options)
+    const { records } = this._myIndex
     const results = []
-    const { includeMatches } = this.options
-    const len = list.length
 
-    // List is Array<String>
-    if (this._listIsStringArray) {
-      // Iterate over every string in the list
-      for (let i = 0; i < len; i += 1) {
-        let value = list[i]
-        let { v: text, i: idx, n: norm } = value
+    // Iterate over every string in the index
+    records.forEach(({ v: text, i: idx, n: norm }) => {
+      if (!isDefined(text)) {
+        return
+      }
 
-        if (!isDefined(text)) {
-          continue
-        }
+      const { isMatch, score, indices } = searcher.searchIn(text)
 
-        let searchResult = searcher.searchIn(value)
-
-        const { isMatch, score } = searchResult
-
-        if (!isMatch) {
-          continue
-        }
-
-        let match = { score, value: text, norm }
-
-        if (includeMatches) {
-          match.indices = searchResult.matchedIndices
-        }
-
+      if (isMatch) {
         results.push({
           item: text,
           idx,
-          matches: [match]
+          matches: [{ score, value: text, norm, indices }]
         })
       }
-    } else {
-      // List is Array<Object>
-      const keysLen = keys.length
-
-      for (let i = 0; i < len; i += 1) {
-        let { $: item, i: idx } = list[i]
-
-        if (!isDefined(item)) {
-          continue
-        }
-
-        let matches = []
-
-        // Iterate over every key (i.e, path), and fetch the value at that key
-        for (let j = 0; j < keysLen; j += 1) {
-          const key = keys[j]
-          const value = item[j]
-
-          if (!isDefined(value)) {
-            continue
-          }
-
-          if (isArray(value)) {
-            for (let k = 0, len = value.length; k < len; k += 1) {
-              let arrItem = value[k]
-              const { v: text, i: idx, n: norm } = arrItem
-
-              if (!isDefined(text)) {
-                continue
-              }
-
-              let searchResult = searcher.searchIn(arrItem)
-
-              const { isMatch, score } = searchResult
-
-              if (!isMatch) {
-                continue
-              }
-
-              let match = { score, key, value: text, idx, norm }
-
-              if (includeMatches) {
-                match.indices = searchResult.matchedIndices
-              }
-
-              matches.push(match)
-            }
-          } else {
-            const { v: text, n: norm } = value
-
-            let searchResult = searcher.searchIn(value)
-
-            const { isMatch, score } = searchResult
-
-            if (!isMatch) {
-              continue
-            }
-
-            let match = { score, key, value: text, norm }
-
-            if (includeMatches) {
-              match.indices = searchResult.matchedIndices
-            }
-
-            matches.push(match)
-          }
-        }
-
-        if (matches.length) {
-          results.push({
-            idx,
-            item,
-            matches
-          })
-        }
-      }
-    }
+    })
 
     return results
   }
 
-  // Practical scoring function
-  _computeScore(results) {
-    for (let i = 0, len = results.length; i < len; i += 1) {
-      const result = results[i]
-      const matches = result.matches
-      const numMatches = matches.length
-
-      let totalScore = 1
-
-      for (let j = 0; j < numMatches; j += 1) {
-        const match = matches[j]
-        const { key, norm } = match
-
-        const keyWeight = this._keyStore.get(key, 'weight')
-        const weight = keyWeight > -1 ? keyWeight : 1
-        const score =
-          match.score === 0 && keyWeight > -1 ? Number.EPSILON : match.score
-
-        totalScore *= Math.pow(score, weight * norm)
-      }
-
-      result.score = totalScore
+  _searchLogical(query) {
+    if (!process.env.LOGICAL_SEARCH_ENABLED) {
+      throw new Error(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
     }
-  }
 
-  _format(results) {
-    const output = []
+    const expression = parse(query, this.options)
+    const { keys, records } = this._myIndex
+    const resultMap = {}
+    const results = []
 
-    const { includeMatches, includeScore } = this.options
+    const evaluateExpression = (node, item, idx) => {
+      if (node.children) {
+        const operator = node.operator
+        let res = []
 
-    let transformers = []
+        for (let k = 0; k < node.children.length; k += 1) {
+          let child = node.children[k]
+          let matches = evaluateExpression(child, item, idx)
 
-    if (includeMatches) transformers.push(transformMatches)
-    if (includeScore) transformers.push(transformScore)
-
-    for (let i = 0, len = results.length; i < len; i += 1) {
-      const result = results[i]
-      const { idx } = result
-
-      const data = {
-        item: this._list[idx],
-        refIndex: idx
-      }
-
-      if (transformers.length) {
-        for (let j = 0, len = transformers.length; j < len; j += 1) {
-          transformers[j](result, data)
+          if (matches && matches.length) {
+            res.push({
+              idx,
+              item,
+              matches
+            })
+            if (operator === LogicalOperator.OR) {
+              // Short-circuit
+              break
+            }
+          } else if (operator === LogicalOperator.AND) {
+            res.length = 0
+            // Short-circuit
+            break
+          }
         }
-      }
 
-      output.push(data)
+        if (res.length) {
+          // Dedupe when adding
+          if (!resultMap[idx]) {
+            resultMap[idx] = { idx, item, matches: [] }
+            results.push(resultMap[idx])
+          }
+          res.forEach(({ matches }) => {
+            resultMap[idx].matches.push(...matches)
+          })
+        }
+      } else {
+        const { key, searcher } = node
+        const value = item[keys.indexOf(key)]
+
+        return this._findMatches({
+          key,
+          value,
+          searcher
+        })
+      }
     }
 
-    return output
+    records.forEach(({ $: item, i: idx }) => {
+      if (isDefined(item)) {
+        evaluateExpression(expression, item, idx)
+      }
+    })
+
+    return results
   }
+
+  _searchObjectList(query) {
+    const searcher = createSearcher(query, this.options)
+    const { keys, records } = this._myIndex
+    const results = []
+
+    // List is Array<Object>
+    records.forEach(({ $: item, i: idx }) => {
+      if (!isDefined(item)) {
+        return
+      }
+
+      let matches = []
+
+      // Iterate over every key (i.e, path), and fetch the value at that key
+      keys.forEach((key, keyIndex) => {
+        matches.push(
+          ...this._findMatches({
+            key,
+            value: item[keyIndex],
+            searcher
+          })
+        )
+      })
+
+      if (matches.length) {
+        results.push({
+          idx,
+          item,
+          matches
+        })
+      }
+    })
+
+    return results
+  }
+  _findMatches({ key, value, searcher }) {
+    if (!isDefined(value)) {
+      return []
+    }
+
+    let matches = []
+
+    if (isArray(value)) {
+      value.forEach(({ v: text, i: idx, n: norm }) => {
+        if (!isDefined(text)) {
+          return
+        }
+
+        const { isMatch, score, indices } = searcher.searchIn(text)
+
+        if (isMatch) {
+          matches.push({
+            score,
+            key,
+            value: text,
+            idx,
+            norm,
+            indices
+          })
+        }
+      })
+    } else {
+      const { v: text, n: norm } = value
+
+      const { isMatch, score, indices } = searcher.searchIn(text)
+
+      if (isMatch) {
+        matches.push({ score, key, value: text, norm, indices })
+      }
+    }
+
+    return matches
+  }
+}
+
+// Practical scoring function
+function computeScore(results, keyStore) {
+  results.forEach((result) => {
+    let totalScore = 1
+
+    result.matches.forEach(({ key, norm, score }) => {
+      const weight = keyStore.get(key, 'weight')
+
+      totalScore *= Math.pow(
+        score === 0 && weight ? Number.EPSILON : score,
+        (weight || 1) * norm
+      )
+    })
+
+    result.score = totalScore
+  })
+}
+
+function format(
+  results,
+  docs,
+  {
+    includeMatches = Config.includeMatches,
+    includeScore = Config.includeScore
+  } = {}
+) {
+  const transformers = []
+
+  if (includeMatches) transformers.push(transformMatches)
+  if (includeScore) transformers.push(transformScore)
+
+  return results.map((result) => {
+    const { idx } = result
+
+    const data = {
+      item: docs[idx],
+      refIndex: idx
+    }
+
+    if (transformers.length) {
+      transformers.forEach((transformer) => {
+        transformer(result, data)
+      })
+    }
+
+    return data
+  })
 }

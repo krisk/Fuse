@@ -4,7 +4,7 @@ export default function convertMaskToIndices(
   matchmask = [],
   minMatchCharLength = Config.minMatchCharLength
 ) {
-  let matchedIndices = []
+  let indices = []
   let start = -1
   let end = -1
   let i = 0
@@ -16,7 +16,7 @@ export default function convertMaskToIndices(
     } else if (!match && start !== -1) {
       end = i - 1
       if (end - start + 1 >= minMatchCharLength) {
-        matchedIndices.push([start, end])
+        indices.push([start, end])
       }
       start = -1
     }
@@ -24,8 +24,8 @@ export default function convertMaskToIndices(
 
   // (i-1 - start) + 1 => i - start
   if (matchmask[i - 1] && i - start >= minMatchCharLength) {
-    matchedIndices.push([start, i - 1])
+    indices.push([start, i - 1])
   }
 
-  return matchedIndices
+  return indices
 }

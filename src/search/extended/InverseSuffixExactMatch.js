@@ -21,7 +21,7 @@ export default class InverseSuffixExactMatch extends BaseMatch {
     return {
       isMatch,
       score: isMatch ? 0 : 1,
-      matchedIndices: [0, text.length - 1]
+      indices: [0, text.length - 1]
     }
   }
 }

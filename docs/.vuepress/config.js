@@ -44,7 +44,7 @@ function getGuideSidebar() {
     {
       title: 'Getting Started',
       collapsable: false,
-      sidebarDepth: 0,
+      // sidebarDepth: 0,
       children: [
         '/getting-started/installation',
         '/getting-started/different-builds'
@@ -54,7 +54,7 @@ function getGuideSidebar() {
     {
       title: 'API Reference',
       collapsable: false,
-      children: ['/api/options', '/api/indexing']
+      children: ['/api/options', 'api/config', '/api/indexing', 'api/query']
     },
     '/examples',
     {

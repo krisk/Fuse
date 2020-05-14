@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Logical parser Implicit operations 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "key": "title",
+      "pattern": "old war",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "key": "title",
+              "pattern": "!arts",
+            },
+            Object {
+              "key": "tags",
+              "pattern": "kiro",
+            },
+          ],
+          "operator": "$and",
+        },
+        Object {
+          "key": "title",
+          "pattern": "^lock",
+        },
+      ],
+      "operator": "$or",
+    },
+  ],
+  "operator": "$and",
+}
+`;
+
+exports[`Logical parser Tree structure 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "key": "title",
+      "pattern": "old war",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "key": "title",
+          "pattern": "!arts",
+        },
+        Object {
+          "key": "title",
+          "pattern": "^lock",
+        },
+      ],
+      "operator": "$or",
+    },
+  ],
+  "operator": "$and",
+}
+`;

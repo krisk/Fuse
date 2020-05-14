@@ -139,7 +139,7 @@ The path has to eventually point to a string, otherwise you will not get any res
 
 ## Weighted Search
 
-You can allocate a weight to keys to give them higher (or lower) values in search results. The `weight` value has to be greater than `0` and less than `1`.
+You can allocate a weight to keys to give them higher (or lower) values in search results. The `weight` value has to be greater than `0`.
 
 :::: tabs
 ::: tab List
@@ -214,9 +214,23 @@ const result = fuse.search('Man')
 :::
 ::::
 
-::: tip
-As long as the `weight` is between `0` and `1` exclusive, you're good, because Fuse.js will normalize the weights so that their total is `1`.
-:::
+### Default `weight`
+
+When a `weight` isn't provided, it will default to `1`. In the following example, while `author` has been given a weight of `2`, `title` will be assigned a weight of `1`.
+
+```js
+const fuse = new Fuse(books, {
+  keys: [
+    'title', // will be assigned a `weight` of 1
+    {
+      name: 'author',
+      weight: 2
+    }
+  ]
+})
+```
+
+Note that internally Fuse will normalize the weights to be within `0` and `1` exclusive.
 
 ## Extended Search <Badge text="beta" type="warning"/>
 
@@ -300,3 +314,18 @@ fuse.search("'Man 'Old | Artist$")
 
 :::
 ::::
+
+<!-- ```js
+const result = fuse.search({
+  $and: [
+    { title: 'old war' }, // Fuzzy "old war"
+    { color: "'blue" }, // Exact match for blue
+    {
+      $or: [
+        { title: '!arts' }, // Does not have "arts"
+        { title: '^lock' } // Starts with "lock"
+      ]
+    }
+  ]
+})
+``` -->

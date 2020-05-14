@@ -2,11 +2,7 @@ export default Fuse
 export as namespace Fuse
 
 declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
-  constructor(
-    list: ReadonlyArray<T>,
-    options?: O,
-    index?: ReadonlyArray<Fuse.FuseIndexRecord>
-  )
+  constructor(list: ReadonlyArray<T>, options?: O, index?: FuseIndex<T>)
   /**
    * Search function for the Fuse instance.
    *
@@ -30,9 +26,19 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     options?: Fuse.FuseSearchOptions
   ): Fuse.FuseResult<R>[]
 
-  setCollection(list: ReadonlyArray<T>, index?: Fuse.FuseIndex): void
+  setCollection(docs: ReadonlyArray<T>, index?: FuseIndex<T>): void
 
-  setIndex(index: Fuse.FuseIndex): void
+  /**
+   * Adds a doc to the end the list.
+   */
+  add(doc: T): void
+
+  /**
+   * Removes the doc at the specified index
+   */
+  removeAt(idx: number): void
+
+  getIndex(): FuseIndex<T>
 
   /**
    * Return the current version
@@ -69,7 +75,25 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
     keys: Fuse.FuseOptionKeyObject[] | string[],
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
-  ): Fuse.FuseIndex
+  ): FuseIndex<U>
+
+  static parseIndex<U>(
+    index: any,
+    options?: Fuse.FuseIndexOptions<U>
+  ): FuseIndex<U>
+}
+
+declare class FuseIndex<T> {
+  constructor(options?: Fuse.FuseIndexOptions<T>)
+  setCollection(docs: ReadonlyArray<T>): void
+  setKeys(keys: ReadonlyArray<string>): void
+  setRecords(records: Fuse.FuseIndexRecords): void
+  create(): void
+  add(doc: T): void
+  toJSON(): {
+    keys: ReadonlyArray<string>
+    collection: Fuse.FuseIndexRecords
+  }
 }
 
 declare namespace Fuse {
@@ -185,12 +209,9 @@ declare namespace Fuse {
     n: number // The field-length norm
   }
 
-  type FuseIndex = {
-    keys: ReadonlyArray<string>
-    list:
-      | ReadonlyArray<FuseIndexObjectRecord>
-      | ReadonlyArray<FuseIndexStringRecord>
-  }
+  type FuseIndexRecords =
+    | ReadonlyArray<FuseIndexObjectRecord>
+    | ReadonlyArray<FuseIndexStringRecord>
 
   // {
   //   name: 'title',

@@ -1,4 +1,5 @@
 const Fuse = require('../dist/fuse')
+import * as ErrorMsg from '../src/core/errorMessages'
 
 const defaultList = ['Apple', 'Orange', 'Banana']
 const defaultOptions = {}
@@ -481,6 +482,23 @@ describe('Weighted search', () => {
     }
   ]
 
+  test('Invalid key entries throw errors', () => {
+    expect(() => {
+      setup(customBookList, {
+        keys: [
+          { name: 'title', weight: -10 },
+          { name: 'author', weight: 0.7 }
+        ]
+      })
+    }).toThrowError(ErrorMsg.INVALID_KEY_WEIGHT_VALUE('title'))
+
+    expect(() => {
+      setup(customBookList, {
+        keys: [{ weight: 10 }, { name: 'author', weight: 0.7 }]
+      })
+    }).toThrowError(ErrorMsg.MISSING_KEY_PROPERTY('name'))
+  })
+
   describe('When searching for the term "John Smith" with author weighted higher', () => {
     const customOptions = {
       keys: [
@@ -504,6 +522,38 @@ describe('Weighted search', () => {
         },
         refIndex: 2
       })
+    })
+  })
+
+  describe('When searching for the term "John Smith" with author weighted higher, with mixed key types', () => {
+    const customOptions = {
+      keys: ['title', { name: 'author', weight: 2 }]
+    }
+
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('John Smith'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'The life of Jane',
+          author: 'John Smith',
+          tags: ['john', 'smith']
+        },
+        refIndex: 2
+      })
+    })
+
+    test('Throws when key does not have a name property', () => {
+      expect(() => {
+        new Fuse(customBookList, {
+          keys: ['title', { weight: 2 }]
+        })
+      }).toThrow()
     })
   })
 

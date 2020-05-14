@@ -41,12 +41,7 @@ export default class BitapSearch {
     }
   }
 
-  searchIn(value) {
-    let text = value.v
-    return this.searchInString(text)
-  }
-
-  searchInString(text) {
+  searchIn(text) {
     const { isCaseSensitive, includeMatches } = this.options
 
     if (!isCaseSensitive) {
@@ -61,7 +56,7 @@ export default class BitapSearch {
       }
 
       if (includeMatches) {
-        result.matchedIndices = [[0, text.length - 1]]
+        result.indices = [[0, text.length - 1]]
       }
 
       return result
@@ -76,14 +71,12 @@ export default class BitapSearch {
       minMatchCharLength
     } = this.options
 
-    let allMatchedIndices = []
+    let allIndices = []
     let totalScore = 0
     let hasMatches = false
 
-    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
-      let { pattern, alphabet } = this.chunks[i]
-
-      let result = search(text, pattern, alphabet, {
+    this.chunks.forEach(({ pattern, alphabet }, i) => {
+      const { isMatch, score, indices } = search(text, pattern, alphabet, {
         location: location + MAX_BITS * i,
         distance,
         threshold,
@@ -92,18 +85,16 @@ export default class BitapSearch {
         includeMatches
       })
 
-      const { isMatch, score, matchedIndices } = result
-
       if (isMatch) {
         hasMatches = true
       }
 
       totalScore += score
 
-      if (isMatch && matchedIndices) {
-        allMatchedIndices = [...allMatchedIndices, ...matchedIndices]
+      if (isMatch && indices) {
+        allIndices = [...allIndices, ...indices]
       }
-    }
+    })
 
     let result = {
       isMatch: hasMatches,
@@ -111,7 +102,7 @@ export default class BitapSearch {
     }
 
     if (hasMatches && includeMatches) {
-      result.matchedIndices = allMatchedIndices
+      result.indices = allIndices
     }
 
     return result

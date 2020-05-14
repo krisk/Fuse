@@ -22,7 +22,7 @@ export default class PrefixExactMatch extends BaseMatch {
     return {
       isMatch,
       score: isMatch ? 0 : 1,
-      matchedIndices: [0, this.pattern.length - 1]
+      indices: [0, this.pattern.length - 1]
     }
   }
 }

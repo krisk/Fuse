@@ -36,6 +36,6 @@ export default class FuzzyMatch extends BaseMatch {
     return /^(.*)$/
   }
   search(text) {
-    return this._bitapSearch.searchInString(text)
+    return this._bitapSearch.searchIn(text)
   }
 }

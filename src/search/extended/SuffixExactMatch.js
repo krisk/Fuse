@@ -22,7 +22,7 @@ export default class SuffixExactMatch extends BaseMatch {
     return {
       isMatch,
       score: isMatch ? 0 : 1,
-      matchedIndices: [text.length - this.pattern.length, text.length - 1]
+      indices: [text.length - this.pattern.length, text.length - 1]
     }
   }
 }

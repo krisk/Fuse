@@ -12,7 +12,11 @@ $ npm install --save fuse.js
 $ yarn add fuse.js
 ```
 
-### CDN
+### Direct `<script>` Include
+
+Simply download and include with a script tag. `Fuse` will be registered as a global variable.
+
+#### CDN
 
 For prototyping or learning purposes, you can use the latest version with:
 
