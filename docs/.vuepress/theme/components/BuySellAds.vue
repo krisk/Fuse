@@ -30,11 +30,21 @@ export default {
   methods: {
     load() {
       if (typeof _bsa !== 'undefined' && _bsa) {
-        _bsa.init('default', ACCOUNT_ID, `placement:${PLACEMENT}`, {
-          target: '.bsa-cpc',
-          align: 'horizontal',
-          disable_css: 'true'
-        })
+        let retries = 10
+        function check() {
+          if (!retries || !!document.querySelector('.default-ad')) {
+            return
+          }
+          retries -= 1
+          _bsa.init('default', ACCOUNT_ID, `placement:${PLACEMENT}`, {
+            target: '.bsa-cpc',
+            align: 'horizontal',
+            disable_css: 'true'
+          })
+          setTimeout(check, 1000)
+        }
+
+        check()
       }
     }
   },
