@@ -899,14 +899,10 @@
 
   function createPatternAlphabet(pattern) {
     var mask = {};
-    var len = pattern.length;
 
-    for (var i = 0; i < len; i += 1) {
-      mask[pattern.charAt(i)] = 0;
-    }
-
-    for (var _i = 0; _i < len; _i += 1) {
-      mask[pattern.charAt(_i)] |= 1 << len - _i - 1;
+    for (var i = 0, len = pattern.length; i < len; i += 1) {
+      var char = pattern.charAt(i);
+      mask[char] = (mask[char] || 0) | 1 << len - i - 1;
     }
 
     return mask;

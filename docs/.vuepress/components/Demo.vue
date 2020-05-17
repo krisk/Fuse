@@ -29,7 +29,7 @@
       </label> -->
     </section>
 
-    <div v-if="showCode">
+    <div class="code-container-wrapper">
       <Content slot-key="middle" />
       <article class="code-container">
         <span class="header">
