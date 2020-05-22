@@ -6,6 +6,45 @@
 ::: tab List
 
 ```js
+const list = ["Old Man's War", 'The Lock Artist']
+```
+
+:::
+::: tab JS
+
+```javascript
+const options = {
+  includeScore: true
+}
+
+const fuse = new Fuse(list, options)
+
+const result = fuse.search('od man')
+```
+
+:::
+
+::: tab Output
+
+```json
+[
+  {
+    "item": "Old Man's War",
+    "refIndex": 0,
+    "score": 0.35
+  }
+]
+```
+
+:::
+::::
+
+## Search Object Array
+
+:::: tabs
+::: tab List
+
+```js
 const list = [
   {
     title: "Old Man's War",
@@ -232,7 +271,7 @@ const fuse = new Fuse(books, {
 
 Note that internally Fuse will normalize the weights to be within `0` and `1` exclusive.
 
-## Extended Search <Badge text="beta" type="warning"/>
+## Extended Search
 
 This form of advanced searching allows you to fine-tune results.
 
