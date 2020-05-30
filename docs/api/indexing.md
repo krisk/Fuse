@@ -7,19 +7,31 @@ tags:
 
 Use `Fuse.createIndex` to pre-generate the index from the list, and pass it directly into the Fuse instance.
 
-```typescript
-const list: MyType[] = [myType1, myType2, etc...]
+```js
+const books = [
+  {
+    title: "Old Man's War",
+    author: {
+      firstName: 'John',
+      lastName: 'Scalzi'
+    }
+  },
+  {
+    title: 'The Lock Artist',
+    author: {
+      firstName: 'Steve',
+      lastName: 'Hamilton'
+    }
+  }
+  /*...*/
+]
 
-const index = Fuse.createIndex<MyType>(
- keys: ['key1', 'key2']
- list: list
-)
+const options = { keys: ['title', 'author.firstName'] }
 
-const options: Fuse.IFuseOptions<MyType> = {
- keys: ['key1', 'key2']
-}
+// Create the Fuse index
+const myIndex = Fuse.createIndex(options.keys, books)
 
-const myFuse = new Fuse(list, options, index)
+const myFuse = new Fuse(books, options, myIndex)
 ```
 
 ::: tip
