@@ -8,7 +8,7 @@ export default {
   watch: {
     $route(to, from) {
       if (
-        to.path !== from.path &&
+        to.fullPath !== from.fullPath &&
         // Only reload if the ad has been loaded
         // otherwise it's possible that the script is appended but
         // the ads are not loaded yet. This would result in duplicated ads.
