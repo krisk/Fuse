@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -792,7 +792,7 @@ function search(text, pattern, patternAlphabet) {
   var lastBitArr = [];
   var finalScore = 1;
   var binMax = patternLen + textLen;
-  var mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
+  var mask = 1 << patternLen - 1;
 
   for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -895,14 +895,10 @@ function search(text, pattern, patternAlphabet) {
 
 function createPatternAlphabet(pattern) {
   var mask = {};
-  var len = pattern.length;
 
-  for (var i = 0; i < len; i += 1) {
-    mask[pattern.charAt(i)] = 0;
-  }
-
-  for (var _i = 0; _i < len; _i += 1) {
-    mask[pattern.charAt(_i)] |= 1 << len - _i - 1;
+  for (var i = 0, len = pattern.length; i < len; i += 1) {
+    var char = pattern.charAt(i);
+    mask[char] = (mask[char] || 0) | 1 << len - i - 1;
   }
 
   return mask;
@@ -939,16 +935,28 @@ var BitapSearch = /*#__PURE__*/function () {
     };
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
     this.chunks = [];
-    var index = 0;
+    var i = 0;
+    var len = this.pattern.length;
+    var remainder = len % MAX_BITS;
+    var end = len - remainder;
 
-    while (index < this.pattern.length) {
-      var _pattern = this.pattern.substring(index, index + MAX_BITS);
+    while (i < end) {
+      var _pattern = this.pattern.substr(i, MAX_BITS);
 
       this.chunks.push({
         pattern: _pattern,
         alphabet: createPatternAlphabet(_pattern)
       });
-      index += MAX_BITS;
+      i += MAX_BITS;
+    }
+
+    if (remainder) {
+      var _pattern2 = this.pattern.substr(len - MAX_BITS);
+
+      this.chunks.push({
+        pattern: _pattern2,
+        alphabet: createPatternAlphabet(_pattern2)
+      });
     }
   }
 
@@ -2024,7 +2032,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.0.0';
+Fuse.version = '6.0.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

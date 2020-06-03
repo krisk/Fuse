@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -550,7 +550,7 @@ function search(
   let finalScore = 1;
   let binMax = patternLen + textLen;
 
-  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
+  const mask = 1 << (patternLen - 1);
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -662,14 +662,10 @@ function search(
 
 function createPatternAlphabet(pattern) {
   let mask = {};
-  let len = pattern.length;
 
-  for (let i = 0; i < len; i += 1) {
-    mask[pattern.charAt(i)] = 0;
-  }
-
-  for (let i = 0; i < len; i += 1) {
-    mask[pattern.charAt(i)] |= 1 << (len - i - 1);
+  for (let i = 0, len = pattern.length; i < len; i += 1) {
+    const char = pattern.charAt(i);
+    mask[char] = (mask[char] || 0) | (1 << (len - i - 1));
   }
 
   return mask
@@ -702,14 +698,26 @@ class BitapSearch {
 
     this.chunks = [];
 
-    let index = 0;
-    while (index < this.pattern.length) {
-      let pattern = this.pattern.substring(index, index + MAX_BITS);
+    let i = 0;
+    const len = this.pattern.length;
+    const remainder = len % MAX_BITS;
+    const end = len - remainder;
+
+    while (i < end) {
+      const pattern = this.pattern.substr(i, MAX_BITS);
       this.chunks.push({
         pattern,
         alphabet: createPatternAlphabet(pattern)
       });
-      index += MAX_BITS;
+      i += MAX_BITS;
+    }
+
+    if (remainder) {
+      const pattern = this.pattern.substr(len - MAX_BITS);
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern)
+      });
     }
   }
 
@@ -1095,7 +1103,7 @@ function format(
   })
 }
 
-Fuse.version = '6.0.0';
+Fuse.version = '6.0.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
