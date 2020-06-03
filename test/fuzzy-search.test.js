@@ -868,11 +868,6 @@ describe('Searching using string large strings', () => {
     expect(search(patterns[34])).toBeTruthy()
     expect(search(patterns[64])).toBeTruthy()
     expect(search(patterns[65])).toBeTruthy()
-
-    // let pattern = 'where exctly is carmen in the wor'
-    // let result = fuse.search(pattern)
-    // expect(result.length).toBe(1)
-    // expect(result[0].item.text).toBe(list[2].text)
   })
 })
 
