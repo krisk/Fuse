@@ -837,17 +837,42 @@ describe('Searching using string large strings', () => {
 
   const options = {
     shouldSort: true,
-    // includeScore: true,
+    includeScore: true,
     threshold: 0.6,
     keys: ['text']
   }
-  const fuse = new Fuse(list, options)
 
   test('finds no matches when string is larger than 32 characters', () => {
+    const fuse = new Fuse(list, options)
+
     let pattern = 'where exctly is carmen in the world san diego'
     let result = fuse.search(pattern)
     expect(result.length).toBe(1)
     expect(result[0].item.text).toBe(list[2].text)
+  })
+
+  test('finds no matches when string is exactly 33 characters', () => {
+    let fuse = new Fuse(list, options)
+    let patterns = []
+
+    for (let i = 0; i < 66; ++i) {
+      patterns.push('w'.repeat(i))
+    }
+
+    const search = (pattern) => {
+      return fuse.search(pattern).length === 0
+    }
+
+    expect(search(patterns[32])).toBeTruthy()
+    expect(search(patterns[33])).toBeTruthy()
+    expect(search(patterns[34])).toBeTruthy()
+    expect(search(patterns[64])).toBeTruthy()
+    expect(search(patterns[65])).toBeTruthy()
+
+    // let pattern = 'where exctly is carmen in the wor'
+    // let result = fuse.search(pattern)
+    // expect(result.length).toBe(1)
+    // expect(result[0].item.text).toBe(list[2].text)
   })
 })
 

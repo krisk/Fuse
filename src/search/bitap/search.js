@@ -69,7 +69,7 @@ export default function search(
   let finalScore = 1
   let binMax = patternLen + textLen
 
-  const mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2)
+  const mask = 1 << (patternLen - 1)
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.

@@ -30,14 +30,26 @@ export default class BitapSearch {
 
     this.chunks = []
 
-    let index = 0
-    while (index < this.pattern.length) {
-      let pattern = this.pattern.substring(index, index + MAX_BITS)
+    let i = 0
+    const len = this.pattern.length
+    const remainder = len % MAX_BITS
+    const end = len - remainder
+
+    while (i < end) {
+      const pattern = this.pattern.substr(i, MAX_BITS)
       this.chunks.push({
         pattern,
         alphabet: createPatternAlphabet(pattern)
       })
-      index += MAX_BITS
+      i += MAX_BITS
+    }
+
+    if (remainder) {
+      const pattern = this.pattern.substr(len - MAX_BITS)
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern)
+      })
     }
   }
 

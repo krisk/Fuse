@@ -796,7 +796,7 @@
     var lastBitArr = [];
     var finalScore = 1;
     var binMax = patternLen + textLen;
-    var mask = 1 << (patternLen <= MAX_BITS - 1 ? patternLen - 1 : MAX_BITS - 2);
+    var mask = 1 << patternLen - 1;
 
     for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
       // Scan for the best match; each iteration allows for one more error.
@@ -939,16 +939,28 @@
       };
       this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
       this.chunks = [];
-      var index = 0;
+      var i = 0;
+      var len = this.pattern.length;
+      var remainder = len % MAX_BITS;
+      var end = len - remainder;
 
-      while (index < this.pattern.length) {
-        var _pattern = this.pattern.substring(index, index + MAX_BITS);
+      while (i < end) {
+        var _pattern = this.pattern.substr(i, MAX_BITS);
 
         this.chunks.push({
           pattern: _pattern,
           alphabet: createPatternAlphabet(_pattern)
         });
-        index += MAX_BITS;
+        i += MAX_BITS;
+      }
+
+      if (remainder) {
+        var _pattern2 = this.pattern.substr(len - MAX_BITS);
+
+        this.chunks.push({
+          pattern: _pattern2,
+          alphabet: createPatternAlphabet(_pattern2)
+        });
       }
     }
 
