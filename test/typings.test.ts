@@ -2,6 +2,8 @@ import Fuse from '../dist/fuse'
 import { BattlePokedex } from './fixtures/pokedex'
 import { PokedexType } from './fixtures/types'
 
+const idx = (result) => result.map((obj) => obj.refIndex)
+
 const defaultOptions: Fuse.IFuseOptions<PokedexType> = {
   keys: ['alias', 'species', 'name', 'num'],
   threshold: 0.2
@@ -68,5 +70,36 @@ describe('Search results with indices', () => {
     expect(matches.length).toBe(1)
     expect(matches[0].indices.length).toBe(9)
     expect(matches[0].indices[0]).toMatchObject([0, 4])
+  })
+})
+
+describe('Logical search results', () => {
+  interface Author {
+    readonly name: string
+    readonly title: string
+  }
+
+  const list: Array<Author> = [
+    {
+      title: 'The Code of the Wooster',
+      name: 'Woodhouse'
+    }
+  ]
+
+  const options: Fuse.IFuseOptions<Author> = {
+    useExtendedSearch: true,
+    includeMatches: true,
+    includeScore: true,
+    keys: ['name', 'title']
+  }
+
+  const fuse = new Fuse(list, options)
+
+  test('Search: AND with multiple entries + exact match', () => {
+    let result = fuse.search({
+      $and: [{ name: 'Woodhose' }, { title: "'The" }]
+    })
+    expect(result.length).toBe(1)
+    expect(idx(result)).toMatchObject([0])
   })
 })

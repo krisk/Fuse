@@ -25,7 +25,7 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
    * @returns An array of search results
    */
   search<R = T>(
-    pattern: string,
+    pattern: string | Fuse.Expression,
     options?: Fuse.FuseSearchOptions
   ): Fuse.FuseResult<R>[]
 
@@ -263,4 +263,9 @@ declare namespace Fuse {
     score?: number
     matches?: ReadonlyArray<FuseResultMatch>
   }
+
+  export type Expression =
+    | { [key: string]: string }
+    | { $and?: Expression[] }
+    | { $or?: Expression[] }
 }
