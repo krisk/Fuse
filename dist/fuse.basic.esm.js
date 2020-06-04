@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -698,26 +698,32 @@ class BitapSearch {
 
     this.chunks = [];
 
-    let i = 0;
+    const addChunk = (pattern, startIndex) => {
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern),
+        startIndex
+      });
+    };
+
     const len = this.pattern.length;
-    const remainder = len % MAX_BITS;
-    const end = len - remainder;
 
-    while (i < end) {
-      const pattern = this.pattern.substr(i, MAX_BITS);
-      this.chunks.push({
-        pattern,
-        alphabet: createPatternAlphabet(pattern)
-      });
-      i += MAX_BITS;
-    }
+    if (len > MAX_BITS) {
+      let i = 0;
+      const remainder = len % MAX_BITS;
+      const end = len - remainder;
 
-    if (remainder) {
-      const pattern = this.pattern.substr(len - MAX_BITS);
-      this.chunks.push({
-        pattern,
-        alphabet: createPatternAlphabet(pattern)
-      });
+      while (i < end) {
+        addChunk(this.pattern.substr(i, MAX_BITS), i);
+        i += MAX_BITS;
+      }
+
+      if (remainder) {
+        const startIndex = len - MAX_BITS;
+        addChunk(this.pattern.substr(startIndex), startIndex);
+      }
+    } else {
+      addChunk(this.pattern, 0);
     }
   }
 
@@ -755,9 +761,9 @@ class BitapSearch {
     let totalScore = 0;
     let hasMatches = false;
 
-    this.chunks.forEach(({ pattern, alphabet }, i) => {
+    this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
       const { isMatch, score, indices } = search(text, pattern, alphabet, {
-        location: location + MAX_BITS * i,
+        location: location + startIndex,
         distance,
         threshold,
         findAllMatches,
@@ -1103,7 +1109,7 @@ function format(
   })
 }
 
-Fuse.version = '6.0.2';
+Fuse.version = '6.0.3';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
