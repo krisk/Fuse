@@ -851,7 +851,7 @@ describe('Searching using string large strings', () => {
     expect(result[0].item.text).toBe(list[2].text)
   })
 
-  test('finds no matches when string is exactly 33 characters', () => {
+  test('Test matches with very long patterns', () => {
     let fuse = new Fuse(list, options)
     let patterns = []
 
@@ -868,6 +868,68 @@ describe('Searching using string large strings', () => {
     expect(search(patterns[34])).toBeTruthy()
     expect(search(patterns[64])).toBeTruthy()
     expect(search(patterns[65])).toBeTruthy()
+  })
+
+  it('With hyphens', () => {
+    const searchText = 'leverage-streams-to'
+    const fuseOptions = {
+      distance: 1000,
+      includeScore: true,
+      includeMatches: true,
+      keys: ['name', 'tag', 'description'],
+      minMatchCharLength: Math.floor(searchText.length * 0.6),
+      shouldSort: false
+    }
+    const fuse = new Fuse(
+      [
+        {
+          name: 'Streaming Service',
+          description: 'Leverage-streams-to-ingest, analyze, monitor.',
+          tag: 'Free'
+        }
+      ],
+      fuseOptions
+    )
+
+    const results = fuse.search(searchText)
+    expect(results[0].matches).toEqual([
+      {
+        indices: [[0, 18]],
+        key: 'description',
+        value: 'Leverage-streams-to-ingest, analyze, monitor.'
+      }
+    ])
+  })
+
+  it('With spaces', () => {
+    const searchText = 'leverage streams to'
+    const fuseOptions = {
+      distance: 1000,
+      includeScore: true,
+      includeMatches: true,
+      keys: ['name', 'tag', 'description'],
+      minMatchCharLength: Math.floor(searchText.length * 0.6),
+      shouldSort: false
+    }
+    const fuse = new Fuse(
+      [
+        {
+          name: 'Streaming Service',
+          description: 'Leverage streams to ingest, analyze, monitor.',
+          tag: 'Free'
+        }
+      ],
+      fuseOptions
+    )
+
+    const results = fuse.search(searchText)
+    expect(results[0].matches).toEqual([
+      {
+        indices: [[0, 18]],
+        key: 'description',
+        value: 'Leverage streams to ingest, analyze, monitor.'
+      }
+    ])
   })
 })
 

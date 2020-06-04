@@ -910,6 +910,8 @@
 
   var BitapSearch = /*#__PURE__*/function () {
     function BitapSearch(pattern) {
+      var _this = this;
+
       var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
           _ref$location = _ref.location,
           location = _ref$location === void 0 ? Config.location : _ref$location,
@@ -939,28 +941,33 @@
       };
       this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
       this.chunks = [];
-      var i = 0;
+
+      var addChunk = function addChunk(pattern, startIndex) {
+        _this.chunks.push({
+          pattern: pattern,
+          alphabet: createPatternAlphabet(pattern),
+          startIndex: startIndex
+        });
+      };
+
       var len = this.pattern.length;
-      var remainder = len % MAX_BITS;
-      var end = len - remainder;
 
-      while (i < end) {
-        var _pattern = this.pattern.substr(i, MAX_BITS);
+      if (len > MAX_BITS) {
+        var i = 0;
+        var remainder = len % MAX_BITS;
+        var end = len - remainder;
 
-        this.chunks.push({
-          pattern: _pattern,
-          alphabet: createPatternAlphabet(_pattern)
-        });
-        i += MAX_BITS;
-      }
+        while (i < end) {
+          addChunk(this.pattern.substr(i, MAX_BITS), i);
+          i += MAX_BITS;
+        }
 
-      if (remainder) {
-        var _pattern2 = this.pattern.substr(len - MAX_BITS);
-
-        this.chunks.push({
-          pattern: _pattern2,
-          alphabet: createPatternAlphabet(_pattern2)
-        });
+        if (remainder) {
+          var startIndex = len - MAX_BITS;
+          addChunk(this.pattern.substr(startIndex), startIndex);
+        }
+      } else {
+        addChunk(this.pattern, 0);
       }
     }
 
@@ -999,12 +1006,13 @@
         var allIndices = [];
         var totalScore = 0;
         var hasMatches = false;
-        this.chunks.forEach(function (_ref2, i) {
+        this.chunks.forEach(function (_ref2) {
           var pattern = _ref2.pattern,
-              alphabet = _ref2.alphabet;
+              alphabet = _ref2.alphabet,
+              startIndex = _ref2.startIndex;
 
           var _search = search(text, pattern, alphabet, {
-            location: location + MAX_BITS * i,
+            location: location + startIndex,
             distance: distance,
             threshold: threshold,
             findAllMatches: findAllMatches,

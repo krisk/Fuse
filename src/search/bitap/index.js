@@ -30,26 +30,32 @@ export default class BitapSearch {
 
     this.chunks = []
 
-    let i = 0
-    const len = this.pattern.length
-    const remainder = len % MAX_BITS
-    const end = len - remainder
-
-    while (i < end) {
-      const pattern = this.pattern.substr(i, MAX_BITS)
+    const addChunk = (pattern, startIndex) => {
       this.chunks.push({
         pattern,
-        alphabet: createPatternAlphabet(pattern)
+        alphabet: createPatternAlphabet(pattern),
+        startIndex
       })
-      i += MAX_BITS
     }
 
-    if (remainder) {
-      const pattern = this.pattern.substr(len - MAX_BITS)
-      this.chunks.push({
-        pattern,
-        alphabet: createPatternAlphabet(pattern)
-      })
+    const len = this.pattern.length
+
+    if (len > MAX_BITS) {
+      let i = 0
+      const remainder = len % MAX_BITS
+      const end = len - remainder
+
+      while (i < end) {
+        addChunk(this.pattern.substr(i, MAX_BITS), i)
+        i += MAX_BITS
+      }
+
+      if (remainder) {
+        const startIndex = len - MAX_BITS
+        addChunk(this.pattern.substr(startIndex), startIndex)
+      }
+    } else {
+      addChunk(this.pattern, 0)
     }
   }
 
@@ -87,9 +93,9 @@ export default class BitapSearch {
     let totalScore = 0
     let hasMatches = false
 
-    this.chunks.forEach(({ pattern, alphabet }, i) => {
+    this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
       const { isMatch, score, indices } = search(text, pattern, alphabet, {
-        location: location + MAX_BITS * i,
+        location: location + startIndex,
         distance,
         threshold,
         findAllMatches,
