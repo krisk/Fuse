@@ -954,6 +954,7 @@ describe('Searching taking into account field length', () => {
       keys: ['title']
     })
     let result = fuse.search('war')
+
     expect(result.length).toBe(2)
     expect(result[0].item.ISBN).toBe('0765348276')
     expect(result[1].item.ISBN).toBe('0312696957')

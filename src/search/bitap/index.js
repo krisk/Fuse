@@ -30,6 +30,10 @@ export default class BitapSearch {
 
     this.chunks = []
 
+    if (!this.pattern.length) {
+      return
+    }
+
     const addChunk = (pattern, startIndex) => {
       this.chunks.push({
         pattern,

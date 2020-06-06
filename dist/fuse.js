@@ -942,6 +942,10 @@
       this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
       this.chunks = [];
 
+      if (!this.pattern.length) {
+        return;
+      }
+
       var addChunk = function addChunk(pattern, startIndex) {
         _this.chunks.push({
           pattern: pattern,
