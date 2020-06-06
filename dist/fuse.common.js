@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.3 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.0.4 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -937,6 +937,10 @@ var BitapSearch = /*#__PURE__*/function () {
     };
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
     this.chunks = [];
+
+    if (!this.pattern.length) {
+      return;
+    }
 
     var addChunk = function addChunk(pattern, startIndex) {
       _this.chunks.push({
@@ -2040,7 +2044,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.0.3';
+Fuse.version = '6.0.4';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
