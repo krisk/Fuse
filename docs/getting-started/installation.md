@@ -50,6 +50,6 @@ version in your published site, replacing `fuse.js` with `fuse.min.js`. This is 
 You can directly import `Fuse` as an ES module from the deno.land/x service:
 
 ```typescript
-// @deno-types="https://deno.land/x/fuse/dist/fuse.d.ts"
-import Fuse from 'https://deno.land/x/fuse/dist/fuse.esm.min.js';
+// @deno-types="https://deno.land/x/fuse@v6.0.4/dist/fuse.d.ts"
+import Fuse from 'https://deno.land/x/fuse@v6.0.4/dist/fuse.esm.min.js';
 ```
