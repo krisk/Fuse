@@ -49,6 +49,15 @@ Available on CDN via [jsDelivr](https://cdn.jsdelivr.net/npm/fuse.js/dist/).
 
 > Note: it takes some time for the CDNs to sync with the latest version
 
+**Deno**
+
+Available in Deno via [deno.land/x](https://deno.land/x/fuse)
+
+```typescript
+// @deno-types="https://deno.land/x/fuse@v6.0.4/dist/fuse.d.ts"
+import Fuse from 'https://deno.land/x/fuse@v6.0.4/dist/fuse.esm.min.js';
+```
+
 ### Explanation of Different Builds
 
 In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](https://fusejs.io/getting-started/different-builds.html) of the difference between them.

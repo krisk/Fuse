@@ -44,3 +44,12 @@ Fuse.js is also available on [unpkg](https://unpkg.com/fuse.js).
 
 Make sure to read about the different builds of Fuse.js and use the production
 version in your published site, replacing `fuse.js` with `fuse.min.js`. This is a smaller build optimized for speed instead of development experience.
+
+### Deno
+
+You can directly import `Fuse` as an ES module from the deno.land/x service:
+
+```typescript
+// @deno-types="https://deno.land/x/fuse@v6.0.4/dist/fuse.d.ts"
+import Fuse from 'https://deno.land/x/fuse@v6.0.4/dist/fuse.esm.min.js';
+```
