@@ -89,7 +89,7 @@ To better understand how `location`, `threshold`, and `distance` work together, 
 
 ## Advanced Options
 
-### `useExtendedSearch` <Badge text="beta" type="warning"/>
+### `useExtendedSearch`
 
 - Type: `boolean`
 - Default: `false`

@@ -78,3 +78,12 @@ Of course! Fuse.js has no DOM dependencies.
 ---
 
 Check out the [live demo](/demo.html) to fiddle with it and to learn how to use it.
+
+## Product of the Week
+
+<br/>
+<a href="https://notebag.app/" target="_blank" rel="noopener">
+  <img src="/assets/img/potw/notebag@2x.png" style="width:100px">  
+</a>
+
+[Notebag](https://notebag.app/) is a new experience in note taking, designed from the ground up to be usable from your keyboard. Its fuzzy searching is powered by Fuse.js.
