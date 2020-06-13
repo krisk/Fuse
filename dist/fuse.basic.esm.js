@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.4 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.1.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -202,7 +202,9 @@ const FuzzyOptions = {
   // would score as a complete mismatch. A distance of '0' requires the match be at
   // the exact location specified, a threshold of '1000' would require a perfect match
   // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100
+  distance: 100,
+
+  ignoreLocation: false
 };
 
 const AdvancedOptions = {
@@ -438,10 +440,16 @@ function computeScore(
     errors = 0,
     currentLocation = 0,
     expectedLocation = 0,
-    distance = Config.distance
+    distance = Config.distance,
+    ignoreLocation = Config.ignoreLocation
   } = {}
 ) {
   const accuracy = errors / pattern.length;
+
+  if (ignoreLocation) {
+    return accuracy
+  }
+
   const proximity = Math.abs(expectedLocation - currentLocation);
 
   if (!distance) {
@@ -495,7 +503,8 @@ function search(
     threshold = Config.threshold,
     findAllMatches = Config.findAllMatches,
     minMatchCharLength = Config.minMatchCharLength,
-    includeMatches = Config.includeMatches
+    includeMatches = Config.includeMatches,
+    ignoreLocation = Config.ignoreLocation
   } = {}
 ) {
   if (pattern.length > MAX_BITS) {
@@ -528,7 +537,8 @@ function search(
     let score = computeScore(pattern, {
       currentLocation: index,
       expectedLocation,
-      distance
+      distance,
+      ignoreLocation
     });
 
     currentThreshold = Math.min(score, currentThreshold);
@@ -564,7 +574,8 @@ function search(
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
-        distance
+        distance,
+        ignoreLocation
       });
 
       if (score <= currentThreshold) {
@@ -611,7 +622,8 @@ function search(
           errors: i,
           currentLocation,
           expectedLocation,
-          distance
+          distance,
+          ignoreLocation
         });
 
         // This match will almost certainly be better than any existing match.
@@ -637,7 +649,8 @@ function search(
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
-      distance
+      distance,
+      ignoreLocation
     });
 
     if (score > currentThreshold) {
@@ -681,7 +694,8 @@ class BitapSearch {
       includeMatches = Config.includeMatches,
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
-      isCaseSensitive = Config.isCaseSensitive
+      isCaseSensitive = Config.isCaseSensitive,
+      ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
     this.options = {
@@ -691,7 +705,8 @@ class BitapSearch {
       includeMatches,
       findAllMatches,
       minMatchCharLength,
-      isCaseSensitive
+      isCaseSensitive,
+      ignoreLocation
     };
 
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
@@ -758,7 +773,8 @@ class BitapSearch {
       distance,
       threshold,
       findAllMatches,
-      minMatchCharLength
+      minMatchCharLength,
+      ignoreLocation
     } = this.options;
 
     let allIndices = [];
@@ -772,7 +788,8 @@ class BitapSearch {
         threshold,
         findAllMatches,
         minMatchCharLength,
-        includeMatches
+        includeMatches,
+        ignoreLocation
       });
 
       if (isMatch) {
@@ -1113,7 +1130,7 @@ function format(
   })
 }
 
-Fuse.version = '6.0.4';
+Fuse.version = '6.1.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.0.4 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.1.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -325,7 +325,8 @@ var FuzzyOptions = {
   // would score as a complete mismatch. A distance of '0' requires the match be at
   // the exact location specified, a threshold of '1000' would require a perfect match
   // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100
+  distance: 100,
+  ignoreLocation: false
 };
 var AdvancedOptions = {
   // When true, it enables the use of unix-like search commands
@@ -605,9 +606,16 @@ function computeScore(pattern) {
       _ref$expectedLocation = _ref.expectedLocation,
       expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
       _ref$distance = _ref.distance,
-      distance = _ref$distance === void 0 ? Config.distance : _ref$distance;
+      distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+      _ref$ignoreLocation = _ref.ignoreLocation,
+      ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
 
   var accuracy = errors / pattern.length;
+
+  if (ignoreLocation) {
+    return accuracy;
+  }
+
   var proximity = Math.abs(expectedLocation - currentLocation);
 
   if (!distance) {
@@ -666,7 +674,9 @@ function search(text, pattern, patternAlphabet) {
       _ref$minMatchCharLeng = _ref.minMatchCharLength,
       minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
       _ref$includeMatches = _ref.includeMatches,
-      includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches;
+      includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+      _ref$ignoreLocation = _ref.ignoreLocation,
+      ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
 
   if (pattern.length > MAX_BITS) {
     throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
@@ -696,7 +706,8 @@ function search(text, pattern, patternAlphabet) {
     var score = computeScore(pattern, {
       currentLocation: index,
       expectedLocation: expectedLocation,
-      distance: distance
+      distance: distance,
+      ignoreLocation: ignoreLocation
     });
     currentThreshold = Math.min(score, currentThreshold);
     bestLocation = index + patternLen;
@@ -730,7 +741,8 @@ function search(text, pattern, patternAlphabet) {
         errors: _i2,
         currentLocation: expectedLocation + binMid,
         expectedLocation: expectedLocation,
-        distance: distance
+        distance: distance,
+        ignoreLocation: ignoreLocation
       });
 
       if (_score2 <= currentThreshold) {
@@ -770,7 +782,8 @@ function search(text, pattern, patternAlphabet) {
           errors: _i2,
           currentLocation: currentLocation,
           expectedLocation: expectedLocation,
-          distance: distance
+          distance: distance,
+          ignoreLocation: ignoreLocation
         }); // This match will almost certainly be better than any existing match.
         // But check anyway.
 
@@ -794,7 +807,8 @@ function search(text, pattern, patternAlphabet) {
       errors: _i2 + 1,
       currentLocation: expectedLocation,
       expectedLocation: expectedLocation,
-      distance: distance
+      distance: distance,
+      ignoreLocation: ignoreLocation
     });
 
     if (_score > currentThreshold) {
@@ -846,7 +860,9 @@ var BitapSearch = /*#__PURE__*/function () {
         _ref$minMatchCharLeng = _ref.minMatchCharLength,
         minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
         _ref$isCaseSensitive = _ref.isCaseSensitive,
-        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+        _ref$ignoreLocation = _ref.ignoreLocation,
+        ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
 
     _classCallCheck(this, BitapSearch);
 
@@ -857,7 +873,8 @@ var BitapSearch = /*#__PURE__*/function () {
       includeMatches: includeMatches,
       findAllMatches: findAllMatches,
       minMatchCharLength: minMatchCharLength,
-      isCaseSensitive: isCaseSensitive
+      isCaseSensitive: isCaseSensitive,
+      ignoreLocation: ignoreLocation
     };
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
     this.chunks = [];
@@ -926,7 +943,8 @@ var BitapSearch = /*#__PURE__*/function () {
           distance = _this$options2.distance,
           threshold = _this$options2.threshold,
           findAllMatches = _this$options2.findAllMatches,
-          minMatchCharLength = _this$options2.minMatchCharLength;
+          minMatchCharLength = _this$options2.minMatchCharLength,
+          ignoreLocation = _this$options2.ignoreLocation;
       var allIndices = [];
       var totalScore = 0;
       var hasMatches = false;
@@ -941,7 +959,8 @@ var BitapSearch = /*#__PURE__*/function () {
           threshold: threshold,
           findAllMatches: findAllMatches,
           minMatchCharLength: minMatchCharLength,
-          includeMatches: includeMatches
+          includeMatches: includeMatches,
+          ignoreLocation: ignoreLocation
         }),
             isMatch = _search.isMatch,
             score = _search.score,
@@ -1334,7 +1353,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.0.4';
+Fuse.version = '6.1.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
