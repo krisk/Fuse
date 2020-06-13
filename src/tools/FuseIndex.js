@@ -8,12 +8,12 @@ export default class FuseIndex {
     this.getFn = getFn
     this.isCreated = false
 
-    this.setRecords()
+    this.setIndexRecords()
   }
-  setCollection(docs = []) {
+  setSources(docs = []) {
     this.docs = docs
   }
-  setRecords(records = []) {
+  setIndexRecords(records = []) {
     this.records = records
   }
   setKeys(keys = []) {
@@ -141,7 +141,7 @@ export default class FuseIndex {
 export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
   let myIndex = new FuseIndex({ getFn })
   myIndex.setKeys(keys)
-  myIndex.setCollection(docs)
+  myIndex.setSources(docs)
   myIndex.create()
   return myIndex
 }
@@ -150,6 +150,6 @@ export function parseIndex(data, { getFn = Config.getFn } = {}) {
   const { keys, records } = data
   let myIndex = new FuseIndex({ getFn })
   myIndex.setKeys(keys)
-  myIndex.setRecords(records)
+  myIndex.setIndexRecords(records)
   return myIndex
 }

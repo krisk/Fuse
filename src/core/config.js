@@ -39,7 +39,8 @@ export const FuzzyOptions = {
   // the exact location specified, a threshold of '1000' would require a perfect match
   // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
   distance: 100,
-
+  // When true, search will ignore `location` and `distance`, so it won't matter
+  // where in the string the pattern appears.
   ignoreLocation: false
 }
 

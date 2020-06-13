@@ -46,6 +46,22 @@ export default class Fuse {
     this._myIndex.add(doc)
   }
 
+  remove(predicate = (/* doc, idx */) => false) {
+    const results = []
+
+    for (let i = 0, len = this._docs.length; i < len; i += 1) {
+      const doc = this._docs[i]
+      if (predicate(doc, i)) {
+        this.removeAt(i)
+        i -= 1
+
+        results.push(doc)
+      }
+    }
+
+    return results
+  }
+
   removeAt(idx) {
     this._docs.splice(idx, 1)
     this._myIndex.removeAt(idx)

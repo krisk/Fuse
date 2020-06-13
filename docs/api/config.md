@@ -1,4 +1,4 @@
-# Accessing Default Options
+# Global config
 
 You can access all [options](/api/options.html) above via `Fuse.config`. This is useful if you want to override default options for all Fuse instances.
 

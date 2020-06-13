@@ -34,14 +34,24 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
   add(doc: T): void
 
   /**
-   * Removes the doc at the specified index
+   * Removes all documents from the list which the predicate returns truthy for,
+   * and returns an array of the removed docs.
+   * The predicate is invoked with two arguments: (doc, index).
+   */
+  remove(predicate: (doc: T, idx: number) => boolean): T[]
+
+  /**
+   * Removes the doc at the specified index.
    */
   removeAt(idx: number): void
 
+  /**
+   * Returns the generated Fuse index
+   */
   getIndex(): FuseIndex<T>
 
   /**
-   * Return the current version
+   * Return the current version.
    */
   static version: string
 
@@ -85,9 +95,9 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
 
 declare class FuseIndex<T> {
   constructor(options?: Fuse.FuseIndexOptions<T>)
-  setCollection(docs: ReadonlyArray<T>): void
+  setSources(docs: ReadonlyArray<T>): void
   setKeys(keys: ReadonlyArray<string>): void
-  setRecords(records: Fuse.FuseIndexRecords): void
+  setIndexRecords(records: Fuse.FuseIndexRecords): void
   create(): void
   add(doc: T): void
   toJSON(): {
@@ -227,6 +237,7 @@ declare namespace Fuse {
     distance?: number
     findAllMatches?: boolean
     getFn?: FuseGetFunction<T>
+    ignoreLocation?: boolean
     includeMatches?: boolean
     includeScore?: boolean
     keys?: FuseOptionKeyObject[] | string[]

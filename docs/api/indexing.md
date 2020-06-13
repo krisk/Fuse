@@ -5,7 +5,11 @@ tags:
 
 # Indexing
 
-Use `Fuse.createIndex` to pre-generate the index from the list, and pass it directly into the Fuse instance.
+### `Fuse.createIndex`
+
+Pre-generate the index from the list, and pass it directly into the Fuse instance. If the list is (considerably) large, it speed up instantiation.
+
+**Example**
 
 ```js
 const books = [
@@ -34,6 +38,27 @@ const myIndex = Fuse.createIndex(options.keys, books)
 const myFuse = new Fuse(books, options, myIndex)
 ```
 
-::: tip
-For very large datasets, especially those with large strings, consider pre-generating the index with `Fuse.createIndex`. This will speed up instantiation.
+:::tip
+Fuse will automatically index the table if one isn't provided during instantiation.
 :::
+
+### `Fuse.parseIndex`
+
+Parses a serialized Fuse index.
+
+**Example**
+
+```js
+// (1) In the build step
+// Create the Fuse index
+const myIndex = Fuse.createIndex(['title', 'author.firstName'], books)
+// Serialize and save it
+fs.writeFile('fuse-index.json', JSON.stringify(myIndex.toJSON()))
+
+// (2) When app starts
+// Load and deserialize index
+const fuseIndex = await require('fuse-index.json')
+const myIndex = Fuse.parseIndex(searchIndex)
+// initialize Fuse with the index
+const fuse = new Fuse(books, options, myIndex)
+```

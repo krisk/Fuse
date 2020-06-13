@@ -161,11 +161,13 @@
   }
 
   function _createSuper(Derived) {
-    return function () {
+    var hasNativeReflectConstruct = _isNativeReflectConstruct();
+
+    return function _createSuperInternal() {
       var Super = _getPrototypeOf(Derived),
           result;
 
-      if (_isNativeReflectConstruct()) {
+      if (hasNativeReflectConstruct) {
         var NewTarget = _getPrototypeOf(this).constructor;
 
         result = Reflect.construct(Super, arguments, NewTarget);
@@ -194,7 +196,7 @@
     if (typeof o === "string") return _arrayLikeToArray(o, minLen);
     var n = Object.prototype.toString.call(o).slice(8, -1);
     if (n === "Object" && o.constructor) n = o.constructor.name;
-    if (n === "Map" || n === "Set") return Array.from(n);
+    if (n === "Map" || n === "Set") return Array.from(o);
     if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
   }
 
@@ -406,6 +408,8 @@
     // the exact location specified, a threshold of '1000' would require a perfect match
     // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
     distance: 100,
+    // When true, search will ignore `location` and `distance`, so it won't matter
+    // where in the string the pattern appears.
     ignoreLocation: false
   };
   var AdvancedOptions = {
@@ -452,18 +456,18 @@
       this.norm = norm(3);
       this.getFn = getFn;
       this.isCreated = false;
-      this.setRecords();
+      this.setIndexRecords();
     }
 
     _createClass(FuseIndex, [{
-      key: "setCollection",
-      value: function setCollection() {
+      key: "setSources",
+      value: function setSources() {
         var docs = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
         this.docs = docs;
       }
     }, {
-      key: "setRecords",
-      value: function setRecords() {
+      key: "setIndexRecords",
+      value: function setIndexRecords() {
         var records = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
         this.records = records;
       }
@@ -622,7 +626,7 @@
       getFn: getFn
     });
     myIndex.setKeys(keys);
-    myIndex.setCollection(docs);
+    myIndex.setSources(docs);
     myIndex.create();
     return myIndex;
   }
@@ -637,7 +641,7 @@
       getFn: getFn
     });
     myIndex.setKeys(keys);
-    myIndex.setRecords(records);
+    myIndex.setIndexRecords(records);
     return myIndex;
   }
 
@@ -1764,6 +1768,29 @@
         this._docs.push(doc);
 
         this._myIndex.add(doc);
+      }
+    }, {
+      key: "remove",
+      value: function remove() {
+        var predicate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {
+          return (
+            /* doc, idx */
+            false
+          );
+        };
+        var results = [];
+
+        for (var i = 0, len = this._docs.length; i < len; i += 1) {
+          var doc = this._docs[i];
+
+          if (predicate(doc, i)) {
+            this.removeAt(i);
+            i -= 1;
+            results.push(doc);
+          }
+        }
+
+        return results;
       }
     }, {
       key: "removeAt",

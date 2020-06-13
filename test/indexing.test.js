@@ -106,5 +106,13 @@ describe('Searching', () => {
       ['banana', 1],
       ['pear', 2]
     ])
+
+    const results = fuse.remove((doc) => {
+      return doc === 'banana' || doc === 'pear'
+    })
+
+    expect(results.length).toBe(2)
+    expect(fuse.getIndex().size()).toBe(1)
+    expect(fuse._docs.length).toBe(1)
   })
 })

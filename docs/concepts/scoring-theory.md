@@ -25,7 +25,7 @@ With the above options, for something to be considered a match, it would have to
 For example, consider the string `"Fuse.js is a powerful, lightweight fuzzy-search library, with zero dependencies"`. Searching for the pattern `"zero"` would not match anything, even though it occurs in the string. The reason is that with the above defaults, for it to be considered a match it would have to be within `60` characters away from the expected location `0`. However, `"zero"` appears at index `62`.
 
 ::: tip
-If you don't care where the pattern appears in the string is, and you still want to consider it a match, set `distance` to a large number.
+If you don't care where the pattern appears in the string is, and you still want to consider it a match, set `ignoreLocation` to `true`.
 :::
 
 ### Key Weight

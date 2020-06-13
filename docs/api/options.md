@@ -83,6 +83,13 @@ At what point does the match algorithm give up. A threshold of `0.0` requires a 
 
 Determines how close the match must be to the fuzzy location (specified by `location`). An exact letter match which is `distance` characters away from the fuzzy location would score as a complete mismatch. A `distance` of `0` requires the match be at the exact `location` specified. A distance of `1000` would require a perfect match to be within `800` characters of the `location` to be found using a `threshold` of `0.8`.
 
+### `ignoreLocation`
+
+- Type: `boolean`
+- Default: `false`
+
+When `true`, search will ignore `location` and `distance`, so it won't matter where in the string the pattern appears.
+
 ::: tip
 To better understand how `location`, `threshold`, and `distance` work together, read our [Scoring Theory](/concepts/scoring-theory.html#scoring-theory).
 :::
