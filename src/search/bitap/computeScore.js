@@ -6,10 +6,16 @@ export default function computeScore(
     errors = 0,
     currentLocation = 0,
     expectedLocation = 0,
-    distance = Config.distance
+    distance = Config.distance,
+    ignoreLocation = Config.ignoreLocation
   } = {}
 ) {
   const accuracy = errors / pattern.length
+
+  if (ignoreLocation) {
+    return accuracy
+  }
+
   const proximity = Math.abs(expectedLocation - currentLocation)
 
   if (!distance) {

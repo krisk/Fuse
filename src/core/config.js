@@ -38,7 +38,9 @@ export const FuzzyOptions = {
   // would score as a complete mismatch. A distance of '0' requires the match be at
   // the exact location specified, a threshold of '1000' would require a perfect match
   // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100
+  distance: 100,
+
+  ignoreLocation: false
 }
 
 export const AdvancedOptions = {

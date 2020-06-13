@@ -14,7 +14,8 @@ export default function search(
     threshold = Config.threshold,
     findAllMatches = Config.findAllMatches,
     minMatchCharLength = Config.minMatchCharLength,
-    includeMatches = Config.includeMatches
+    includeMatches = Config.includeMatches,
+    ignoreLocation = Config.ignoreLocation
   } = {}
 ) {
   if (pattern.length > MAX_BITS) {
@@ -47,7 +48,8 @@ export default function search(
     let score = computeScore(pattern, {
       currentLocation: index,
       expectedLocation,
-      distance
+      distance,
+      ignoreLocation
     })
 
     currentThreshold = Math.min(score, currentThreshold)
@@ -83,7 +85,8 @@ export default function search(
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
-        distance
+        distance,
+        ignoreLocation
       })
 
       if (score <= currentThreshold) {
@@ -130,7 +133,8 @@ export default function search(
           errors: i,
           currentLocation,
           expectedLocation,
-          distance
+          distance,
+          ignoreLocation
         })
 
         // This match will almost certainly be better than any existing match.
@@ -156,7 +160,8 @@ export default function search(
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
-      distance
+      distance,
+      ignoreLocation
     })
 
     if (score > currentThreshold) {

@@ -13,7 +13,8 @@ export default class BitapSearch {
       includeMatches = Config.includeMatches,
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
-      isCaseSensitive = Config.isCaseSensitive
+      isCaseSensitive = Config.isCaseSensitive,
+      ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
     this.options = {
@@ -23,7 +24,8 @@ export default class BitapSearch {
       includeMatches,
       findAllMatches,
       minMatchCharLength,
-      isCaseSensitive
+      isCaseSensitive,
+      ignoreLocation
     }
 
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
@@ -90,7 +92,8 @@ export default class BitapSearch {
       distance,
       threshold,
       findAllMatches,
-      minMatchCharLength
+      minMatchCharLength,
+      ignoreLocation
     } = this.options
 
     let allIndices = []
@@ -104,7 +107,8 @@ export default class BitapSearch {
         threshold,
         findAllMatches,
         minMatchCharLength,
-        includeMatches
+        includeMatches,
+        ignoreLocation
       })
 
       if (isMatch) {

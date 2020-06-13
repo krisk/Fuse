@@ -973,3 +973,34 @@ describe('Searching taking into account field length', () => {
     expect(result[1].item.ISBN).toBe('0765348276')
   })
 })
+
+describe('Ignore location', () => {
+  const list = [
+    'beforeEach',
+    'async beforeEach test',
+    'assert.async in beforeEach',
+    'Module with Promise-aware beforeEach',
+    'Promise-aware return values without beforeEach/afterEach',
+    'before',
+    'before (skip)'
+  ]
+
+  test('Check order of entries when location is ignored', () => {
+    const options = {
+      includeScore: true,
+      ignoreLocation: true
+    }
+    const fuse = new Fuse(list, options)
+    let result = fuse.search('beforeEach')
+    expect(result).toMatchSnapshot()
+  })
+
+  test('Check order of entries when location is not ignored', () => {
+    const options = {
+      includeScore: true
+    }
+    const fuse = new Fuse(list, options)
+    let result = fuse.search('beforeEach')
+    expect(result).toMatchSnapshot()
+  })
+})
