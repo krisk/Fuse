@@ -422,7 +422,9 @@
     // When `true`, the calculation for the relevance score (used for sorting) will
     // ignore the field-length norm.
     // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-    ignoreFieldNorm: false
+    ignoreFieldNorm: false,
+    // When `true`, if the search query is empty, return the whole list instead of an empty array.
+    returnAllWhenEmpty: false
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
@@ -1821,7 +1823,19 @@
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
             sortFn = _this$options.sortFn,
-            ignoreFieldNorm = _this$options.ignoreFieldNorm;
+            ignoreFieldNorm = _this$options.ignoreFieldNorm,
+            returnAllWhenEmpty = _this$options.returnAllWhenEmpty;
+
+        if (returnAllWhenEmpty && (!isDefined(query) || isBlank(query))) {
+          return this._docs.map(function (doc, idx) {
+            return {
+              item: doc,
+              score: 1,
+              refIndex: idx
+            };
+          });
+        }
+
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
         computeScore$1(results, this._keyStore, {
           ignoreFieldNorm: ignoreFieldNorm

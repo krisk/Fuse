@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Ignore location Check order of entries when location is ignored 1`] = `
+exports[`Ignore location and field length norm Check order of entries when location and field-length norm are ignored 1`] = `
 Array [
   Object {
     "item": "Module with Promise-aware beforeEach",
@@ -35,7 +35,7 @@ Array [
 ]
 `;
 
-exports[`Ignore location Check order of entries when location is not ignored 1`] = `
+exports[`Ignore location and field length norm Check order of entries when location and field-length norm are not ignored 1`] = `
 Array [
   Object {
     "item": "beforeEach",
@@ -71,6 +71,35 @@ Array [
     "item": "Promise-aware return values without beforeEach/afterEach",
     "refIndex": 4,
     "score": 0.699819425905295,
+  },
+]
+`;
+
+exports[`Searching taking into account field length The entry with the shorter field length appears first 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "ISBN": "0312696957",
+      "author": "Steve Hamilton",
+      "tags": Array [
+        "fiction war hello no way",
+      ],
+      "title": "The Lock war Artist nonficon",
+    },
+    "refIndex": 0,
+    "score": 1,
+  },
+  Object {
+    "item": Object {
+      "ISBN": "0765348276",
+      "author": "John Scalzi",
+      "tags": Array [
+        "fiction no",
+      ],
+      "title": "Old Man's War",
+    },
+    "refIndex": 1,
+    "score": 1,
   },
 ]
 `;

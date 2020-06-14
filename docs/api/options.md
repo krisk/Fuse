@@ -120,3 +120,10 @@ There aren't many cases where you'd want to use your own `getFn`.
 - Default: `false`
 
 When `true`, the calculation for the relevance score (used for sorting) will ignore the [field-length norm](/concepts/scoring-theory.html#fuzziness-score).
+
+### `returnAllWhenEmpty`
+
+- Type: `boolean`
+- Default: `false`
+
+When `true`, if the search query is empty, return the whole list instead of an empty array.

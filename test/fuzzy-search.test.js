@@ -974,7 +974,34 @@ describe('Searching taking into account field length', () => {
   })
 })
 
-describe('Ignore location', () => {
+describe('Searching taking into account field length', () => {
+  const list = [
+    {
+      ISBN: '0312696957',
+      title: 'The Lock war Artist nonficon',
+      author: 'Steve Hamilton',
+      tags: ['fiction war hello no way']
+    },
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction no']
+    }
+  ]
+
+  test('The entry with the shorter field length appears first', () => {
+    const fuse = new Fuse(list, {
+      keys: ['title'],
+      returnAllWhenEmpty: true
+    })
+    let result = fuse.search('')
+
+    expect(result).toMatchSnapshot()
+  })
+})
+
+describe('Ignore location and field length norm', () => {
   const list = [
     'beforeEach',
     'async beforeEach test',
@@ -986,7 +1013,7 @@ describe('Ignore location', () => {
     'before (skip)'
   ]
 
-  test('Check order of entries when location is ignored', () => {
+  test('Check order of entries when location and field-length norm are ignored', () => {
     const options = {
       includeScore: true,
       ignoreLocation: true,
@@ -998,7 +1025,7 @@ describe('Ignore location', () => {
     expect(result).toMatchSnapshot()
   })
 
-  test('Check order of entries when location is not ignored', () => {
+  test('Check order of entries when location and field-length norm are not ignored', () => {
     const options = {
       includeScore: true
     }

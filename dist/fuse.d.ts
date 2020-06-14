@@ -241,11 +241,13 @@ declare namespace Fuse {
     findAllMatches?: boolean
     getFn?: FuseGetFunction<T>
     ignoreLocation?: boolean
+    ignoreFieldNorm?: boolean
     includeMatches?: boolean
     includeScore?: boolean
     keys?: FuseOptionKeyObject[] | string[]
     location?: number
     minMatchCharLength?: number
+    returnAllWhenEmpty?: boolean
     shouldSort?: boolean
     sortFn?: FuseSortFunction
     threshold?: number
