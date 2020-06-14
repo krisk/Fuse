@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.1.0-alpha.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.1.0-alpha.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -163,11 +163,11 @@ function get(obj, path) {
 }
 
 const MatchOptions = {
-  // Whether the matches should be included in the result set. When true, each record in the result
+  // Whether the matches should be included in the result set. When `true`, each record in the result
   // set will include the indices of the matched characters.
   // These can consequently be used for highlighting purposes.
   includeMatches: false,
-  // When true, the matching function will continue to the end of a search pattern even if
+  // When `true`, the matching function will continue to the end of a search pattern even if
   // a perfect match has already been located in the string.
   findAllMatches: false,
   // Minimum number of characters that must be matched before a result is considered a match
@@ -175,7 +175,7 @@ const MatchOptions = {
 };
 
 const BasicOptions = {
-  // When true, the algorithm continues searching to the end of the input even if a perfect
+  // When `true`, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
   // When true, the matching function will continue to the end of a search pattern even if
@@ -200,17 +200,23 @@ const FuzzyOptions = {
   // would score as a complete mismatch. A distance of '0' requires the match be at
   // the exact location specified, a threshold of '1000' would require a perfect match
   // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100,
-
-  ignoreLocation: false
+  distance: 100
 };
 
 const AdvancedOptions = {
-  // When true, it enables the use of unix-like search commands
+  // When `true`, it enables the use of unix-like search commands
   useExtendedSearch: false,
   // The get function to use when fetching an object's properties.
   // The default will search nested paths *ie foo.bar.baz*
-  getFn: get
+  getFn: get,
+  // When `true`, search will ignore `location` and `distance`, so it won't matter
+  // where in the string the pattern appears.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
+  ignoreLocation: false,
+  // When `true`, the calculation for the relevance score (used for sorting) will
+  // ignore the field-length norm.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
+  ignoreFieldNorm: false
 };
 
 var Config = {
@@ -253,12 +259,12 @@ class FuseIndex {
     this.getFn = getFn;
     this.isCreated = false;
 
-    this.setRecords();
+    this.setIndexRecords();
   }
-  setCollection(docs = []) {
+  setSources(docs = []) {
     this.docs = docs;
   }
-  setRecords(records = []) {
+  setIndexRecords(records = []) {
     this.records = records;
   }
   setKeys(keys = []) {
@@ -383,7 +389,7 @@ class FuseIndex {
 function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
   let myIndex = new FuseIndex({ getFn });
   myIndex.setKeys(keys);
-  myIndex.setCollection(docs);
+  myIndex.setSources(docs);
   myIndex.create();
   return myIndex
 }
@@ -392,7 +398,7 @@ function parseIndex(data, { getFn = Config.getFn } = {}) {
   const { keys, records } = data;
   let myIndex = new FuseIndex({ getFn });
   myIndex.setKeys(keys);
-  myIndex.setRecords(records);
+  myIndex.setIndexRecords(records);
   return myIndex
 }
 
@@ -1366,6 +1372,22 @@ class Fuse {
     this._myIndex.add(doc);
   }
 
+  remove(predicate = (/* doc, idx */) => false) {
+    const results = [];
+
+    for (let i = 0, len = this._docs.length; i < len; i += 1) {
+      const doc = this._docs[i];
+      if (predicate(doc, i)) {
+        this.removeAt(i);
+        i -= 1;
+
+        results.push(doc);
+      }
+    }
+
+    return results
+  }
+
   removeAt(idx) {
     this._docs.splice(idx, 1);
     this._myIndex.removeAt(idx);
@@ -1376,7 +1398,13 @@ class Fuse {
   }
 
   search(query, { limit = -1 } = {}) {
-    const { includeMatches, includeScore, shouldSort, sortFn } = this.options;
+    const {
+      includeMatches,
+      includeScore,
+      shouldSort,
+      sortFn,
+      ignoreFieldNorm
+    } = this.options;
 
     let results = isString(query)
       ? isString(this._docs[0])
@@ -1384,7 +1412,7 @@ class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query);
 
-    computeScore$1(results, this._keyStore);
+    computeScore$1(results, this._keyStore, { ignoreFieldNorm });
 
     if (shouldSort) {
       results.sort(sortFn);
@@ -1565,7 +1593,11 @@ class Fuse {
 }
 
 // Practical scoring function
-function computeScore$1(results, keyStore) {
+function computeScore$1(
+  results,
+  keyStore,
+  { ignoreFieldNorm = Config.ignoreFieldNorm }
+) {
   results.forEach((result) => {
     let totalScore = 1;
 
@@ -1574,7 +1606,7 @@ function computeScore$1(results, keyStore) {
 
       totalScore *= Math.pow(
         score === 0 && weight ? Number.EPSILON : score,
-        (weight || 1) * norm
+        (weight || 1) * (ignoreFieldNorm ? 1 : norm)
       );
     });
 
@@ -1613,7 +1645,7 @@ function format(
   })
 }
 
-Fuse.version = '6.1.0-alpha.0';
+Fuse.version = '6.1.0-alpha.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
