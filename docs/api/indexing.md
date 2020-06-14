@@ -34,8 +34,8 @@ const options = { keys: ['title', 'author.firstName'] }
 
 // Create the Fuse index
 const myIndex = Fuse.createIndex(options.keys, books)
-
-const myFuse = new Fuse(books, options, myIndex)
+// initialize Fuse with the index
+const fuse = new Fuse(books, options, myIndex)
 ```
 
 :::tip

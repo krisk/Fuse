@@ -3,39 +3,34 @@
 exports[`Ignore location Check order of entries when location is ignored 1`] = `
 Array [
   Object {
-    "item": "beforeEach",
-    "refIndex": 0,
-    "score": 0,
-  },
-  Object {
-    "item": "async beforeEach test",
-    "refIndex": 1,
-    "score": 0.01857804455091699,
-  },
-  Object {
-    "item": "assert.async in beforeEach",
-    "refIndex": 2,
-    "score": 0.01857804455091699,
-  },
-  Object {
     "item": "Module with Promise-aware beforeEach",
     "refIndex": 3,
-    "score": 0.03162277660168379,
+    "score": 0.09090909090909091,
+  },
+  Object {
+    "item": "Module with Promise-aware afterEach",
+    "refIndex": 5,
+    "score": 0.2727272727272727,
   },
   Object {
     "item": "Promise-aware return values without beforeEach/afterEach",
     "refIndex": 4,
-    "score": 0.045603691595129614,
+    "score": 0.4090909090909091,
   },
   Object {
-    "item": "before",
-    "refIndex": 5,
-    "score": 0.4,
+    "item": "async beforeEach test",
+    "refIndex": 1,
+    "score": 0.5,
   },
   Object {
-    "item": "before (skip)",
-    "refIndex": 6,
-    "score": 0.5231863610884103,
+    "item": "assert.async in beforeEach",
+    "refIndex": 2,
+    "score": 0.5,
+  },
+  Object {
+    "item": "beforeEach",
+    "refIndex": 0,
+    "score": 0.5454545454545454,
   },
 ]
 `;
@@ -54,7 +49,7 @@ Array [
   },
   Object {
     "item": "before",
-    "refIndex": 5,
+    "refIndex": 6,
     "score": 0.4,
   },
   Object {
@@ -64,7 +59,7 @@ Array [
   },
   Object {
     "item": "before (skip)",
-    "refIndex": 6,
+    "refIndex": 7,
     "score": 0.5231863610884103,
   },
   Object {

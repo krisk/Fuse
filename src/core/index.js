@@ -72,7 +72,13 @@ export default class Fuse {
   }
 
   search(query, { limit = -1 } = {}) {
-    const { includeMatches, includeScore, shouldSort, sortFn } = this.options
+    const {
+      includeMatches,
+      includeScore,
+      shouldSort,
+      sortFn,
+      ignoreFieldNorm
+    } = this.options
 
     let results = isString(query)
       ? isString(this._docs[0])
@@ -80,7 +86,7 @@ export default class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query)
 
-    computeScore(results, this._keyStore)
+    computeScore(results, this._keyStore, { ignoreFieldNorm })
 
     if (shouldSort) {
       results.sort(sortFn)
@@ -264,7 +270,11 @@ export default class Fuse {
 }
 
 // Practical scoring function
-function computeScore(results, keyStore) {
+function computeScore(
+  results,
+  keyStore,
+  { ignoreFieldNorm = Config.ignoreFieldNorm }
+) {
   results.forEach((result) => {
     let totalScore = 1
 
@@ -273,7 +283,7 @@ function computeScore(results, keyStore) {
 
       totalScore *= Math.pow(
         score === 0 && weight ? Number.EPSILON : score,
-        (weight || 1) * norm
+        (weight || 1) * (ignoreFieldNorm ? 1 : norm)
       )
     })
 

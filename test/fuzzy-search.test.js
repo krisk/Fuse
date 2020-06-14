@@ -981,6 +981,7 @@ describe('Ignore location', () => {
     'assert.async in beforeEach',
     'Module with Promise-aware beforeEach',
     'Promise-aware return values without beforeEach/afterEach',
+    'Module with Promise-aware afterEach',
     'before',
     'before (skip)'
   ]
@@ -988,10 +989,12 @@ describe('Ignore location', () => {
   test('Check order of entries when location is ignored', () => {
     const options = {
       includeScore: true,
-      ignoreLocation: true
+      ignoreLocation: true,
+      ignoreFieldNorm: true
     }
     const fuse = new Fuse(list, options)
-    let result = fuse.search('beforeEach')
+    let result = fuse.search('promiseawarebeforeEach')
+
     expect(result).toMatchSnapshot()
   })
 

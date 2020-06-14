@@ -1,11 +1,11 @@
 import get from '../helpers/get'
 
 export const MatchOptions = {
-  // Whether the matches should be included in the result set. When true, each record in the result
+  // Whether the matches should be included in the result set. When `true`, each record in the result
   // set will include the indices of the matched characters.
   // These can consequently be used for highlighting purposes.
   includeMatches: false,
-  // When true, the matching function will continue to the end of a search pattern even if
+  // When `true`, the matching function will continue to the end of a search pattern even if
   // a perfect match has already been located in the string.
   findAllMatches: false,
   // Minimum number of characters that must be matched before a result is considered a match
@@ -13,7 +13,7 @@ export const MatchOptions = {
 }
 
 export const BasicOptions = {
-  // When true, the algorithm continues searching to the end of the input even if a perfect
+  // When `true`, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
   // When true, the matching function will continue to the end of a search pattern even if
@@ -38,18 +38,23 @@ export const FuzzyOptions = {
   // would score as a complete mismatch. A distance of '0' requires the match be at
   // the exact location specified, a threshold of '1000' would require a perfect match
   // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-  distance: 100,
-  // When true, search will ignore `location` and `distance`, so it won't matter
-  // where in the string the pattern appears.
-  ignoreLocation: false
+  distance: 100
 }
 
 export const AdvancedOptions = {
-  // When true, it enables the use of unix-like search commands
+  // When `true`, it enables the use of unix-like search commands
   useExtendedSearch: false,
   // The get function to use when fetching an object's properties.
   // The default will search nested paths *ie foo.bar.baz*
-  getFn: get
+  getFn: get,
+  // When `true`, search will ignore `location` and `distance`, so it won't matter
+  // where in the string the pattern appears.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
+  ignoreLocation: false,
+  // When `true`, the calculation for the relevance score (used for sorting) will
+  // ignore the field-length norm.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
+  ignoreFieldNorm: false
 }
 
 export default {

@@ -113,3 +113,10 @@ The function to use to retrieve an object's value at the provided path (i.e, key
 ::: danger
 There aren't many cases where you'd want to use your own `getFn`.
 :::
+
+### `ignoreFieldNorm`
+
+- Type: `boolean`
+- Default: `false`
+
+When `true`, the calculation for the relevance score (used for sorting) will ignore the [field-length norm](/concepts/scoring-theory.html#fuzziness-score).

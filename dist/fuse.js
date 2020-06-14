@@ -371,18 +371,18 @@
   }
 
   var MatchOptions = {
-    // Whether the matches should be included in the result set. When true, each record in the result
+    // Whether the matches should be included in the result set. When `true`, each record in the result
     // set will include the indices of the matched characters.
     // These can consequently be used for highlighting purposes.
     includeMatches: false,
-    // When true, the matching function will continue to the end of a search pattern even if
+    // When `true`, the matching function will continue to the end of a search pattern even if
     // a perfect match has already been located in the string.
     findAllMatches: false,
     // Minimum number of characters that must be matched before a result is considered a match
     minMatchCharLength: 1
   };
   var BasicOptions = {
-    // When true, the algorithm continues searching to the end of the input even if a perfect
+    // When `true`, the algorithm continues searching to the end of the input even if a perfect
     // match is found before the end of the same input.
     isCaseSensitive: false,
     // When true, the matching function will continue to the end of a search pattern even if
@@ -407,17 +407,22 @@
     // would score as a complete mismatch. A distance of '0' requires the match be at
     // the exact location specified, a threshold of '1000' would require a perfect match
     // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
-    distance: 100,
-    // When true, search will ignore `location` and `distance`, so it won't matter
-    // where in the string the pattern appears.
-    ignoreLocation: false
+    distance: 100
   };
   var AdvancedOptions = {
-    // When true, it enables the use of unix-like search commands
+    // When `true`, it enables the use of unix-like search commands
     useExtendedSearch: false,
     // The get function to use when fetching an object's properties.
     // The default will search nested paths *ie foo.bar.baz*
-    getFn: get
+    getFn: get,
+    // When `true`, search will ignore `location` and `distance`, so it won't matter
+    // where in the string the pattern appears.
+    // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
+    ignoreLocation: false,
+    // When `true`, the calculation for the relevance score (used for sorting) will
+    // ignore the field-length norm.
+    // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
+    ignoreFieldNorm: false
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
@@ -1815,9 +1820,12 @@
             includeMatches = _this$options.includeMatches,
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
-            sortFn = _this$options.sortFn;
+            sortFn = _this$options.sortFn,
+            ignoreFieldNorm = _this$options.ignoreFieldNorm;
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
-        computeScore$1(results, this._keyStore);
+        computeScore$1(results, this._keyStore, {
+          ignoreFieldNorm: ignoreFieldNorm
+        });
 
         if (shouldSort) {
           results.sort(sortFn);
@@ -2053,26 +2061,28 @@
     return Fuse;
   }(); // Practical scoring function
 
-  function computeScore$1(results, keyStore) {
+  function computeScore$1(results, keyStore, _ref8) {
+    var _ref8$ignoreFieldNorm = _ref8.ignoreFieldNorm,
+        ignoreFieldNorm = _ref8$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref8$ignoreFieldNorm;
     results.forEach(function (result) {
       var totalScore = 1;
-      result.matches.forEach(function (_ref8) {
-        var key = _ref8.key,
-            norm = _ref8.norm,
-            score = _ref8.score;
+      result.matches.forEach(function (_ref9) {
+        var key = _ref9.key,
+            norm = _ref9.norm,
+            score = _ref9.score;
         var weight = keyStore.get(key, 'weight');
-        totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * norm);
+        totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
       });
       result.score = totalScore;
     });
   }
 
   function format(results, docs) {
-    var _ref9 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-        _ref9$includeMatches = _ref9.includeMatches,
-        includeMatches = _ref9$includeMatches === void 0 ? Config.includeMatches : _ref9$includeMatches,
-        _ref9$includeScore = _ref9.includeScore,
-        includeScore = _ref9$includeScore === void 0 ? Config.includeScore : _ref9$includeScore;
+    var _ref10 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref10$includeMatches = _ref10.includeMatches,
+        includeMatches = _ref10$includeMatches === void 0 ? Config.includeMatches : _ref10$includeMatches,
+        _ref10$includeScore = _ref10.includeScore,
+        includeScore = _ref10$includeScore === void 0 ? Config.includeScore : _ref10$includeScore;
 
     var transformers = [];
     if (includeMatches) transformers.push(transformMatches);
