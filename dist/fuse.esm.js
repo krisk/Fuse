@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.0-beta.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.2.0-beta.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -216,7 +216,10 @@ const AdvancedOptions = {
   // When `true`, the calculation for the relevance score (used for sorting) will
   // ignore the field-length norm.
   // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-  ignoreFieldNorm: false
+  ignoreFieldNorm: false,
+  // When `true`, if the search query is empty, return the whole list instead
+  // of an empty array.
+  matchEmptyQuery: false
 };
 
 var Config = {
@@ -1408,8 +1411,17 @@ class Fuse {
       includeScore,
       shouldSort,
       sortFn,
-      ignoreFieldNorm
+      ignoreFieldNorm,
+      matchEmptyQuery
     } = this.options;
+
+    if (matchEmptyQuery && (!isDefined(query) || isBlank(query))) {
+      return this._docs.map((doc, idx) => ({
+        item: doc,
+        score: 1,
+        refIndex: idx
+      }))
+    }
 
     let results = isString(query)
       ? isString(this._docs[0])
@@ -1650,7 +1662,7 @@ function format(
   })
 }
 
-Fuse.version = '6.2.0-beta.0';
+Fuse.version = '6.2.0-beta.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
