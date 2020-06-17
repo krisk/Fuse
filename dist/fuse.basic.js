@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.0-beta.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.2.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -344,10 +344,7 @@
     // When `true`, the calculation for the relevance score (used for sorting) will
     // ignore the field-length norm.
     // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-    ignoreFieldNorm: false,
-    // When `true`, if the search query is empty, return the whole list instead
-    // of an empty array.
-    matchEmptyQuery: false
+    ignoreFieldNorm: false
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
@@ -555,7 +552,8 @@
     var myIndex = new FuseIndex({
       getFn: getFn
     });
-    myIndex.setKeys(keys);
+    var keyStore = new KeyStore(keys);
+    myIndex.setKeys(keyStore.keys());
     myIndex.setSources(docs);
     myIndex.create();
     return myIndex;
@@ -1187,19 +1185,7 @@
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
             sortFn = _this$options.sortFn,
-            ignoreFieldNorm = _this$options.ignoreFieldNorm,
-            matchEmptyQuery = _this$options.matchEmptyQuery;
-
-        if (matchEmptyQuery && (!isDefined(query) || isBlank(query))) {
-          return this._docs.map(function (doc, idx) {
-            return {
-              item: doc,
-              score: 1,
-              refIndex: idx
-            };
-          });
-        }
-
+            ignoreFieldNorm = _this$options.ignoreFieldNorm;
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
         computeScore$1(results, this._keyStore, {
           ignoreFieldNorm: ignoreFieldNorm
@@ -1410,7 +1396,7 @@
     });
   }
 
-  Fuse.version = '6.2.0-beta.1';
+  Fuse.version = '6.2.0';
   Fuse.createIndex = createIndex;
   Fuse.parseIndex = parseIndex;
   Fuse.config = Config;

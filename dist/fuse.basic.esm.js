@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.0-beta.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.2.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -218,10 +218,7 @@ const AdvancedOptions = {
   // When `true`, the calculation for the relevance score (used for sorting) will
   // ignore the field-length norm.
   // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-  ignoreFieldNorm: false,
-  // When `true`, if the search query is empty, return the whole list instead
-  // of an empty array.
-  matchEmptyQuery: false
+  ignoreFieldNorm: false
 };
 
 var Config = {
@@ -392,8 +389,9 @@ class FuseIndex {
 }
 
 function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
-  let myIndex = new FuseIndex({ getFn });
-  myIndex.setKeys(keys);
+  const myIndex = new FuseIndex({ getFn });
+  const keyStore = new KeyStore(keys);
+  myIndex.setKeys(keyStore.keys());
   myIndex.setSources(docs);
   myIndex.create();
   return myIndex
@@ -401,7 +399,7 @@ function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
 
 function parseIndex(data, { getFn = Config.getFn } = {}) {
   const { keys, records } = data;
-  let myIndex = new FuseIndex({ getFn });
+  const myIndex = new FuseIndex({ getFn });
   myIndex.setKeys(keys);
   myIndex.setIndexRecords(records);
   return myIndex
@@ -986,17 +984,8 @@ class Fuse {
       includeScore,
       shouldSort,
       sortFn,
-      ignoreFieldNorm,
-      matchEmptyQuery
+      ignoreFieldNorm
     } = this.options;
-
-    if (matchEmptyQuery && (!isDefined(query) || isBlank(query))) {
-      return this._docs.map((doc, idx) => ({
-        item: doc,
-        score: 1,
-        refIndex: idx
-      }))
-    }
 
     let results = isString(query)
       ? isString(this._docs[0])
@@ -1179,7 +1168,7 @@ function format(
   })
 }
 
-Fuse.version = '6.2.0-beta.1';
+Fuse.version = '6.2.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
