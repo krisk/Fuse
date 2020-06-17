@@ -1005,6 +1005,34 @@ describe('Searching taking into account field length', () => {
   })
 })
 
+describe('Returning all results when query is empty', () => {
+  const list = [
+    {
+      ISBN: '0312696957',
+      title: 'The Lock war Artist nonficon',
+      author: 'Steve Hamilton',
+      tags: ['fiction war hello no way']
+    },
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction no']
+    }
+  ]
+
+  test('The entry with the shorter field length appears first', () => {
+    const fuse = new Fuse(list, {
+      keys: ['title'],
+      matchEmptyQuery: true
+    })
+
+    let result = fuse.search('')
+
+    expect(result).toMatchSnapshot()
+  })
+})
+
 describe('Ignore location and field length norm', () => {
   const list = [
     'beforeEach',
