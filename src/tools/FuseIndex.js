@@ -1,6 +1,7 @@
 import { isArray, isDefined, isString, isBlank } from '../helpers/types'
 import Config from '../core/config'
 import normGenerator from './norm'
+import KeyStore from './KeyStore'
 
 export default class FuseIndex {
   constructor({ getFn = Config.getFn } = {}) {
@@ -139,8 +140,9 @@ export default class FuseIndex {
 }
 
 export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
-  let myIndex = new FuseIndex({ getFn })
-  myIndex.setKeys(keys)
+  const myIndex = new FuseIndex({ getFn })
+  const keyStore = new KeyStore(keys)
+  myIndex.setKeys(keyStore.keys())
   myIndex.setSources(docs)
   myIndex.create()
   return myIndex
@@ -148,7 +150,7 @@ export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
 
 export function parseIndex(data, { getFn = Config.getFn } = {}) {
   const { keys, records } = data
-  let myIndex = new FuseIndex({ getFn })
+  const myIndex = new FuseIndex({ getFn })
   myIndex.setKeys(keys)
   myIndex.setIndexRecords(records)
   return myIndex

@@ -124,10 +124,3 @@ When `true`, the calculation for the relevance score (used for sorting) will ign
 :::tip
 The only time it might make sense `ignoreFieldNorm` to `false` is when it does not matter how many terms there are, but only that the query term exists.
 :::
-
-### `matchEmptyQuery` <Badge text="experimental" type="warning"/>
-
-- Type: `boolean`
-- Default: `false`
-
-When `true`, if the search query is empty, return the whole list instead of an empty array.

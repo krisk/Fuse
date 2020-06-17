@@ -54,10 +54,7 @@ export const AdvancedOptions = {
   // When `true`, the calculation for the relevance score (used for sorting) will
   // ignore the field-length norm.
   // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-  ignoreFieldNorm: false,
-  // When `true`, if the search query is empty, return the whole list instead
-  // of an empty array.
-  matchEmptyQuery: false
+  ignoreFieldNorm: false
 }
 
 export default {

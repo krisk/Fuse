@@ -20,6 +20,15 @@ describe('Searching', () => {
     expect(myIndex.keys).toBeDefined()
   })
 
+  test('createIndex: ensure keys can be created with objects', () => {
+    let myIndex = Fuse.createIndex(
+      [{ name: 'title' }, { name: 'author.firstName' }],
+      Books
+    )
+    expect(myIndex.records).toBeDefined()
+    expect(myIndex.keys).toBeDefined()
+  })
+
   test('parseIndex: ensure index can be exported and Fuse can be initialized', () => {
     const myIndex = Fuse.createIndex(options.keys, Books)
     expect(myIndex.size()).toBe(Books.length)
