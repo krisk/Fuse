@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.1.0-alpha.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.2.0-beta.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -218,9 +218,7 @@ const AdvancedOptions = {
   // When `true`, the calculation for the relevance score (used for sorting) will
   // ignore the field-length norm.
   // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-  ignoreFieldNorm: false,
-  // When `true`, if the search query is empty, return the whole list instead of an empty array.
-  returnAllWhenEmpty: false
+  ignoreFieldNorm: false
 };
 
 var Config = {
@@ -529,14 +527,11 @@ function search(
   // Is there a nearby exact match? (speedup)
   let bestLocation = expectedLocation;
 
+  // Performance: only computer matches when the minMatchCharLength > 1
+  // OR if `includeMatches` is true.
+  const computeMatches = minMatchCharLength > 1 || includeMatches;
   // A mask of the matches, used for building the indices
-  const matchMask = [];
-
-  if (includeMatches) {
-    for (let i = 0; i < textLen; i += 1) {
-      matchMask[i] = 0;
-    }
-  }
+  const matchMask = computeMatches ? Array(textLen) : [];
 
   let index;
 
@@ -552,7 +547,7 @@ function search(
     currentThreshold = Math.min(score, currentThreshold);
     bestLocation = index + patternLen;
 
-    if (includeMatches) {
+    if (computeMatches) {
       let i = 0;
       while (i < patternLen) {
         matchMask[index + i] = 1;
@@ -608,19 +603,22 @@ function search(
 
     bitArr[finish + 1] = (1 << i) - 1;
 
+    // console.log(finish, start)
+
     for (let j = finish; j >= start; j -= 1) {
       let currentLocation = j - 1;
       let charMatch = patternAlphabet[text.charAt(currentLocation)];
 
-      if (charMatch && includeMatches) {
-        matchMask[currentLocation] = 1;
+      if (computeMatches) {
+        // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
+        matchMask[currentLocation] = +!!charMatch;
       }
 
       // First pass: exact match
       bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch;
 
       // Subsequent passes: fuzzy match
-      if (i !== 0) {
+      if (i) {
         bitArr[j] |=
           ((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1 | lastBitArr[j + 1];
       }
@@ -668,14 +666,19 @@ function search(
     lastBitArr = bitArr;
   }
 
-  let result = {
+  const result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
     score: Math.max(0.001, finalScore)
   };
 
-  if (includeMatches) {
-    result.indices = convertMaskToIndices(matchMask, minMatchCharLength);
+  if (computeMatches) {
+    const indices = convertMaskToIndices(matchMask, minMatchCharLength);
+    if (!indices.length) {
+      result.isMatch = false;
+    } else if (includeMatches) {
+      result.indices = indices;
+    }
   }
 
   return result
@@ -980,17 +983,8 @@ class Fuse {
       includeScore,
       shouldSort,
       sortFn,
-      ignoreFieldNorm,
-      returnAllWhenEmpty
+      ignoreFieldNorm
     } = this.options;
-
-    if (returnAllWhenEmpty && (!isDefined(query) || isBlank(query))) {
-      return this._docs.map((doc, idx) => ({
-        item: doc,
-        score: 1,
-        refIndex: idx
-      }))
-    }
 
     let results = isString(query)
       ? isString(this._docs[0])
@@ -1173,7 +1167,7 @@ function format(
   })
 }
 
-Fuse.version = '6.1.0-alpha.2';
+Fuse.version = '6.2.0-beta.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
