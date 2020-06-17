@@ -32,14 +32,11 @@ export default function search(
   // Is there a nearby exact match? (speedup)
   let bestLocation = expectedLocation
 
+  // Performance: only computer matches when the minMatchCharLength > 1
+  // OR if `includeMatches` is true.
+  const computeMatches = minMatchCharLength > 1 || includeMatches
   // A mask of the matches, used for building the indices
-  const matchMask = []
-
-  if (includeMatches) {
-    for (let i = 0; i < textLen; i += 1) {
-      matchMask[i] = 0
-    }
-  }
+  const matchMask = computeMatches ? Array(textLen) : []
 
   let index
 
@@ -55,7 +52,7 @@ export default function search(
     currentThreshold = Math.min(score, currentThreshold)
     bestLocation = index + patternLen
 
-    if (includeMatches) {
+    if (computeMatches) {
       let i = 0
       while (i < patternLen) {
         matchMask[index + i] = 1
@@ -111,19 +108,22 @@ export default function search(
 
     bitArr[finish + 1] = (1 << i) - 1
 
+    // console.log(finish, start)
+
     for (let j = finish; j >= start; j -= 1) {
       let currentLocation = j - 1
       let charMatch = patternAlphabet[text.charAt(currentLocation)]
 
-      if (charMatch && includeMatches) {
-        matchMask[currentLocation] = 1
+      if (computeMatches) {
+        // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
+        matchMask[currentLocation] = +!!charMatch
       }
 
       // First pass: exact match
       bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch
 
       // Subsequent passes: fuzzy match
-      if (i !== 0) {
+      if (i) {
         bitArr[j] |=
           ((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1 | lastBitArr[j + 1]
       }
@@ -171,14 +171,19 @@ export default function search(
     lastBitArr = bitArr
   }
 
-  let result = {
+  const result = {
     isMatch: bestLocation >= 0,
     // Count exact matches (those with a score of 0) to be "almost" exact
     score: Math.max(0.001, finalScore)
   }
 
-  if (includeMatches) {
-    result.indices = convertMaskToIndices(matchMask, minMatchCharLength)
+  if (computeMatches) {
+    const indices = convertMaskToIndices(matchMask, minMatchCharLength)
+    if (!indices.length) {
+      result.isMatch = false
+    } else if (includeMatches) {
+      result.indices = indices
+    }
   }
 
   return result

@@ -247,7 +247,6 @@ declare namespace Fuse {
     keys?: FuseOptionKeyObject[] | string[]
     location?: number
     minMatchCharLength?: number
-    returnAllWhenEmpty?: boolean
     shouldSort?: boolean
     sortFn?: FuseSortFunction
     threshold?: number

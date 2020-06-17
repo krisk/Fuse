@@ -1,10 +1,4 @@
-import {
-  isArray,
-  isBlank,
-  isDefined,
-  isString,
-  isNumber
-} from '../helpers/types'
+import { isArray, isDefined, isString, isNumber } from '../helpers/types'
 import KeyStore from '../tools/KeyStore'
 import FuseIndex, { createIndex } from '../tools/FuseIndex'
 import { transformMatches, transformScore } from '../transform'
@@ -83,17 +77,8 @@ export default class Fuse {
       includeScore,
       shouldSort,
       sortFn,
-      ignoreFieldNorm,
-      returnAllWhenEmpty
+      ignoreFieldNorm
     } = this.options
-
-    if (returnAllWhenEmpty && (!isDefined(query) || isBlank(query))) {
-      return this._docs.map((doc, idx) => ({
-        item: doc,
-        score: 1,
-        refIndex: idx
-      }))
-    }
 
     let results = isString(query)
       ? isString(this._docs[0])

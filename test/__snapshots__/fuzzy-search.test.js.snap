@@ -74,32 +74,3 @@ Array [
   },
 ]
 `;
-
-exports[`Searching taking into account field length The entry with the shorter field length appears first 1`] = `
-Array [
-  Object {
-    "item": Object {
-      "ISBN": "0312696957",
-      "author": "Steve Hamilton",
-      "tags": Array [
-        "fiction war hello no way",
-      ],
-      "title": "The Lock war Artist nonficon",
-    },
-    "refIndex": 0,
-    "score": 1,
-  },
-  Object {
-    "item": Object {
-      "ISBN": "0765348276",
-      "author": "John Scalzi",
-      "tags": Array [
-        "fiction no",
-      ],
-      "title": "Old Man's War",
-    },
-    "refIndex": 1,
-    "score": 1,
-  },
-]
-`;

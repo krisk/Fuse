@@ -422,9 +422,7 @@
     // When `true`, the calculation for the relevance score (used for sorting) will
     // ignore the field-length norm.
     // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-    ignoreFieldNorm: false,
-    // When `true`, if the search query is empty, return the whole list instead of an empty array.
-    returnAllWhenEmpty: false
+    ignoreFieldNorm: false
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
@@ -781,16 +779,12 @@
 
     var currentThreshold = threshold; // Is there a nearby exact match? (speedup)
 
-    var bestLocation = expectedLocation; // A mask of the matches, used for building the indices
+    var bestLocation = expectedLocation; // Performance: only computer matches when the minMatchCharLength > 1
+    // OR if `includeMatches` is true.
 
-    var matchMask = [];
+    var computeMatches = minMatchCharLength > 1 || includeMatches; // A mask of the matches, used for building the indices
 
-    if (includeMatches) {
-      for (var i = 0; i < textLen; i += 1) {
-        matchMask[i] = 0;
-      }
-    }
-
+    var matchMask = computeMatches ? Array(textLen) : [];
     var index; // Get all exact matches, here for speed up
 
     while ((index = text.indexOf(pattern, bestLocation)) > -1) {
@@ -803,12 +797,12 @@
       currentThreshold = Math.min(score, currentThreshold);
       bestLocation = index + patternLen;
 
-      if (includeMatches) {
-        var _i = 0;
+      if (computeMatches) {
+        var i = 0;
 
-        while (_i < patternLen) {
-          matchMask[index + _i] = 1;
-          _i += 1;
+        while (i < patternLen) {
+          matchMask[index + i] = 1;
+          i += 1;
         }
       }
     } // Reset the best location
@@ -820,7 +814,7 @@
     var binMax = patternLen + textLen;
     var mask = 1 << patternLen - 1;
 
-    for (var _i2 = 0; _i2 < patternLen; _i2 += 1) {
+    for (var _i = 0; _i < patternLen; _i += 1) {
       // Scan for the best match; each iteration allows for one more error.
       // Run a binary search to determine how far from the match location we can stray
       // at this error level.
@@ -829,7 +823,7 @@
 
       while (binMin < binMid) {
         var _score2 = computeScore(pattern, {
-          errors: _i2,
+          errors: _i,
           currentLocation: expectedLocation + binMid,
           expectedLocation: expectedLocation,
           distance: distance,
@@ -851,26 +845,27 @@
       var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
       var bitArr = Array(finish + 2);
-      bitArr[finish + 1] = (1 << _i2) - 1;
+      bitArr[finish + 1] = (1 << _i) - 1; // console.log(finish, start)
 
       for (var j = finish; j >= start; j -= 1) {
         var currentLocation = j - 1;
         var charMatch = patternAlphabet[text.charAt(currentLocation)];
 
-        if (charMatch && includeMatches) {
-          matchMask[currentLocation] = 1;
+        if (computeMatches) {
+          // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
+          matchMask[currentLocation] = +!!charMatch;
         } // First pass: exact match
 
 
         bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch; // Subsequent passes: fuzzy match
 
-        if (_i2 !== 0) {
+        if (_i) {
           bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
         }
 
         if (bitArr[j] & mask) {
           finalScore = computeScore(pattern, {
-            errors: _i2,
+            errors: _i,
             currentLocation: currentLocation,
             expectedLocation: expectedLocation,
             distance: distance,
@@ -895,7 +890,7 @@
 
 
       var _score = computeScore(pattern, {
-        errors: _i2 + 1,
+        errors: _i + 1,
         currentLocation: expectedLocation,
         expectedLocation: expectedLocation,
         distance: distance,
@@ -915,8 +910,14 @@
       score: Math.max(0.001, finalScore)
     };
 
-    if (includeMatches) {
-      result.indices = convertMaskToIndices(matchMask, minMatchCharLength);
+    if (computeMatches) {
+      var indices = convertMaskToIndices(matchMask, minMatchCharLength);
+
+      if (!indices.length) {
+        result.isMatch = false;
+      } else if (includeMatches) {
+        result.indices = indices;
+      }
     }
 
     return result;
@@ -1823,19 +1824,7 @@
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
             sortFn = _this$options.sortFn,
-            ignoreFieldNorm = _this$options.ignoreFieldNorm,
-            returnAllWhenEmpty = _this$options.returnAllWhenEmpty;
-
-        if (returnAllWhenEmpty && (!isDefined(query) || isBlank(query))) {
-          return this._docs.map(function (doc, idx) {
-            return {
-              item: doc,
-              score: 1,
-              refIndex: idx
-            };
-          });
-        }
-
+            ignoreFieldNorm = _this$options.ignoreFieldNorm;
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
         computeScore$1(results, this._keyStore, {
           ignoreFieldNorm: ignoreFieldNorm

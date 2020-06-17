@@ -740,9 +740,40 @@ describe('Searching with minCharLength', () => {
     let result
     beforeEach(() => (result = fuse.search('t')))
 
+    test('We get no results', () => {
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('Main functionality', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          firstName: 'Remy',
+          lastName: 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          firstName: 'Dan',
+          lastName: 'Brown'
+        }
+      }
+    ]
+    const fuse = new Fuse(list, {
+      keys: ['title', 'author.firstName'],
+      includeMatches: true,
+      includeScore: true,
+      minMatchCharLength: 3
+    })
+
     test('We get a result with no matches', () => {
+      const result = fuse.search('remy')
+
       expect(result).toHaveLength(1)
-      expect(result[0].matches).toHaveLength(0)
+      expect(result[0].matches).toHaveLength(1)
     })
   })
 })
@@ -971,33 +1002,6 @@ describe('Searching taking into account field length', () => {
     expect(result.length).toBe(2)
     expect(result[0].item.ISBN).toBe('0312696957')
     expect(result[1].item.ISBN).toBe('0765348276')
-  })
-})
-
-describe('Searching taking into account field length', () => {
-  const list = [
-    {
-      ISBN: '0312696957',
-      title: 'The Lock war Artist nonficon',
-      author: 'Steve Hamilton',
-      tags: ['fiction war hello no way']
-    },
-    {
-      ISBN: '0765348276',
-      title: "Old Man's War",
-      author: 'John Scalzi',
-      tags: ['fiction no']
-    }
-  ]
-
-  test('The entry with the shorter field length appears first', () => {
-    const fuse = new Fuse(list, {
-      keys: ['title'],
-      returnAllWhenEmpty: true
-    })
-    let result = fuse.search('')
-
-    expect(result).toMatchSnapshot()
   })
 })
 
