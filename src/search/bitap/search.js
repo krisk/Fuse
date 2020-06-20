@@ -108,8 +108,6 @@ export default function search(
 
     bitArr[finish + 1] = (1 << i) - 1
 
-    // console.log(finish, start)
-
     for (let j = finish; j >= start; j -= 1) {
       let currentLocation = j - 1
       let charMatch = patternAlphabet[text.charAt(currentLocation)]

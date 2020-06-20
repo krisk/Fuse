@@ -1,5 +1,12 @@
 # Logical Query Operators
 
+Fuse.js supports logical query operators. These operators are used for filtering the data and getting precise results based on the given conditions. The following table contains the logical query operators:
+
+| Name          | Description                                                         |
+| ------------- | ------------------------------------------------------------------- |
+| [\$and](#and) | Returns all documents that match the conditions of **all** clauses. |
+| [\$or](#or)   | Returns all documents that match the conditions of **any** clause.  |
+
 ## `$and`
 
 ```js
@@ -33,9 +40,7 @@ const result = fuse.search({
 })
 ```
 
----
-
-### Use with Extended Searching
+## Use with Extended Searching
 
 Logical query operations pair quite nicely with [extended searching](/examples.html#extended-search).
 

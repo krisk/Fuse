@@ -18,6 +18,3 @@ Recurring pledges come with exclusive perks, e.g. having your name listed in the
 
 - [Become a backer or sponsor via **GitHub**](https://github.com/sponsors/krisk)
 - [Become a backer or sponsor via **Patreon**](https://www.patreon.com/krisk)
-
-<style>
-</style>

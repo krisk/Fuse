@@ -47,6 +47,7 @@
     "@rollup/plugin-replace": "^2.3.1",
     "@types/jest": "25.1.4",
     "@vuepress/plugin-google-analytics": "^1.4.0",
+    "@vuepress/plugin-register-components": "^1.5.2",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.0.5",
     "codemirror": "5.52.2",

@@ -59,6 +59,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
   # Push to repo
   git push origin HEAD
+  echo "✅ released to Github"
 
   # Publish
   if [[ -z $RELEASE_TAG ]]; then
@@ -66,6 +67,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   else
     npm publish --tag "$RELEASE_TAG"
   fi
+
+  echo "✅ released to NPM"
 else
   echo -e "\033[0;31mCancelling...\033[0m"
 fi

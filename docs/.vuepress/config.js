@@ -44,7 +44,6 @@ function getGuideSidebar() {
     {
       title: 'Getting Started',
       collapsable: false,
-      // sidebarDepth: 0,
       children: [
         '/getting-started/installation',
         '/getting-started/different-builds'
@@ -54,6 +53,7 @@ function getGuideSidebar() {
     {
       title: 'API Reference',
       collapsable: false,
+      sidebarDepth: 0,
       children: [
         '/api/options',
         '/api/config',
@@ -71,9 +71,12 @@ function getGuideSidebar() {
   ]
 }
 
-// function getBlogSidebar() {
-//   return []
-// }
+function getCcomponent(name) {
+  return {
+    name,
+    path: `${__dirname}/components/${name}/${name}.vue`
+  }
+}
 
 function getPlugins() {
   return [
@@ -81,7 +84,17 @@ function getPlugins() {
     'vuepress-plugin-smooth-scroll',
     'vuepress-plugin-element-tabs',
     [
-      'social-share',
+      '@vuepress/register-components',
+      {
+        components: [
+          getCcomponent('Stories'),
+          getCcomponent('Demo'),
+          getCcomponent('Team')
+        ]
+      }
+    ],
+    [
+      ('social-share',
       {
         networks: ['twitter', 'facebook', 'reddit', 'email', 'linkedin'],
         extendsNetworks: {
@@ -103,7 +116,7 @@ function getPlugins() {
         autoQuote: true,
         isPlain: false,
         noGlobalSocialShare: true
-      }
+      })
     ]
   ]
 }

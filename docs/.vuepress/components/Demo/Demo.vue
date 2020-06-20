@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import Fuse from '../../../dist/fuse.esm.js'
+import Fuse from '../../../../dist/fuse.esm.js'
 import Books from './books.js'
 
 import Prism from 'prismjs'

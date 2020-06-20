@@ -10,6 +10,10 @@ module.exports = [
     link: '/support/'
   },
   {
+    text: 'Stories',
+    link: '/stories/'
+  },
+  {
     text: 'Release Notes',
     link: 'https://github.com/krisk/Fuse/releases'
   }

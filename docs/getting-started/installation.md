@@ -27,14 +27,14 @@ For prototyping or learning purposes, you can use the latest version with:
 For production, we recommend linking to a specific version number and build to avoid unexpected breakage from newer versions:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.0.4"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.2.0"></script>
 ```
 
 If you are using native ES Modules, there is also an ES Modules compatible build:
 
 ```html
 <script type="module">
-  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.0.4/dist/fuse.esm.js'
+  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.2.0/dist/fuse.esm.js'
 </script>
 ```
 
@@ -50,6 +50,6 @@ version in your published site, replacing `fuse.js` with `fuse.min.js`. This is 
 You can directly import `Fuse` as an ES module from the deno.land/x service:
 
 ```typescript
-// @deno-types="https://deno.land/x/fuse@v6.0.4/dist/fuse.d.ts"
-import Fuse from 'https://deno.land/x/fuse@v6.0.4/dist/fuse.esm.min.js';
+// @deno-types="https://deno.land/x/fuse@v6.2.0/dist/fuse.d.ts"
+import Fuse from 'https://deno.land/x/fuse@v6.2.0/dist/fuse.esm.min.js'
 ```

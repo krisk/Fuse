@@ -846,7 +846,7 @@
       var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
       var bitArr = Array(finish + 2);
-      bitArr[finish + 1] = (1 << _i) - 1; // console.log(finish, start)
+      bitArr[finish + 1] = (1 << _i) - 1;
 
       for (var j = finish; j >= start; j -= 1) {
         var currentLocation = j - 1;

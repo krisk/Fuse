@@ -75,15 +75,12 @@ It might not make sense for every situation, but can be ideal depending on your 
 
 Of course! Fuse.js has no DOM dependencies.
 
+### Who's using Fuse.js these days?
+
+Plenty of people. It's hard to say an exact number, since it's free. But a good indication is the number of [dependents](https://www.npmjs.com/package/fuse.js?activeTab=dependents) on NPM and [stargazers](https://github.com/krisk/Fuse/stargazers) on Github.
+
+Read the [stories](/stories.html) to learn how various products are using Fuse.js to tackle a growing number of use cases.
+
 ---
 
 Check out the [live demo](/demo.html) to fiddle with it and to learn how to use it.
-
-## Product of the Week
-
-<br/>
-<a href="https://notebag.app/" target="_blank" rel="noopener">
-  <img src="/assets/img/potw/notebag@2x.png" style="width:100px">  
-</a>
-
-[Notebag](https://notebag.app/) is a new experience in note taking, designed from the ground up to be usable from your keyboard. Its fuzzy searching is powered by Fuse.js.
