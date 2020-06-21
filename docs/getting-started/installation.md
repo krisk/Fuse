@@ -1,5 +1,7 @@
 # Installation
 
+Latest stable version: {{ $themeConfig.version }}
+
 ### NPM
 
 ```sh
@@ -38,11 +40,11 @@ If you are using native ES Modules, there is also an ES Modules compatible build
 </script>
 ```
 
-You can browse the source of the NPM package at cdn.jsdelivr.net/npm/fuse.js.
+You can browse the source of the NPM package at [cdn.jsdelivr.net/npm/fuse.js](https://cdn.jsdelivr.net/npm/fuse.js).
 
 Fuse.js is also available on [unpkg](https://unpkg.com/fuse.js).
 
-Make sure to read about the different builds of Fuse.js and use the production
+Make sure to read about [the different builds of Fuse.js](different-builds.html) and use the production
 version in your published site, replacing `fuse.js` with `fuse.min.js`. This is a smaller build optimized for speed instead of development experience.
 
 ### Deno
