@@ -3,16 +3,26 @@
 # abort on errors
 set -e
 
-# build
-npm run docs:build
+read -p "Do you want to publish the website? (y/n) " -n 1 -r
 
-# navigate into the build output directory
-cd docs/.vuepress/dist
+echo
 
-echo 'fusejs.io' > CNAME
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  # build
+  npm run docs:build
 
-git init
-git add -A
-git commit -m 'deploy'
+  # navigate into the build output directory
+  cd docs/.vuepress/dist
 
-git push -f git@github.com:krisk/fuse.git master:gh-pages
+  echo 'fusejs.io' > CNAME
+
+  git init
+  git add -A
+  git commit -m 'docs(site): publish site'
+
+  git push -f git@github.com:krisk/fuse.git master:gh-pages
+
+  echo "✅ Pushed to GitHub"
+else
+  echo "\033[0;31mCancelling...\033[0m"
+fi

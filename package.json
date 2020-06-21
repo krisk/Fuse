@@ -35,7 +35,8 @@
     "lint": "eslint src scripts test",
     "release": "standard-version -a",
     "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs"
+    "docs:build": "vuepress build docs",
+    "docs:release": "./scripts/deploy-docs.sh"
   },
   "standard-version": {
     "scripts": {
