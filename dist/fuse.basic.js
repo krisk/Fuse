@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.2.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -768,7 +768,7 @@
       var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
       var bitArr = Array(finish + 2);
-      bitArr[finish + 1] = (1 << _i) - 1; // console.log(finish, start)
+      bitArr[finish + 1] = (1 << _i) - 1;
 
       for (var j = finish; j >= start; j -= 1) {
         var currentLocation = j - 1;
@@ -1396,7 +1396,7 @@
     });
   }
 
-  Fuse.version = '6.2.0';
+  Fuse.version = '6.2.1';
   Fuse.createIndex = createIndex;
   Fuse.parseIndex = parseIndex;
   Fuse.config = Config;

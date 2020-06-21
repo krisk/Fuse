@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.2.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -842,7 +842,7 @@ function search(text, pattern, patternAlphabet) {
     var finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen; // Initialize the bit array
 
     var bitArr = Array(finish + 2);
-    bitArr[finish + 1] = (1 << _i) - 1; // console.log(finish, start)
+    bitArr[finish + 1] = (1 << _i) - 1;
 
     for (var j = finish; j >= start; j -= 1) {
       var currentLocation = j - 1;
@@ -1915,25 +1915,7 @@ var Fuse = /*#__PURE__*/function () {
             }
           }
 
-          if (res.length) {
-            // Dedupe when adding
-            if (!resultMap[idx]) {
-              resultMap[idx] = {
-                idx: idx,
-                item: item,
-                matches: []
-              };
-              results.push(resultMap[idx]);
-            }
-
-            res.forEach(function (_ref3) {
-              var _resultMap$idx$matche;
-
-              var matches = _ref3.matches;
-
-              (_resultMap$idx$matche = resultMap[idx].matches).push.apply(_resultMap$idx$matche, _toConsumableArray(matches));
-            });
-          }
+          return res;
         } else {
           var key = node.key,
               searcher = node.searcher;
@@ -1946,12 +1928,32 @@ var Fuse = /*#__PURE__*/function () {
         }
       };
 
-      records.forEach(function (_ref4) {
-        var item = _ref4.$,
-            idx = _ref4.i;
+      records.forEach(function (_ref3) {
+        var item = _ref3.$,
+            idx = _ref3.i;
 
         if (isDefined(item)) {
-          evaluateExpression(expression, item, idx);
+          var expResults = evaluateExpression(expression, item, idx);
+
+          if (expResults.length) {
+            // Dedupe when adding
+            if (!resultMap[idx]) {
+              resultMap[idx] = {
+                idx: idx,
+                item: item,
+                matches: []
+              };
+              results.push(resultMap[idx]);
+            }
+
+            expResults.forEach(function (_ref4) {
+              var _resultMap$idx$matche;
+
+              var matches = _ref4.matches;
+
+              (_resultMap$idx$matche = resultMap[idx].matches).push.apply(_resultMap$idx$matche, _toConsumableArray(matches));
+            });
+          }
         }
       });
       return results;
@@ -2104,7 +2106,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.2.0';
+Fuse.version = '6.2.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
