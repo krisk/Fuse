@@ -1919,25 +1919,7 @@
               }
             }
 
-            if (res.length) {
-              // Dedupe when adding
-              if (!resultMap[idx]) {
-                resultMap[idx] = {
-                  idx: idx,
-                  item: item,
-                  matches: []
-                };
-                results.push(resultMap[idx]);
-              }
-
-              res.forEach(function (_ref3) {
-                var _resultMap$idx$matche;
-
-                var matches = _ref3.matches;
-
-                (_resultMap$idx$matche = resultMap[idx].matches).push.apply(_resultMap$idx$matche, _toConsumableArray(matches));
-              });
-            }
+            return res;
           } else {
             var key = node.key,
                 searcher = node.searcher;
@@ -1950,12 +1932,32 @@
           }
         };
 
-        records.forEach(function (_ref4) {
-          var item = _ref4.$,
-              idx = _ref4.i;
+        records.forEach(function (_ref3) {
+          var item = _ref3.$,
+              idx = _ref3.i;
 
           if (isDefined(item)) {
-            evaluateExpression(expression, item, idx);
+            var expResults = evaluateExpression(expression, item, idx);
+
+            if (expResults.length) {
+              // Dedupe when adding
+              if (!resultMap[idx]) {
+                resultMap[idx] = {
+                  idx: idx,
+                  item: item,
+                  matches: []
+                };
+                results.push(resultMap[idx]);
+              }
+
+              expResults.forEach(function (_ref4) {
+                var _resultMap$idx$matche;
+
+                var matches = _ref4.matches;
+
+                (_resultMap$idx$matche = resultMap[idx].matches).push.apply(_resultMap$idx$matche, _toConsumableArray(matches));
+              });
+            }
           }
         });
         return results;

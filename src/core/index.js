@@ -163,16 +163,7 @@ export default class Fuse {
           }
         }
 
-        if (res.length) {
-          // Dedupe when adding
-          if (!resultMap[idx]) {
-            resultMap[idx] = { idx, item, matches: [] }
-            results.push(resultMap[idx])
-          }
-          res.forEach(({ matches }) => {
-            resultMap[idx].matches.push(...matches)
-          })
-        }
+        return res
       } else {
         const { key, searcher } = node
         const value = item[keys.indexOf(key)]
@@ -187,7 +178,18 @@ export default class Fuse {
 
     records.forEach(({ $: item, i: idx }) => {
       if (isDefined(item)) {
-        evaluateExpression(expression, item, idx)
+        let expResults = evaluateExpression(expression, item, idx)
+
+        if (expResults.length) {
+          // Dedupe when adding
+          if (!resultMap[idx]) {
+            resultMap[idx] = { idx, item, matches: [] }
+            results.push(resultMap[idx])
+          }
+          expResults.forEach(({ matches }) => {
+            resultMap[idx].matches.push(...matches)
+          })
+        }
       }
     })
 

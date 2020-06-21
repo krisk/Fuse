@@ -103,12 +103,91 @@ describe('Searching using logical search', () => {
     expect(result.length).toBe(2)
     expect(idx(result)).toMatchObject([7, 0])
   })
+})
 
-  // test('Search: OR with multiple entries', () => {
-  //   let result = fuse.search({
-  //     $or: [{ title: 'bakwrds' }, { 'author.firstName': 'rob' }]
-  //   })
-  //   expect(result.length).toBe(2)
-  //   // expect(idx(result)).toMatchObject([7, 0])
-  // })
+describe('Multiple nested conditions', () => {
+  const list1 = [
+    {
+      title: "Old Man's War",
+      author: {
+        firstName: 'John',
+        lastName: 'Scalzi',
+        age: '61'
+      }
+    }
+  ]
+
+  const list2 = [
+    ...list1,
+    {
+      title: "Old Man's War",
+      author: {
+        firstName: 'John',
+        lastName: 'Scalzi',
+        age: '62'
+      }
+    }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    keys: ['title', 'author.firstName', 'author.lastName', 'author.age']
+  }
+  const fuse1 = new Fuse(list1, options)
+
+  const fuse2 = new Fuse(list2, options)
+
+  test('Search: nested AND + OR', () => {
+    const result = fuse1.search({
+      $and: [
+        { title: 'old' },
+        {
+          $or: [{ 'author.firstName': 'j' }, { 'author.lastName': 'Sa' }]
+        },
+        {
+          $or: [{ 'author.age': "'62" }]
+        }
+      ]
+    })
+
+    expect(result.length).toBe(0)
+  })
+
+  test('Search: deep nested AND + OR', () => {
+    const result = fuse1.search({
+      $and: [
+        { title: 'old' },
+        {
+          $or: [{ 'author.firstName': 'jon' }, { 'author.lastName': 'Sazi' }]
+        },
+        {
+          $or: [
+            { 'author.age': "'62" },
+            { $and: [{ title: 'old' }, { 'author.age': "'61" }] }
+          ]
+        }
+      ]
+    })
+
+    expect(result.length).toBe(1)
+  })
+
+  test('Search: deep nested AND + OR', () => {
+    const result = fuse2.search({
+      $and: [
+        { title: 'old' },
+        {
+          $and: [{ 'author.firstName': 'jon' }, { 'author.lastName': 'Sazi' }]
+        },
+        {
+          $or: [
+            { 'author.age': "'62" },
+            { $and: [{ title: 'old' }, { 'author.age': "'62" }] }
+          ]
+        }
+      ]
+    })
+
+    expect(result.length).toBe(1)
+  })
 })
