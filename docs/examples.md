@@ -316,7 +316,7 @@ const books = [
 const options = {
   includeScore: true,
   useExtendedSearch: true,
-  keys: ['author']
+  keys: ['title']
 }
 
 const fuse = new Fuse(books, options)
