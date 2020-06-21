@@ -30,12 +30,28 @@
     "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev-full",
     "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs-full",
     "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm-dev-full",
-    "build": "node scripts/build.main.js",
+    "build": "rm -r dist && mkdir dist && node ./scripts/build.main.js",
     "test": "jest",
     "lint": "eslint src scripts test",
-    "release": "bash scripts/release.sh",
+    "release": "standard-version -a",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs"
+  },
+  "standard-version": {
+    "scripts": {
+      "postbump": "yarn build && yarn lint && yarn test",
+      "precommit": "git add dist/*.js dist/*.ts"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -43,6 +59,8 @@
     "@babel/plugin-proposal-object-rest-spread": "7.9.0",
     "@babel/preset-env": "7.3.4",
     "@babel/preset-typescript": "7.9.0",
+    "@commitlint/cli": "^9.0.1",
+    "@commitlint/config-conventional": "^9.0.1",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-replace": "^2.3.1",
     "@types/jest": "25.1.4",
@@ -55,12 +73,14 @@
     "eslint-config-prettier": "6.10.1",
     "eslint-plugin-vue": "7.0.0-alpha.0",
     "faker": "4.1.0",
+    "husky": "^4.2.5",
     "jest": "^25.1.0",
     "prettier": "2.0.2",
     "rimraf": "3.0.2",
     "rollup": "2.1.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-copy": "3.3.0",
+    "standard-version": "^8.0.0",
     "terser-webpack-plugin": "2.3.5",
     "typescript": "^3.8.3",
     "vue-codemirror": "^4.0.6",
