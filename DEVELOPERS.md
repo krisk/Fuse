@@ -1,4 +1,4 @@
-# Contributing to Fuse.js
+# Developing Fuse.js
 
 - [Running Tests](#tests)
 - [Commit Message Guidelines](#commits)

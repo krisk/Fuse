@@ -27,45 +27,13 @@ Fuse.js supports all browsers that are ES5-compliant (IE8 and below are not supp
 
 ## Documentation
 
-To checkout out live examples and docs, visit [fusejs.io](https://fusejs.io).
+Go to [fusejs.io](https://fusejs.io).
 
-## Installation
+## Develop
 
-**NPM**
+Here's a separate document for [developers](https://github.com/krisk/Fuse/blob/master/DEVELOPERS.md).
 
-```sh
-$ npm install --save fuse.js
-```
+## Contribute
 
-**Yarn**
-
-```sh
-$ yarn add fuse.js
-```
-
-**CDN**
-
-Available on CDN via [jsDelivr](https://cdn.jsdelivr.net/npm/fuse.js/dist/).
-
-> Note: it takes some time for the CDNs to sync with the latest version
-
-**Deno**
-
-Available in Deno via [deno.land/x](https://deno.land/x/fuse)
-
-```typescript
-// @deno-types="https://deno.land/x/fuse@v6.0.4/dist/fuse.d.ts"
-import Fuse from 'https://deno.land/x/fuse@v6.0.4/dist/fuse.esm.min.js';
-```
-
-### Explanation of Different Builds
-
-In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an [overview](https://fusejs.io/getting-started/different-builds.html) of the difference between them.
-
-## Issues
-
-This repository serves as [the main issue tracker](https://github.com/krisk/Fuse/issues). When creating issues, it's important to follow common guidelines to make them extra clear. Here is a few links to help you achieve that:
-
-- [GitHub Guides: Mastering Issues](https://guides.github.com/features/issues/)
-- [Wiredcraft: How We Write Github Issues](https://wiredcraft.com/blog/how-we-write-our-github-issues/)
-- [NYC Planning Digital: Writing Useful Github Issues](https://medium.com/nyc-planning-digital/writing-a-proper-github-issue-97427d62a20f)
+We've set up a separate document for our
+[contribution guidelines](https://github.com/krisk/Fuse/blob/master/CONTRIBUTING.md).
