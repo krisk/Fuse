@@ -11,7 +11,7 @@ yarn test
 
 ## <a name="commits"></a> Git Commit Guidelines
 
-Fuse.js follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0-beta.2/). This leads to **more readable messages** that are easy to follow when looking through the **project history**. Also, these git commit messages are used to **generate the [changelog](https://github.com/krisk/Fuse/blob/master/CHANGELOG.md)**.
+Fuse.js follows [conventional commits](conventional-commits). This leads to **more readable messages** that are easy to follow when looking through the **project history**. Also, these git commit messages are used to **generate the [changelog](changelog)**.
 
 ### Commit Message Format
 
@@ -64,3 +64,7 @@ Just as in the **subject**, use the imperative, present tense: "change" not "cha
 The footer should contain any information about **Breaking Changes** and is also the place to [reference GitHub issues that this commit closes][closing-issues].
 
 **Breaking Changes** should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
+
+[closing-issues]: https://help.github.com/articles/closing-issues-via-commit-messages/
+[conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0-beta.2/
+[changelog]: CHANGELOG.md
