@@ -1,10 +1,8 @@
 # Methods
 
-### `setCollection(docs: T[], index?: FuseIndex<T>): void`
+### `setCollection`
 
-Set/replace the entire collection of documents. If no index is provided, one will be generated.
-
-**Example**
+Set/replace the entire collection of documents. If no index is provided, one will be generated. Example:
 
 ```js
 const fruits = ['apple', 'orange']
@@ -13,11 +11,9 @@ const fuse = new Fuse(fruits)
 fuse.setCollection(['banana', 'pear'])
 ```
 
-### `add(doc: T): void`
+### `add`
 
-Adds a doc to the collection.
-
-**Example**
+Adds a doc to the collection. Example:
 
 ```js
 const fruits = ['apple', 'orange']
@@ -29,11 +25,9 @@ console.log(fruits.length)
 // => 3
 ```
 
-### `remove(predicate: (doc: T, idx: number) => boolean): T[]`
+### `remove`
 
-Removes all documents from the list which the predicate returns truthy for, and returns an array of the removed docs. The predicate is invoked with two arguments: `(doc, index)`.
-
-**Example**
+Removes all documents from the list which the predicate returns truthy for, and returns an array of the removed docs. The predicate is invoked with two arguments: `(doc, index)`. Example:
 
 ```js
 const fruits = ['apple', 'orange', 'banana', 'pear']
@@ -50,11 +44,9 @@ console.log(results)
 // => ['banana', 'pear']
 ```
 
-### `removeAt(idx: number): void`
+### `removeAt`
 
-Removes the doc at the specified index.
-
-**Example**
+Removes the doc at the specified index. Example:
 
 ```js
 const fruits = ['apple', 'orange', 'banana', 'pear']
@@ -66,6 +58,14 @@ console.log(fruits)
 // => ['apple', 'banana', 'pear']
 ```
 
-### `getIndex(): FuseIndex<T>`
+### `getIndex`
 
-Returns the generated Fuse index.
+Returns the generated Fuse index. Example:
+
+```js
+const fruits = ['apple', 'orange', 'banana', 'pear']
+const fuse = new Fuse(fruits)
+
+console.log(fuse.getIndex().size())
+// => 4
+```
