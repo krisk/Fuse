@@ -82,7 +82,7 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
    * @returns An indexed list
    */
   static createIndex<U>(
-    keys: Fuse.FuseOptionKeyObject[] | string[],
+    keys: Array<Fuse.FuseOptionKeyObject | string>,
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
   ): FuseIndex<U>
@@ -241,7 +241,7 @@ declare namespace Fuse {
     ignoreFieldNorm?: boolean
     includeMatches?: boolean
     includeScore?: boolean
-    keys?: FuseOptionKeyObject[] | string[]
+    keys?: Array<FuseOptionKeyObject | string>
     location?: number
     minMatchCharLength?: number
     shouldSort?: boolean
