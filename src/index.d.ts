@@ -277,6 +277,10 @@ declare namespace Fuse {
 
   export type Expression =
     | { [key: string]: string }
+    | {
+        $path: ReadonlyArray<string>
+        $val: string
+      }
     | { $and?: Expression[] }
     | { $or?: Expression[] }
 }
