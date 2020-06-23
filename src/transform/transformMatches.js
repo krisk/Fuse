@@ -21,7 +21,7 @@ export default function transformMatches(result, data) {
     }
 
     if (match.key) {
-      obj.key = match.key
+      obj.key = match.key.src
     }
 
     if (match.idx > -1) {

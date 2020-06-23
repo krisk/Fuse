@@ -82,7 +82,7 @@ declare class Fuse<T, O extends Fuse.IFuseOptions<T>> {
    * @returns An indexed list
    */
   static createIndex<U>(
-    keys: Array<Fuse.FuseOptionKeyObject | string>,
+    keys: Array<Fuse.FuseOptionKey>,
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
   ): FuseIndex<U>
@@ -228,9 +228,11 @@ declare namespace Fuse {
   //   weight: 0.7
   // }
   export type FuseOptionKeyObject = {
-    name: string
+    name: string | [string]
     weight: number
   }
+
+  export type FuseOptionKey = FuseOptionKeyObject | string | [string]
 
   export interface IFuseOptions<T> {
     isCaseSensitive?: boolean
@@ -241,7 +243,7 @@ declare namespace Fuse {
     ignoreFieldNorm?: boolean
     includeMatches?: boolean
     includeScore?: boolean
-    keys?: Array<FuseOptionKeyObject | string>
+    keys?: Array<FuseOptionKey>
     location?: number
     minMatchCharLength?: number
     shouldSort?: boolean

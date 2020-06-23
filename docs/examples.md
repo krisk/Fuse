@@ -95,11 +95,9 @@ const result = fuse.search('tion')
 :::
 ::::
 
-<!-- ::: tip
-For very large datasets, especially those with large strings, consider pre-generating the index with `Fuse.createIndex`. This will speed up instantiation.
-::: -->
-
 ## Nested Search
+
+You can search through nested values by providing the path via dot (`.`) or array notation.
 
 :::: tabs
 ::: tab List
@@ -137,6 +135,7 @@ const list = [
 ```javascript
 const options = {
   includeScore: true,
+  // equivalent to `keys: [['author', 'tags', 'value']]`
   keys: ['author.tags.value']
 }
 
