@@ -1,7 +1,7 @@
 import { isArray, isDefined, isString, isBlank } from '../helpers/types'
 import Config from '../core/config'
 import normGenerator from './norm'
-import KeyStore, { createKey } from './KeyStore'
+import { createKey } from './KeyStore'
 
 export default class FuseIndex {
   constructor({ getFn = Config.getFn } = {}) {
@@ -149,7 +149,7 @@ export default class FuseIndex {
 
 export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
   const myIndex = new FuseIndex({ getFn })
-  myIndex.setKeys(keys.map((key) => createKey(key)))
+  myIndex.setKeys(keys.map(createKey))
   myIndex.setSources(docs)
   myIndex.create()
   return myIndex

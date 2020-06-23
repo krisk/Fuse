@@ -657,9 +657,7 @@
     var myIndex = new FuseIndex({
       getFn: getFn
     });
-    myIndex.setKeys(keys.map(function (key) {
-      return createKey(key);
-    }));
+    myIndex.setKeys(keys.map(createKey));
     myIndex.setSources(docs);
     myIndex.create();
     return myIndex;
