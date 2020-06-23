@@ -1,7 +1,7 @@
 import { isArray, isDefined, isString, isBlank } from '../helpers/types'
 import Config from '../core/config'
 import normGenerator from './norm'
-import KeyStore from './KeyStore'
+import KeyStore, { createKey } from './KeyStore'
 
 export default class FuseIndex {
   constructor({ getFn = Config.getFn } = {}) {
@@ -19,6 +19,10 @@ export default class FuseIndex {
   }
   setKeys(keys = []) {
     this.keys = keys
+    this._keysMap = {}
+    keys.forEach((key, idx) => {
+      this._keysMap[key.id] = idx
+    })
   }
   create() {
     if (this.isCreated || !this.docs.length) {
@@ -60,6 +64,9 @@ export default class FuseIndex {
       this.records[i].i -= 1
     }
   }
+  getValueForItemAtKeyId(item, keyId) {
+    return item[this._keysMap[keyId]]
+  }
   size() {
     return this.records.length
   }
@@ -81,7 +88,8 @@ export default class FuseIndex {
 
     // Iterate over every key (i.e, path), and fetch the value at that key
     this.keys.forEach((key, keyIndex) => {
-      let value = this.getFn(doc, key)
+      // console.log(key)
+      let value = this.getFn(doc, key.path)
 
       if (!isDefined(value)) {
         return
@@ -141,8 +149,7 @@ export default class FuseIndex {
 
 export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
   const myIndex = new FuseIndex({ getFn })
-  const keyStore = new KeyStore(keys)
-  myIndex.setKeys(keyStore.keys())
+  myIndex.setKeys(keys.map((key) => createKey(key)))
   myIndex.setSources(docs)
   myIndex.create()
   return myIndex

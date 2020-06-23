@@ -1,14 +1,22 @@
 import { isArray, isObject, isString } from '../helpers/types'
 import { createSearcher } from './register'
 import * as ErrorMsg from './errorMessages'
+import { createKeyId } from '../tools/KeyStore'
 
 export const LogicalOperator = {
   AND: '$and',
   OR: '$or'
 }
 
+const KeyType = {
+  PATH: '$path',
+  PATTERN: '$val'
+}
+
 const isExpression = (query) =>
   !!(query[LogicalOperator.AND] || query[LogicalOperator.OR])
+
+const isPath = (query) => !!query[KeyType.PATH]
 
 const isLeaf = (query) =>
   !isArray(query) && isObject(query) && !isExpression(query)
@@ -25,21 +33,23 @@ export function parse(query, options, { auto = true } = {}) {
   const next = (query) => {
     let keys = Object.keys(query)
 
-    if (keys.length > 1 && !isExpression(query)) {
+    const isQueryPath = isPath(query)
+
+    if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
       return next(convertToExplicit(query))
     }
 
-    let key = keys[0]
-
     if (isLeaf(query)) {
-      const pattern = query[key]
+      const key = isQueryPath ? query[KeyType.PATH] : keys[0]
+
+      const pattern = isQueryPath ? query[KeyType.PATTERN] : query[key]
 
       if (!isString(pattern)) {
         throw new Error(ErrorMsg.LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key))
       }
 
       const obj = {
-        key,
+        keyId: createKeyId(key),
         pattern
       }
 
@@ -52,7 +62,7 @@ export function parse(query, options, { auto = true } = {}) {
 
     let node = {
       children: [],
-      operator: key
+      operator: keys[0]
     }
 
     keys.forEach((key) => {

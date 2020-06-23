@@ -1038,3 +1038,92 @@ describe('Ignore location and field length norm', () => {
     expect(result).toMatchSnapshot()
   })
 })
+
+describe('Standard dotted keys', () => {
+  test('We get mathes', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          firstName: 'Remy',
+          lastName: 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          firstName: 'rmy',
+          lastName: 'Brown'
+        }
+      }
+    ]
+
+    const fuse = new Fuse(list, {
+      keys: ['title', ['author', 'firstName']],
+      includeMatches: true,
+      includeScore: true
+    })
+
+    const result = fuse.search('remy')
+
+    expect(result).toHaveLength(2)
+  })
+
+  test('We get a result with no matches', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          'first.name': 'Remy',
+          'last.name': 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          'first.name': 'rmy',
+          'last.name': 'Brown'
+        }
+      }
+    ]
+
+    const fuse = new Fuse(list, {
+      keys: ['title', ['author', 'first.name']],
+      includeMatches: true,
+      includeScore: true
+    })
+
+    const result = fuse.search('remy')
+
+    expect(result).toHaveLength(2)
+  })
+
+  test('Keys with weights', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          firstName: 'Remy',
+          lastName: 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          firstName: 'rmy',
+          lastName: 'Brown'
+        }
+      }
+    ]
+
+    const fuse = new Fuse(list, {
+      keys: [{ name: 'title' }, { name: ['author', 'firstName'] }],
+      includeMatches: true,
+      includeScore: true
+    })
+
+    const result = fuse.search('remy')
+
+    expect(result).toHaveLength(2)
+  })
+})

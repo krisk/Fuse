@@ -191,3 +191,46 @@ describe('Multiple nested conditions', () => {
     expect(result.length).toBe(1)
   })
 })
+
+describe('Logical search with dotted keys', () => {
+  const list = [
+    {
+      title: "Old Man's War",
+      author: {
+        'first.name': 'John',
+        'last.name': 'Scalzi',
+        age: '61'
+      }
+    }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    keys: [
+      'title',
+      ['author', 'first.name'],
+      ['author', 'last.name'],
+      'author.age'
+    ]
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: deep nested AND + OR', () => {
+    const query = {
+      $and: [
+        {
+          $path: ['author', 'first.name'],
+          $val: 'jon'
+        },
+        {
+          $path: ['author', 'last.name'],
+          $val: 'scazi'
+        }
+      ]
+    }
+
+    const result = fuse.search(query)
+
+    expect(result.length).toBe(1)
+  })
+})

@@ -4,7 +4,7 @@ exports[`Logical parser Implicit operations 1`] = `
 Object {
   "children": Array [
     Object {
-      "key": "title",
+      "keyId": "title",
       "pattern": "old war",
     },
     Object {
@@ -12,18 +12,18 @@ Object {
         Object {
           "children": Array [
             Object {
-              "key": "title",
+              "keyId": "title",
               "pattern": "!arts",
             },
             Object {
-              "key": "tags",
+              "keyId": "tags",
               "pattern": "kiro",
             },
           ],
           "operator": "$and",
         },
         Object {
-          "key": "title",
+          "keyId": "title",
           "pattern": "^lock",
         },
       ],
@@ -38,17 +38,17 @@ exports[`Logical parser Tree structure 1`] = `
 Object {
   "children": Array [
     Object {
-      "key": "title",
+      "keyId": "title",
       "pattern": "old war",
     },
     Object {
       "children": Array [
         Object {
-          "key": "title",
+          "keyId": "title",
           "pattern": "!arts",
         },
         Object {
-          "key": "title",
+          "keyId": "title",
           "pattern": "^lock",
         },
       ],

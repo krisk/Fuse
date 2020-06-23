@@ -32,7 +32,7 @@ export default class Fuse {
 
     this._myIndex =
       index ||
-      createIndex(this._keyStore.keys(), this._docs, {
+      createIndex(this.options.keys, this._docs, {
         getFn: this.options.getFn
       })
   }
@@ -133,7 +133,8 @@ export default class Fuse {
     }
 
     const expression = parse(query, this.options)
-    const { keys, records } = this._myIndex
+
+    const records = this._myIndex.records
     const resultMap = {}
     const results = []
 
@@ -165,11 +166,12 @@ export default class Fuse {
 
         return res
       } else {
-        const { key, searcher } = node
-        const value = item[keys.indexOf(key)]
+        const { keyId, searcher } = node
+
+        const value = this._myIndex.getValueForItemAtKeyId(item, keyId)
 
         return this._findMatches({
-          key,
+          key: this._keyStore.get(keyId),
           value,
           searcher
         })
@@ -281,7 +283,7 @@ function computeScore(
     let totalScore = 1
 
     result.matches.forEach(({ key, norm, score }) => {
-      const weight = keyStore.get(key, 'weight')
+      const weight = key ? key.weight : null
 
       totalScore *= Math.pow(
         score === 0 && weight ? Number.EPSILON : score,
