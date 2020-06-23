@@ -1,3 +1,22 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [6.3.0](https://github.com/krisk/Fuse/compare/v6.2.1...v6.3.0) (2020-06-23)
+
+
+### Features
+
+* provide alternative array notation for nested paths ([938db2a](https://github.com/krisk/Fuse/commit/938db2aebb1a5b2d610cd8bb3258ff701baa46fb))
+* provide alternative array notation for nested paths ([7077fbe](https://github.com/krisk/Fuse/commit/7077fbe5f40872f9555645dbad2e6729ca55a5d4)), closes [#432](https://github.com/krisk/Fuse/issues/432)
+
+
+### Bug Fixes
+
+* remove unused import from index generation ([af7794e](https://github.com/krisk/Fuse/commit/af7794ee058ac8aabcb4ca35d3f6b00f22876848))
+* **typescript:** add types for string and object together for the key property ([85fb211](https://github.com/krisk/Fuse/commit/85fb211a22bf5921ecefab9ecf3f8e2647f46b49))
+* **typescript:** add typing for nested paths with array notation ([dfa4823](https://github.com/krisk/Fuse/commit/dfa48238f9a28600fd36677f958f43bb3cab4c03))
+
 # Version 6.0.0
 
 - Added [logical query expressions](https://fusejs.io/api/query.html) (#411)

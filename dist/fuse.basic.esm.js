@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.3.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -70,73 +70,89 @@ const hasOwn = Object.prototype.hasOwnProperty;
 
 class KeyStore {
   constructor(keys) {
-    this._keys = {};
-    this._keyNames = [];
+    this._keys = [];
+    this._keyMap = {};
 
     let totalWeight = 0;
 
     keys.forEach((key) => {
-      let keyName;
-      let weight = 1;
+      let obj = createKey(key);
 
-      if (isString(key)) {
-        keyName = key;
-      } else {
-        if (!hasOwn.call(key, 'name')) {
-          throw new Error(MISSING_KEY_PROPERTY('name'))
-        }
-        keyName = key.name;
+      totalWeight += obj.weight;
 
-        if (hasOwn.call(key, 'weight')) {
-          weight = key.weight;
+      this._keys.push(obj);
+      this._keyMap[obj.id] = obj;
 
-          if (weight <= 0) {
-            throw new Error(INVALID_KEY_WEIGHT_VALUE(keyName))
-          }
-        }
-      }
-
-      this._keyNames.push(keyName);
-
-      this._keys[keyName] = { weight };
-
-      totalWeight += weight;
+      totalWeight += obj.weight;
     });
 
     // Normalize weights so that their sum is equal to 1
-    this._keyNames.forEach((key) => {
-      this._keys[key].weight /= totalWeight;
+    this._keys.forEach((key) => {
+      key.weight /= totalWeight;
     });
   }
-  get(key, name) {
-    return this._keys[key] && this._keys[key][name]
+  get(keyId) {
+    return this._keyMap[keyId]
   }
   keys() {
-    return this._keyNames
+    return this._keys
   }
   toJSON() {
     return JSON.stringify(this._keys)
   }
 }
 
+function createKey(key) {
+  let path = null;
+  let id = null;
+  let src = null;
+  let weight = 1;
+
+  if (isString(key) || isArray(key)) {
+    src = key;
+    path = createKeyPath(key);
+    id = createKeyId(key);
+  } else {
+    if (!hasOwn.call(key, 'name')) {
+      throw new Error(MISSING_KEY_PROPERTY('name'))
+    }
+
+    const name = key.name;
+    src = name;
+
+    if (hasOwn.call(key, 'weight')) {
+      weight = key.weight;
+
+      if (weight <= 0) {
+        throw new Error(INVALID_KEY_WEIGHT_VALUE(name))
+      }
+    }
+
+    path = createKeyPath(name);
+    id = createKeyId(name);
+  }
+
+  return { path, id, weight, src }
+}
+
+function createKeyPath(key) {
+  return isArray(key) ? key : key.split('.')
+}
+
+function createKeyId(key) {
+  return isArray(key) ? key.join('.') : key
+}
+
 function get(obj, path) {
   let list = [];
   let arr = false;
 
-  const deepGet = (obj, path) => {
-    if (!path) {
+  const deepGet = (obj, path, index) => {
+    if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
       list.push(obj);
     } else {
-      const dotIndex = path.indexOf('.');
-
-      let key = path;
-      let remaining = null;
-
-      if (dotIndex !== -1) {
-        key = path.slice(0, dotIndex);
-        remaining = path.slice(dotIndex + 1);
-      }
+      let key = path[index];
 
       const value = obj[key];
 
@@ -144,22 +160,22 @@ function get(obj, path) {
         return
       }
 
-      if (!remaining && (isString(value) || isNumber(value))) {
+      if (index === path.length - 1 && (isString(value) || isNumber(value))) {
         list.push(toString(value));
       } else if (isArray(value)) {
         arr = true;
         // Search each item in the array.
         for (let i = 0, len = value.length; i < len; i += 1) {
-          deepGet(value[i], remaining);
+          deepGet(value[i], path, index + 1);
         }
-      } else if (remaining) {
+      } else if (path.length) {
         // An object. Recurse further.
-        deepGet(value, remaining);
+        deepGet(value, path, index + 1);
       }
     }
   };
 
-  deepGet(obj, path);
+  deepGet(obj, path, 0);
 
   return arr ? list : list[0]
 }
@@ -271,6 +287,10 @@ class FuseIndex {
   }
   setKeys(keys = []) {
     this.keys = keys;
+    this._keysMap = {};
+    keys.forEach((key, idx) => {
+      this._keysMap[key.id] = idx;
+    });
   }
   create() {
     if (this.isCreated || !this.docs.length) {
@@ -312,6 +332,9 @@ class FuseIndex {
       this.records[i].i -= 1;
     }
   }
+  getValueForItemAtKeyId(item, keyId) {
+    return item[this._keysMap[keyId]]
+  }
   size() {
     return this.records.length
   }
@@ -333,7 +356,8 @@ class FuseIndex {
 
     // Iterate over every key (i.e, path), and fetch the value at that key
     this.keys.forEach((key, keyIndex) => {
-      let value = this.getFn(doc, key);
+      // console.log(key)
+      let value = this.getFn(doc, key.path);
 
       if (!isDefined(value)) {
         return
@@ -390,8 +414,7 @@ class FuseIndex {
 
 function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
   const myIndex = new FuseIndex({ getFn });
-  const keyStore = new KeyStore(keys);
-  myIndex.setKeys(keyStore.keys());
+  myIndex.setKeys(keys.map(createKey));
   myIndex.setSources(docs);
   myIndex.create();
   return myIndex
@@ -426,7 +449,7 @@ function transformMatches(result, data) {
     };
 
     if (match.key) {
-      obj.key = match.key;
+      obj.key = match.key.src;
     }
 
     if (match.idx > -1) {
@@ -844,8 +867,15 @@ const LogicalOperator = {
   OR: '$or'
 };
 
+const KeyType = {
+  PATH: '$path',
+  PATTERN: '$val'
+};
+
 const isExpression = (query) =>
   !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
+
+const isPath = (query) => !!query[KeyType.PATH];
 
 const isLeaf = (query) =>
   !isArray(query) && isObject(query) && !isExpression(query);
@@ -862,21 +892,23 @@ function parse(query, options, { auto = true } = {}) {
   const next = (query) => {
     let keys = Object.keys(query);
 
-    if (keys.length > 1 && !isExpression(query)) {
+    const isQueryPath = isPath(query);
+
+    if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
       return next(convertToExplicit(query))
     }
 
-    let key = keys[0];
-
     if (isLeaf(query)) {
-      const pattern = query[key];
+      const key = isQueryPath ? query[KeyType.PATH] : keys[0];
+
+      const pattern = isQueryPath ? query[KeyType.PATTERN] : query[key];
 
       if (!isString(pattern)) {
         throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key))
       }
 
       const obj = {
-        key,
+        keyId: createKeyId(key),
         pattern
       };
 
@@ -889,7 +921,7 @@ function parse(query, options, { auto = true } = {}) {
 
     let node = {
       children: [],
-      operator: key
+      operator: keys[0]
     };
 
     keys.forEach((key) => {
@@ -937,7 +969,7 @@ class Fuse {
 
     this._myIndex =
       index ||
-      createIndex(this._keyStore.keys(), this._docs, {
+      createIndex(this.options.keys, this._docs, {
         getFn: this.options.getFn
       });
   }
@@ -1123,7 +1155,7 @@ function computeScore$1(
     let totalScore = 1;
 
     result.matches.forEach(({ key, norm, score }) => {
-      const weight = keyStore.get(key, 'weight');
+      const weight = key ? key.weight : null;
 
       totalScore *= Math.pow(
         score === 0 && weight ? Number.EPSILON : score,
@@ -1166,7 +1198,7 @@ function format(
   })
 }
 
-Fuse.version = '6.2.1';
+Fuse.version = '6.3.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

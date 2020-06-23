@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.2.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.3.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -187,53 +187,33 @@ var KeyStore = /*#__PURE__*/function () {
 
     _classCallCheck(this, KeyStore);
 
-    this._keys = {};
-    this._keyNames = [];
+    this._keys = [];
+    this._keyMap = {};
     var totalWeight = 0;
     keys.forEach(function (key) {
-      var keyName;
-      var weight = 1;
+      var obj = createKey(key);
+      totalWeight += obj.weight;
 
-      if (isString(key)) {
-        keyName = key;
-      } else {
-        if (!hasOwn.call(key, 'name')) {
-          throw new Error(MISSING_KEY_PROPERTY('name'));
-        }
+      _this._keys.push(obj);
 
-        keyName = key.name;
-
-        if (hasOwn.call(key, 'weight')) {
-          weight = key.weight;
-
-          if (weight <= 0) {
-            throw new Error(INVALID_KEY_WEIGHT_VALUE(keyName));
-          }
-        }
-      }
-
-      _this._keyNames.push(keyName);
-
-      _this._keys[keyName] = {
-        weight: weight
-      };
-      totalWeight += weight;
+      _this._keyMap[obj.id] = obj;
+      totalWeight += obj.weight;
     }); // Normalize weights so that their sum is equal to 1
 
-    this._keyNames.forEach(function (key) {
-      _this._keys[key].weight /= totalWeight;
+    this._keys.forEach(function (key) {
+      key.weight /= totalWeight;
     });
   }
 
   _createClass(KeyStore, [{
     key: "get",
-    value: function get(key, name) {
-      return this._keys[key] && this._keys[key][name];
+    value: function get(keyId) {
+      return this._keyMap[keyId];
     }
   }, {
     key: "keys",
     value: function keys() {
-      return this._keyNames;
+      return this._keys;
     }
   }, {
     key: "toJSON",
@@ -244,47 +224,82 @@ var KeyStore = /*#__PURE__*/function () {
 
   return KeyStore;
 }();
+function createKey(key) {
+  var path = null;
+  var id = null;
+  var src = null;
+  var weight = 1;
+
+  if (isString(key) || isArray(key)) {
+    src = key;
+    path = createKeyPath(key);
+    id = createKeyId(key);
+  } else {
+    if (!hasOwn.call(key, 'name')) {
+      throw new Error(MISSING_KEY_PROPERTY('name'));
+    }
+
+    var name = key.name;
+    src = name;
+
+    if (hasOwn.call(key, 'weight')) {
+      weight = key.weight;
+
+      if (weight <= 0) {
+        throw new Error(INVALID_KEY_WEIGHT_VALUE(name));
+      }
+    }
+
+    path = createKeyPath(name);
+    id = createKeyId(name);
+  }
+
+  return {
+    path: path,
+    id: id,
+    weight: weight,
+    src: src
+  };
+}
+function createKeyPath(key) {
+  return isArray(key) ? key : key.split('.');
+}
+function createKeyId(key) {
+  return isArray(key) ? key.join('.') : key;
+}
 
 function get(obj, path) {
   var list = [];
   var arr = false;
 
-  var deepGet = function deepGet(obj, path) {
-    if (!path) {
+  var deepGet = function deepGet(obj, path, index) {
+    if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
       list.push(obj);
     } else {
-      var dotIndex = path.indexOf('.');
-      var key = path;
-      var remaining = null;
-
-      if (dotIndex !== -1) {
-        key = path.slice(0, dotIndex);
-        remaining = path.slice(dotIndex + 1);
-      }
-
+      var key = path[index];
       var value = obj[key];
 
       if (!isDefined(value)) {
         return;
       }
 
-      if (!remaining && (isString(value) || isNumber(value))) {
+      if (index === path.length - 1 && (isString(value) || isNumber(value))) {
         list.push(toString(value));
       } else if (isArray(value)) {
         arr = true; // Search each item in the array.
 
         for (var i = 0, len = value.length; i < len; i += 1) {
-          deepGet(value[i], remaining);
+          deepGet(value[i], path, index + 1);
         }
-      } else if (remaining) {
+      } else if (path.length) {
         // An object. Recurse further.
-        deepGet(value, remaining);
+        deepGet(value, path, index + 1);
       }
     }
   };
 
-  deepGet(obj, path);
+  deepGet(obj, path, 0);
   return arr ? list : list[0];
 }
 
@@ -397,13 +412,19 @@ var FuseIndex = /*#__PURE__*/function () {
   }, {
     key: "setKeys",
     value: function setKeys() {
+      var _this = this;
+
       var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
       this.keys = keys;
+      this._keysMap = {};
+      keys.forEach(function (key, idx) {
+        _this._keysMap[key.id] = idx;
+      });
     }
   }, {
     key: "create",
     value: function create() {
-      var _this = this;
+      var _this2 = this;
 
       if (this.isCreated || !this.docs.length) {
         return;
@@ -413,12 +434,12 @@ var FuseIndex = /*#__PURE__*/function () {
 
       if (isString(this.docs[0])) {
         this.docs.forEach(function (doc, docIndex) {
-          _this._addString(doc, docIndex);
+          _this2._addString(doc, docIndex);
         });
       } else {
         // List is Array<Object>
         this.docs.forEach(function (doc, docIndex) {
-          _this._addObject(doc, docIndex);
+          _this2._addObject(doc, docIndex);
         });
       }
 
@@ -447,6 +468,11 @@ var FuseIndex = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "getValueForItemAtKeyId",
+    value: function getValueForItemAtKeyId(item, keyId) {
+      return item[this._keysMap[keyId]];
+    }
+  }, {
     key: "size",
     value: function size() {
       return this.records.length;
@@ -468,7 +494,7 @@ var FuseIndex = /*#__PURE__*/function () {
   }, {
     key: "_addObject",
     value: function _addObject(doc, docIndex) {
-      var _this2 = this;
+      var _this3 = this;
 
       var record = {
         i: docIndex,
@@ -476,7 +502,8 @@ var FuseIndex = /*#__PURE__*/function () {
       }; // Iterate over every key (i.e, path), and fetch the value at that key
 
       this.keys.forEach(function (key, keyIndex) {
-        var value = _this2.getFn(doc, key);
+        // console.log(key)
+        var value = _this3.getFn(doc, key.path);
 
         if (!isDefined(value)) {
           return;
@@ -503,7 +530,7 @@ var FuseIndex = /*#__PURE__*/function () {
                 var subRecord = {
                   v: _value,
                   i: nestedArrIndex,
-                  n: _this2.norm.get(_value)
+                  n: _this3.norm.get(_value)
                 };
                 subRecords.push(subRecord);
               } else if (isArray(_value)) {
@@ -521,7 +548,7 @@ var FuseIndex = /*#__PURE__*/function () {
         } else if (!isBlank(value)) {
           var subRecord = {
             v: value,
-            n: _this2.norm.get(value)
+            n: _this3.norm.get(value)
           };
           record.$[keyIndex] = subRecord;
         }
@@ -548,8 +575,7 @@ function createIndex(keys, docs) {
   var myIndex = new FuseIndex({
     getFn: getFn
   });
-  var keyStore = new KeyStore(keys);
-  myIndex.setKeys(keyStore.keys());
+  myIndex.setKeys(keys.map(createKey));
   myIndex.setSources(docs);
   myIndex.create();
   return myIndex;
@@ -590,7 +616,7 @@ function transformMatches(result, data) {
     };
 
     if (match.key) {
-      obj.key = match.key;
+      obj.key = match.key.src;
     }
 
     if (match.idx > -1) {
@@ -1020,9 +1046,17 @@ var LogicalOperator = {
   AND: '$and',
   OR: '$or'
 };
+var KeyType = {
+  PATH: '$path',
+  PATTERN: '$val'
+};
 
 var isExpression = function isExpression(query) {
   return !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
+};
+
+var isPath = function isPath(query) {
+  return !!query[KeyType.PATH];
 };
 
 var isLeaf = function isLeaf(query) {
@@ -1044,22 +1078,22 @@ function parse(query, options) {
 
   var next = function next(query) {
     var keys = Object.keys(query);
+    var isQueryPath = isPath(query);
 
-    if (keys.length > 1 && !isExpression(query)) {
+    if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
       return next(convertToExplicit(query));
     }
 
-    var key = keys[0];
-
     if (isLeaf(query)) {
-      var pattern = query[key];
+      var key = isQueryPath ? query[KeyType.PATH] : keys[0];
+      var pattern = isQueryPath ? query[KeyType.PATTERN] : query[key];
 
       if (!isString(pattern)) {
         throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
       }
 
       var obj = {
-        key: key,
+        keyId: createKeyId(key),
         pattern: pattern
       };
 
@@ -1072,7 +1106,7 @@ function parse(query, options) {
 
     var node = {
       children: [],
-      operator: key
+      operator: keys[0]
     };
     keys.forEach(function (key) {
       var value = query[key];
@@ -1119,7 +1153,7 @@ var Fuse = /*#__PURE__*/function () {
         throw new Error(INCORRECT_INDEX_TYPE);
       }
 
-      this._myIndex = index || createIndex(this._keyStore.keys(), this._docs, {
+      this._myIndex = index || createIndex(this.options.keys, this._docs, {
         getFn: this.options.getFn
       });
     }
@@ -1250,9 +1284,9 @@ var Fuse = /*#__PURE__*/function () {
       var _this2 = this;
 
       var searcher = createSearcher(query, this.options);
-      var _this$_myIndex2 = this._myIndex,
-          keys = _this$_myIndex2.keys,
-          records = _this$_myIndex2.records;
+      var _this$_myIndex = this._myIndex,
+          keys = _this$_myIndex.keys,
+          records = _this$_myIndex.records;
       var results = []; // List is Array<Object>
 
       records.forEach(function (_ref5) {
@@ -1358,7 +1392,7 @@ function computeScore$1(results, keyStore, _ref8) {
       var key = _ref9.key,
           norm = _ref9.norm,
           score = _ref9.score;
-      var weight = keyStore.get(key, 'weight');
+      var weight = key ? key.weight : null;
       totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
     });
     result.score = totalScore;
@@ -1392,7 +1426,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.2.1';
+Fuse.version = '6.3.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
