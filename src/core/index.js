@@ -134,53 +134,66 @@ export default class Fuse {
 
     const expression = parse(query, this.options)
 
+    const evaluate = (node, item, idx) => {
+      if (!node.children) {
+        const { keyId, searcher } = node
+
+        const matches = this._findMatches({
+          key: this._keyStore.get(keyId),
+          value: this._myIndex.getValueForItemAtKeyId(item, keyId),
+          searcher
+        })
+
+        if (matches && matches.length) {
+          return [
+            {
+              idx,
+              item,
+              matches
+            }
+          ]
+        }
+
+        return []
+      }
+
+      /*eslint indent: [2, 2, {"SwitchCase": 1}]*/
+      switch (node.operator) {
+        case LogicalOperator.AND: {
+          const res = []
+          for (let i = 0, len = node.children.length; i < len; i += 1) {
+            const child = node.children[i]
+            const result = evaluate(child, item, idx)
+            if (result.length) {
+              res.push(...result)
+            } else {
+              return []
+            }
+          }
+          return res
+        }
+        case LogicalOperator.OR: {
+          const res = []
+          for (let i = 0, len = node.children.length; i < len; i += 1) {
+            const child = node.children[i]
+            const result = evaluate(child, item, idx)
+            if (result.length) {
+              res.push(...result)
+              break
+            }
+          }
+          return res
+        }
+      }
+    }
+
     const records = this._myIndex.records
     const resultMap = {}
     const results = []
 
-    const evaluateExpression = (node, item, idx) => {
-      if (node.children) {
-        const operator = node.operator
-        let res = []
-
-        for (let k = 0; k < node.children.length; k += 1) {
-          let child = node.children[k]
-          let matches = evaluateExpression(child, item, idx)
-
-          if (matches && matches.length) {
-            res.push({
-              idx,
-              item,
-              matches
-            })
-            if (operator === LogicalOperator.OR) {
-              // Short-circuit
-              break
-            }
-          } else if (operator === LogicalOperator.AND) {
-            res.length = 0
-            // Short-circuit
-            break
-          }
-        }
-
-        return res
-      } else {
-        const { keyId, searcher } = node
-
-        const value = this._myIndex.getValueForItemAtKeyId(item, keyId)
-
-        return this._findMatches({
-          key: this._keyStore.get(keyId),
-          value,
-          searcher
-        })
-      }
-    }
-
     records.forEach(({ $: item, i: idx }) => {
       if (isDefined(item)) {
-        let expResults = evaluateExpression(expression, item, idx)
+        let expResults = evaluate(expression, item, idx)
 
         if (expResults.length) {
           // Dedupe when adding

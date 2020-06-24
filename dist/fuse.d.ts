@@ -112,7 +112,7 @@ declare class FuseIndex<T> {
 declare namespace Fuse {
   type FuseGetFunction<T> = (
     obj: T,
-    path: string
+    path: string | string[]
   ) => ReadonlyArray<string> | string
 
   export type FuseIndexOptions<T> = {
@@ -231,11 +231,11 @@ declare namespace Fuse {
   //   weight: 0.7
   // }
   export type FuseOptionKeyObject = {
-    name: string | [string]
+    name: string | string[]
     weight: number
   }
 
-  export type FuseOptionKey = FuseOptionKeyObject | string | [string]
+  export type FuseOptionKey = FuseOptionKeyObject | string | string[]
 
   export interface IFuseOptions<T> {
     isCaseSensitive?: boolean

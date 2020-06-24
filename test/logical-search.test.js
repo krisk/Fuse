@@ -130,11 +130,12 @@ describe('Multiple nested conditions', () => {
   ]
 
   const options = {
+    includeScore: true,
     useExtendedSearch: true,
     keys: ['title', 'author.firstName', 'author.lastName', 'author.age']
   }
-  const fuse1 = new Fuse(list1, options)
 
+  const fuse1 = new Fuse(list1, options)
   const fuse2 = new Fuse(list2, options)
 
   test('Search: nested AND + OR', () => {
@@ -170,6 +171,8 @@ describe('Multiple nested conditions', () => {
     })
 
     expect(result.length).toBe(1)
+    expect(result[0]).toHaveProperty('score')
+    expect(result[0].score).toBeGreaterThan(0)
   })
 
   test('Search: deep nested AND + OR', () => {
@@ -189,6 +192,8 @@ describe('Multiple nested conditions', () => {
     })
 
     expect(result.length).toBe(1)
+    expect(result[0]).toHaveProperty('score')
+    expect(result[0].score).toBeGreaterThan(0)
   })
 })
 
@@ -206,6 +211,7 @@ describe('Logical search with dotted keys', () => {
 
   const options = {
     useExtendedSearch: true,
+    includeScore: true,
     keys: [
       'title',
       ['author', 'first.name'],

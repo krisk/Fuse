@@ -106,13 +106,16 @@ When `true`, it enables the use of unix-like search commands. See [example](/exa
 ### `getFn`
 
 - Type: `Function`
-- Default: `(obj: T, path: string) => string[] | string`
+- Default: `(obj: T, path: string | string[]) => string | string[]`
 
-The function to use to retrieve an object's value at the provided path (i.e, key). The default will search nested paths.
+The function to use to retrieve an object's value at the provided path. The default will also search nested paths.
 
-::: danger
-There aren't many cases where you'd want to use your own `getFn`.
-:::
+### `sortFn`
+
+- Type: `Function`
+- Default: `(a, b) => number`
+
+The function to use to sort all the results. The default will sort by ascending relevance score, ascending index.
 
 ### `ignoreFieldNorm`
 
@@ -122,5 +125,5 @@ There aren't many cases where you'd want to use your own `getFn`.
 When `true`, the calculation for the relevance score (used for sorting) will ignore the [field-length norm](/concepts/scoring-theory.html#fuzziness-score).
 
 :::tip
-The only time it might make sense `ignoreFieldNorm` to `false` is when it does not matter how many terms there are, but only that the query term exists.
+The only time it makes sense to set `ignoreFieldNorm` to `true` is when it does not matter how many terms there are, but only that the query term exists.
 :::

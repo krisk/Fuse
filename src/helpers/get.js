@@ -32,7 +32,8 @@ export default function get(obj, path) {
     }
   }
 
-  deepGet(obj, path, 0)
+  // Backwards compatibility (since path used to be a string)
+  deepGet(obj, isString(path) ? path.split('.') : path, 0)
 
   return arr ? list : list[0]
 }
