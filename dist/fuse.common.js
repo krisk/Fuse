@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.3.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.3.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -375,9 +375,10 @@ function get(obj, path) {
         deepGet(value, path, index + 1);
       }
     }
-  };
+  }; // Backwards compatibility (since path used to be a string)
 
-  deepGet(obj, path, 0);
+
+  deepGet(obj, isString(path) ? path.split('.') : path, 0);
   return arr ? list : list[0];
 }
 
@@ -1916,58 +1917,80 @@ var Fuse = /*#__PURE__*/function () {
       var _this = this;
 
       var expression = parse(query, this.options);
-      var records = this._myIndex.records;
-      var resultMap = {};
-      var results = [];
 
-      var evaluateExpression = function evaluateExpression(node, item, idx) {
-        if (node.children) {
-          var operator = node.operator;
-          var res = [];
-
-          for (var k = 0; k < node.children.length; k += 1) {
-            var child = node.children[k];
-            var matches = evaluateExpression(child, item, idx);
-
-            if (matches && matches.length) {
-              res.push({
-                idx: idx,
-                item: item,
-                matches: matches
-              });
-
-              if (operator === LogicalOperator.OR) {
-                // Short-circuit
-                break;
-              }
-            } else if (operator === LogicalOperator.AND) {
-              res.length = 0; // Short-circuit
-
-              break;
-            }
-          }
-
-          return res;
-        } else {
+      var evaluate = function evaluate(node, item, idx) {
+        if (!node.children) {
           var keyId = node.keyId,
               searcher = node.searcher;
 
-          var value = _this._myIndex.getValueForItemAtKeyId(item, keyId);
-
-          return _this._findMatches({
+          var matches = _this._findMatches({
             key: _this._keyStore.get(keyId),
-            value: value,
+            value: _this._myIndex.getValueForItemAtKeyId(item, keyId),
             searcher: searcher
           });
+
+          if (matches && matches.length) {
+            return [{
+              idx: idx,
+              item: item,
+              matches: matches
+            }];
+          }
+
+          return [];
+        }
+        /*eslint indent: [2, 2, {"SwitchCase": 1}]*/
+
+
+        switch (node.operator) {
+          case LogicalOperator.AND:
+            {
+              var res = [];
+
+              for (var i = 0, len = node.children.length; i < len; i += 1) {
+                var child = node.children[i];
+                var result = evaluate(child, item, idx);
+
+                if (result.length) {
+                  res.push.apply(res, _toConsumableArray(result));
+                } else {
+                  return [];
+                }
+              }
+
+              return res;
+            }
+
+          case LogicalOperator.OR:
+            {
+              var _res = [];
+
+              for (var _i = 0, _len = node.children.length; _i < _len; _i += 1) {
+                var _child = node.children[_i];
+
+                var _result = evaluate(_child, item, idx);
+
+                if (_result.length) {
+                  _res.push.apply(_res, _toConsumableArray(_result));
+
+                  break;
+                }
+              }
+
+              return _res;
+            }
         }
       };
 
+      var records = this._myIndex.records;
+      var resultMap = {};
+      var results = [];
       records.forEach(function (_ref3) {
         var item = _ref3.$,
             idx = _ref3.i;
 
         if (isDefined(item)) {
-          var expResults = evaluateExpression(expression, item, idx);
+          var expResults = evaluate(expression, item, idx);
 
           if (expResults.length) {
             // Dedupe when adding
@@ -2140,7 +2163,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.3.0';
+Fuse.version = '6.3.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

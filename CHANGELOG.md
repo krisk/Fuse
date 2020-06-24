@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.3.1](https://github.com/krisk/Fuse/compare/v6.3.0...v6.3.1) (2020-06-24)
+
+
+### Bug Fixes
+
+* **logical:** scores in logical query operators are ignored ([e357229](https://github.com/krisk/Fuse/commit/e357229846fff585707903c93f556d1562fbabba)), closes [#449](https://github.com/krisk/Fuse/issues/449)
+
 ## [6.3.0](https://github.com/krisk/Fuse/compare/v6.2.1...v6.3.0) (2020-06-23)
 
 
