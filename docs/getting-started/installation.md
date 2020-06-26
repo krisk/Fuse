@@ -14,6 +14,20 @@ $ npm install --save fuse.js
 $ yarn add fuse.js
 ```
 
+### `require` and `import`
+
+If you're using `import`:
+
+```js
+import Fuse from "fuse.js";
+```
+
+If you're using `require`:
+
+```js
+const Fuse = require("fuse.js");
+```
+
 ### Direct `<script>` Include
 
 Simply download and include with a script tag. `Fuse` will be registered as a global variable.
