@@ -86,7 +86,7 @@ export default class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query)
 
-    computeScore(results, this._keyStore, { ignoreFieldNorm })
+    computeScore(results, { ignoreFieldNorm })
 
     if (shouldSort) {
       results.sort(sortFn)
@@ -287,11 +287,7 @@ export default class Fuse {
 }
 
 // Practical scoring function
-function computeScore(
-  results,
-  keyStore,
-  { ignoreFieldNorm = Config.ignoreFieldNorm }
-) {
+function computeScore(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
   results.forEach((result) => {
     let totalScore = 1
 

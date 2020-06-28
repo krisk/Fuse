@@ -1862,7 +1862,7 @@
             sortFn = _this$options.sortFn,
             ignoreFieldNorm = _this$options.ignoreFieldNorm;
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
-        computeScore$1(results, this._keyStore, {
+        computeScore$1(results, {
           ignoreFieldNorm: ignoreFieldNorm
         });
 
@@ -2124,7 +2124,7 @@
     return Fuse;
   }(); // Practical scoring function
 
-  function computeScore$1(results, keyStore, _ref8) {
+  function computeScore$1(results, _ref8) {
     var _ref8$ignoreFieldNorm = _ref8.ignoreFieldNorm,
         ignoreFieldNorm = _ref8$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref8$ignoreFieldNorm;
     results.forEach(function (result) {
