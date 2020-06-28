@@ -58,7 +58,7 @@ fs.writeFile('fuse-index.json', JSON.stringify(myIndex.toJSON()))
 // (2) When app starts
 // Load and deserialize index
 const fuseIndex = await require('fuse-index.json')
-const myIndex = Fuse.parseIndex(searchIndex)
+const myIndex = Fuse.parseIndex(fuseIndex)
 // initialize Fuse with the index
 const fuse = new Fuse(books, options, myIndex)
 ```
