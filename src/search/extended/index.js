@@ -1,11 +1,11 @@
 import parseQuery from './parseQuery'
 import FuzzyMatch from './FuzzyMatch'
-import ExactMatch from './ExactMatch'
+import IncludeMatch from './IncludeMatch'
 import Config from '../../core/config'
 
 // These extended matchers can return an array of matches, as opposed
 // to a singl match
-const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type])
+const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type])
 
 /**
  * Command-like searching
@@ -18,8 +18,9 @@ const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type])
  *
  * | Token       | Match type                 | Description                            |
  * | ----------- | -------------------------- | -------------------------------------- |
- * | `jscript`   | fuzzy-match                | Items that match `jscript`             |
- * | `'python`   | exact-match                | Items that include `python`            |
+ * | `jscript`   | fuzzy-match                | Items that fuzzy match `jscript`       |
+ * | `=scheme`   | exact-match                | Items that are `scheme`                |
+ * | `'python`   | include-match              | Items that include `python`            |
  * | `!ruby`     | inverse-exact-match        | Items that do not include `ruby`       |
  * | `^java`     | prefix-exact-match         | Items that start with `java`           |
  * | `!^earlang` | inverse-prefix-exact-match | Items that do not start with `earlang` |

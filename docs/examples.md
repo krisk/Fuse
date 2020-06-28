@@ -278,8 +278,9 @@ White space acts as an **AND** operator, while a single pipe (`|`) character act
 
 | Token       | Match type                 | Description                            |
 | ----------- | -------------------------- | -------------------------------------- |
-| `jscript`   | fuzzy-match                | Items that match `jscript`             |
-| `'python`   | exact-match                | Items that include `python`            |
+| `jscript`   | fuzzy-match                | Items that fuzzy match `jscript`       |
+| `=scheme`   | exact-match                | Items that are `scheme`                |
+| `'python`   | include-match              | Items that include `python`            |
 | `!ruby`     | inverse-exact-match        | Items that do not include `ruby`       |
 | `^java`     | prefix-exact-match         | Items that start with `java`           |
 | `!^earlang` | inverse-prefix-exact-match | Items that do not start with `earlang` |

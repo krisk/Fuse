@@ -1,0 +1,631 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Searching using extended search Search: all 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "smithee",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            6,
+          ],
+          Array [
+            0,
+            6,
+          ],
+        ],
+        "key": "text",
+        "value": "smithee",
+      },
+    ],
+    "refIndex": 4,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "smith",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "smith",
+      },
+    ],
+    "refIndex": 5,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "hello word",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            9,
+          ],
+          Array [
+            0,
+            9,
+          ],
+        ],
+        "key": "text",
+        "value": "hello word",
+      },
+    ],
+    "refIndex": 0,
+    "score": 8.569061098350962e-12,
+  },
+  Object {
+    "item": Object {
+      "text": "I am fine",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            8,
+          ],
+          Array [
+            0,
+            8,
+          ],
+        ],
+        "key": "text",
+        "value": "I am fine",
+      },
+    ],
+    "refIndex": 3,
+    "score": 9.287439764962262e-10,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: exact-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "smith",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "smith",
+      },
+    ],
+    "refIndex": 5,
+    "score": 2.220446049250313e-16,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: include-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "hello word",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "hello word",
+      },
+    ],
+    "refIndex": 0,
+    "score": 1,
+  },
+  Object {
+    "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            12,
+            16,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 1,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: inverse-exact-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "smithee",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            6,
+          ],
+        ],
+        "key": "text",
+        "value": "smithee",
+      },
+    ],
+    "refIndex": 4,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "smith",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "smith",
+      },
+    ],
+    "refIndex": 5,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "hello word",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            9,
+          ],
+        ],
+        "key": "text",
+        "value": "hello word",
+      },
+    ],
+    "refIndex": 0,
+    "score": 8.569061098350962e-12,
+  },
+  Object {
+    "item": Object {
+      "text": "how are you",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+        ],
+        "key": "text",
+        "value": "how are you",
+      },
+    ],
+    "refIndex": 1,
+    "score": 9.287439764962262e-10,
+  },
+  Object {
+    "item": Object {
+      "text": "I am fine",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            8,
+          ],
+        ],
+        "key": "text",
+        "value": "I am fine",
+      },
+    ],
+    "refIndex": 3,
+    "score": 9.287439764962262e-10,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: inverse-prefix-exact-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "smithee",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            6,
+          ],
+        ],
+        "key": "text",
+        "value": "smithee",
+      },
+    ],
+    "refIndex": 4,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "smith",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "smith",
+      },
+    ],
+    "refIndex": 5,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "how are you",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+        ],
+        "key": "text",
+        "value": "how are you",
+      },
+    ],
+    "refIndex": 1,
+    "score": 9.287439764962262e-10,
+  },
+  Object {
+    "item": Object {
+      "text": "I am fine",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            8,
+          ],
+        ],
+        "key": "text",
+        "value": "I am fine",
+      },
+    ],
+    "refIndex": 3,
+    "score": 9.287439764962262e-10,
+  },
+  Object {
+    "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            20,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 1.4901161193847656e-8,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: inverse-suffix-exact-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "smithee",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            6,
+          ],
+        ],
+        "key": "text",
+        "value": "smithee",
+      },
+    ],
+    "refIndex": 4,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "smith",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "smith",
+      },
+    ],
+    "refIndex": 5,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "hello word",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            9,
+          ],
+        ],
+        "key": "text",
+        "value": "hello word",
+      },
+    ],
+    "refIndex": 0,
+    "score": 8.569061098350962e-12,
+  },
+  Object {
+    "item": Object {
+      "text": "how are you",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+        ],
+        "key": "text",
+        "value": "how are you",
+      },
+    ],
+    "refIndex": 1,
+    "score": 9.287439764962262e-10,
+  },
+  Object {
+    "item": Object {
+      "text": "I am fine",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            8,
+          ],
+        ],
+        "key": "text",
+        "value": "I am fine",
+      },
+    ],
+    "refIndex": 3,
+    "score": 9.287439764962262e-10,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: literal match with fuzzy match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "hello word",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "hello word",
+      },
+    ],
+    "refIndex": 0,
+    "score": 0.3205001277290518,
+  },
+  Object {
+    "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+          Array [
+            18,
+            20,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 0.7071067811865476,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: literal match with regular match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+          Array [
+            18,
+            20,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 0.7071067811865476,
+  },
+  Object {
+    "item": Object {
+      "text": "how are you",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            4,
+            6,
+          ],
+        ],
+        "key": "text",
+        "value": "how are you",
+      },
+    ],
+    "refIndex": 1,
+    "score": 1,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: prefix-exact-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "hello word",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            4,
+          ],
+        ],
+        "key": "text",
+        "value": "hello word",
+      },
+    ],
+    "refIndex": 0,
+    "score": 8.569061098350962e-12,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: single literal match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 1,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: suffix-exact-match 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "I am fine",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            5,
+            8,
+          ],
+        ],
+        "key": "text",
+        "value": "I am fine",
+      },
+    ],
+    "refIndex": 3,
+    "score": 9.287439764962262e-10,
+  },
+]
+`;

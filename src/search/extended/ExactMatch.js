@@ -1,6 +1,6 @@
 // Token: 'file
 // Match type: exact-match
-// Description: Items that include `file`
+// Description: Items that are `file`
 
 import BaseMatch from './BaseMatch'
 
@@ -12,30 +12,18 @@ export default class ExactMatch extends BaseMatch {
     return 'exact'
   }
   static get multiRegex() {
-    return /^'"(.*)"$/
+    return /^="(.*)"$/
   }
   static get singleRegex() {
-    return /^'(.*)$/
+    return /^=(.*)$/
   }
   search(text) {
-    let location = 0
-    let index
-
-    const indices = []
-    const patternLen = this.pattern.length
-
-    // Get all exact matches
-    while ((index = text.indexOf(this.pattern, location)) > -1) {
-      location = index + patternLen
-      indices.push([index, location - 1])
-    }
-
-    const isMatch = !!indices.length
+    const isMatch = text === this.pattern
 
     return {
       isMatch,
-      score: isMatch ? 1 : 0,
-      indices
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
     }
   }
 }

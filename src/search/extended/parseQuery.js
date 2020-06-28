@@ -5,10 +5,12 @@ import InversePrefixExactMatch from './InversePrefixExactMatch'
 import SuffixExactMatch from './SuffixExactMatch'
 import InverseSuffixExactMatch from './InverseSuffixExactMatch'
 import FuzzyMatch from './FuzzyMatch'
+import IncludeMatch from './IncludeMatch'
 
 // ❗Order is important. DO NOT CHANGE.
 const searchers = [
   ExactMatch,
+  IncludeMatch,
   PrefixExactMatch,
   InversePrefixExactMatch,
   InverseSuffixExactMatch,
