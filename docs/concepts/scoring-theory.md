@@ -35,3 +35,7 @@ User inputted weight of the key. The higher the weight, the higher its relevance
 ### Field-length Norm
 
 The shorter the field, the higher its relevance. If a pattern matches a short field (such as a `title` field) it is likely to be more relevant than the same pattern matched with a bigger field. This is calculated at index time.
+
+::: tip
+If you can ignore the field-length norm by setting `ignoreFieldNorm` to `true`.
+:::
