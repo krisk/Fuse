@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.3.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.4.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1024,7 +1024,7 @@ class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query);
 
-    computeScore$1(results, this._keyStore, { ignoreFieldNorm });
+    computeScore$1(results, { ignoreFieldNorm });
 
     if (shouldSort) {
       results.sort(sortFn);
@@ -1147,11 +1147,7 @@ class Fuse {
 }
 
 // Practical scoring function
-function computeScore$1(
-  results,
-  keyStore,
-  { ignoreFieldNorm = Config.ignoreFieldNorm }
-) {
+function computeScore$1(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
   results.forEach((result) => {
     let totalScore = 1;
 
@@ -1199,7 +1195,7 @@ function format(
   })
 }
 
-Fuse.version = '6.3.1';
+Fuse.version = '6.4.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

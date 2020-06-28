@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.4.0](https://github.com/krisk/Fuse/compare/v6.3.1...v6.4.0) (2020-06-28)
+
+
+### Features
+
+* **extended:** add ability to search actual exact string ([350283f](https://github.com/krisk/Fuse/commit/350283f45a9affe05c6b3176bb5a5a037916de58))
+
 ### [6.3.1](https://github.com/krisk/Fuse/compare/v6.3.0...v6.3.1) (2020-06-24)
 
 

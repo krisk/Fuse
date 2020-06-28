@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.3.1 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.4.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -876,30 +876,18 @@ class ExactMatch extends BaseMatch {
     return 'exact'
   }
   static get multiRegex() {
-    return /^'"(.*)"$/
+    return /^="(.*)"$/
   }
   static get singleRegex() {
-    return /^'(.*)$/
+    return /^=(.*)$/
   }
   search(text) {
-    let location = 0;
-    let index;
-
-    const indices = [];
-    const patternLen = this.pattern.length;
-
-    // Get all exact matches
-    while ((index = text.indexOf(this.pattern, location)) > -1) {
-      location = index + patternLen;
-      indices.push([index, location - 1]);
-    }
-
-    const isMatch = !!indices.length;
+    const isMatch = text === this.pattern;
 
     return {
       isMatch,
-      score: isMatch ? 1 : 0,
-      indices
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
     }
   }
 }
@@ -1072,9 +1060,48 @@ class FuzzyMatch extends BaseMatch {
   }
 }
 
+// Token: 'file
+
+class IncludeMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'include'
+  }
+  static get multiRegex() {
+    return /^'"(.*)"$/
+  }
+  static get singleRegex() {
+    return /^'(.*)$/
+  }
+  search(text) {
+    let location = 0;
+    let index;
+
+    const indices = [];
+    const patternLen = this.pattern.length;
+
+    // Get all exact matches
+    while ((index = text.indexOf(this.pattern, location)) > -1) {
+      location = index + patternLen;
+      indices.push([index, location - 1]);
+    }
+
+    const isMatch = !!indices.length;
+
+    return {
+      isMatch,
+      score: isMatch ? 1 : 0,
+      indices
+    }
+  }
+}
+
 // ❗Order is important. DO NOT CHANGE.
 const searchers = [
   ExactMatch,
+  IncludeMatch,
   PrefixExactMatch,
   InversePrefixExactMatch,
   InverseSuffixExactMatch,
@@ -1137,7 +1164,7 @@ function parseQuery(pattern, options = {}) {
 
 // These extended matchers can return an array of matches, as opposed
 // to a singl match
-const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type]);
+const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type]);
 
 /**
  * Command-like searching
@@ -1150,8 +1177,9 @@ const MultiMatchSet = new Set([FuzzyMatch.type, ExactMatch.type]);
  *
  * | Token       | Match type                 | Description                            |
  * | ----------- | -------------------------- | -------------------------------------- |
- * | `jscript`   | fuzzy-match                | Items that match `jscript`             |
- * | `'python`   | exact-match                | Items that include `python`            |
+ * | `jscript`   | fuzzy-match                | Items that fuzzy match `jscript`       |
+ * | `=scheme`   | exact-match                | Items that are `scheme`                |
+ * | `'python`   | include-match              | Items that include `python`            |
  * | `!ruby`     | inverse-exact-match        | Items that do not include `ruby`       |
  * | `^java`     | prefix-exact-match         | Items that start with `java`           |
  * | `!^earlang` | inverse-prefix-exact-match | Items that do not start with `earlang` |
@@ -1449,7 +1477,7 @@ class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query);
 
-    computeScore$1(results, this._keyStore, { ignoreFieldNorm });
+    computeScore$1(results, { ignoreFieldNorm });
 
     if (shouldSort) {
       results.sort(sortFn);
@@ -1647,11 +1675,7 @@ class Fuse {
 }
 
 // Practical scoring function
-function computeScore$1(
-  results,
-  keyStore,
-  { ignoreFieldNorm = Config.ignoreFieldNorm }
-) {
+function computeScore$1(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
   results.forEach((result) => {
     let totalScore = 1;
 
@@ -1699,7 +1723,7 @@ function format(
   })
 }
 
-Fuse.version = '6.3.1';
+Fuse.version = '6.4.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
