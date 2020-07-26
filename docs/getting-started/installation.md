@@ -1,6 +1,6 @@
 # Installation
 
-Latest stable version: {{ $themeConfig.version }}
+Latest stable version: **{{ $themeConfig.version }}**
 
 ### NPM
 
