@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.4.1](https://github.com/krisk/Fuse/compare/v6.4.0...v6.4.1) (2020-07-26)
+
+
+### Bug Fixes
+
+* handle booleans in the data ([226d868](https://github.com/krisk/Fuse/commit/226d868a1102402e1e773db305ddd3928ae92f79)), closes [#469](https://github.com/krisk/Fuse/issues/469)
+
 ## [6.4.0](https://github.com/krisk/Fuse/compare/v6.3.1...v6.4.0) (2020-06-28)
 
 

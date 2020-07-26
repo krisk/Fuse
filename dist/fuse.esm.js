@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.4.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.4.1 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -9,12 +9,11 @@
 
 function isArray(value) {
   return !Array.isArray
-    ? Object.prototype.toString.call(value) === '[object Array]'
+    ? getTag(value) === '[object Array]'
     : Array.isArray(value)
 }
 
-// Adapted from:
-// https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
+// Adapted from: https://github.com/lodash/lodash/blob/master/.internal/baseToString.js
 const INFINITY = 1 / 0;
 function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
@@ -37,8 +36,22 @@ function isNumber(value) {
   return typeof value === 'number'
 }
 
+// Adapted from: https://github.com/lodash/lodash/blob/master/isBoolean.js
+function isBoolean(value) {
+  return (
+    value === true ||
+    value === false ||
+    (isObjectLike(value) && getTag(value) == '[object Boolean]')
+  )
+}
+
 function isObject(value) {
   return typeof value === 'object'
+}
+
+// Checks if `value` is object-like.
+function isObjectLike(value) {
+  return isObject(value) && value !== null
 }
 
 function isDefined(value) {
@@ -47,6 +60,16 @@ function isDefined(value) {
 
 function isBlank(value) {
   return !value.trim().length
+}
+
+// Gets the `toStringTag` of `value`.
+// Adapted from: https://github.com/lodash/lodash/blob/master/.internal/getTag.js
+function getTag(value) {
+  return value == null
+    ? value === undefined
+      ? '[object Undefined]'
+      : '[object Null]'
+    : Object.prototype.toString.call(value)
 }
 
 const EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
@@ -158,7 +181,12 @@ function get(obj, path) {
         return
       }
 
-      if (index === path.length - 1 && (isString(value) || isNumber(value))) {
+      // If we're at the last value in the path, and if it's a string/number/bool,
+      // add it to the list
+      if (
+        index === path.length - 1 &&
+        (isString(value) || isNumber(value) || isBoolean(value))
+      ) {
         list.push(toString(value));
       } else if (isArray(value)) {
         arr = true;
@@ -1723,7 +1751,7 @@ function format(
   })
 }
 
-Fuse.version = '6.4.0';
+Fuse.version = '6.4.1';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
