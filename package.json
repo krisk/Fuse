@@ -34,6 +34,7 @@
     "test": "jest",
     "lint": "eslint src scripts test",
     "release": "standard-version -a",
+    "docs:bump": "node ./scripts/bump-docs.js",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:release": "./scripts/deploy-docs.sh"
@@ -77,6 +78,7 @@
     "husky": "^4.2.5",
     "jest": "^25.1.0",
     "prettier": "2.0.2",
+    "replace-in-file": "^6.1.0",
     "rimraf": "3.0.2",
     "rollup": "2.1.0",
     "rollup-plugin-babel": "^4.4.0",
