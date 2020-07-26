@@ -1127,3 +1127,14 @@ describe('Standard dotted keys', () => {
     expect(result).toHaveLength(2)
   })
 })
+
+describe('Breaking values', () => {
+  test('Non-strings are still processed', () => {
+    const data = [{ first: false }]
+    const options = { keys: [{ name: 'first' }] }
+    const fuse = new Fuse(data, options)
+
+    const result = fuse.search('fa')
+    expect(result).toHaveLength(1)
+  })
+})

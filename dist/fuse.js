@@ -213,9 +213,8 @@
   }
 
   function isArray(value) {
-    return !Array.isArray ? Object.prototype.toString.call(value) === '[object Array]' : Array.isArray(value);
-  } // Adapted from:
-  // https://github.com/lodash/lodash/blob/f4ca396a796435422bd4fd41fadbd225edddf175/.internal/baseToString.js
+    return !Array.isArray ? getTag(value) === '[object Array]' : Array.isArray(value);
+  } // Adapted from: https://github.com/lodash/lodash/blob/master/.internal/baseToString.js
 
   var INFINITY = 1 / 0;
   function baseToString(value) {
@@ -235,15 +234,28 @@
   }
   function isNumber(value) {
     return typeof value === 'number';
+  } // Adapted from: https://github.com/lodash/lodash/blob/master/isBoolean.js
+
+  function isBoolean(value) {
+    return value === true || value === false || isObjectLike(value) && getTag(value) == '[object Boolean]';
   }
   function isObject(value) {
     return _typeof(value) === 'object';
+  } // Checks if `value` is object-like.
+
+  function isObjectLike(value) {
+    return isObject(value) && value !== null;
   }
   function isDefined(value) {
     return value !== undefined && value !== null;
   }
   function isBlank(value) {
     return !value.trim().length;
+  } // Gets the `toStringTag` of `value`.
+  // Adapted from: https://github.com/lodash/lodash/blob/master/.internal/getTag.js
+
+  function getTag(value) {
+    return value == null ? value === undefined ? '[object Undefined]' : '[object Null]' : Object.prototype.toString.call(value);
   }
 
   var EXTENDED_SEARCH_UNAVAILABLE = 'Extended search is not available';
@@ -364,9 +376,11 @@
 
         if (!isDefined(value)) {
           return;
-        }
+        } // If we're at the last value in the path, and if it's a string/number/bool,
+        // add it to the list
 
-        if (index === path.length - 1 && (isString(value) || isNumber(value))) {
+
+        if (index === path.length - 1 && (isString(value) || isNumber(value) || isBoolean(value))) {
           list.push(toString(value));
         } else if (isArray(value)) {
           arr = true; // Search each item in the array.

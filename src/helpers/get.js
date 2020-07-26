@@ -1,4 +1,11 @@
-import { isDefined, isString, isNumber, isArray, toString } from './types'
+import {
+  isDefined,
+  isString,
+  isNumber,
+  isBoolean,
+  isArray,
+  toString
+} from './types'
 
 export default function get(obj, path) {
   let list = []
@@ -17,7 +24,12 @@ export default function get(obj, path) {
         return
       }
 
-      if (index === path.length - 1 && (isString(value) || isNumber(value))) {
+      // If we're at the last value in the path, and if it's a string/number/bool,
+      // add it to the list
+      if (
+        index === path.length - 1 &&
+        (isString(value) || isNumber(value) || isBoolean(value))
+      ) {
         list.push(toString(value))
       } else if (isArray(value)) {
         arr = true
