@@ -10,6 +10,10 @@ module.exports = [
     link: '/support/'
   },
   {
+    text: 'Jobs',
+    link: '/jobs/'
+  },
+  {
     text: 'Stories',
     link: '/stories/'
   },

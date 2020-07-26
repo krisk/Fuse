@@ -71,7 +71,7 @@ function getGuideSidebar() {
   ]
 }
 
-function getCcomponent(name) {
+function getComponent(name) {
   return {
     name,
     path: `${__dirname}/components/${name}/${name}.vue`
@@ -87,9 +87,10 @@ function getPlugins() {
       '@vuepress/register-components',
       {
         components: [
-          getCcomponent('Stories'),
-          getCcomponent('Demo'),
-          getCcomponent('Team')
+          getComponent('Stories'),
+          getComponent('Demo'),
+          getComponent('Team'),
+          getComponent('Jobs')
         ]
       }
     ],
