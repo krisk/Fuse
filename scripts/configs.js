@@ -12,7 +12,7 @@ const AUTHOR = pckg.author
 const HOMEPAGE = pckg.homepage
 const DESCRIPTION = pckg.description
 
-const banner = `/**
+const banner = `/*!
  * Fuse.js v${VERSION} - ${DESCRIPTION} (${HOMEPAGE})
  *
  * Copyright (c) ${new Date().getFullYear()} ${AUTHOR.name} (${AUTHOR.url})
