@@ -10,7 +10,7 @@ import * as ErrorMsg from './errorMessages'
 
 export default class Fuse {
   constructor(docs, options = {}, index) {
-    this.options = { ...Config, ...options }
+    this.options = Object.assign({}, Config, options )
 
     if (
       this.options.useExtendedSearch &&

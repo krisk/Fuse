@@ -57,9 +57,9 @@ export const AdvancedOptions = {
   ignoreFieldNorm: false
 }
 
-export default {
-  ...BasicOptions,
-  ...MatchOptions,
-  ...FuzzyOptions,
-  ...AdvancedOptions
-}
+export default Object.assign({},
+  BasicOptions,
+  MatchOptions,
+  FuzzyOptions,
+  AdvancedOptions
+)
