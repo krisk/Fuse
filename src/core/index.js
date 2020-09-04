@@ -54,6 +54,7 @@ export default class Fuse {
       if (predicate(doc, i)) {
         this.removeAt(i)
         i -= 1
+        len -= 1
 
         results.push(doc)
       }
