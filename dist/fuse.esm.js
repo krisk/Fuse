@@ -264,12 +264,12 @@ const AdvancedOptions = {
   ignoreFieldNorm: false
 };
 
-var Config = {
-  ...BasicOptions,
-  ...MatchOptions,
-  ...FuzzyOptions,
-  ...AdvancedOptions
-};
+var Config = Object.assign({},
+  BasicOptions,
+  MatchOptions,
+  FuzzyOptions,
+  AdvancedOptions
+);
 
 const SPACE = /[^ ]+/g;
 
@@ -1428,7 +1428,7 @@ function parse(query, options, { auto = true } = {}) {
 
 class Fuse {
   constructor(docs, options = {}, index) {
-    this.options = { ...Config, ...options };
+    this.options = Object.assign({}, Config, options );
 
     if (
       this.options.useExtendedSearch &&
