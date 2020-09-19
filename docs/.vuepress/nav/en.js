@@ -9,14 +9,14 @@ module.exports = [
     text: 'Support Fuse.js',
     link: '/support/'
   },
-  {
-    text: 'Jobs',
-    link: '/jobs/'
-  },
-  {
-    text: 'Stories',
-    link: '/stories/'
-  },
+  // {
+  //   text: 'Jobs',
+  //   link: '/jobs/'
+  // },
+  // {
+  //   text: 'Stories',
+  //   link: '/stories/'
+  // },
   {
     text: 'Release Notes',
     link: 'https://github.com/krisk/Fuse/releases'
