@@ -344,6 +344,70 @@ describe('Recurse into arrays', () => {
   })
 })
 
+
+describe('Recurse into objects in arrays with null object in array', () => {
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: {
+        name: 'John Scalzi',
+        tags: [
+          {
+            value: 'American'
+          },
+          null
+        ]
+      }
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: {
+        name: 'Steve Hamilton',
+        tags: [
+          {
+            value: 'American'
+          }
+        ]
+      }
+    },
+    {
+      ISBN: '0321784421',
+      title: 'HTML5',
+      author: {
+        name: 'Remy Sharp',
+        tags: [
+          {
+            value: 'British'
+          },
+          null,
+        ]
+      }
+    }
+  ]
+  const customOptions = {
+    keys: ['author.tags.value'],
+    threshold: 0
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the author tag "British"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('British')))
+
+    test('we get a list containing exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the ISBN of the book', () => {      
+      expect(result[0].item.ISBN).toBe('0321784421')
+    })
+  })
+})
+
+
 describe('Recurse into objects in arrays', () => {
   const customBookList = [
     {

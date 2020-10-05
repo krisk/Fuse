@@ -171,6 +171,9 @@ function get(obj, path) {
   let arr = false;
 
   const deepGet = (obj, path, index) => {
+    if (!isDefined(obj)) {
+      return
+    }
     if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
       list.push(obj);
