@@ -274,7 +274,7 @@ Note that internally Fuse will normalize the weights to be within `0` and `1` ex
 
 This form of advanced searching allows you to fine-tune results.
 
-White space acts as an **AND** operator, while a single pipe (`|`) character acts as an **OR** operator.
+White space acts as an **AND** operator, while a single pipe (`|`) character acts as an **OR** operator. To escape white space, use double quote ex. `="scheme language"` for exact match.
 
 | Token       | Match type                 | Description                            |
 | ----------- | -------------------------- | -------------------------------------- |
