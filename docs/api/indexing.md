@@ -7,7 +7,7 @@ tags:
 
 ### `Fuse.createIndex`
 
-Pre-generate the index from the list, and pass it directly into the Fuse instance. If the list is (considerably) large, it speed up instantiation.
+Pre-generate the index from the list, and pass it directly into the Fuse instance. If the list is (considerably) large, it speeds up instantiation.
 
 **Example**
 
