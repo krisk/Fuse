@@ -285,6 +285,10 @@ function get(obj, path) {
   var arr = false;
 
   var deepGet = function deepGet(obj, path, index) {
+    if (!isDefined(obj)) {
+      return;
+    }
+
     if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
       list.push(obj);
