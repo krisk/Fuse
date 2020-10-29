@@ -646,7 +646,7 @@
 
               record.$[keyIndex] = subRecords;
             })();
-          } else if (!isBlank(value)) {
+          } else if (isString(value) && !isBlank(value)) {
             var subRecord = {
               v: value,
               n: _this3.norm.get(value)
