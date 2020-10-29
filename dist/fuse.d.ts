@@ -1,5 +1,5 @@
 // Type definitions for Fuse.js v6.4.2
-// TypeScript v3.9.5
+// TypeScript v3.9.7
 
 export default Fuse
 export as namespace Fuse

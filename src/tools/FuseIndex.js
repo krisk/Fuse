@@ -127,7 +127,7 @@ export default class FuseIndex {
           }
         }
         record.$[keyIndex] = subRecords
-      } else if (!isBlank(value)) {
+      } else if (isString(value) && !isBlank(value)) {
         let subRecord = {
           v: value,
           n: this.norm.get(value)
