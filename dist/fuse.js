@@ -1431,7 +1431,9 @@
           _ref$minMatchCharLeng = _ref.minMatchCharLength,
           minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
           _ref$isCaseSensitive = _ref.isCaseSensitive,
-          isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
+          isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+          _ref$ignoreLocation = _ref.ignoreLocation,
+          ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
 
       _classCallCheck(this, FuzzyMatch);
 
@@ -1443,7 +1445,8 @@
         includeMatches: includeMatches,
         findAllMatches: findAllMatches,
         minMatchCharLength: minMatchCharLength,
-        isCaseSensitive: isCaseSensitive
+        isCaseSensitive: isCaseSensitive,
+        ignoreLocation: ignoreLocation
       });
       return _this;
     }
@@ -1620,6 +1623,8 @@
           includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
           _ref$minMatchCharLeng = _ref.minMatchCharLength,
           minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+          _ref$ignoreLocation = _ref.ignoreLocation,
+          ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation,
           _ref$findAllMatches = _ref.findAllMatches,
           findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
           _ref$location = _ref.location,
@@ -1637,6 +1642,7 @@
         includeMatches: includeMatches,
         minMatchCharLength: minMatchCharLength,
         findAllMatches: findAllMatches,
+        ignoreLocation: ignoreLocation,
         location: location,
         threshold: threshold,
         distance: distance

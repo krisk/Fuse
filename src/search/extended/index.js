@@ -42,6 +42,7 @@ export default class ExtendedSearch {
       isCaseSensitive = Config.isCaseSensitive,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
+      ignoreLocation = Config.ignoreLocation,
       findAllMatches = Config.findAllMatches,
       location = Config.location,
       threshold = Config.threshold,
@@ -54,6 +55,7 @@ export default class ExtendedSearch {
       includeMatches,
       minMatchCharLength,
       findAllMatches,
+      ignoreLocation,
       location,
       threshold,
       distance

@@ -12,7 +12,8 @@ export default class FuzzyMatch extends BaseMatch {
       includeMatches = Config.includeMatches,
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
-      isCaseSensitive = Config.isCaseSensitive
+      isCaseSensitive = Config.isCaseSensitive,
+      ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
     super(pattern)
@@ -23,7 +24,8 @@ export default class FuzzyMatch extends BaseMatch {
       includeMatches,
       findAllMatches,
       minMatchCharLength,
-      isCaseSensitive
+      isCaseSensitive,
+      ignoreLocation
     })
   }
   static get type() {
