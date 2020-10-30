@@ -1,5 +1,24 @@
 # Methods
 
+### `search`
+
+Sarches the entire collection of documents, and returns a list of search results.
+
+```js
+fuse.search(/* pattern , options*/)
+```
+
+The pattern can be one of:
+
+- [String](/examples.html#search-string-array)
+- [Path](/examples.html#nested-search)
+- [Extended query](/examples.html#extended-search)
+- [Logical query](/api/query.html)
+
+The options:
+
+- `limit` (type: `number`): Denotes the max number of returned search results.
+
 ### `setCollection`
 
 Set/replace the entire collection of documents. If no index is provided, one will be generated. Example:
