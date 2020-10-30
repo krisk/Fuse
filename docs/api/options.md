@@ -91,7 +91,10 @@ Determines how close the match must be to the fuzzy location (specified by `loca
 When `true`, search will ignore `location` and `distance`, so it won't matter where in the string the pattern appears.
 
 ::: tip
-To better understand how `location`, `threshold`, and `distance` work together, read our [Scoring Theory](/concepts/scoring-theory.html#scoring-theory).
+
+The default options only search the first 60 characters. This shoud suffice if it is reasonably expected that the match is within this range. To modify this behavior, set the appropriate combination of `location`, `threshold`, `distance` (or `ignoreLocation`).
+
+To better understand how these options work together, read our [Scoring Theory](/concepts/scoring-theory.html#scoring-theory).
 :::
 
 ## Advanced Options
