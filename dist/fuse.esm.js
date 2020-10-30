@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.4.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.4.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1063,7 +1063,8 @@ class FuzzyMatch extends BaseMatch {
       includeMatches = Config.includeMatches,
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
-      isCaseSensitive = Config.isCaseSensitive
+      isCaseSensitive = Config.isCaseSensitive,
+      ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
     super(pattern);
@@ -1074,7 +1075,8 @@ class FuzzyMatch extends BaseMatch {
       includeMatches,
       findAllMatches,
       minMatchCharLength,
-      isCaseSensitive
+      isCaseSensitive,
+      ignoreLocation
     });
   }
   static get type() {
@@ -1232,6 +1234,7 @@ class ExtendedSearch {
       isCaseSensitive = Config.isCaseSensitive,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
+      ignoreLocation = Config.ignoreLocation,
       findAllMatches = Config.findAllMatches,
       location = Config.location,
       threshold = Config.threshold,
@@ -1244,6 +1247,7 @@ class ExtendedSearch {
       includeMatches,
       minMatchCharLength,
       findAllMatches,
+      ignoreLocation,
       location,
       threshold,
       distance
@@ -1755,7 +1759,7 @@ function format(
   })
 }
 
-Fuse.version = '6.4.2';
+Fuse.version = '6.4.3';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

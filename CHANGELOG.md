@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.4.3](https://github.com/krisk/Fuse/compare/v6.4.2...v6.4.3) (2020-10-30)
+
+
+### Bug Fixes
+
+* **extended:** ignoreLocation when useExtendedSearch is true ([8f67ac9](https://github.com/krisk/Fuse/commit/8f67ac985d3440c20d93ce1e1c5ba66f384ea9bf)), closes [#465](https://github.com/krisk/Fuse/issues/465)
+
 ### [6.4.2](https://github.com/krisk/Fuse/compare/v6.4.1...v6.4.2) (2020-10-20)
 
 

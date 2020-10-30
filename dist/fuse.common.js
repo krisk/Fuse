@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.4.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.4.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2020 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1427,7 +1427,9 @@ var FuzzyMatch = /*#__PURE__*/function (_BaseMatch) {
         _ref$minMatchCharLeng = _ref.minMatchCharLength,
         minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
         _ref$isCaseSensitive = _ref.isCaseSensitive,
-        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive;
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+        _ref$ignoreLocation = _ref.ignoreLocation,
+        ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
 
     _classCallCheck(this, FuzzyMatch);
 
@@ -1439,7 +1441,8 @@ var FuzzyMatch = /*#__PURE__*/function (_BaseMatch) {
       includeMatches: includeMatches,
       findAllMatches: findAllMatches,
       minMatchCharLength: minMatchCharLength,
-      isCaseSensitive: isCaseSensitive
+      isCaseSensitive: isCaseSensitive,
+      ignoreLocation: ignoreLocation
     });
     return _this;
   }
@@ -1616,6 +1619,8 @@ var ExtendedSearch = /*#__PURE__*/function () {
         includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
         _ref$minMatchCharLeng = _ref.minMatchCharLength,
         minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+        _ref$ignoreLocation = _ref.ignoreLocation,
+        ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation,
         _ref$findAllMatches = _ref.findAllMatches,
         findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
         _ref$location = _ref.location,
@@ -1633,6 +1638,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
       includeMatches: includeMatches,
       minMatchCharLength: minMatchCharLength,
       findAllMatches: findAllMatches,
+      ignoreLocation: ignoreLocation,
       location: location,
       threshold: threshold,
       distance: distance
@@ -2224,7 +2230,7 @@ function format(results, docs) {
   });
 }
 
-Fuse.version = '6.4.2';
+Fuse.version = '6.4.3';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
