@@ -1,4 +1,4 @@
-# Sponsor Fuse.js Development
+# Support Fuse.js Development
 
 If you use Fuse.js in your daily work and feel that it has made your life easier, please consider sponsorship. It’s like buying me a coffee once in a while! ☕️ If you run a business that is using Fuse.js, it makes sense to sponsor its development: **it ensures the project stays healthy and actively maintained.**
 
