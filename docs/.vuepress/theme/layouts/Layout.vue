@@ -12,6 +12,9 @@
     <!-- <template #page-bottom>
       <BuySellAds />
     </template> -->
+    <!-- <template #page-bottom>
+      <Footer />
+    </template> -->
   </ParentLayout>
 </template>
 
@@ -19,6 +22,7 @@
 import ParentLayout from '@parent-theme/layouts/Layout.vue'
 import CarbonAds from '@theme/components/CarbonAds.vue'
 import Donate from '@theme/components/Donate.vue'
+// import Footer from '@theme/components/Footer.vue'
 // import BuySellAds from '@theme/components/BuySellAds.vue'
 // import Version from '@theme/components/Version.vue'
 
@@ -29,6 +33,7 @@ export default {
     // Version
     CarbonAds,
     Donate
+    // Footer
     // BuySellAds
   }
 }

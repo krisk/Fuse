@@ -10,8 +10,8 @@ export default {
   }),
   mounted() {
     this.version = this.$site.themeConfig.version
-  },
-  methods: {}
+  }
+  // methods: {}
 }
 </script>
 
