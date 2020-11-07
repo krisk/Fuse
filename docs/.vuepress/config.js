@@ -1,6 +1,9 @@
 const pckg = require('../../package.json')
 const VERSION = process.env.VERSION || pckg.version
+
 const GA_MEASUREMENT_ID = 'UA-82107035-1'
+const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
+const GOOGLE_AD_CLIENT_ID = 'ca-pub-3734944050099256'
 
 module.exports = {
   locales: {
@@ -118,6 +121,12 @@ function getPlugins() {
         isPlain: false,
         noGlobalSocialShare: true
       })
+    ],
+    [
+      'vuepress-plugin-google-adsense',
+      {
+        ad_client: GOOGLE_AD_CLIENT_ID
+      }
     ]
   ]
 }
@@ -157,7 +166,7 @@ function getHead() {
     { name: 'theme-color', content: '#ffffff' },
     {
       name: 'google-site-verification',
-      content: '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
+      content: GOOGLE_SITE_VERIFICATION
     }
   ].map(({ name, content }) => ['meta', { name, content }])
 
