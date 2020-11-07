@@ -11472,6 +11472,11 @@ vuepress-plugin-element-tabs@^0.2.8:
     resize-observer-polyfill "^1.5.1"
     sass-loader "^7.1.0"
 
+vuepress-plugin-google-adsense@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/vuepress-plugin-google-adsense/-/vuepress-plugin-google-adsense-0.1.1.tgz#7b9e3a117dfc18b8370d2be381a52917b06fb5da"
+  integrity sha512-eN3mI4mokgFrJ9oI55A6WuSSaO9S5Nk6oZEnjBDivI0wVf2n4Zg+E8Ls15eeMPrBqhK+9u7dWbHCCF4Q5jPLtQ==
+
 vuepress-plugin-smooth-scroll@^0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/vuepress-plugin-smooth-scroll/-/vuepress-plugin-smooth-scroll-0.0.3.tgz#6eff2d4c186cca917cc9f7df2b0af7de7c8c6438"
