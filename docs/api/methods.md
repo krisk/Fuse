@@ -2,7 +2,7 @@
 
 ### `search`
 
-Sarches the entire collection of documents, and returns a list of search results.
+Searches the entire collection of documents, and returns a list of search results.
 
 ```js
 fuse.search(/* pattern , options*/)
