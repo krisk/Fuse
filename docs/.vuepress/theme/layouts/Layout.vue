@@ -8,11 +8,11 @@
       <!-- <div>
         <ins
           class="adsbygoogle"
-          style="display: block;"
+          style="display: block; text-align: center;"
+          data-ad-layout="in-article"
+          data-ad-format="fluid"
           data-ad-client="ca-pub-3734944050099256"
-          data-ad-slot="4159195140"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
+          data-ad-slot="8461402236"
         ></ins>
         <script>
           ;(adsbygoogle = window.adsbygoogle || []).push({})
