@@ -1499,7 +1499,7 @@ var IncludeMatch = /*#__PURE__*/function (_BaseMatch) {
       var isMatch = !!indices.length;
       return {
         isMatch: isMatch,
-        score: isMatch ? 1 : 0,
+        score: isMatch ? 0 : 1,
         indices: indices
       };
     }
