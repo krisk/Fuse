@@ -1125,7 +1125,7 @@ class IncludeMatch extends BaseMatch {
 
     return {
       isMatch,
-      score: isMatch ? 1 : 0,
+      score: isMatch ? 0 : 1,
       indices
     }
   }

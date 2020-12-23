@@ -1,5 +1,5 @@
 // Token: 'file
-// Match type: exact-match
+// Match type: include-match
 // Description: Items that include `file`
 
 import BaseMatch from './BaseMatch'
@@ -34,7 +34,7 @@ export default class IncludeMatch extends BaseMatch {
 
     return {
       isMatch,
-      score: isMatch ? 1 : 0,
+      score: isMatch ? 0 : 1,
       indices
     }
   }

@@ -140,7 +140,7 @@ Array [
       },
     ],
     "refIndex": 0,
-    "score": 1,
+    "score": 8.569061098350962e-12,
   },
   Object {
     "item": Object {
@@ -159,7 +159,7 @@ Array [
       },
     ],
     "refIndex": 2,
-    "score": 1,
+    "score": 1.4901161193847656e-8,
   },
 ]
 `;
@@ -468,6 +468,29 @@ exports[`Searching using extended search Search: literal match with fuzzy match 
 Array [
   Object {
     "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+          Array [
+            18,
+            20,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 1.4901161193847656e-8,
+  },
+  Object {
+    "item": Object {
       "text": "hello word",
     },
     "matches": Array [
@@ -485,57 +508,11 @@ Array [
     "refIndex": 0,
     "score": 0.3205001277290518,
   },
-  Object {
-    "item": Object {
-      "text": "indeed fine hello foo",
-    },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
-            0,
-            10,
-          ],
-          Array [
-            18,
-            20,
-          ],
-        ],
-        "key": "text",
-        "value": "indeed fine hello foo",
-      },
-    ],
-    "refIndex": 2,
-    "score": 0.7071067811865476,
-  },
 ]
 `;
 
 exports[`Searching using extended search Search: literal match with regular match 1`] = `
 Array [
-  Object {
-    "item": Object {
-      "text": "indeed fine hello foo",
-    },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
-            0,
-            10,
-          ],
-          Array [
-            18,
-            20,
-          ],
-        ],
-        "key": "text",
-        "value": "indeed fine hello foo",
-      },
-    ],
-    "refIndex": 2,
-    "score": 0.7071067811865476,
-  },
   Object {
     "item": Object {
       "text": "how are you",
@@ -553,7 +530,30 @@ Array [
       },
     ],
     "refIndex": 1,
-    "score": 1,
+    "score": 9.287439764962262e-10,
+  },
+  Object {
+    "item": Object {
+      "text": "indeed fine hello foo",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            10,
+          ],
+          Array [
+            18,
+            20,
+          ],
+        ],
+        "key": "text",
+        "value": "indeed fine hello foo",
+      },
+    ],
+    "refIndex": 2,
+    "score": 1.4901161193847656e-8,
   },
 ]
 `;
@@ -601,7 +601,7 @@ Array [
       },
     ],
     "refIndex": 2,
-    "score": 1,
+    "score": 1.4901161193847656e-8,
   },
 ]
 `;
