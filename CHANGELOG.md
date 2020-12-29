@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.4.4](https://github.com/krisk/Fuse/compare/v6.4.3...v6.4.4) (2020-12-29)
+
+
+### Bug Fixes
+
+* **extended:** correctly score include-match results ([443c863](https://github.com/krisk/Fuse/commit/443c863c44a48225510057d7597cb743fda2d25f)), closes [#522](https://github.com/krisk/Fuse/issues/522)
+
 ### [6.4.3](https://github.com/krisk/Fuse/compare/v6.4.2...v6.4.3) (2020-10-30)
 
 
