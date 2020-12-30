@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# Purpose: build and publish the the library.
+
 # abort on errors
 set -e
 

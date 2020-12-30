@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# Purpose: build and publish the doumentation (https://fusejs.io)
+
 # abort on errors
 set -e
 

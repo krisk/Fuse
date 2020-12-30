@@ -75,7 +75,7 @@
     "eslint-config-prettier": "6.10.1",
     "eslint-plugin-vue": "7.0.0-alpha.0",
     "faker": "4.1.0",
-    "husky": "^4.2.5",
+    "husky": "^4.3.6",
     "jest": "^25.1.0",
     "prettier": "2.0.2",
     "replace-in-file": "^6.1.0",
