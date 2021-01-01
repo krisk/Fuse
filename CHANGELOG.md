@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.4.5](https://github.com/krisk/Fuse/compare/v6.4.4...v6.4.5) (2021-01-01)
+
+
+### Bug Fixes
+
+* **ts:** export FuseIndex type ([2e60bee](https://github.com/krisk/Fuse/commit/2e60bee242c7b82f0d014a3a35281b34bc6b62fb)), closes [#519](https://github.com/krisk/Fuse/issues/519)
+
 ### [6.4.4](https://github.com/krisk/Fuse/compare/v6.4.3...v6.4.4) (2020-12-29)
 
 

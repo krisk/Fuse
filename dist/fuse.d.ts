@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v6.4.4
+// Type definitions for Fuse.js v6.4.5
 // TypeScript v3.9.5
 
 export default Fuse
@@ -8,7 +8,7 @@ declare class Fuse<T> {
   constructor(
     list: ReadonlyArray<T>,
     options?: Fuse.IFuseOptions<T>,
-    index?: FuseIndex<T>
+    index?: Fuse.FuseIndex<T>
   )
   /**
    * Search function for the Fuse instance.
@@ -28,12 +28,12 @@ declare class Fuse<T> {
    * @param options `Fuse.FuseSearchOptions`
    * @returns An array of search results
    */
-  search<R = T>(
+  search<T>(
     pattern: string | Fuse.Expression,
     options?: Fuse.FuseSearchOptions
-  ): Fuse.FuseResult<R>[]
+  ): Fuse.FuseResult<T>[]
 
-  setCollection(docs: ReadonlyArray<T>, index?: FuseIndex<T>): void
+  setCollection(docs: ReadonlyArray<T>, index?: Fuse.FuseIndex<T>): void
 
   /**
    * Adds a doc to the end the list.
@@ -55,7 +55,7 @@ declare class Fuse<T> {
   /**
    * Returns the generated Fuse index
    */
-  getIndex(): FuseIndex<T>
+  getIndex(): Fuse.FuseIndex<T>
 
   /**
    * Return the current version.
@@ -92,28 +92,28 @@ declare class Fuse<T> {
     keys: Array<Fuse.FuseOptionKey>,
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
-  ): FuseIndex<U>
+  ): Fuse.FuseIndex<U>
 
   static parseIndex<U>(
     index: any,
     options?: Fuse.FuseIndexOptions<U>
-  ): FuseIndex<U>
-}
-
-declare class FuseIndex<T> {
-  constructor(options?: Fuse.FuseIndexOptions<T>)
-  setSources(docs: ReadonlyArray<T>): void
-  setKeys(keys: ReadonlyArray<string>): void
-  setIndexRecords(records: Fuse.FuseIndexRecords): void
-  create(): void
-  add(doc: T): void
-  toJSON(): {
-    keys: ReadonlyArray<string>
-    collection: Fuse.FuseIndexRecords
-  }
+  ): Fuse.FuseIndex<U>
 }
 
 declare namespace Fuse {
+  export class FuseIndex<T> {
+    constructor(options?: FuseIndexOptions<T>)
+    setSources(docs: ReadonlyArray<T>): void
+    setKeys(keys: ReadonlyArray<string>): void
+    setIndexRecords(records: FuseIndexRecords): void
+    create(): void
+    add(doc: T): void
+    toJSON(): {
+      keys: ReadonlyArray<string>
+      collection: FuseIndexRecords
+    }
+  }
+
   type FuseGetFunction<T> = (
     obj: T,
     path: string | string[]
