@@ -10,9 +10,15 @@ read -p "Do you want to publish the website? (y/n) " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+  # bump
+  echo "Updating Fuse.js version"
+  npm run docs:bump
+
   # build
+  echo "Building docs"
   npm run docs:build
 
+  echo "Publishing"
   # navigate into the build output directory
   cd docs/.vuepress/dist
 
