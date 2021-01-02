@@ -39,3 +39,5 @@ The shorter the field, the higher its relevance. If a pattern matches a short fi
 ::: tip
 You can ignore the field-length norm by setting `ignoreFieldNorm` to `true`.
 :::
+
+<Donate />

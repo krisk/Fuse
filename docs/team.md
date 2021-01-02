@@ -7,3 +7,5 @@ order: 803
 # Meet the Team
 
 <Team />
+
+<Donate />

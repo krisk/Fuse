@@ -368,3 +368,5 @@ const result = fuse.search({
   ]
 })
 ``` -->
+
+<Donate />

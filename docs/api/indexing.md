@@ -62,3 +62,5 @@ const myIndex = Fuse.parseIndex(fuseIndex)
 // initialize Fuse with the index
 const fuse = new Fuse(books, options, myIndex)
 ```
+
+<Donate />

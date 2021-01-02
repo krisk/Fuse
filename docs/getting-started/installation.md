@@ -69,3 +69,5 @@ You can directly import `Fuse` as an ES module from the deno.land/x service:
 // @deno-types="https://deno.land/x/fuse@v6.4.5/dist/fuse.d.ts"
 import Fuse from 'https://deno.land/x/fuse@v6.4.5/dist/fuse.esm.min.js'
 ```
+
+<Donate />

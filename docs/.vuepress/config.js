@@ -93,7 +93,8 @@ function getPlugins() {
           getComponent('Stories'),
           getComponent('Demo'),
           getComponent('Team'),
-          getComponent('Jobs')
+          getComponent('Jobs'),
+          getComponent('Donate')
         ]
       }
     ],

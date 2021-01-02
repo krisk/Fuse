@@ -20,3 +20,5 @@ In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.
 - **[CommonJS](http://wiki.commonjs.org/wiki/Modules/1.1)**: CommonJS builds are intended for use with older bundlers like [browserify](http://browserify.org/) or [webpack 1](https://webpack.github.io). The file for these bundlers (`pkg.main`) is the CommonJS build (`fuse.common.js`).
 
 - **[ES Module](http://exploringjs.com/es6/ch_modules.html)**: Intended for use with modern bundlers like [Webpack 2](https://webpack.js.org) or [Rollup](http://rollupjs.org/). The file for these bundlers (`pkg.module`) is the ES Module build (`fuse.esm.js`).
+
+<Donate />

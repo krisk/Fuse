@@ -10,3 +10,5 @@ Modify the `options` and/or `pattern`:
 <ClientOnly>
   <Demo />
 </ClientOnly>
+
+<Donate />

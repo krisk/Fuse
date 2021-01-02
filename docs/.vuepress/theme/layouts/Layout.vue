@@ -19,15 +19,15 @@
         </script>
       </div> -->
     </template>
-    <template #sidebar-bottom>
+    <!-- <template #sidebar-bottom>
       <Donate />
-    </template>
+    </template> -->
     <!-- <template #page-bottom>
       <BuySellAds />
     </template> -->
-    <!-- <template #page-bottom>
-      <Footer />
-    </template> -->
+    <template #page-bottom>
+      <!-- <DonateLink /> -->
+    </template>
   </ParentLayout>
 </template>
 
@@ -35,8 +35,8 @@
 import ParentLayout from '@parent-theme/layouts/Layout.vue'
 import CarbonAds from '@theme/components/CarbonAds.vue'
 // import AdUnit from '@theme/components/AdUnit.vue'
-import Donate from '@theme/components/Donate.vue'
-// import Footer from '@theme/components/Footer.vue'
+// import Donate from '@theme/components/Donate.vue'
+// import DonateLink from '@theme/components/DonateLink.vue'
 // import BuySellAds from '@theme/components/BuySellAds.vue'
 // import Version from '@theme/components/Version.vue'
 
@@ -45,10 +45,10 @@ export default {
   components: {
     ParentLayout,
     // Version
-    CarbonAds,
+    CarbonAds
     // AdUnit,
-    Donate
-    // Footer
+    // Donate,
+    // DonateLink
     // BuySellAds
   }
 }

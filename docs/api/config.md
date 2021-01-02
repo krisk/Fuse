@@ -14,3 +14,5 @@ const options = {
   }
 }
 ```
+
+<Donate />

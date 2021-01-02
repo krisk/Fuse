@@ -130,3 +130,5 @@ When `true`, the calculation for the relevance score (used for sorting) will ign
 :::tip
 The only time it makes sense to set `ignoreFieldNorm` to `true` is when it does not matter how many terms there are, but only that the query term exists.
 :::
+
+<Donate />

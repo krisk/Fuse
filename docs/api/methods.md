@@ -88,3 +88,5 @@ const fuse = new Fuse(fruits)
 console.log(fuse.getIndex().size())
 // => 4
 ```
+
+<Donate />
