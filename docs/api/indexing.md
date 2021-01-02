@@ -11,25 +11,33 @@ Pre-generate the index from the list, and pass it directly into the Fuse instanc
 
 **Example**
 
-```js
-const books = [
+:::: tabs
+::: tab List
+
+```json
+[
   {
-    title: "Old Man's War",
-    author: {
-      firstName: 'John',
-      lastName: 'Scalzi'
+    "title": "Old Man's War",
+    "author": {
+      "firstName": "John",
+      "lastName": "Scalzi"
     }
   },
   {
-    title: 'The Lock Artist',
-    author: {
-      firstName: 'Steve',
-      lastName: 'Hamilton'
+    "title": "The Lock Artist",
+    "author": {
+      "firstName": "Steve",
+      "lastName": "Hamilton"
     }
   }
   /*...*/
 ]
+```
 
+:::
+::: tab JS
+
+```js
 const options = { keys: ['title', 'author.firstName'] }
 
 // Create the Fuse index
@@ -37,6 +45,9 @@ const myIndex = Fuse.createIndex(options.keys, books)
 // initialize Fuse with the index
 const fuse = new Fuse(books, options, myIndex)
 ```
+
+:::
+::::
 
 :::tip
 Fuse will automatically index the table if one isn't provided during instantiation.

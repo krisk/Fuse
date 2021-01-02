@@ -5,8 +5,8 @@
 :::: tabs
 ::: tab List
 
-```js
-const list = ["Old Man's War", 'The Lock Artist']
+```json
+["Old Man's War", "The Lock Artist"]
 ```
 
 :::
@@ -44,17 +44,17 @@ const result = fuse.search('od man')
 :::: tabs
 ::: tab List
 
-```js
-const list = [
+```json
+[
   {
-    title: "Old Man's War",
-    author: 'John Scalzi',
-    tags: ['fiction']
+    "title": "Old Man's War",
+    "author": "John Scalzi",
+    "tags": ["fiction"]
   },
   {
-    title: 'The Lock Artist',
-    author: 'Steve',
-    tags: ['thriller']
+    "title": "The Lock Artist",
+    "author": "Steve",
+    "tags": ["thriller"]
   }
 ]
 ```
@@ -102,26 +102,26 @@ You can search through nested values by providing the path via dot (`.`) or arra
 :::: tabs
 ::: tab List
 
-```js
-const list = [
+```json
+[
   {
-    title: "Old Man's War",
-    author: {
-      name: 'John Scalzi',
-      tags: [
+    "title": "Old Man's War",
+    "author": {
+      "name": "John Scalzi",
+      "tags": [
         {
-          value: 'American'
+          "value": "American"
         }
       ]
     }
   },
   {
-    title: 'The Lock Artist',
-    author: {
-      name: 'Steve Hamilton',
-      tags: [
+    "title": "The Lock Artist",
+    "author": {
+      "name": "Steve Hamilton",
+      "tags": [
         {
-          value: 'English'
+          "value": "English"
         }
       ]
     }
@@ -182,17 +182,17 @@ You can allocate a weight to keys to give them higher (or lower) values in searc
 :::: tabs
 ::: tab List
 
-```js
-const books = [
+```json
+[
   {
-    title: "Old Man's War fiction",
-    author: 'John X',
-    tags: ['war']
+    "title": "Old Man's War fiction",
+    "author": "John X",
+    "tags": ["war"]
   },
   {
-    title: 'Right Ho Jeeves',
-    author: 'P.D. Mans',
-    tags: ['fiction', 'war']
+    "title": "Right Ho Jeeves",
+    "author": "P.D. Mans",
+    "tags": ["fiction", "war"]
   }
 ]
 ```
@@ -292,19 +292,19 @@ White space acts as an **AND** operator, while a single pipe (`|`) character act
 :::: tabs
 ::: tab List
 
-```js
-const books = [
+```json
+[
   {
-    title: "Old Man's War",
-    author: 'John Scalzi'
+    "title": "Old Man's War",
+    "author": "John Scalzi"
   },
   {
-    title: 'The Lock Artist',
-    author: 'Steve'
+    "title": "The Lock Artist",
+    "author": "Steve"
   },
   {
-    title: 'Artist for Life',
-    author: 'Michelangelo'
+    "title": "Artist for Life",
+    "author": "Michelangelo"
   }
 ]
 ```

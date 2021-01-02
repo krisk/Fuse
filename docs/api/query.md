@@ -19,7 +19,7 @@ The `$and` operator performs a logical **AND** operation on an array of expressi
 Fuse.js provides an implicit **AND** operation when specifying a comma separated list of expressions. Using an explicit **AND** with the `$and` operator is necessary when the same field or operator has to be specified in multiple expressions.
 :::
 
-#### Examples
+#### Example
 
 ```js
 const result = fuse.search({
@@ -32,13 +32,68 @@ const result = fuse.search({
 The `$or` operator performs a logical **OR** operation on an array expressions and selects the entries that satisfy at least one of the expressions.
 The `$or` operator uses short-circuit evaluation (i.e, if the first expression evaluates to true, Fuse.js will not evaluate the remaining expressions).
 
-#### Examples
+#### Example
 
 ```js
 const result = fuse.search({
   $or: [{ author: 'abc' }, { author: 'def' }]
 })
 ```
+
+## Logical search with dotted keys
+
+To handle keys that contain dots, you can use the `$path` and `$val` properties when building the query.
+
+#### Example
+
+:::: tabs
+::: tab List
+
+```json
+[
+  {
+    "title": "Old Man's War",
+    "author": {
+      "first.name": "John",
+      "last.name": "Scalzi",
+      "age": "61"
+    }
+  }
+]
+```
+
+:::
+
+::: tab JS
+
+```javascript
+const options = {
+  useExtendedSearch: true,
+  includeScore: true,
+  keys: [
+    'title',
+    ['author', 'first.name'],
+    ['author', 'last.name'],
+    'author.age'
+  ]
+}
+
+const query = {
+  $and: [
+    {
+      $path: ['author', 'first.name'],
+      $val: 'jon'
+    },
+    {
+      $path: ['author', 'last.name'],
+      $val: 'scazi'
+    }
+  ]
+}
+```
+
+:::
+::::
 
 ## Use with Extended Searching
 
