@@ -84,3 +84,5 @@ Read the [stories](/stories.html) to learn how various products are using Fuse.j
 ---
 
 Check out the [live demo](/demo.html) to fiddle with it and to learn how to use it.
+
+<Donate />
