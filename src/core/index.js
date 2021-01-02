@@ -1,10 +1,11 @@
 import { isArray, isDefined, isString, isNumber } from '../helpers/types'
 import KeyStore from '../tools/KeyStore'
 import FuseIndex, { createIndex } from '../tools/FuseIndex'
-import { transformMatches, transformScore } from '../transform'
 import { LogicalOperator, parse } from './queryParser'
 import { createSearcher } from './register'
 import Config from './config'
+import computeScore from './computeScore'
+import format from './format'
 import * as ErrorMsg from './errorMessages'
 
 export default class Fuse {
@@ -285,53 +286,4 @@ export default class Fuse {
 
     return matches
   }
-}
-
-// Practical scoring function
-function computeScore(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
-  results.forEach((result) => {
-    let totalScore = 1
-
-    result.matches.forEach(({ key, norm, score }) => {
-      const weight = key ? key.weight : null
-
-      totalScore *= Math.pow(
-        score === 0 && weight ? Number.EPSILON : score,
-        (weight || 1) * (ignoreFieldNorm ? 1 : norm)
-      )
-    })
-
-    result.score = totalScore
-  })
-}
-
-function format(
-  results,
-  docs,
-  {
-    includeMatches = Config.includeMatches,
-    includeScore = Config.includeScore
-  } = {}
-) {
-  const transformers = []
-
-  if (includeMatches) transformers.push(transformMatches)
-  if (includeScore) transformers.push(transformScore)
-
-  return results.map((result) => {
-    const { idx } = result
-
-    const data = {
-      item: docs[idx],
-      refIndex: idx
-    }
-
-    if (transformers.length) {
-      transformers.forEach((transformer) => {
-        transformer(result, data)
-      })
-    }
-
-    return data
-  })
 }
