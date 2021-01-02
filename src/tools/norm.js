@@ -4,6 +4,7 @@ const SPACE = /[^ ]+/g
 // Set to 3 decimals to reduce index size.
 export default function norm(mantissa = 3) {
   const cache = new Map()
+  const m = Math.pow(10, mantissa)
 
   return {
     get(value) {
@@ -13,7 +14,10 @@ export default function norm(mantissa = 3) {
         return cache.get(numTokens)
       }
 
-      const n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa))
+      const norm = 1 / Math.sqrt(numTokens)
+
+      // In place of `toFixed(mantissa)`, for faster computation
+      const n = parseFloat(Math.round(norm * m) / m)
 
       cache.set(numTokens, n)
 
