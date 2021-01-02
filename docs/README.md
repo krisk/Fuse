@@ -79,8 +79,6 @@ Of course! Fuse.js has no DOM dependencies.
 
 Plenty of people. It's hard to say an exact number, since it's free. But a good indication is the number of [dependents](https://www.npmjs.com/package/fuse.js?activeTab=dependents) on NPM, and the [dependency graph](https://github.com/krisk/Fuse/network/dependents) and [stargazers](https://github.com/krisk/Fuse/stargazers) on Github.
 
-Read the [stories](/stories.html) to learn how various products are using Fuse.js to tackle a growing number of use cases.
-
 ---
 
 Check out the [live demo](/demo.html) to fiddle with it and to learn how to use it.
