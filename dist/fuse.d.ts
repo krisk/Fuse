@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v6.4.5
+// Type definitions for Fuse.js v6.4.6
 // TypeScript v3.9.5
 
 export default Fuse
@@ -28,10 +28,10 @@ declare class Fuse<T> {
    * @param options `Fuse.FuseSearchOptions`
    * @returns An array of search results
    */
-  search<T>(
+  search<R = T>(
     pattern: string | Fuse.Expression,
     options?: Fuse.FuseSearchOptions
-  ): Fuse.FuseResult<T>[]
+  ): Fuse.FuseResult<R>[]
 
   setCollection(docs: ReadonlyArray<T>, index?: Fuse.FuseIndex<T>): void
 

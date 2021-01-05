@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.4.6](https://github.com/krisk/Fuse/compare/v6.4.5...v6.4.6) (2021-01-05)
+
+
+### Bug Fixes
+
+* **typescript:** fix search typings ([94766b2](https://github.com/krisk/Fuse/commit/94766b2ffcc2be0e5f15daa9a29cd92adbe2647a)), closes [#527](https://github.com/krisk/Fuse/issues/527)
+
 ### [6.4.5](https://github.com/krisk/Fuse/compare/v6.4.4...v6.4.5) (2021-01-01)
 
 

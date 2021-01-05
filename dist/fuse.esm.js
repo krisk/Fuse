@@ -1,5 +1,5 @@
 /**
- * Fuse.js v6.4.5 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v6.4.6 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2021 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -280,6 +280,7 @@ const SPACE = /[^ ]+/g;
 // Set to 3 decimals to reduce index size.
 function norm(mantissa = 3) {
   const cache = new Map();
+  const m = Math.pow(10, mantissa);
 
   return {
     get(value) {
@@ -289,7 +290,10 @@ function norm(mantissa = 3) {
         return cache.get(numTokens)
       }
 
-      const n = parseFloat((1 / Math.sqrt(numTokens)).toFixed(mantissa));
+      const norm = 1 / Math.sqrt(numTokens);
+
+      // In place of `toFixed(mantissa)`, for faster computation
+      const n = parseFloat(Math.round(norm * m) / m);
 
       cache.set(numTokens, n);
 
@@ -456,42 +460,6 @@ function parseIndex(data, { getFn = Config.getFn } = {}) {
   myIndex.setKeys(keys);
   myIndex.setIndexRecords(records);
   return myIndex
-}
-
-function transformMatches(result, data) {
-  const matches = result.matches;
-  data.matches = [];
-
-  if (!isDefined(matches)) {
-    return
-  }
-
-  matches.forEach((match) => {
-    if (!isDefined(match.indices) || !match.indices.length) {
-      return
-    }
-
-    const { indices, value } = match;
-
-    let obj = {
-      indices,
-      value
-    };
-
-    if (match.key) {
-      obj.key = match.key.src;
-    }
-
-    if (match.idx > -1) {
-      obj.refIndex = match.idx;
-    }
-
-    data.matches.push(obj);
-  });
-}
-
-function transformScore(result, data) {
-  data.score = result.score;
 }
 
 function computeScore(
@@ -1433,6 +1401,94 @@ function parse(query, options, { auto = true } = {}) {
   return next(query)
 }
 
+// Practical scoring function
+function computeScore$1(
+  results,
+  { ignoreFieldNorm = Config.ignoreFieldNorm }
+) {
+  results.forEach((result) => {
+    let totalScore = 1;
+
+    result.matches.forEach(({ key, norm, score }) => {
+      const weight = key ? key.weight : null;
+
+      totalScore *= Math.pow(
+        score === 0 && weight ? Number.EPSILON : score,
+        (weight || 1) * (ignoreFieldNorm ? 1 : norm)
+      );
+    });
+
+    result.score = totalScore;
+  });
+}
+
+function transformMatches(result, data) {
+  const matches = result.matches;
+  data.matches = [];
+
+  if (!isDefined(matches)) {
+    return
+  }
+
+  matches.forEach((match) => {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return
+    }
+
+    const { indices, value } = match;
+
+    let obj = {
+      indices,
+      value
+    };
+
+    if (match.key) {
+      obj.key = match.key.src;
+    }
+
+    if (match.idx > -1) {
+      obj.refIndex = match.idx;
+    }
+
+    data.matches.push(obj);
+  });
+}
+
+function transformScore(result, data) {
+  data.score = result.score;
+}
+
+function format(
+  results,
+  docs,
+  {
+    includeMatches = Config.includeMatches,
+    includeScore = Config.includeScore
+  } = {}
+) {
+  const transformers = [];
+
+  if (includeMatches) transformers.push(transformMatches);
+  if (includeScore) transformers.push(transformScore);
+
+  return results.map((result) => {
+    const { idx } = result;
+
+    const data = {
+      item: docs[idx],
+      refIndex: idx
+    };
+
+    if (transformers.length) {
+      transformers.forEach((transformer) => {
+        transformer(result, data);
+      });
+    }
+
+    return data
+  })
+}
+
 class Fuse {
   constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options };
@@ -1710,56 +1766,7 @@ class Fuse {
   }
 }
 
-// Practical scoring function
-function computeScore$1(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
-  results.forEach((result) => {
-    let totalScore = 1;
-
-    result.matches.forEach(({ key, norm, score }) => {
-      const weight = key ? key.weight : null;
-
-      totalScore *= Math.pow(
-        score === 0 && weight ? Number.EPSILON : score,
-        (weight || 1) * (ignoreFieldNorm ? 1 : norm)
-      );
-    });
-
-    result.score = totalScore;
-  });
-}
-
-function format(
-  results,
-  docs,
-  {
-    includeMatches = Config.includeMatches,
-    includeScore = Config.includeScore
-  } = {}
-) {
-  const transformers = [];
-
-  if (includeMatches) transformers.push(transformMatches);
-  if (includeScore) transformers.push(transformScore);
-
-  return results.map((result) => {
-    const { idx } = result;
-
-    const data = {
-      item: docs[idx],
-      refIndex: idx
-    };
-
-    if (transformers.length) {
-      transformers.forEach((transformer) => {
-        transformer(result, data);
-      });
-    }
-
-    return data
-  })
-}
-
-Fuse.version = '6.4.5';
+Fuse.version = '6.4.6';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
