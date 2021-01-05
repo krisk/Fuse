@@ -3,7 +3,7 @@ const VERSION = process.env.VERSION || pckg.version
 
 const GA_MEASUREMENT_ID = 'UA-82107035-1'
 const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
-const GOOGLE_AD_CLIENT_ID = 'ca-pub-3734944050099256'
+//const GOOGLE_AD_CLIENT_ID = 'ca-pub-3734944050099256'
 
 module.exports = {
   locales: {
@@ -122,13 +122,13 @@ function getPlugins() {
         isPlain: false,
         noGlobalSocialShare: true
       })
-    ],
-    [
-      'vuepress-plugin-google-adsense',
-      {
-        ad_client: GOOGLE_AD_CLIENT_ID
-      }
     ]
+    // [
+    //   'vuepress-plugin-google-adsense',
+    //   {
+    //     ad_client: GOOGLE_AD_CLIENT_ID
+    //   }
+    // ]
   ]
 }
 
