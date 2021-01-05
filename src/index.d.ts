@@ -25,10 +25,10 @@ declare class Fuse<T> {
    * @param options `Fuse.FuseSearchOptions`
    * @returns An array of search results
    */
-  search<T>(
+  search<R = T>(
     pattern: string | Fuse.Expression,
     options?: Fuse.FuseSearchOptions
-  ): Fuse.FuseResult<T>[]
+  ): Fuse.FuseResult<R>[]
 
   setCollection(docs: ReadonlyArray<T>, index?: Fuse.FuseIndex<T>): void
 
