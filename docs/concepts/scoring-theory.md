@@ -30,7 +30,7 @@ If you don't care where the pattern appears in the string, and you still want to
 
 ### Key Weight
 
-User inputted weight of the key. The higher the weight, the higher its relevance score. This is optional, athough Fuse.js will internally default it to `1` if one isn't provided. This boosting is applied at query time.
+User inputted weight of the key. The higher the weight, the higher its relevance score. This is optional, although Fuse.js will internally default it to `1` if one isn't provided. This boosting is applied at query time.
 
 ### Field-length Norm
 
