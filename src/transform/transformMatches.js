@@ -1,33 +1,39 @@
 import { isDefined } from '../helpers/types'
 
-export default function transformMatches(result, data) {
-  const matches = result.matches
-  data.matches = []
+export default function transformMatches(includeScore) {
+  return function (result, data) {
+    const matches = result.matches
+    data.matches = []
 
-  if (!isDefined(matches)) {
-    return
-  }
-
-  matches.forEach((match) => {
-    if (!isDefined(match.indices) || !match.indices.length) {
+    if (!isDefined(matches)) {
       return
     }
 
-    const { indices, value } = match
+    matches.forEach((match) => {
+      if (!isDefined(match.indices) || !match.indices.length) {
+        return
+      }
 
-    let obj = {
-      indices,
-      value
-    }
+      const { indices, value } = match
 
-    if (match.key) {
-      obj.key = match.key.src
-    }
+      let obj = {
+        indices,
+        value
+      }
 
-    if (match.idx > -1) {
-      obj.refIndex = match.idx
-    }
+      if (includeScore && isDefined(match.score)) {
+        obj.score = match.score
+      }
 
-    data.matches.push(obj)
-  })
-}
+      if (match.key) {
+        obj.key = match.key.src
+      }
+
+      if (match.idx > -1) {
+        obj.refIndex = match.idx
+      }
+
+      data.matches.push(obj)
+    })
+  }
+} 
