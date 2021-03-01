@@ -92,7 +92,7 @@ When `true`, search will ignore `location` and `distance`, so it won't matter wh
 
 ::: tip
 
-The default options only search the first 60 characters. This shoud suffice if it is reasonably expected that the match is within this range. To modify this behavior, set the appropriate combination of `location`, `threshold`, `distance` (or `ignoreLocation`).
+The default options only search the first 60 characters. This should suffice if it is reasonably expected that the match is within this range. To modify this behavior, set the appropriate combination of `location`, `threshold`, `distance` (or `ignoreLocation`).
 
 To better understand how these options work together, read our [Scoring Theory](/concepts/scoring-theory.html#scoring-theory).
 :::
