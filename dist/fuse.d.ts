@@ -269,6 +269,7 @@ declare namespace Fuse {
     key?: string
     refIndex?: number
     value?: string
+    score?: number
   }
 
   export type FuseSearchOptions = {

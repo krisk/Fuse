@@ -1821,36 +1821,42 @@
     });
   }
 
-  function transformMatches(result, data) {
-    var matches = result.matches;
-    data.matches = [];
+  function transformMatches(includeScore) {
+    return function (result, data) {
+      var matches = result.matches;
+      data.matches = [];
 
-    if (!isDefined(matches)) {
-      return;
-    }
-
-    matches.forEach(function (match) {
-      if (!isDefined(match.indices) || !match.indices.length) {
+      if (!isDefined(matches)) {
         return;
       }
 
-      var indices = match.indices,
-          value = match.value;
-      var obj = {
-        indices: indices,
-        value: value
-      };
+      matches.forEach(function (match) {
+        if (!isDefined(match.indices) || !match.indices.length) {
+          return;
+        }
 
-      if (match.key) {
-        obj.key = match.key.src;
-      }
+        var indices = match.indices,
+            value = match.value;
+        var obj = {
+          indices: indices,
+          value: value
+        };
 
-      if (match.idx > -1) {
-        obj.refIndex = match.idx;
-      }
+        if (includeScore && isDefined(match.score)) {
+          obj.score = match.score;
+        }
 
-      data.matches.push(obj);
-    });
+        if (match.key) {
+          obj.key = match.key.src;
+        }
+
+        if (match.idx > -1) {
+          obj.refIndex = match.idx;
+        }
+
+        data.matches.push(obj);
+      });
+    };
   }
 
   function transformScore(result, data) {
@@ -1865,7 +1871,7 @@
         includeScore = _ref$includeScore === void 0 ? Config.includeScore : _ref$includeScore;
 
     var transformers = [];
-    if (includeMatches) transformers.push(transformMatches);
+    if (includeMatches) transformers.push(transformMatches(includeScore));
     if (includeScore) transformers.push(transformScore);
     return results.map(function (result) {
       var idx = result.idx;

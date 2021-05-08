@@ -11,7 +11,7 @@ export default function format(
 ) {
   const transformers = []
 
-  if (includeMatches) transformers.push(transformMatches)
+  if (includeMatches) transformers.push(transformMatches(includeScore))
   if (includeScore) transformers.push(transformScore)
 
   return results.map((result) => {
