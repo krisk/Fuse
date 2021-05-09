@@ -107,7 +107,7 @@ const builds = {
     features: {
       ...fullBuildFeatures
     },
-    transpile: false
+    transpile: true
   },
   'esm-prod-full': {
     entry: resolve('src/entry.js'),
@@ -117,7 +117,7 @@ const builds = {
     features: {
       ...fullBuildFeatures
     },
-    transpile: false
+    transpile: true
   },
   'esm-basic': {
     entry: resolve('src/entry.js'),
