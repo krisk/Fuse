@@ -1,5 +1,6 @@
 const Fuse = require('../dist/fuse')
-import * as ErrorMsg from '../src/core/errorMessages'
+import { MissingKeyPropertyException } from "../src/core/error.js";
+import { InvalidKeyWeightValueException } from "../src/core/error.js";
 
 const defaultList = ['Apple', 'Orange', 'Banana']
 const defaultOptions = {}
@@ -523,13 +524,13 @@ describe('Weighted search', () => {
           { name: 'author', weight: 0.7 }
         ]
       })
-    }).toThrowError(ErrorMsg.INVALID_KEY_WEIGHT_VALUE('title'))
+    }).toThrowError((new InvalidKeyWeightValueException('title')).message)
 
     expect(() => {
       setup(customBookList, {
         keys: [{ weight: 10 }, { name: 'author', weight: 0.7 }]
       })
-    }).toThrowError(ErrorMsg.MISSING_KEY_PROPERTY('name'))
+    }).toThrowError((new MissingKeyPropertyException('name')).message)
   })
 
   describe('When searching for the term "John Smith" with author weighted higher', () => {
