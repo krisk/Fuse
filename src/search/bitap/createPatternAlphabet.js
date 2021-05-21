@@ -1,10 +1,12 @@
-export default function createPatternAlphabet(pattern) {
-  let mask = {}
+function createPatternAlphabet(pattern) {
+  let mask = {};
 
-  for (let i = 0, len = pattern.length; i < len; i += 1) {
-    const char = pattern.charAt(i)
-    mask[char] = (mask[char] || 0) | (1 << (len - i - 1))
+  for (let i = 0, patn_len = pattern.length; i < patn_len; i++) {
+    const char = pattern.charAt(i);
+    mask[char] = (mask[char] || 0) | (1 << (patn_len - i - 1));
   }
 
-  return mask
+  return mask;
 }
+
+export default createPatternAlphabet;

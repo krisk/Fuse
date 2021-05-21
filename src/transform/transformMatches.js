@@ -1,33 +1,26 @@
-import { isDefined } from '../helpers/types'
+import { isDefined } from "../helpers/types.js";
 
-export default function transformMatches(result, data) {
-  const matches = result.matches
-  data.matches = []
+function transformMatches(result, data) {
+  const matches = result.matches;
 
-  if (!isDefined(matches)) {
-    return
-  }
+  if (!isDefined(matches)) return;
+
+  data.matches = [];
 
   matches.forEach((match) => {
-    if (!isDefined(match.indices) || !match.indices.length) {
-      return
-    }
-
-    const { indices, value } = match
+    if (!isDefined(match.indices) || !match?.indices.length) return;
 
     let obj = {
-      indices,
-      value
-    }
+      value: match.value,
+      indices: match.indices,
+    };
 
-    if (match.key) {
-      obj.key = match.key.src
-    }
+    if (match.key) obj.key = match.key.src;
 
-    if (match.idx > -1) {
-      obj.refIndex = match.idx
-    }
+    if (match.idx > -1) obj.refIndex = match.idx;
 
-    data.matches.push(obj)
-  })
+    data.matches.push(obj);
+  });
 }
+
+export default transformMatches;

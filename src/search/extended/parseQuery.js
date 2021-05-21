@@ -1,13 +1,24 @@
-import ExactMatch from './ExactMatch'
-import InverseExactMatch from './InverseExactMatch'
-import PrefixExactMatch from './PrefixExactMatch'
-import InversePrefixExactMatch from './InversePrefixExactMatch'
-import SuffixExactMatch from './SuffixExactMatch'
-import InverseSuffixExactMatch from './InverseSuffixExactMatch'
-import FuzzyMatch from './FuzzyMatch'
-import IncludeMatch from './IncludeMatch'
+import ExactMatch from "./ExactMatch.js";
+import FuzzyMatch from "./FuzzyMatch.js";
+import IncludeMatch from "./IncludeMatch.js";
+import SuffixExactMatch from "./SuffixExactMatch.js";
+import PrefixExactMatch from "./PrefixExactMatch.js";
+import InverseExactMatch from "./InverseExactMatch.js";
+import InversePrefixExactMatch from "./InversePrefixExactMatch.js";
+import InverseSuffixExactMatch from "./InverseSuffixExactMatch.js";
 
-// ❗Order is important. DO NOT CHANGE.
+/**
+ * ❗Order is important. DO NOT CHANGE.
+ *
+ * [0] -> ExactMatch
+ * [1] -> IncludeMatch
+ * [2] -> PrefixExactMatch
+ * [3] -> InversePrefixExactMatch
+ * [4] -> InverseSuffixExactMatch
+ * [5] -> SuffixExactMatch
+ * [6] -> InverseExactMatch
+ * [7] -> FuzzyMatch
+ */
 const searchers = [
   ExactMatch,
   IncludeMatch,
@@ -16,57 +27,60 @@ const searchers = [
   InverseSuffixExactMatch,
   SuffixExactMatch,
   InverseExactMatch,
-  FuzzyMatch
-]
+  FuzzyMatch,
+];
 
-const searchersLen = searchers.length
+const searchersLen = searchers.length;
 
-// Regex to split by spaces, but keep anything in quotes together
-const SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/
-const OR_TOKEN = '|'
+/** Regex to split by spaces, but keep anything in quotes together. */
+const SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
+const OR_TOKEN = "|";
 
-// Return a 2D array representation of the query, for simpler parsing.
-// Example:
-// "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-export default function parseQuery(pattern, options = {}) {
+/**
+ * Return a 2D array representation of the query, for simpler parsing.
+ * Example:
+ *  "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
+ */
+function parseQuery(pattern, options = {}) {
   return pattern.split(OR_TOKEN).map((item) => {
     let query = item
       .trim()
       .split(SPACE_RE)
-      .filter((item) => item && !!item.trim())
+      .filter((item) => item && !!item.trim());
+    let results = [];
 
-    let results = []
-    for (let i = 0, len = query.length; i < len; i += 1) {
-      const queryItem = query[i]
+    for (let i = 0, qry_len = query.length; i < qry_len; i += 1) {
+      let idx = -1;
+      let found = false;
+      const queryItem = query[i];
 
-      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
-      let found = false
-      let idx = -1
       while (!found && ++idx < searchersLen) {
-        const searcher = searchers[idx]
-        let token = searcher.isMultiMatch(queryItem)
-        if (token) {
-          results.push(new searcher(token, options))
-          found = true
-        }
+        const searcher = searchers[idx];
+        let token = searcher.isMultiMatch(queryItem);
+
+        if (!token) continue;
+
+        results.push(new searcher(token, options));
+        found = true;
       }
 
-      if (found) {
-        continue
-      }
+      if (found) continue;
 
-      // 2. Handle single query matches (i.e, once that are *not* quoted)
-      idx = -1
+      idx = -1;
+
       while (++idx < searchersLen) {
-        const searcher = searchers[idx]
-        let token = searcher.isSingleMatch(queryItem)
-        if (token) {
-          results.push(new searcher(token, options))
-          break
-        }
+        const searcher = searchers[idx];
+        let token = searcher.isSingleMatch(queryItem);
+
+        if (!token) continue;
+
+        results.push(new searcher(token, options));
+        break;
       }
     }
 
-    return results
-  })
+    return results;
+  });
 }
+
+export default parseQuery;

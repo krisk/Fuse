@@ -1,4 +1,2 @@
-import transformMatches from './transformMatches'
-import transformScore from './transformScore'
-
-export { transformMatches, transformScore }
+export { default as transformScore } from "./transformScore.js";
+export { default as transformMatches } from "./transformMatches.js";

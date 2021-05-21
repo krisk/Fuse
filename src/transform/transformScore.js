@@ -1,3 +1,5 @@
-export default function transformScore(result, data) {
-  data.score = result.score
+function transformScore(result, data) {
+  data.score = result.score;
 }
+
+export default transformScore;

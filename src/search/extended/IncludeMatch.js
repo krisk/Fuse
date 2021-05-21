@@ -1,41 +1,38 @@
-// Token: 'file
-// Match type: include-match
-// Description: Items that include `file`
+import BaseMatch from "./BaseMatch.js";
 
-import BaseMatch from './BaseMatch'
-
-export default class IncludeMatch extends BaseMatch {
+class IncludeMatch extends BaseMatch {
   constructor(pattern) {
-    super(pattern)
+    super(pattern);
   }
+
   static get type() {
-    return 'include'
+    return "include";
   }
+
   static get multiRegex() {
-    return /^'"(.*)"$/
+    return /^'"(.*)"$/;
   }
+
   static get singleRegex() {
-    return /^'(.*)$/
+    return /^'(.*)$/;
   }
+
   search(text) {
-    let location = 0
-    let index
+    let index;
+    let location = 0;
 
-    const indices = []
-    const patternLen = this.pattern.length
+    const indices = [];
+    const patternLen = this.pattern.length;
 
-    // Get all exact matches
     while ((index = text.indexOf(this.pattern, location)) > -1) {
-      location = index + patternLen
-      indices.push([index, location - 1])
+      location = index + patternLen;
+      indices.push([index, location - 1]);
     }
 
-    const isMatch = !!indices.length
+    const isMatch = !!indices.length;
 
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices
-    }
+    return { isMatch, score: isMatch ? 0 : 1, indices };
   }
 }
+
+export default IncludeMatch;
