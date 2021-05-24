@@ -1,14 +1,16 @@
-import { isString, isArray } from '../helpers/types'
-import * as ErrorMsg from '../core/errorMessages'
+import { isArray } from '../helpers/types.js'
+import { isString } from '../helpers/types.js'
+import { MissingKeyPropertyException } from '../core/error.js'
+import { InvalidKeyWeightValueException } from '../core/error.js'
 
 const hasOwn = Object.prototype.hasOwnProperty
 
-export default class KeyStore {
+class KeyStore {
   constructor(keys) {
+    let totalWeight = 0
+
     this._keys = []
     this._keyMap = {}
-
-    let totalWeight = 0
 
     keys.forEach((key) => {
       let obj = createKey(key)
@@ -21,53 +23,45 @@ export default class KeyStore {
       totalWeight += obj.weight
     })
 
-    // Normalize weights so that their sum is equal to 1
+    /** Normalize weights so that their sum is equal to 1. */
     this._keys.forEach((key) => {
       key.weight /= totalWeight
     })
   }
+
   get(keyId) {
     return this._keyMap[keyId]
   }
+
   keys() {
     return this._keys
   }
+
   toJSON() {
     return JSON.stringify(this._keys)
   }
 }
 
 export function createKey(key) {
-  let path = null
-  let id = null
   let src = null
   let weight = 1
 
-  if (isString(key) || isArray(key)) {
-    src = key
-    path = createKeyPath(key)
-    id = createKeyId(key)
-  } else {
-    if (!hasOwn.call(key, 'name')) {
-      throw new Error(ErrorMsg.MISSING_KEY_PROPERTY('name'))
-    }
+  if (isString(key) || isArray(key))
+    return { path: createKeyPath(key), id: createKey(key), weight, src: key }
 
-    const name = key.name
-    src = name
+  if (!hasOwn.call(key, 'name')) throw new MissingKeyPropertyException('name')
 
-    if (hasOwn.call(key, 'weight')) {
-      weight = key.weight
+  const name = key.name
 
-      if (weight <= 0) {
-        throw new Error(ErrorMsg.INVALID_KEY_WEIGHT_VALUE(name))
-      }
-    }
+  src = name
 
-    path = createKeyPath(name)
-    id = createKeyId(name)
+  if (hasOwn.call(key, 'weight')) {
+    weight = key.weight
+
+    if (weight <= 0) throw new InvalidKeyWeightValueException(name)
   }
 
-  return { path, id, weight, src }
+  return { path: createKeyPath(name), id: createKeyId(name), weight, src }
 }
 
 export function createKeyPath(key) {
@@ -77,3 +71,5 @@ export function createKeyPath(key) {
 export function createKeyId(key) {
   return isArray(key) ? key.join('.') : key
 }
+
+export default KeyStore

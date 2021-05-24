@@ -1,6 +1,6 @@
-import Config from '../../core/config'
+import Config from '../../core/config.js'
 
-export default function computeScore(
+function computeScore(
   pattern,
   {
     errors = 0,
@@ -12,16 +12,13 @@ export default function computeScore(
 ) {
   const accuracy = errors / pattern.length
 
-  if (ignoreLocation) {
-    return accuracy
-  }
+  if (ignoreLocation) return accuracy
 
   const proximity = Math.abs(expectedLocation - currentLocation)
 
-  if (!distance) {
-    // Dodge divide by zero error.
-    return proximity ? 1.0 : accuracy
-  }
+  if (!distance) return proximity ? 1.0 : accuracy
 
   return accuracy + proximity / distance
 }
+
+export default computeScore

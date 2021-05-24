@@ -1,10 +1,6 @@
-import Config from './config'
+import Config from './config.js'
 
-// Practical scoring function
-export default function computeScore(
-  results,
-  { ignoreFieldNorm = Config.ignoreFieldNorm }
-) {
+function computeScore(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
   results.forEach((result) => {
     let totalScore = 1
 
@@ -20,3 +16,5 @@ export default function computeScore(
     result.score = totalScore
   })
 }
+
+export default computeScore

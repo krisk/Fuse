@@ -1,7 +1,8 @@
-import Config from './config'
-import { transformMatches, transformScore } from '../transform'
+import Config from './config.js'
+import { transformScore } from '../transform/index.js'
+import { transformMatches } from '../transform/index.js'
 
-export default function format(
+function format(
   results,
   docs,
   {
@@ -12,6 +13,7 @@ export default function format(
   const transformers = []
 
   if (includeMatches) transformers.push(transformMatches)
+
   if (includeScore) transformers.push(transformScore)
 
   return results.map((result) => {
@@ -22,12 +24,13 @@ export default function format(
       refIndex: idx
     }
 
-    if (transformers.length) {
+    if (transformers.length)
       transformers.forEach((transformer) => {
         transformer(result, data)
       })
-    }
 
     return data
   })
 }
+
+export default format

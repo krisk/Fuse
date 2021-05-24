@@ -1,23 +1,30 @@
-import { isArray, isDefined, isString, isNumber } from '../helpers/types'
-import KeyStore from '../tools/KeyStore'
-import FuseIndex, { createIndex } from '../tools/FuseIndex'
-import { LogicalOperator, parse } from './queryParser'
-import { createSearcher } from './register'
-import Config from './config'
-import computeScore from './computeScore'
-import format from './format'
-import * as ErrorMsg from './errorMessages'
+import { isArray } from '../helpers/types.js'
+import { isNumber } from '../helpers/types.js'
+import { isString } from '../helpers/types.js'
+import { isDefined } from '../helpers/types.js'
 
-export default class Fuse {
+import KeyStore from '../tools/KeyStore.js'
+import FuseIndex from '../tools/FuseIndex.js'
+import { createIndex } from '../tools/FuseIndex.js'
+
+import Config from './config.js'
+import format from './format.js'
+import computeScore from './computeScore.js'
+import { createSearcher } from './register.js'
+
+import { parse } from './queryParser.js'
+import { LogicalOperator } from './queryParser.js'
+
+import { IncorrectIndexTypeException } from './error.js'
+import { LogicalSearchUnavailableException } from './error.js'
+import { ExtendedSearchUnavailableException } from './error.js'
+
+class Fuse {
   constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options }
 
-    if (
-      this.options.useExtendedSearch &&
-      !process.env.EXTENDED_SEARCH_ENABLED
-    ) {
-      throw new Error(ErrorMsg.EXTENDED_SEARCH_UNAVAILABLE)
-    }
+    if (this.options.useExtendedSearch && !process.env.EXTENDED_SEARCH_ENABLED)
+      throw new ExtendedSearchUnavailableException()
 
     this._keyStore = new KeyStore(this.options.keys)
 
@@ -27,38 +34,36 @@ export default class Fuse {
   setCollection(docs, index) {
     this._docs = docs
 
-    if (index && !(index instanceof FuseIndex)) {
-      throw new Error(ErrorMsg.INCORRECT_INDEX_TYPE)
-    }
+    if (index && !(index instanceof FuseIndex))
+      throw new IncorrectIndexTypeException()
 
     this._myIndex =
       index ||
       createIndex(this.options.keys, this._docs, {
-        getFn: this.options.getFn
+        _get: this.options._get
       })
   }
 
   add(doc) {
-    if (!isDefined(doc)) {
-      return
-    }
+    if (!isDefined(doc)) return
 
     this._docs.push(doc)
     this._myIndex.add(doc)
   }
 
-  remove(predicate = (/* doc, idx */) => false) {
+  remove(predicate = (doc, idx) => false) {
     const results = []
 
-    for (let i = 0, len = this._docs.length; i < len; i += 1) {
+    for (let i = 0, doc_len = this._docs.length; i < doc_len; i++) {
       const doc = this._docs[i]
-      if (predicate(doc, i)) {
-        this.removeAt(i)
-        i -= 1
-        len -= 1
 
-        results.push(doc)
-      }
+      if (!predicate(doc, i)) continue
+
+      this.removeAt(i)
+      i--
+      len--
+
+      results.push(doc)
     }
 
     return results
@@ -78,7 +83,7 @@ export default class Fuse {
       includeMatches,
       includeScore,
       shouldSort,
-      sortFn,
+      _sort,
       ignoreFieldNorm
     } = this.options
 
@@ -90,13 +95,9 @@ export default class Fuse {
 
     computeScore(results, { ignoreFieldNorm })
 
-    if (shouldSort) {
-      results.sort(sortFn)
-    }
+    if (shouldSort) results.sort(_sort)
 
-    if (isNumber(limit) && limit > -1) {
-      results = results.slice(0, limit)
-    }
+    if (isNumber(limit) && limit > -1) results = results.slice(0, limit)
 
     return format(results, this._docs, {
       includeMatches,
@@ -105,15 +106,12 @@ export default class Fuse {
   }
 
   _searchStringList(query) {
-    const searcher = createSearcher(query, this.options)
-    const { records } = this._myIndex
     const results = []
+    const { records } = this._myIndex
+    const searcher = createSearcher(query, this.options)
 
-    // Iterate over every string in the index
     records.forEach(({ v: text, i: idx, n: norm }) => {
-      if (!isDefined(text)) {
-        return
-      }
+      if (!isDefined(text)) return
 
       const { isMatch, score, indices } = searcher.searchIn(text)
 
@@ -121,7 +119,14 @@ export default class Fuse {
         results.push({
           item: text,
           idx,
-          matches: [{ score, value: text, norm, indices }]
+          matches: [
+            {
+              score,
+              value: text,
+              norm,
+              indices
+            }
+          ]
         })
       }
     })
@@ -130,9 +135,8 @@ export default class Fuse {
   }
 
   _searchLogical(query) {
-    if (!process.env.LOGICAL_SEARCH_ENABLED) {
-      throw new Error(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
-    }
+    if (!process.env.LOGICAL_SEARCH_ENABLED)
+      throw new LogicalSearchUnavailableException()
 
     const expression = parse(query, this.options)
 
@@ -146,63 +150,66 @@ export default class Fuse {
           searcher
         })
 
-        if (matches && matches.length) {
-          return [
-            {
-              idx,
-              item,
-              matches
-            }
-          ]
-        }
+        if (!(matches && matches.length)) return []
 
-        return []
+        return [{ idx, item, matches }]
       }
 
-      /*eslint indent: [2, 2, {"SwitchCase": 1}]*/
       switch (node.operator) {
         case LogicalOperator.AND: {
           const res = []
-          for (let i = 0, len = node.children.length; i < len; i += 1) {
+
+          for (
+            let i = 0, child_len = node.children.length;
+            i < child_len;
+            i++
+          ) {
             const child = node.children[i]
             const result = evaluate(child, item, idx)
-            if (result.length) {
-              res.push(...result)
-            } else {
-              return []
-            }
+
+            if (!result.length) return []
+
+            res.push(...result)
           }
+
           return res
         }
         case LogicalOperator.OR: {
           const res = []
-          for (let i = 0, len = node.children.length; i < len; i += 1) {
+
+          for (
+            let i = 0, child_len = node.children.length;
+            i < child_len;
+            i++
+          ) {
             const child = node.children[i]
             const result = evaluate(child, item, idx)
-            if (result.length) {
-              res.push(...result)
-              break
-            }
+
+            if (!result.length) continue
+
+            res.push(...result)
+            break
           }
+
           return res
         }
       }
     }
 
     const records = this._myIndex.records
-    const resultMap = {}
     const results = []
+    const resultMap = {}
 
     records.forEach(({ $: item, i: idx }) => {
       if (isDefined(item)) {
         let expResults = evaluate(expression, item, idx)
 
         if (expResults.length) {
-          // Dedupe when adding
           if (!resultMap[idx]) {
             resultMap[idx] = { idx, item, matches: [] }
             results.push(resultMap[idx])
           }
+
           expResults.forEach(({ matches }) => {
             resultMap[idx].matches.push(...matches)
           })
@@ -214,19 +221,15 @@ export default class Fuse {
   }
 
   _searchObjectList(query) {
-    const searcher = createSearcher(query, this.options)
-    const { keys, records } = this._myIndex
     const results = []
+    const { keys, records } = this._myIndex
+    const searcher = createSearcher(query, this.options)
 
-    // List is Array<Object>
     records.forEach(({ $: item, i: idx }) => {
-      if (!isDefined(item)) {
-        return
-      }
+      if (!isDefined(item)) return
 
       let matches = []
 
-      // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
         matches.push(
           ...this._findMatches({
@@ -237,53 +240,36 @@ export default class Fuse {
         )
       })
 
-      if (matches.length) {
-        results.push({
-          idx,
-          item,
-          matches
-        })
-      }
+      if (matches.length) results.push({ idx, item, matches })
     })
 
     return results
   }
+
   _findMatches({ key, value, searcher }) {
-    if (!isDefined(value)) {
-      return []
-    }
+    if (!isDefined(value)) return []
 
     let matches = []
 
     if (isArray(value)) {
       value.forEach(({ v: text, i: idx, n: norm }) => {
-        if (!isDefined(text)) {
-          return
-        }
+        if (!isDefined(text)) return
 
         const { isMatch, score, indices } = searcher.searchIn(text)
 
-        if (isMatch) {
-          matches.push({
-            score,
-            key,
-            value: text,
-            idx,
-            norm,
-            indices
-          })
-        }
+        if (isMatch)
+          matches.push({ score, key, value: text, idx, norm, indices })
       })
-    } else {
-      const { v: text, n: norm } = value
-
-      const { isMatch, score, indices } = searcher.searchIn(text)
-
-      if (isMatch) {
-        matches.push({ score, key, value: text, norm, indices })
-      }
+      return matches
     }
+
+    const { v: text, n: norm } = value
+    const { isMatch, score, indices } = searcher.searchIn(text)
+
+    if (isMatch) matches.push({ score, key, value: text, norm, indices })
 
     return matches
   }
 }
+
+export default Fuse

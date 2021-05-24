@@ -1,22 +1,22 @@
-// Token: 'file
-// Match type: exact-match
-// Description: Items that are `file`
+import BaseMatch from './BaseMatch.js'
 
-import BaseMatch from './BaseMatch'
-
-export default class ExactMatch extends BaseMatch {
+class ExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }
+
   static get type() {
     return 'exact'
   }
+
   static get multiRegex() {
     return /^="(.*)"$/
   }
+
   static get singleRegex() {
     return /^=(.*)$/
   }
+
   search(text) {
     const isMatch = text === this.pattern
 
@@ -27,3 +27,5 @@ export default class ExactMatch extends BaseMatch {
     }
   }
 }
+
+export default ExactMatch

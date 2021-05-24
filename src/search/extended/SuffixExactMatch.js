@@ -1,21 +1,22 @@
-// Token: .file$
-// Match type: suffix-exact-match
-// Description: Items that end with `.file`
-import BaseMatch from './BaseMatch'
+import BaseMatch from './BaseMatch.js'
 
-export default class SuffixExactMatch extends BaseMatch {
+class SuffixExactMatch extends BaseMatch {
   constructor(pattern) {
     super(pattern)
   }
+
   static get type() {
     return 'suffix-exact'
   }
+
   static get multiRegex() {
     return /^"(.*)"\$$/
   }
+
   static get singleRegex() {
     return /^(.*)\$$/
   }
+
   search(text) {
     const isMatch = text.endsWith(this.pattern)
 
@@ -26,3 +27,5 @@ export default class SuffixExactMatch extends BaseMatch {
     }
   }
 }
+
+export default SuffixExactMatch

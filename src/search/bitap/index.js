@@ -1,103 +1,90 @@
-import search from './search'
-import createPatternAlphabet from './createPatternAlphabet'
-import { MAX_BITS } from './constants'
-import Config from '../../core/config'
+import search from './search.js'
+import { MAX_BITS } from './constants.js'
+import createPatternAlphabet from './createPatternAlphabet.js'
 
-export default class BitapSearch {
+import Config from '../../core/config.js'
+
+class BitapSearch {
   constructor(
     pattern,
     {
       location = Config.location,
-      threshold = Config.threshold,
       distance = Config.distance,
+      threshold = Config.threshold,
+      ignoreLocation = Config.ignoreLocation,
       includeMatches = Config.includeMatches,
       findAllMatches = Config.findAllMatches,
-      minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive,
-      ignoreLocation = Config.ignoreLocation
+      minMatchCharLength = Config.minMatchCharLength
     } = {}
   ) {
     this.options = {
       location,
-      threshold,
       distance,
+      threshold,
+      ignoreLocation,
       includeMatches,
       findAllMatches,
-      minMatchCharLength,
       isCaseSensitive,
-      ignoreLocation
+      minMatchCharLength
     }
-
     this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-
     this.chunks = []
 
-    if (!this.pattern.length) {
-      return
-    }
+    if (!this.pattern.length) return
 
     const addChunk = (pattern, startIndex) => {
       this.chunks.push({
         pattern,
-        alphabet: createPatternAlphabet(pattern),
-        startIndex
+        startIndex,
+        alphabet: createPatternAlphabet(pattern)
       })
     }
-
     const len = this.pattern.length
 
-    if (len > MAX_BITS) {
-      let i = 0
-      const remainder = len % MAX_BITS
-      const end = len - remainder
-
-      while (i < end) {
-        addChunk(this.pattern.substr(i, MAX_BITS), i)
-        i += MAX_BITS
-      }
-
-      if (remainder) {
-        const startIndex = len - MAX_BITS
-        addChunk(this.pattern.substr(startIndex), startIndex)
-      }
-    } else {
+    if (len <= MAX_BITS) {
       addChunk(this.pattern, 0)
+      return
     }
+
+    let i = 0
+    const remainder = len % MAX_BITS
+    const end = len - remainder
+
+    while (i < end) {
+      addChunk(this.pattern.substr(i, MAX_BITS), i)
+      i += MAX_BITS
+    }
+
+    if (remainder) return
+
+    const startIndex = len - MAX_BITS
+
+    addChunk(this.pattern.substr(startIndex), startIndex)
   }
 
   searchIn(text) {
     const { isCaseSensitive, includeMatches } = this.options
 
-    if (!isCaseSensitive) {
-      text = text.toLowerCase()
-    }
+    if (!isCaseSensitive) text = text.toLowerCase()
 
-    // Exact match
     if (this.pattern === text) {
-      let result = {
-        isMatch: true,
-        score: 0
-      }
+      let result = { score: 0, isMatch: true }
 
-      if (includeMatches) {
-        result.indices = [[0, text.length - 1]]
-      }
+      if (includeMatches) result.indices = [[0, text.length - 1]]
 
       return result
     }
 
-    // Otherwise, use Bitap algorithm
-    const {
-      location,
-      distance,
-      threshold,
-      findAllMatches,
-      minMatchCharLength,
-      ignoreLocation
-    } = this.options
+    const { location } = this.options
+    const { distance } = this.options
+    const { threshold } = this.options
+    const { findAllMatches } = this.options
+    const { ignoreLocation } = this.options
+    const { minMatchCharLength } = this.options
 
-    let allIndices = []
     let totalScore = 0
+    let allIndices = []
     let hasMatches = false
 
     this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
@@ -106,20 +93,16 @@ export default class BitapSearch {
         distance,
         threshold,
         findAllMatches,
-        minMatchCharLength,
         includeMatches,
-        ignoreLocation
+        ignoreLocation,
+        minMatchCharLength
       })
 
-      if (isMatch) {
-        hasMatches = true
-      }
+      if (isMatch) hasMatches = true
 
       totalScore += score
 
-      if (isMatch && indices) {
-        allIndices = [...allIndices, ...indices]
-      }
+      if (isMatch && indices) allIndices = [...allIndices, ...indices]
     })
 
     let result = {
@@ -127,10 +110,10 @@ export default class BitapSearch {
       score: hasMatches ? totalScore / this.chunks.length : 1
     }
 
-    if (hasMatches && includeMatches) {
-      result.indices = allIndices
-    }
+    if (hasMatches && includeMatches) result.indices = allIndices
 
     return result
   }
 }
+
+export default BitapSearch

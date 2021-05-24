@@ -1,2 +1,2 @@
-// Machine word size
+/** Machine word size. */
 export const MAX_BITS = 32
