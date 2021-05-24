@@ -1,27 +1,27 @@
-import BaseMatch from "./BaseMatch.js";
+import BaseMatch from './BaseMatch.js'
 
 class InverseSuffixExactMatch extends BaseMatch {
   constructor(pattern) {
-    super(pattern);
+    super(pattern)
   }
 
   static get type() {
-    return "inverse-suffix-exact";
+    return 'inverse-suffix-exact'
   }
 
   static get multiRegex() {
-    return /^!"(.*)"\$$/;
+    return /^!"(.*)"\$$/
   }
 
   static get singleRegex() {
-    return /^!(.*)\$$/;
+    return /^!(.*)\$$/
   }
 
   search(text) {
-    const isMatch = !text.endsWith(this.pattern);
+    const isMatch = !text.endsWith(this.pattern)
 
-    return { isMatch, score: isMatch ? 0 : 1, indices: [0, text.length - 1] };
+    return { isMatch, score: isMatch ? 0 : 1, indices: [0, text.length - 1] }
   }
 }
 
-export default InverseSuffixExactMatch;
+export default InverseSuffixExactMatch

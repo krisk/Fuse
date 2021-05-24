@@ -1,11 +1,11 @@
-import ExactMatch from "./ExactMatch.js";
-import FuzzyMatch from "./FuzzyMatch.js";
-import IncludeMatch from "./IncludeMatch.js";
-import SuffixExactMatch from "./SuffixExactMatch.js";
-import PrefixExactMatch from "./PrefixExactMatch.js";
-import InverseExactMatch from "./InverseExactMatch.js";
-import InversePrefixExactMatch from "./InversePrefixExactMatch.js";
-import InverseSuffixExactMatch from "./InverseSuffixExactMatch.js";
+import ExactMatch from './ExactMatch.js'
+import FuzzyMatch from './FuzzyMatch.js'
+import IncludeMatch from './IncludeMatch.js'
+import SuffixExactMatch from './SuffixExactMatch.js'
+import PrefixExactMatch from './PrefixExactMatch.js'
+import InverseExactMatch from './InverseExactMatch.js'
+import InversePrefixExactMatch from './InversePrefixExactMatch.js'
+import InverseSuffixExactMatch from './InverseSuffixExactMatch.js'
 
 /**
  * ❗Order is important. DO NOT CHANGE.
@@ -27,14 +27,14 @@ const searchers = [
   InverseSuffixExactMatch,
   SuffixExactMatch,
   InverseExactMatch,
-  FuzzyMatch,
-];
+  FuzzyMatch
+]
 
-const searchersLen = searchers.length;
+const searchersLen = searchers.length
 
 /** Regex to split by spaces, but keep anything in quotes together. */
-const SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
-const OR_TOKEN = "|";
+const SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/
+const OR_TOKEN = '|'
 
 /**
  * Return a 2D array representation of the query, for simpler parsing.
@@ -46,41 +46,41 @@ function parseQuery(pattern, options = {}) {
     let query = item
       .trim()
       .split(SPACE_RE)
-      .filter((item) => item && !!item.trim());
-    let results = [];
+      .filter((item) => item && !!item.trim())
+    let results = []
 
     for (let i = 0, qry_len = query.length; i < qry_len; i += 1) {
-      let idx = -1;
-      let found = false;
-      const queryItem = query[i];
+      let idx = -1
+      let found = false
+      const queryItem = query[i]
 
       while (!found && ++idx < searchersLen) {
-        const searcher = searchers[idx];
-        let token = searcher.isMultiMatch(queryItem);
+        const searcher = searchers[idx]
+        let token = searcher.isMultiMatch(queryItem)
 
-        if (!token) continue;
+        if (!token) continue
 
-        results.push(new searcher(token, options));
-        found = true;
+        results.push(new searcher(token, options))
+        found = true
       }
 
-      if (found) continue;
+      if (found) continue
 
-      idx = -1;
+      idx = -1
 
       while (++idx < searchersLen) {
-        const searcher = searchers[idx];
-        let token = searcher.isSingleMatch(queryItem);
+        const searcher = searchers[idx]
+        let token = searcher.isSingleMatch(queryItem)
 
-        if (!token) continue;
+        if (!token) continue
 
-        results.push(new searcher(token, options));
-        break;
+        results.push(new searcher(token, options))
+        break
       }
     }
 
-    return results;
-  });
+    return results
+  })
 }
 
-export default parseQuery;
+export default parseQuery

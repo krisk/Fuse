@@ -1,2 +1,2 @@
 /** Machine word size. */
-export const MAX_BITS = 32;
+export const MAX_BITS = 32

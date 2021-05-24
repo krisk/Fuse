@@ -1,4 +1,4 @@
-import get from "../helpers/get.js";
+import get from '../helpers/get.js'
 
 /**
  * @property {Bool} MatchOptions.includeMatches
@@ -15,8 +15,8 @@ import get from "../helpers/get.js";
 export const MatchOptions = {
   includeMatches: false,
   findAllMatches: false,
-  minMatchCharLength: 1,
-};
+  minMatchCharLength: 1
+}
 
 /**
  * @property {Bool} BasicOptions.isCaseSensitive
@@ -41,8 +41,8 @@ export const BasicOptions = {
   keys: [],
   shouldSort: true,
   _sort: (a, b) =>
-    a.score === b.score ? (a.idx < b.idx ? -1 : 1) : a.score < b.score ? -1 : 1,
-};
+    a.score === b.score ? (a.idx < b.idx ? -1 : 1) : a.score < b.score ? -1 : 1
+}
 
 /**
  * @property {Number} FuzzyOptions.location
@@ -61,8 +61,8 @@ export const BasicOptions = {
 export const FuzzyOptions = {
   location: 0,
   threshold: 0.6,
-  distance: 100,
-};
+  distance: 100
+}
 
 /**
  * @property {Bool} AdvancedOptions.useExtendedSearch
@@ -83,12 +83,12 @@ export const AdvancedOptions = {
   useExtendedSearch: false,
   _get: get,
   ignoreLocation: false,
-  ignoreFieldNorm: false,
-};
+  ignoreFieldNorm: false
+}
 
 export default {
   ...BasicOptions,
   ...MatchOptions,
   ...FuzzyOptions,
-  ...AdvancedOptions,
-};
+  ...AdvancedOptions
+}

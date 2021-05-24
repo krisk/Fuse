@@ -1,4 +1,4 @@
-import Config from "../../core/config.js";
+import Config from '../../core/config.js'
 
 function computeScore(
   pattern,
@@ -7,18 +7,18 @@ function computeScore(
     currentLocation = 0,
     expectedLocation = 0,
     distance = Config.distance,
-    ignoreLocation = Config.ignoreLocation,
+    ignoreLocation = Config.ignoreLocation
   } = {}
 ) {
-  const accuracy = errors / pattern.length;
+  const accuracy = errors / pattern.length
 
-  if (ignoreLocation) return accuracy;
+  if (ignoreLocation) return accuracy
 
-  const proximity = Math.abs(expectedLocation - currentLocation);
+  const proximity = Math.abs(expectedLocation - currentLocation)
 
-  if (!distance) return proximity ? 1.0 : accuracy;
+  if (!distance) return proximity ? 1.0 : accuracy
 
-  return accuracy + proximity / distance;
+  return accuracy + proximity / distance
 }
 
-export default computeScore;
+export default computeScore

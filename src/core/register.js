@@ -1,9 +1,9 @@
-import { BitapSearch } from "../search/index.js";
+import { BitapSearch } from '../search/index.js'
 
-const registeredSearchers = [];
+const registeredSearchers = []
 
 function register(...args) {
-  registeredSearchers.push(...args);
+  registeredSearchers.push(...args)
 }
 
 export function createSearcher(pattern, options) {
@@ -12,13 +12,13 @@ export function createSearcher(pattern, options) {
     i < reg_searcher_len;
     i++
   ) {
-    let searcherClass = registeredSearchers[i];
+    let searcherClass = registeredSearchers[i]
 
     if (searcherClass.condition(pattern, options))
-      return new searcherClass(pattern, options);
+      return new searcherClass(pattern, options)
   }
 
-  return new BitapSearch(pattern, options);
+  return new BitapSearch(pattern, options)
 }
 
-export default register;
+export default register

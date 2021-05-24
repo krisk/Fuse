@@ -1,31 +1,31 @@
-import BaseMatch from "./BaseMatch.js";
+import BaseMatch from './BaseMatch.js'
 
 class ExactMatch extends BaseMatch {
   constructor(pattern) {
-    super(pattern);
+    super(pattern)
   }
 
   static get type() {
-    return "exact";
+    return 'exact'
   }
 
   static get multiRegex() {
-    return /^="(.*)"$/;
+    return /^="(.*)"$/
   }
 
   static get singleRegex() {
-    return /^=(.*)$/;
+    return /^=(.*)$/
   }
 
   search(text) {
-    const isMatch = text === this.pattern;
+    const isMatch = text === this.pattern
 
     return {
       isMatch,
       score: isMatch ? 0 : 1,
-      indices: [0, this.pattern.length - 1],
-    };
+      indices: [0, this.pattern.length - 1]
+    }
   }
 }
 
-export default ExactMatch;
+export default ExactMatch

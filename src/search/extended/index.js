@@ -1,11 +1,11 @@
-import parseQuery from "./parseQuery.js";
-import FuzzyMatch from "./FuzzyMatch.js";
-import IncludeMatch from "./IncludeMatch.js";
+import parseQuery from './parseQuery.js'
+import FuzzyMatch from './FuzzyMatch.js'
+import IncludeMatch from './IncludeMatch.js'
 
-import Config from "../../core/config.js";
+import Config from '../../core/config.js'
 
 /** These extended matchers can return an array of matches, as opposed to a single match. */
-const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type]);
+const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type])
 
 /**
  * Command-like searching
@@ -44,10 +44,10 @@ class ExtendedSearch {
       ignoreLocation = Config.ignoreLocation,
       findAllMatches = Config.findAllMatches,
       isCaseSensitive = Config.isCaseSensitive,
-      minMatchCharLength = Config.minMatchCharLength,
+      minMatchCharLength = Config.minMatchCharLength
     } = {}
   ) {
-    this.query = null;
+    this.query = null
     this.options = {
       distance,
       location,
@@ -56,72 +56,72 @@ class ExtendedSearch {
       findAllMatches,
       ignoreLocation,
       isCaseSensitive,
-      minMatchCharLength,
-    };
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-    this.query = parseQuery(this.pattern, this.options);
+      minMatchCharLength
+    }
+    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    this.query = parseQuery(this.pattern, this.options)
   }
 
   static condition(_, options) {
-    return options.useExtendedSearch;
+    return options.useExtendedSearch
   }
 
   searchIn(text) {
-    const query = this.query;
+    const query = this.query
 
-    if (!query) return { isMatch: false, score: 1 };
+    if (!query) return { isMatch: false, score: 1 }
 
-    const { includeMatches, isCaseSensitive } = this.options;
+    const { includeMatches, isCaseSensitive } = this.options
 
-    text = isCaseSensitive ? text : text.toLowerCase();
+    text = isCaseSensitive ? text : text.toLowerCase()
 
-    let numMatches = 0;
-    let totalScore = 0;
-    let allIndices = [];
+    let numMatches = 0
+    let totalScore = 0
+    let allIndices = []
 
     for (let i = 0, qry_len = query.length; i < qry_len; i++) {
-      const searchers = query[i];
+      const searchers = query[i]
 
-      numMatches = 0;
-      allIndices.length = 0;
+      numMatches = 0
+      allIndices.length = 0
 
       for (let j = 0, search_len = searchers.length; j < search_len; j++) {
-        const searcher = searchers[j];
-        const { isMatch, indices, score } = searcher.search(text);
+        const searcher = searchers[j]
+        const { isMatch, indices, score } = searcher.search(text)
 
         if (!isMatch) {
-          totalScore = 0;
-          numMatches = 0;
-          allIndices.length = 0;
-          break;
+          totalScore = 0
+          numMatches = 0
+          allIndices.length = 0
+          break
         }
 
-        numMatches++;
-        totalScore += score;
+        numMatches++
+        totalScore += score
 
-        if (!includeMatches) continue;
+        if (!includeMatches) continue
 
-        const type = searcher.constructor.type;
+        const type = searcher.constructor.type
 
         if (MultiMatchSet.has(type)) {
-          allIndices = [...allIndices, ...indices];
-          continue;
+          allIndices = [...allIndices, ...indices]
+          continue
         }
 
-        allIndices.push(indices);
+        allIndices.push(indices)
       }
 
-      if (!numMatches) continue;
+      if (!numMatches) continue
 
-      let result = { score: totalScore / numMatches, isMatch: true };
+      let result = { score: totalScore / numMatches, isMatch: true }
 
-      if (includeMatches) result.indices = allIndices;
+      if (includeMatches) result.indices = allIndices
 
-      return result;
+      return result
     }
 
-    return { score: 1, isMatch: false };
+    return { score: 1, isMatch: false }
   }
 }
 
-export default ExtendedSearch;
+export default ExtendedSearch

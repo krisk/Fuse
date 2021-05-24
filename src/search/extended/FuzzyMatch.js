@@ -1,7 +1,7 @@
-import BaseMatch from "./BaseMatch.js";
+import BaseMatch from './BaseMatch.js'
 
-import Config from "../../core/config.js";
-import BitapSearch from "../bitap/index.js";
+import Config from '../../core/config.js'
+import BitapSearch from '../bitap/index.js'
 
 class FuzzyMatch extends BaseMatch {
   constructor(
@@ -14,10 +14,10 @@ class FuzzyMatch extends BaseMatch {
       findAllMatches = Config.findAllMatches,
       ignoreLocation = Config.ignoreLocation,
       isCaseSensitive = Config.isCaseSensitive,
-      minMatchCharLength = Config.minMatchCharLength,
+      minMatchCharLength = Config.minMatchCharLength
     } = {}
   ) {
-    super(pattern);
+    super(pattern)
 
     this._bitapSearch = new BitapSearch(pattern, {
       location,
@@ -27,25 +27,25 @@ class FuzzyMatch extends BaseMatch {
       findAllMatches,
       ignoreLocation,
       isCaseSensitive,
-      minMatchCharLength,
-    });
+      minMatchCharLength
+    })
   }
 
   static get type() {
-    return "fuzzy";
+    return 'fuzzy'
   }
 
   static get multiRegex() {
-    return /^"(.*)"$/;
+    return /^"(.*)"$/
   }
 
   static get singleRegex() {
-    return /^(.*)$/;
+    return /^(.*)$/
   }
 
   search(text) {
-    return this._bitapSearch.searchIn(text);
+    return this._bitapSearch.searchIn(text)
   }
 }
 
-export default FuzzyMatch;
+export default FuzzyMatch
