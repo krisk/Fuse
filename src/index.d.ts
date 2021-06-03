@@ -287,4 +287,6 @@ declare namespace Fuse {
       }
     | { $and?: Expression[] }
     | { $or?: Expression[] }
+   
+  export const config: Required<IFuseOptions<T>>;
 }
