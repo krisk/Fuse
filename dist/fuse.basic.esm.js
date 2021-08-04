@@ -359,6 +359,21 @@ class FuseIndex {
       this._addObject(doc, idx);
     }
   }
+  // Updates a doc
+  update(doc, docIndex) {
+    let record;
+    if(isString(doc)) {
+      if (!isDefined(doc) || isBlank(doc)) return
+      record = {
+        v: doc,
+        i: docIndex,
+        n: this.norm.get(doc)
+      };
+    } else {
+      record = this._prepareRecord(doc, docIndex);
+    }
+    this.records[docIndex] = record;
+  }
   // Removes the doc at the specified index of the index
   removeAt(idx) {
     this.records.splice(idx, 1);
@@ -388,6 +403,10 @@ class FuseIndex {
     this.records.push(record);
   }
   _addObject(doc, docIndex) {
+    const record = this._prepareRecord(doc, docIndex);
+    this.records.push(record);
+  }
+  _prepareRecord(doc, docIndex) {
     let record = { i: docIndex, $: {} };
 
     // Iterate over every key (i.e, path), and fetch the value at that key
@@ -437,8 +456,7 @@ class FuseIndex {
         record.$[keyIndex] = subRecord;
       }
     });
-
-    this.records.push(record);
+    return record
   }
   toJSON() {
     return {
@@ -1069,6 +1087,11 @@ class Fuse {
 
     this._docs.push(doc);
     this._myIndex.add(doc);
+  }
+
+  update(doc, docIdx) {
+    this._docs[docIdx] = doc;
+    this._myIndex.update(doc, docIdx);
   }
 
   remove(predicate = (/* doc, idx */) => false) {

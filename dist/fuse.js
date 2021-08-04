@@ -560,6 +560,25 @@
         } else {
           this._addObject(doc, idx);
         }
+      } // Updates a doc
+
+    }, {
+      key: "update",
+      value: function update(doc, docIndex) {
+        var record;
+
+        if (isString(doc)) {
+          if (!isDefined(doc) || isBlank(doc)) return;
+          record = {
+            v: doc,
+            i: docIndex,
+            n: this.norm.get(doc)
+          };
+        } else {
+          record = this._prepareRecord(doc, docIndex);
+        }
+
+        this.records[docIndex] = record;
       } // Removes the doc at the specified index of the index
 
     }, {
@@ -598,6 +617,13 @@
     }, {
       key: "_addObject",
       value: function _addObject(doc, docIndex) {
+        var record = this._prepareRecord(doc, docIndex);
+
+        this.records.push(record);
+      }
+    }, {
+      key: "_prepareRecord",
+      value: function _prepareRecord(doc, docIndex) {
         var _this3 = this;
 
         var record = {
@@ -657,7 +683,7 @@
             record.$[keyIndex] = subRecord;
           }
         });
-        this.records.push(record);
+        return record;
       }
     }, {
       key: "toJSON",
@@ -1924,6 +1950,13 @@
         this._docs.push(doc);
 
         this._myIndex.add(doc);
+      }
+    }, {
+      key: "update",
+      value: function update(doc, docIdx) {
+        this._docs[docIdx] = doc;
+
+        this._myIndex.update(doc, docIdx);
       }
     }, {
       key: "remove",

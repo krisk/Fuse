@@ -47,6 +47,11 @@ export default class Fuse {
     this._myIndex.add(doc)
   }
 
+  update(doc, docIdx) {
+    this._docs[docIdx] = doc;
+    this._myIndex.update(doc, docIdx);
+  }
+
   remove(predicate = (/* doc, idx */) => false) {
     const results = []
 

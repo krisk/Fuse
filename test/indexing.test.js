@@ -124,4 +124,21 @@ describe('Searching', () => {
     expect(fuse.getIndex().size()).toBe(1)
     expect(fuse._docs.length).toBe(1)
   })
+
+  test('Update object in Index', () => {
+    const fuse = new Fuse(Books, options)
+
+    fuse.update({
+      title: 'Le Petit Prince',
+      author: {
+        firstName: 'Antoine',
+        lastName: 'Saint-Exupery'
+      }
+    }, 10)
+
+    let result = fuse.search("Le Petit Prince")
+
+    expect(result.length).toBe(1)
+    expect(idx(result)).toMatchObject([10])
+  })
 })
