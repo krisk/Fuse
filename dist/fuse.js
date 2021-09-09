@@ -66,40 +66,6 @@
     return obj;
   }
 
-  function ownKeys(object, enumerableOnly) {
-    var keys = Object.keys(object);
-
-    if (Object.getOwnPropertySymbols) {
-      var symbols = Object.getOwnPropertySymbols(object);
-      if (enumerableOnly) symbols = symbols.filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-      });
-      keys.push.apply(keys, symbols);
-    }
-
-    return keys;
-  }
-
-  function _objectSpread2(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] != null ? arguments[i] : {};
-
-      if (i % 2) {
-        ownKeys(Object(source), true).forEach(function (key) {
-          _defineProperty(target, key, source[key]);
-        });
-      } else if (Object.getOwnPropertyDescriptors) {
-        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
-        ownKeys(Object(source)).forEach(function (key) {
-          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-        });
-      }
-    }
-
-    return target;
-  }
-
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function");
@@ -458,7 +424,7 @@
     // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
     ignoreFieldNorm: false
   };
-  var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
+  var Config = Object.assign({}, BasicOptions, MatchOptions, FuzzyOptions, AdvancedOptions);
 
   var SPACE = /[^ ]+/g; // Field-length norm: the shorter the field, the higher the weight.
   // Set to 3 decimals to reduce index size.
@@ -1891,7 +1857,7 @@
 
       _classCallCheck(this, Fuse);
 
-      this.options = _objectSpread2({}, Config, {}, options);
+      this.options = Object.assign({}, Config, options);
 
       if (this.options.useExtendedSearch && !true) {
         throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
