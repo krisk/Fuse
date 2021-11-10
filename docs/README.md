@@ -9,6 +9,8 @@ shareTitle: Fuse.js - JavaScript fuzzy-search library
 
 Fuse.js is a **powerful, lightweight fuzzy-search library, with zero dependencies**.
 
+<Sponsors />
+
 ### What is fuzzy searching?
 
 Generally speaking, fuzzy searching (more formally known as _approximate string matching_) is the technique of finding strings that are _approximately_ equal to a given pattern (rather than _exactly_).

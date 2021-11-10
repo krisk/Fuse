@@ -91,6 +91,7 @@ function getPlugins() {
       {
         components: [
           getComponent('Stories'),
+          getComponent('Sponsors'),
           getComponent('Demo'),
           getComponent('Team'),
           getComponent('Jobs'),
