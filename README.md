@@ -17,6 +17,23 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 
 ---
 
+<h3 align="center">Silver Sponsors</h3>
+<!--Silver start-->
+<table>
+<tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://www.worksome.com" target="_blank">
+          <img width="222px" src="https://raw.githubusercontent.com/krisk/Fuse/7a0d77d85ac90063575613b6a738f418b624357f/docs/.vuepress/public/assets/img/sponsors/worksome.svg">
+        </a>
+      </td>
+    </tr>
+</body>
+</table>
+<!--Silver end-->
+
+---
+
 ## Introduction
 
 Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
@@ -26,7 +43,6 @@ Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
 Fuse.js supports all browsers that are [ES5-compliant](http://kangax.github.io/compat-table/es5/) (IE8 and below are not supported).
 
 ## Documentation
-
 
 To check out a [live demo](https://fusejs.io/demo.html) and docs, visit [fusejs.io](https://fusejs.io).
 
