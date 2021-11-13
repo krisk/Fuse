@@ -266,7 +266,9 @@ const AdvancedOptions = {
   // When `true`, the calculation for the relevance score (used for sorting) will
   // ignore the field-length norm.
   // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-  ignoreFieldNorm: false
+  ignoreFieldNorm: false,
+  // The weight to determine how much field length norm effects scoring.
+  fieldNormWeight: 1
 };
 
 var Config = {
@@ -280,7 +282,7 @@ const SPACE = /[^ ]+/g;
 
 // Field-length norm: the shorter the field, the higher the weight.
 // Set to 3 decimals to reduce index size.
-function norm(mantissa = 3) {
+function norm(weight = 1, mantissa = 3) {
   const cache = new Map();
   const m = Math.pow(10, mantissa);
 
@@ -292,7 +294,8 @@ function norm(mantissa = 3) {
         return cache.get(numTokens)
       }
 
-      const norm = 1 / Math.sqrt(numTokens);
+      // Default function is 1/sqrt(x), weight makes that variable
+      const norm = 1 / Math.pow(numTokens, 0.5 * weight);
 
       // In place of `toFixed(mantissa)`, for faster computation
       const n = parseFloat(Math.round(norm * m) / m);
@@ -308,8 +311,8 @@ function norm(mantissa = 3) {
 }
 
 class FuseIndex {
-  constructor({ getFn = Config.getFn } = {}) {
-    this.norm = norm(3);
+  constructor({ getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+    this.norm = norm(fieldNormWeight, 3);
     this.getFn = getFn;
     this.isCreated = false;
 
@@ -448,17 +451,17 @@ class FuseIndex {
   }
 }
 
-function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
-  const myIndex = new FuseIndex({ getFn });
+function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+  const myIndex = new FuseIndex({ getFn, fieldNormWeight });
   myIndex.setKeys(keys.map(createKey));
   myIndex.setSources(docs);
   myIndex.create();
   return myIndex
 }
 
-function parseIndex(data, { getFn = Config.getFn } = {}) {
+function parseIndex(data, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
   const { keys, records } = data;
-  const myIndex = new FuseIndex({ getFn });
+  const myIndex = new FuseIndex({ getFn, fieldNormWeight });
   myIndex.setKeys(keys);
   myIndex.setIndexRecords(records);
   return myIndex
@@ -1058,7 +1061,8 @@ class Fuse {
     this._myIndex =
       index ||
       createIndex(this.options.keys, this._docs, {
-        getFn: this.options.getFn
+        getFn: this.options.getFn,
+        fieldNormWeight: this.options.fieldNormWeight
       });
   }
 
@@ -1103,7 +1107,8 @@ class Fuse {
       includeScore,
       shouldSort,
       sortFn,
-      ignoreFieldNorm
+      ignoreFieldNorm,
+      fieldNormWeight
     } = this.options;
 
     let results = isString(query)
@@ -1112,7 +1117,7 @@ class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query);
 
-    computeScore$1(results, { ignoreFieldNorm });
+    computeScore$1(results, { ignoreFieldNorm, fieldNormWeight });
 
     if (shouldSort) {
       results.sort(sortFn);

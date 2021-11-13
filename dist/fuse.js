@@ -456,7 +456,9 @@
     // When `true`, the calculation for the relevance score (used for sorting) will
     // ignore the field-length norm.
     // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-    ignoreFieldNorm: false
+    ignoreFieldNorm: false,
+    // The weight to determine how much field length norm effects scoring.
+    fieldNormWeight: 1
   };
   var Config = _objectSpread2({}, BasicOptions, {}, MatchOptions, {}, FuzzyOptions, {}, AdvancedOptions);
 
@@ -464,7 +466,8 @@
   // Set to 3 decimals to reduce index size.
 
   function norm() {
-    var mantissa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 3;
+    var weight = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+    var mantissa = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
     var cache = new Map();
     var m = Math.pow(10, mantissa);
     return {
@@ -473,9 +476,10 @@
 
         if (cache.has(numTokens)) {
           return cache.get(numTokens);
-        }
+        } // Default function is 1/sqrt(x), weight makes that variable
 
-        var norm = 1 / Math.sqrt(numTokens); // In place of `toFixed(mantissa)`, for faster computation
+
+        var norm = 1 / Math.pow(numTokens, 0.5 * weight); // In place of `toFixed(mantissa)`, for faster computation
 
         var n = parseFloat(Math.round(norm * m) / m);
         cache.set(numTokens, n);
@@ -491,11 +495,13 @@
     function FuseIndex() {
       var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
           _ref$getFn = _ref.getFn,
-          getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn;
+          getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn,
+          _ref$fieldNormWeight = _ref.fieldNormWeight,
+          fieldNormWeight = _ref$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref$fieldNormWeight;
 
       _classCallCheck(this, FuseIndex);
 
-      this.norm = norm(3);
+      this.norm = norm(fieldNormWeight, 3);
       this.getFn = getFn;
       this.isCreated = false;
       this.setIndexRecords();
@@ -674,10 +680,13 @@
   function createIndex(keys, docs) {
     var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
         _ref2$getFn = _ref2.getFn,
-        getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn;
+        getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn,
+        _ref2$fieldNormWeight = _ref2.fieldNormWeight,
+        fieldNormWeight = _ref2$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref2$fieldNormWeight;
 
     var myIndex = new FuseIndex({
-      getFn: getFn
+      getFn: getFn,
+      fieldNormWeight: fieldNormWeight
     });
     myIndex.setKeys(keys.map(createKey));
     myIndex.setSources(docs);
@@ -687,12 +696,15 @@
   function parseIndex(data) {
     var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
         _ref3$getFn = _ref3.getFn,
-        getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn;
+        getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn,
+        _ref3$fieldNormWeight = _ref3.fieldNormWeight,
+        fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref3$fieldNormWeight;
 
     var keys = data.keys,
         records = data.records;
     var myIndex = new FuseIndex({
-      getFn: getFn
+      getFn: getFn,
+      fieldNormWeight: fieldNormWeight
     });
     myIndex.setKeys(keys);
     myIndex.setIndexRecords(records);
@@ -1911,7 +1923,8 @@
         }
 
         this._myIndex = index || createIndex(this.options.keys, this._docs, {
-          getFn: this.options.getFn
+          getFn: this.options.getFn,
+          fieldNormWeight: this.options.fieldNormWeight
         });
       }
     }, {
@@ -1973,10 +1986,12 @@
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
             sortFn = _this$options.sortFn,
-            ignoreFieldNorm = _this$options.ignoreFieldNorm;
+            ignoreFieldNorm = _this$options.ignoreFieldNorm,
+            fieldNormWeight = _this$options.fieldNormWeight;
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
         computeScore$1(results, {
-          ignoreFieldNorm: ignoreFieldNorm
+          ignoreFieldNorm: ignoreFieldNorm,
+          fieldNormWeight: fieldNormWeight
         });
 
         if (shouldSort) {
