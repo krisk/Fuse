@@ -1653,13 +1653,18 @@ class Fuse {
           return res
         }
         case LogicalOperator.OR: {
-          const res = [];
+          let bestScore, res = [];
           for (let i = 0, len = node.children.length; i < len; i += 1) {
             const child = node.children[i];
             const result = evaluate(child, item, idx);
             if (result.length) {
-              res.push(...result);
-              break
+              const matches = result[0].matches;
+              for (let j = 0, mLen = matches.length; j < mLen; j += 1) {
+                if (!bestScore || matches[j].score < bestScore) {
+                  bestScore = matches[j].score;
+                  res = [...result];
+                }
+              }
             }
           }
           return res
