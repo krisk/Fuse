@@ -1298,12 +1298,10 @@
             includeScore = _this$options.includeScore,
             shouldSort = _this$options.shouldSort,
             sortFn = _this$options.sortFn,
-            ignoreFieldNorm = _this$options.ignoreFieldNorm,
-            fieldNormWeight = _this$options.fieldNormWeight;
+            ignoreFieldNorm = _this$options.ignoreFieldNorm;
         var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
         computeScore$1(results, {
-          ignoreFieldNorm: ignoreFieldNorm,
-          fieldNormWeight: fieldNormWeight
+          ignoreFieldNorm: ignoreFieldNorm
         });
 
         if (shouldSort) {

@@ -1107,8 +1107,7 @@ class Fuse {
       includeScore,
       shouldSort,
       sortFn,
-      ignoreFieldNorm,
-      fieldNormWeight
+      ignoreFieldNorm
     } = this.options;
 
     let results = isString(query)
@@ -1117,7 +1116,7 @@ class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query);
 
-    computeScore$1(results, { ignoreFieldNorm, fieldNormWeight });
+    computeScore$1(results, { ignoreFieldNorm });
 
     if (shouldSort) {
       results.sort(sortFn);
