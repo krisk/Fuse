@@ -57,7 +57,7 @@ const results = fuse.remove((doc) => {
 })
 
 console.log(fruits.length)
-// => 1
+// => 2
 
 console.log(results)
 // => ['banana', 'pear']
