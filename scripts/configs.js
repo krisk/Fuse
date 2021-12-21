@@ -1,7 +1,7 @@
 const path = require('path')
 const replace = require('@rollup/plugin-replace')
-const node = require('@rollup/plugin-node-resolve')
-const babel = require('rollup-plugin-babel')
+const { nodeResolve } = require('@rollup/plugin-node-resolve')
+const { babel } = require('@rollup/plugin-babel')
 const copy = require('rollup-plugin-copy')
 const pckg = require('../package.json')
 const typescript = require('typescript')
@@ -136,7 +136,8 @@ const builds = {
 }
 
 const defaultVars = {
-  __VERSION__: VERSION
+  __VERSION__: VERSION,
+  preventAssignment: true
 }
 
 const defaultFeatures = Object.keys(FeatureFlags).reduce((map, key) => {
@@ -150,7 +151,7 @@ function genConfig(options) {
 
   const config = {
     input: options.entry,
-    plugins: [node(), ...(options.plugins || [])],
+    plugins: [nodeResolve(), ...(options.plugins || [])],
     output: {
       banner,
       file: options.dest,
@@ -174,7 +175,7 @@ function genConfig(options) {
   config.plugins.push(replace(vars))
 
   if (options.transpile !== false) {
-    config.plugins.push(babel())
+    config.plugins.push(babel({ babelHelpers: 'bundled' }))
   }
 
   return config

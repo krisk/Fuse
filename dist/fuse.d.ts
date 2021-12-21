@@ -1,5 +1,5 @@
 // Type definitions for Fuse.js v6.4.6
-// TypeScript v3.9.5
+// TypeScript v4.5.4
 
 export default Fuse
 export as namespace Fuse
@@ -290,4 +290,6 @@ declare namespace Fuse {
       }
     | { $and?: Expression[] }
     | { $or?: Expression[] }
+   
+  export const config: Required<IFuseOptions<any>>;
 }

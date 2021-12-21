@@ -423,7 +423,7 @@ class FuseIndex {
                 value: item
               });
             });
-          }
+          } else ;
         }
         record.$[keyIndex] = subRecords;
       } else if (!isBlank(value)) {
@@ -462,7 +462,7 @@ function parseIndex(data, { getFn = Config.getFn } = {}) {
   return myIndex
 }
 
-function computeScore(
+function computeScore$1(
   pattern,
   {
     errors = 0,
@@ -559,7 +559,7 @@ function search(
 
   // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-    let score = computeScore(pattern, {
+    let score = computeScore$1(pattern, {
       currentLocation: index,
       expectedLocation,
       distance,
@@ -595,7 +595,7 @@ function search(
     let binMid = binMax;
 
     while (binMin < binMid) {
-      const score = computeScore(pattern, {
+      const score = computeScore$1(pattern, {
         errors: i,
         currentLocation: expectedLocation + binMid,
         expectedLocation,
@@ -644,7 +644,7 @@ function search(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = computeScore(pattern, {
+        finalScore = computeScore$1(pattern, {
           errors: i,
           currentLocation,
           expectedLocation,
@@ -671,7 +671,7 @@ function search(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = computeScore(pattern, {
+    const score = computeScore$1(pattern, {
       errors: i + 1,
       currentLocation: expectedLocation,
       expectedLocation,
@@ -1402,7 +1402,7 @@ function parse(query, options, { auto = true } = {}) {
 }
 
 // Practical scoring function
-function computeScore$1(
+function computeScore(
   results,
   { ignoreFieldNorm = Config.ignoreFieldNorm }
 ) {
@@ -1569,7 +1569,7 @@ class Fuse {
         : this._searchObjectList(query)
       : this._searchLogical(query);
 
-    computeScore$1(results, { ignoreFieldNorm });
+    computeScore(results, { ignoreFieldNorm });
 
     if (shouldSort) {
       results.sort(sortFn);
@@ -1779,4 +1779,4 @@ Fuse.config = Config;
   register(ExtendedSearch);
 }
 
-export default Fuse;
+export { Fuse as default };
