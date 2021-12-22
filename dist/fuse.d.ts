@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v6.4.6
+// Type definitions for Fuse.js v6.5.0
 // TypeScript v4.5.4
 
 export default Fuse

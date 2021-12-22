@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.5.0](https://github.com/krisk/Fuse/compare/v6.4.6...v6.5.0) (2021-12-22)
+
+
+### Features
+
+* **scoring:** field length norm weight ([a9e0080](https://github.com/krisk/Fuse/commit/a9e00804497a1bfd7a94040520417825c085c945))
+
+
+### Bug Fixes
+
+* **typescript:** add config declaration to types ([2f4de0c](https://github.com/krisk/Fuse/commit/2f4de0c5ce061808f460de7f399b56a06539d4d5))
+
 ### [6.4.6](https://github.com/krisk/Fuse/compare/v6.4.5...v6.4.6) (2021-01-05)
 
 
