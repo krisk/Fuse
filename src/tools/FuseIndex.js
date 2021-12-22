@@ -4,8 +4,8 @@ import normGenerator from './norm'
 import { createKey } from './KeyStore'
 
 export default class FuseIndex {
-  constructor({ getFn = Config.getFn } = {}) {
-    this.norm = normGenerator(3)
+  constructor({ getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+    this.norm = normGenerator(fieldNormWeight, 3)
     this.getFn = getFn
     this.isCreated = false
 
@@ -147,17 +147,17 @@ export default class FuseIndex {
   }
 }
 
-export function createIndex(keys, docs, { getFn = Config.getFn } = {}) {
-  const myIndex = new FuseIndex({ getFn })
+export function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+  const myIndex = new FuseIndex({ getFn, fieldNormWeight })
   myIndex.setKeys(keys.map(createKey))
   myIndex.setSources(docs)
   myIndex.create()
   return myIndex
 }
 
-export function parseIndex(data, { getFn = Config.getFn } = {}) {
+export function parseIndex(data, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
   const { keys, records } = data
-  const myIndex = new FuseIndex({ getFn })
+  const myIndex = new FuseIndex({ getFn, fieldNormWeight })
   myIndex.setKeys(keys)
   myIndex.setIndexRecords(records)
   return myIndex

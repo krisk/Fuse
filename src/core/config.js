@@ -54,7 +54,9 @@ export const AdvancedOptions = {
   // When `true`, the calculation for the relevance score (used for sorting) will
   // ignore the field-length norm.
   // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
-  ignoreFieldNorm: false
+  ignoreFieldNorm: false,
+  // The weight to determine how much field length norm effects scoring.
+  fieldNormWeight: 1
 }
 
 export default {

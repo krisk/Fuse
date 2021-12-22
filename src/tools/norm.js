@@ -2,7 +2,7 @@ const SPACE = /[^ ]+/g
 
 // Field-length norm: the shorter the field, the higher the weight.
 // Set to 3 decimals to reduce index size.
-export default function norm(mantissa = 3) {
+export default function norm(weight = 1, mantissa = 3) {
   const cache = new Map()
   const m = Math.pow(10, mantissa)
 
@@ -14,7 +14,8 @@ export default function norm(mantissa = 3) {
         return cache.get(numTokens)
       }
 
-      const norm = 1 / Math.sqrt(numTokens)
+      // Default function is 1/sqrt(x), weight makes that variable
+      const norm = 1 / Math.pow(numTokens, 0.5 * weight)
 
       // In place of `toFixed(mantissa)`, for faster computation
       const n = parseFloat(Math.round(norm * m) / m)

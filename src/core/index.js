@@ -34,7 +34,8 @@ export default class Fuse {
     this._myIndex =
       index ||
       createIndex(this.options.keys, this._docs, {
-        getFn: this.options.getFn
+        getFn: this.options.getFn,
+        fieldNormWeight: this.options.fieldNormWeight
       })
   }
 
