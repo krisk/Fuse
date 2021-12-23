@@ -95,7 +95,7 @@
     "vuepress-plugin-google-adsense": "^0.2.1",
     "vuepress-plugin-smooth-scroll": "^0.0.10",
     "vuepress-plugin-social-share": "^1.1.0",
-    "webpack": "^5.64.0",
+    "webpack": "4.46.0",
     "webpack-cli": "^4.9.1"
   },
   "engines": {
