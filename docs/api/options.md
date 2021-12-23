@@ -131,4 +131,11 @@ When `true`, the calculation for the relevance score (used for sorting) will ign
 The only time it makes sense to set `ignoreFieldNorm` to `true` is when it does not matter how many terms there are, but only that the query term exists.
 :::
 
+### `fieldNormWeight`
+
+- Type: `number`
+- Default: `1`
+
+Determines how much the [field-length norm](/concepts/scoring-theory.html#field-length-norm) affects scoring. A value of `0` is equivalent to ignoring the field-length norm. A value of `0.5` will greatly reduce the effect of field-length norm, while a value of `2.0` will greatly increase it.
+
 <Donate />
