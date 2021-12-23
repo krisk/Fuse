@@ -257,8 +257,8 @@ describe('Searching using logical OR with same query across fields', () => {
   })
 
   describe('When searching for the term "wood"', () => {
-    test('we get the top three results all with an exact match from their author.lastName', () => {
-      expect(idx(result.slice(0,3)).sort()).toMatchObject([3,4,5])
+    test('we get the top three results scored based matches from all their fields', () => {
+      expect(idx(result.slice(0,3))).toMatchObject([4,3,5])
     })
   })
 })

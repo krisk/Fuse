@@ -2076,8 +2076,7 @@ var Fuse = /*#__PURE__*/function () {
 
           case LogicalOperator.OR:
             {
-              var bestScore,
-                  _res = [];
+              var _res = [];
 
               for (var _i = 0, _len = node.children.length; _i < _len; _i += 1) {
                 var _child = node.children[_i];
@@ -2085,14 +2084,7 @@ var Fuse = /*#__PURE__*/function () {
                 var _result = evaluate(_child, item, idx);
 
                 if (_result.length) {
-                  var _matches = _result[0].matches;
-
-                  for (var j = 0, mLen = _matches.length; j < mLen; j += 1) {
-                    if (!bestScore || _matches[j].score < bestScore) {
-                      bestScore = _matches[j].score;
-                      _res = _toConsumableArray(_result);
-                    }
-                  }
+                  _res.push.apply(_res, _toConsumableArray(_result));
                 }
               }
 
