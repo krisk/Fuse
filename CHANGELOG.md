@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.2](https://github.com/krisk/Fuse/compare/v6.5.1...v6.5.2) (2021-12-23)
+
 ### [6.5.1](https://github.com/krisk/Fuse/compare/v6.5.0...v6.5.1) (2021-12-23)
 
 
