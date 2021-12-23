@@ -311,7 +311,10 @@ function norm(weight = 1, mantissa = 3) {
 }
 
 class FuseIndex {
-  constructor({ getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+  constructor({
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
+  } = {}) {
     this.norm = norm(fieldNormWeight, 3);
     this.getFn = getFn;
     this.isCreated = false;
@@ -451,7 +454,11 @@ class FuseIndex {
   }
 }
 
-function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+function createIndex(
+  keys,
+  docs,
+  { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}
+) {
   const myIndex = new FuseIndex({ getFn, fieldNormWeight });
   myIndex.setKeys(keys.map(createKey));
   myIndex.setSources(docs);
@@ -459,7 +466,10 @@ function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Confi
   return myIndex
 }
 
-function parseIndex(data, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+function parseIndex(
+  data,
+  { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}
+) {
   const { keys, records } = data;
   const myIndex = new FuseIndex({ getFn, fieldNormWeight });
   myIndex.setKeys(keys);
