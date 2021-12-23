@@ -160,34 +160,17 @@ export default class Fuse {
         return []
       }
 
-      /*eslint indent: [2, 2, {"SwitchCase": 1}]*/
-      switch (node.operator) {
-        case LogicalOperator.AND: {
-          const res = []
-          for (let i = 0, len = node.children.length; i < len; i += 1) {
-            const child = node.children[i]
-            const result = evaluate(child, item, idx)
-            if (result.length) {
-              res.push(...result)
-            } else {
-              return []
-            }
-          }
-          return res
-        }
-        case LogicalOperator.OR: {
-          const res = []
-          for (let i = 0, len = node.children.length; i < len; i += 1) {
-            const child = node.children[i]
-            const result = evaluate(child, item, idx)
-            if (result.length) {
-              res.push(...result)
-              break
-            }
-          }
-          return res
+      const res = []
+      for (let i = 0, len = node.children.length; i < len; i += 1) {
+        const child = node.children[i]
+        const result = evaluate(child, item, idx)
+        if (result.length) {
+          res.push(...result)
+        } else if (node.operator === LogicalOperator.AND) {
+          return []
         }
       }
+      return res
     }
 
     const records = this._myIndex.records

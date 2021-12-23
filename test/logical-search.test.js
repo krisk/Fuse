@@ -240,3 +240,22 @@ describe('Logical search with dotted keys', () => {
     expect(result.length).toBe(1)
   })
 })
+
+describe('Searching using logical OR with same query across fields', () => {
+  const options = { keys: ['title', 'author.lastName'] }
+  const fuse = new Fuse(Books, options)
+  let result
+  beforeEach(() => {
+    const query = {
+      $or: [{ title: 'wood' }, { 'author.lastName': 'wood' }]
+    }
+
+    result = fuse.search(query)
+  })
+
+  describe('When searching for the term "wood"', () => {
+    test('we get the top three results scored based matches from all their fields', () => {
+      expect(idx(result.slice(0, 3))).toMatchObject([4, 3, 5])
+    })
+  })
+})

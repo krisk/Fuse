@@ -2063,47 +2063,21 @@
 
             return [];
           }
-          /*eslint indent: [2, 2, {"SwitchCase": 1}]*/
 
+          var res = [];
 
-          switch (node.operator) {
-            case LogicalOperator.AND:
-              {
-                var res = [];
+          for (var i = 0, len = node.children.length; i < len; i += 1) {
+            var child = node.children[i];
+            var result = evaluate(child, item, idx);
 
-                for (var i = 0, len = node.children.length; i < len; i += 1) {
-                  var child = node.children[i];
-                  var result = evaluate(child, item, idx);
-
-                  if (result.length) {
-                    res.push.apply(res, _toConsumableArray(result));
-                  } else {
-                    return [];
-                  }
-                }
-
-                return res;
-              }
-
-            case LogicalOperator.OR:
-              {
-                var _res = [];
-
-                for (var _i = 0, _len = node.children.length; _i < _len; _i += 1) {
-                  var _child = node.children[_i];
-
-                  var _result = evaluate(_child, item, idx);
-
-                  if (_result.length) {
-                    _res.push.apply(_res, _toConsumableArray(_result));
-
-                    break;
-                  }
-                }
-
-                return _res;
-              }
+            if (result.length) {
+              res.push.apply(res, _toConsumableArray(result));
+            } else if (node.operator === LogicalOperator.AND) {
+              return [];
+            }
           }
+
+          return res;
         };
 
         var records = this._myIndex.records;
