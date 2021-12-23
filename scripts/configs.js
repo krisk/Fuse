@@ -36,7 +36,6 @@ const fullBuildFeatures = {
 const builds = {
   // UMD full build
   'umd-dev-full': {
-    entry: resolve('src/entry.js'),
     dest: resolve(`dist/${FILENAME}.js`),
     format: 'umd',
     env: 'development',
@@ -60,8 +59,7 @@ const builds = {
   },
   // UMD production build
   'umd-prod-full': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.min.js`),
+    dest: `dist/${FILENAME}.min.js`,
     format: 'umd',
     env: 'production',
     features: {
@@ -70,21 +68,18 @@ const builds = {
   },
   // UMD basic build
   'umd-dev-basic': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.basic.js`),
+    dest: `dist/${FILENAME}.basic.js`,
     format: 'umd',
     env: 'development'
   },
   'umd-prod-basic': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.basic.min.js`),
+    dest: `dist/${FILENAME}.basic.min.js`,
     format: 'umd',
     env: 'production'
   },
   // CommonJS full build
   'commonjs-full': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.common.js`),
+    dest: `dist/${FILENAME}.common.js`,
     env: 'development',
     features: {
       ...fullBuildFeatures
@@ -93,15 +88,13 @@ const builds = {
   },
   // CommonJS basic build
   'commonjs-basic': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.basic.common.js`),
+    dest: `dist/${FILENAME}.basic.common.js`,
     env: 'development',
     format: 'cjs'
   },
   // ES modules build (for bundlers)
   'esm-dev-full': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.esm.js`),
+    dest: `dist/${FILENAME}.esm.js`,
     format: 'es',
     env: 'development',
     features: {
@@ -110,8 +103,7 @@ const builds = {
     transpile: false
   },
   'esm-prod-full': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.esm.min.js`),
+    dest: `dist/${FILENAME}.esm.min.js`,
     format: 'es',
     env: 'production',
     features: {
@@ -120,15 +112,13 @@ const builds = {
     transpile: false
   },
   'esm-basic': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.basic.esm.js`),
+    dest: `dist/${FILENAME}.basic.esm.js`,
     format: 'es',
     env: 'development',
     transpile: false
   },
   'esm-prod-basic': {
-    entry: resolve('src/entry.js'),
-    dest: resolve(`dist/${FILENAME}.basic.esm.min.js`),
+    dest: `dist/${FILENAME}.basic.esm.min.js`,
     format: 'es',
     env: 'production',
     transpile: false
@@ -150,11 +140,11 @@ function genConfig(options) {
   const vars = { ...defaultVars, ...defaultFeatures }
 
   const config = {
-    input: options.entry,
+    input: resolve('src/entry.js'),
     plugins: [nodeResolve(), ...(options.plugins || [])],
     output: {
       banner,
-      file: options.dest,
+      file: resolve(options.dest),
       format: options.format,
       name: 'Fuse',
       exports: 'default'
@@ -184,9 +174,11 @@ function genConfig(options) {
 
 function mapValues(obj, fn) {
   const res = {}
+
   Object.keys(obj).forEach((key) => {
     res[key] = fn(obj[key], key)
   })
+
   return res
 }
 
