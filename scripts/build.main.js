@@ -32,25 +32,25 @@ async function buildEntry(config) {
       output: [{ code }]
     } = await bundle.generate(output)
 
-    if (isProd) {
-      const minified =
-        (banner || '') +
-        terser.minify(code, {
-          toplevel: true,
-          output: {
-            ascii_only: true
-          },
-          compress: {
-            pure_funcs: ['makeMap']
-          }
-        }).code
-      return write(file, minified, true)
-    } else {
-      return write(file, code)
-    }
+    return isProd
+      ? write(file, await minify(banner, code), true)
+      : write(file, code)
   } catch (err) {
     throw new Error(err)
   }
+}
+
+async function minify(banner, code) {
+  const output = await terser.minify(code, {
+    toplevel: true,
+    output: {
+      ascii_only: true
+    },
+    compress: {
+      pure_funcs: ['makeMap']
+    }
+  })
+  return (banner || '') + output.code
 }
 
 function write(dest, code, zip) {
