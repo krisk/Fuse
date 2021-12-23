@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.5.3](https://github.com/krisk/Fuse/compare/v6.5.2...v6.5.3) (2021-12-23)
+
+
+### Bug Fixes
+
+* **logical:** scoring for logical OR ([6f6af51](https://github.com/krisk/Fuse/commit/6f6af51cc39058fafea6b126f7120afc4f7c192a)), closes [#593](https://github.com/krisk/Fuse/issues/593)
+
 ### [6.5.2](https://github.com/krisk/Fuse/compare/v6.5.1...v6.5.2) (2021-12-23)
 
 ### [6.5.1](https://github.com/krisk/Fuse/compare/v6.5.0...v6.5.1) (2021-12-23)
