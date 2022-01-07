@@ -231,12 +231,12 @@ declare namespace Fuse {
   //   name: 'title',
   //   weight: 0.7
   // }
-  export type FuseOptionKeyObject = {
-    name: string | string[]
+  export type FuseOptionKeyObject<T> = {
+    name: T | T[]
     weight: number
   }
 
-  export type FuseOptionKey = FuseOptionKeyObject | string | string[]
+  export type FuseOptionKey<T = string> = FuseOptionKeyObject<T> | T | T[]
 
   export interface IFuseOptions<T> {
     isCaseSensitive?: boolean
@@ -247,7 +247,7 @@ declare namespace Fuse {
     ignoreFieldNorm?: boolean
     includeMatches?: boolean
     includeScore?: boolean
-    keys?: Array<FuseOptionKey>
+    keys?: Array<FuseOptionKey<keyof T>>
     location?: number
     minMatchCharLength?: number
     shouldSort?: boolean
