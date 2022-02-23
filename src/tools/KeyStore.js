@@ -67,7 +67,7 @@ export function createKey(key) {
     id = createKeyId(name)
   }
 
-  return { path, id, weight, src }
+  return { path, id, weight, src, getFn: key.getFn }
 }
 
 export function createKeyPath(key) {
