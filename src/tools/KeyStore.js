@@ -42,6 +42,7 @@ export function createKey(key) {
   let id = null
   let src = null
   let weight = 1
+  let getFn = null
 
   if (isString(key) || isArray(key)) {
     src = key
@@ -65,9 +66,10 @@ export function createKey(key) {
 
     path = createKeyPath(name)
     id = createKeyId(name)
+    getFn = key.getFn
   }
 
-  return { path, id, weight, src }
+  return { path, id, weight, src, getFn }
 }
 
 export function createKeyPath(key) {

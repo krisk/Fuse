@@ -1,7 +1,7 @@
 /**
  * Fuse.js v6.5.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
- * Copyright (c) 2021 Kiro Risk (http://kiro.me)
+ * Copyright (c) 2022 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -317,6 +317,7 @@
     var id = null;
     var src = null;
     var weight = 1;
+    var getFn = null;
 
     if (isString(key) || isArray(key)) {
       src = key;
@@ -340,13 +341,15 @@
 
       path = createKeyPath(name);
       id = createKeyId(name);
+      getFn = key.getFn;
     }
 
     return {
       path: path,
       id: id,
       weight: weight,
-      src: src
+      src: src,
+      getFn: getFn
     };
   }
   function createKeyPath(key) {
@@ -606,8 +609,7 @@
         }; // Iterate over every key (i.e, path), and fetch the value at that key
 
         this.keys.forEach(function (key, keyIndex) {
-          // console.log(key)
-          var value = _this3.getFn(doc, key.path);
+          var value = key.getFn ? key.getFn(doc) : _this3.getFn(doc, key.path);
 
           if (!isDefined(value)) {
             return;
@@ -1504,7 +1506,7 @@
   var searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
   var searchersLen = searchers.length; // Regex to split by spaces, but keep anything in quotes together
 
-  var SPACE_RE = / +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;
+  var SPACE_RE = / +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/;
   var OR_TOKEN = '|'; // Return a 2D array representation of the query, for simpler parsing.
   // Example:
   // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
