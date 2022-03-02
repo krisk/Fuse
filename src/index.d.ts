@@ -107,7 +107,7 @@ declare namespace Fuse {
     add(doc: T): void
     toJSON(): {
       keys: ReadonlyArray<string>
-      collection: FuseIndexRecords
+      records: FuseIndexRecords
     }
   }
 
@@ -304,6 +304,6 @@ declare namespace Fuse {
       }
     | { $and?: Expression[] }
     | { $or?: Expression[] }
-   
+
   export const config: Required<IFuseOptions<any>>;
 }
