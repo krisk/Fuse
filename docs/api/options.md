@@ -64,10 +64,10 @@ You shouldn't have to change these.
 
 ### `location`
 
-- Type: `number`
-- Default: `0`
+- Type: `number | undefined`
+- Default: `undefined`
 
-Determines approximately where in the text is the pattern expected to be found.
+Determines approximately where in the text is the pattern expected to be found. Defaults to `undefined` which ignores the location of the pattern in the string.
 
 ### `threshold`
 
