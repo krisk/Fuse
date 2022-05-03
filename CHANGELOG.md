@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.6.0](https://github.com/krisk/Fuse/compare/v6.5.3...v6.6.0) (2022-05-03)
+
+
+### Features
+
+* allow passing getFn for a specific key ([1d445b9](https://github.com/krisk/Fuse/commit/1d445b9999e26d6eefecbdd333d46be01aff06e5)), closes [#627](https://github.com/krisk/Fuse/issues/627)
+
+
+### Bug Fixes
+
+* excessive splitting in parseQuery ([2c78022](https://github.com/krisk/Fuse/commit/2c78022c6ccb424e1013dc486649a7d6388df193))
+* type mismatch on toJSON ([f5425ea](https://github.com/krisk/Fuse/commit/f5425ea1bd6b95eae912b8dab68c9e3cac0ad27f))
+
 ### [6.5.3](https://github.com/krisk/Fuse/compare/v6.5.2...v6.5.3) (2021-12-23)
 
 
