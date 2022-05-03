@@ -65,11 +65,11 @@ describe('Searching', () => {
       includeScore: true,
       threshold: 0.3,
       keys: [
-        { name: 'bookTitle', getFn: (book) => book.title },
+        { name: 'title', getFn: (book) => book.title },
         { name: 'authorName', getFn: (book) => book.author.firstName }
       ]
     })
-    const result = fuse.search({ bookTitle: 'old man' })
+    const result = fuse.search({ title: 'old man' })
     expect(result.length).toBe(1)
     expect(idx(result)).toMatchObject([0])
   })
