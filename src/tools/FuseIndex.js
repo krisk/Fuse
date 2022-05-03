@@ -92,7 +92,7 @@ export default class FuseIndex {
     // Iterate over every key (i.e, path), and fetch the value at that key
     this.keys.forEach((key, keyIndex) => {
       // console.log(key)
-      let value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path)
+      let value = this.getFn(doc, key.path)
 
       if (!isDefined(value)) {
         return
