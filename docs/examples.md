@@ -97,7 +97,11 @@ const result = fuse.search('tion')
 
 ## Nested Search
 
-You can search through nested values by providing the path via dot (`.`) or array notation.
+You can search through nested values with different ways:
+
+- define the path with dot notation (`.`)
+- define the path with array notation (`[]`)
+- Define a per-key `getFn` function
 
 :::: tabs
 ::: tab List
@@ -130,18 +134,50 @@ You can search through nested values by providing the path via dot (`.`) or arra
 ```
 
 :::
-::: tab JS
+::: tab JS (dot notation)
 
 ```javascript
 const options = {
   includeScore: true,
-  // equivalent to `keys: [['author', 'tags', 'value']]`
   keys: ['author.tags.value']
 }
 
 const fuse = new Fuse(list, options)
 
 const result = fuse.search('engsh')
+```
+
+:::
+
+::: tab JS (array notation)
+
+```javascript
+const options = {
+  includeScore: true,
+  keys: [['author', 'tags', 'value']]
+}
+
+const fuse = new Fuse(list, options)
+
+const result = fuse.search('engsh')
+```
+
+:::
+
+::: tab JS (get function)
+
+```javascript
+const options = {
+  includeScore: true,
+  keys: [
+    { name: 'title', getFn: (book) => book.title },
+    { name: 'authorName', getFn: (book) => book.author.name }
+  ]
+})
+
+const fuse = new Fuse(list, options)
+
+const result = fuse.search({ authorName: 'Steve' })
 ```
 
 :::
