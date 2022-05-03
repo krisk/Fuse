@@ -29,18 +29,6 @@ describe('Searching', () => {
     expect(myIndex.keys).toBeDefined()
   })
 
-  test('createIndex: ensure keys can be created with getFn', () => {
-    let myIndex = Fuse.createIndex(
-      [
-        { name: 'title', getFn: (book) => book.title },
-        { name: 'author.firstName', getFn: (book) => book.author.firstName }
-      ],
-      Books
-    )
-    expect(myIndex.records).toBeDefined()
-    expect(myIndex.keys).toBeDefined()
-  })
-
   test('parseIndex: ensure index can be exported and Fuse can be initialized', () => {
     const myIndex = Fuse.createIndex(options.keys, Books)
     expect(myIndex.size()).toBe(Books.length)
@@ -53,22 +41,6 @@ describe('Searching', () => {
     expect(parsedIndex.size()).toBe(Books.length)
 
     const fuse = new Fuse(Books, options, parsedIndex)
-    const result = fuse.search({ title: 'old man' })
-    expect(result.length).toBe(1)
-    expect(idx(result)).toMatchObject([0])
-  })
-
-  test('parseIndex: search with getFn', () => {
-    const fuse = new Fuse(Books, {
-      useExtendedSearch: true,
-      includeMatches: true,
-      includeScore: true,
-      threshold: 0.3,
-      keys: [
-        { name: 'title', getFn: (book) => book.title },
-        { name: 'authorName', getFn: (book) => book.author.firstName }
-      ]
-    })
     const result = fuse.search({ title: 'old man' })
     expect(result.length).toBe(1)
     expect(idx(result)).toMatchObject([0])
