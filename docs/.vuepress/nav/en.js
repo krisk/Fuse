@@ -1,10 +1,10 @@
 module.exports = [
   { text: 'Guide', link: '/' },
   // { text: 'Blog', link: '/blog/' },
-  {
-    text: 'Team',
-    link: '/team/'
-  },
+  // {
+  //   text: 'Team',
+  //   link: '/team/'
+  // },
   {
     text: 'Support Fuse.js',
     link: '/support/'
