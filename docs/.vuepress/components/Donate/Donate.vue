@@ -2,7 +2,7 @@
   <div class="donate-link-wrapper">
     <strong>❤️️ Fuse.js? Support its development with a small donation.</strong>
     <br />
-    <a href="/support.html" class="donate-btn">Donate</a>
+    <a href="https://github.com/sponsors/krisk" class="donate-btn">Donate</a>
   </div>
 </template>
 
