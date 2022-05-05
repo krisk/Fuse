@@ -86,7 +86,7 @@ declare class Fuse<T> {
    * @returns An indexed list
    */
   static createIndex<U>(
-    keys: Array<Fuse.FuseOptionKey>,
+    keys: Array<Fuse.FuseOptionKey<U>>,
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
   ): Fuse.FuseIndex<U>
@@ -178,8 +178,10 @@ declare namespace Fuse {
   //   'n': 0.5773502691896258
   // }
   type RecordEntryObject = {
-    v: string // The text value
-    n: number // The field-length norm
+    /** The text value */
+    v: string
+    /** The field-length norm */
+    n: number
   }
 
   // 'author.tags.name': [{
@@ -205,7 +207,8 @@ declare namespace Fuse {
   //   }
   // }
   type FuseIndexObjectRecord = {
-    i: number // The index of the record in the source list
+    /** The index of the record in the source list */
+    i: number
     $: RecordEntry
   }
 
@@ -218,25 +221,36 @@ declare namespace Fuse {
   //   ]
   // }
   type FuseIndexStringRecord = {
-    i: number // The index of the record in the source list
-    v: string // The text value
-    n: number // The field-length norm
+    /** The index of the record in the source list */
+    i: number
+    /** The text value */
+    v: string
+    /** The field-length norm */
+    n: number
   }
 
   type FuseIndexRecords =
     | ReadonlyArray<FuseIndexObjectRecord>
     | ReadonlyArray<FuseIndexStringRecord>
+  
+  type FuseOptionKeyObjectGetFunction<T> = (
+    obj: T,
+  ) => ReadonlyArray<string> | string
 
   // {
   //   name: 'title',
-  //   weight: 0.7
+  //   weight: 0.7,
+  //   getFn: (book) => book.title
   // }
-  export type FuseOptionKeyObject = {
-    name: string | string[]
-    weight: number
+  export type FuseOptionKeyObject<T> = {
+    name: string | string[] 
+    /** Adjust the weight of each key to give them higher (or lower) values in search results. The `weight` value must be greater than zero. If undefined, it will default to `1`. Internally, Fuse will normalize weights to be within `0` and `1` exclusive. */
+    weight?: number
+    /** The function to use to retrieve an object's value */
+    getFn?: FuseOptionKeyObjectGetFunction<T>
   }
 
-  export type FuseOptionKey = FuseOptionKeyObject | string | string[]
+  export type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
 
   export interface IFuseOptions<T> {
     /** Indicates whether comparisons should be case sensitive. */
@@ -258,7 +272,7 @@ declare namespace Fuse {
     /** Whether the score should be included in the result set. A score of `0`indicates a perfect match, while a score of `1` indicates a complete mismatch. */
     includeScore?: boolean
     /** List of keys that will be searched. This supports nested paths, weighted search, searching in arrays of `strings` and `objects`. */
-    keys?: Array<FuseOptionKey>
+    keys?: Array<FuseOptionKey<T>>
     /** Determines approximately where in the text is the pattern expected to be found. */
     location?: number
     /** Only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character matches in the result, set it to `2`). */
