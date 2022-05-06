@@ -178,10 +178,8 @@ declare namespace Fuse {
   //   'n': 0.5773502691896258
   // }
   type RecordEntryObject = {
-    /** The text value */
-    v: string
-    /** The field-length norm */
-    n: number
+    v: string // The text value
+    n: number // The field-length norm
   }
 
   // 'author.tags.name': [{
@@ -207,8 +205,7 @@ declare namespace Fuse {
   //   }
   // }
   type FuseIndexObjectRecord = {
-    /** The index of the record in the source list */
-    i: number
+    i: number // The index of the record in the source list
     $: RecordEntry
   }
 
@@ -221,33 +218,23 @@ declare namespace Fuse {
   //   ]
   // }
   type FuseIndexStringRecord = {
-    /** The index of the record in the source list */
-    i: number
-    /** The text value */
-    v: string
-    /** The field-length norm */
-    n: number
+    i: number // The index of the record in the source list
+    v: string // The text value
+    n: number // The field-length norm
   }
 
   type FuseIndexRecords =
     | ReadonlyArray<FuseIndexObjectRecord>
     | ReadonlyArray<FuseIndexStringRecord>
-  
-  type FuseOptionKeyObjectGetFunction<T> = (
-    obj: T,
-  ) => ReadonlyArray<string> | string
 
   // {
   //   name: 'title',
-  //   weight: 0.7,
-  //   getFn: (book) => book.title
+  //   weight: 0.7
   // }
   export type FuseOptionKeyObject<T> = {
-    name: string | string[] 
-    /** Adjust the weight of each key to give them higher (or lower) values in search results. The `weight` value must be greater than zero. If undefined, it will default to `1`. Internally, Fuse will normalize weights to be within `0` and `1` exclusive. */
+    name: string | string[]
     weight?: number
-    /** The function to use to retrieve an object's value */
-    getFn?: FuseOptionKeyObjectGetFunction<T>
+    getFn?: (obj: T) => ReadonlyArray<string> | string
   }
 
   export type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
