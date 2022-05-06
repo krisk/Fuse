@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.6.1](https://github.com/krisk/Fuse/compare/v6.6.0...v6.6.1) (2022-05-06)
+
+
+### Bug Fixes
+
+* getFn to FuseOptionKeyObject ([80b87a9](https://github.com/krisk/Fuse/commit/80b87a9035b3dcecc92dc913ceb160045e1a95bd)), closes [#655](https://github.com/krisk/Fuse/issues/655)
+* **typescript:** type definition for `FuseOptionKeyObject, fixes [#655](https://github.com/krisk/Fuse/issues/655) ([4acabb6](https://github.com/krisk/Fuse/commit/4acabb686f9a1a95adc766bc2fb387c0ce0b477c))
+* **typescript:** type definition for FuseOptionKeyObject ([0a790b5](https://github.com/krisk/Fuse/commit/0a790b516efec2e6c5539bdd40d04889e6252dfe)), closes [#655](https://github.com/krisk/Fuse/issues/655) [#656](https://github.com/krisk/Fuse/issues/656)
+
 ## [6.6.0](https://github.com/krisk/Fuse/compare/v6.5.3...v6.6.0) (2022-05-03)
 
 
