@@ -266,7 +266,7 @@ declare namespace Fuse {
     /** When `true`, the calculation for the relevance score (used for sorting) will ignore the `field-length norm`. */
     ignoreFieldNorm?: boolean
     /** Determines how much the `field-length norm` affects scoring. A value of `0` is equivalent to ignoring the field-length norm. A value of `0.5` will greatly reduce the effect of field-length norm, while a value of `2.0` will greatly increase it. */
-    fieldNormWeight: number
+    fieldNormWeight?: number
     /** Whether the matches should be included in the result set. When `true`, each record in the result set will include the indices of the matched characters. These can consequently be used for highlighting purposes. */
     includeMatches?: boolean
     /** Whether the score should be included in the result set. A score of `0`indicates a perfect match, while a score of `1` indicates a complete mismatch. */
@@ -319,5 +319,5 @@ declare namespace Fuse {
     | { $and?: Expression[] }
     | { $or?: Expression[] }
 
-  export const config: Required<IFuseOptions<any>>;
+  export const config: Required<IFuseOptions<any>>
 }
