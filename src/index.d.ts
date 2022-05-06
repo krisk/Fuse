@@ -86,7 +86,7 @@ declare class Fuse<T> {
    * @returns An indexed list
    */
   static createIndex<U>(
-    keys: Array<Fuse.FuseOptionKey>,
+    keys: Array<Fuse.FuseOptionKey<U>>,
     list: ReadonlyArray<U>,
     options?: Fuse.FuseIndexOptions<U>
   ): Fuse.FuseIndex<U>
@@ -231,12 +231,13 @@ declare namespace Fuse {
   //   name: 'title',
   //   weight: 0.7
   // }
-  export type FuseOptionKeyObject = {
+  export type FuseOptionKeyObject<T> = {
     name: string | string[]
-    weight: number
+    weight?: number
+    getFn?: (obj: T) => ReadonlyArray<string> | string
   }
 
-  export type FuseOptionKey = FuseOptionKeyObject | string | string[]
+  export type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
 
   export interface IFuseOptions<T> {
     /** Indicates whether comparisons should be case sensitive. */
@@ -252,13 +253,13 @@ declare namespace Fuse {
     /** When `true`, the calculation for the relevance score (used for sorting) will ignore the `field-length norm`. */
     ignoreFieldNorm?: boolean
     /** Determines how much the `field-length norm` affects scoring. A value of `0` is equivalent to ignoring the field-length norm. A value of `0.5` will greatly reduce the effect of field-length norm, while a value of `2.0` will greatly increase it. */
-    fieldNormWeight: number
+    fieldNormWeight?: number
     /** Whether the matches should be included in the result set. When `true`, each record in the result set will include the indices of the matched characters. These can consequently be used for highlighting purposes. */
     includeMatches?: boolean
     /** Whether the score should be included in the result set. A score of `0`indicates a perfect match, while a score of `1` indicates a complete mismatch. */
     includeScore?: boolean
     /** List of keys that will be searched. This supports nested paths, weighted search, searching in arrays of `strings` and `objects`. */
-    keys?: Array<FuseOptionKey>
+    keys?: Array<FuseOptionKey<T>>
     /** Determines approximately where in the text is the pattern expected to be found. */
     location?: number
     /** Only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character matches in the result, set it to `2`). */
@@ -305,5 +306,5 @@ declare namespace Fuse {
     | { $and?: Expression[] }
     | { $or?: Expression[] }
 
-  export const config: Required<IFuseOptions<any>>;
+  export const config: Required<IFuseOptions<any>>
 }
