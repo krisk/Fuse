@@ -15,7 +15,7 @@ module.exports = [
   },
   {
     text: 'GitHub',
-    link: 'https://twitter.com/kirorisk'
+    link: 'https://github.com/krisk/Fuse'
   }
   // {
   //   text: 'Jobs',
