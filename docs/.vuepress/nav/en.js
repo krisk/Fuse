@@ -6,9 +6,17 @@ module.exports = [
   //   link: '/team/'
   // },
   {
-    text: 'Support Fuse.js',
+    text: 'Sponsor',
     link: '/support/'
   },
+  {
+    text: 'Twitter',
+    link: 'https://twitter.com/kirorisk'
+  },
+  {
+    text: 'GitHub',
+    link: 'https://twitter.com/kirorisk'
+  }
   // {
   //   text: 'Jobs',
   //   link: '/jobs/'
@@ -17,8 +25,8 @@ module.exports = [
   //   text: 'Stories',
   //   link: '/stories/'
   // },
-  {
-    text: 'Release Notes',
-    link: 'https://github.com/krisk/Fuse/releases'
-  }
+  // {
+  //   text: 'Release Notes',
+  //   link: 'https://github.com/krisk/Fuse/releases'
+  // }
 ]

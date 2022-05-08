@@ -1,11 +1,10 @@
 ---
-noGlobalSocialShare: true
 shareTitle: Fuse.js - JavaScript fuzzy-search library
 ---
 
 # What is Fuse.js?
 
-<social-share :networks="['twitter', 'reddit', 'linkedin', 'email']" />
+<!-- <social-share :networks="['twitter', 'reddit', 'linkedin', 'email']" /> -->
 
 Fuse.js is a **powerful, lightweight fuzzy-search library, with zero dependencies**.
 
