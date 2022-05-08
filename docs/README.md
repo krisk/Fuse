@@ -4,6 +4,10 @@ shareTitle: Fuse.js - JavaScript fuzzy-search library
 
 # What is Fuse.js?
 
+<TwitterFollow />
+
+<!-- <a href="https://twitter.com/kirorisk?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-size="large" data-show-screen-name="false" data-dnt="true" data-show-count="false">Follow</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> -->
+
 <!-- <social-share :networks="['twitter', 'reddit', 'linkedin', 'email']" /> -->
 
 Fuse.js is a **powerful, lightweight fuzzy-search library, with zero dependencies**.

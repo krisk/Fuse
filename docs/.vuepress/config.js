@@ -95,7 +95,8 @@ function getPlugins() {
           getComponent('Demo'),
           getComponent('Team'),
           getComponent('Jobs'),
-          getComponent('Donate')
+          getComponent('Donate'),
+          getComponent('TwitterFollow')
         ]
       }
     ]

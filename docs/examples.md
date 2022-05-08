@@ -1,5 +1,9 @@
 # Examples
 
+<TwitterFollow />
+
+---
+
 ## Search String Array
 
 :::: tabs
