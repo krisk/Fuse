@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.6.2](https://github.com/krisk/Fuse/compare/v6.6.1...v6.6.2) (2022-05-11)
+
+
+### Bug Fixes
+
+* value fetched at the end must be a string ([1de1dff](https://github.com/krisk/Fuse/commit/1de1dffa3f16992e21d817370e2b5d9611d3ad6d)), closes [#661](https://github.com/krisk/Fuse/issues/661)
+
 ### [6.6.1](https://github.com/krisk/Fuse/compare/v6.6.0...v6.6.1) (2022-05-06)
 
 
