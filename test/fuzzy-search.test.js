@@ -344,7 +344,6 @@ describe('Recurse into arrays', () => {
   })
 })
 
-
 describe('Recurse into objects in arrays with null object in array', () => {
   const customBookList = [
     {
@@ -381,7 +380,7 @@ describe('Recurse into objects in arrays with null object in array', () => {
           {
             value: 'British'
           },
-          null,
+          null
         ]
       }
     }
@@ -401,12 +400,11 @@ describe('Recurse into objects in arrays with null object in array', () => {
       expect(result).toHaveLength(1)
     })
 
-    test('whose value is the ISBN of the book', () => {      
+    test('whose value is the ISBN of the book', () => {
       expect(result[0].item.ISBN).toBe('0321784421')
     })
   })
 })
-
 
 describe('Recurse into objects in arrays', () => {
   const customBookList = [
@@ -1193,12 +1191,21 @@ describe('Standard dotted keys', () => {
 })
 
 describe('Breaking values', () => {
-  test('Non-strings are still processed', () => {
+  test('Booleans are still processed', () => {
     const data = [{ first: false }]
     const options = { keys: [{ name: 'first' }] }
     const fuse = new Fuse(data, options)
 
     const result = fuse.search('fa')
+    expect(result).toHaveLength(1)
+  })
+
+  test('Object values are ignored', () => {
+    const data = [{ a: 'hello' }, { a: {} }]
+    const options = { keys: ['a'] }
+    const fuse = new Fuse(data, options)
+
+    const result = fuse.search('hello')
     expect(result).toHaveLength(1)
   })
 })
