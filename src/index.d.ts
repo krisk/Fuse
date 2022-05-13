@@ -1,10 +1,10 @@
 export default Fuse
 export as namespace Fuse
 
-declare class Fuse<T> {
+declare class Fuse<T, OP extends Fuse.IFuseOptions<T>> {
   constructor(
     list: ReadonlyArray<T>,
-    options?: Fuse.IFuseOptions<T>,
+    options?: OP,
     index?: Fuse.FuseIndex<T>
   )
   /**
@@ -28,7 +28,7 @@ declare class Fuse<T> {
   search<R = T>(
     pattern: string | Fuse.Expression,
     options?: Fuse.FuseSearchOptions
-  ): Fuse.FuseResult<R>[]
+  ): Fuse.FuseResult<R, OP>[]
 
   setCollection(docs: ReadonlyArray<T>, index?: Fuse.FuseIndex<T>): void
 
@@ -290,12 +290,15 @@ declare namespace Fuse {
     limit: number
   }
 
-  export type FuseResult<T> = {
+  export type FuseResult<T, O extends Fuse.IFuseOptions<any>> = {
     item: T
     refIndex: number
-    score?: number
-    matches?: ReadonlyArray<FuseResultMatch>
-  }
+  } & (O['includeMatches'] extends true
+    ? { matches: ReadonlyArray<FuseResultMatch> }
+    : {}) &
+    (O['includeScore'] extends true
+      ? { score: number }
+      : {})
 
   export type Expression =
     | { [key: string]: string }
