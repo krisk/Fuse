@@ -232,12 +232,12 @@ declare namespace Fuse {
   //   weight: 0.7
   // }
   export type FuseOptionKeyObject<T> = {
-    name: string | string[]
+    name: keyof T | Array<keyof T>
     weight?: number
-    getFn?: (obj: T) => ReadonlyArray<string> | string
+    getFn?: (obj: T) => ReadonlyArray<keyof T> | keyof T
   }
 
-  export type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
+  export type FuseOptionKey<T> = FuseOptionKeyObject<T> | keyof T | Array<keyof T>
 
   export interface IFuseOptions<T> {
     /** Indicates whether comparisons should be case sensitive. */
