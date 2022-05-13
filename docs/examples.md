@@ -177,7 +177,7 @@ const options = {
     { name: 'title', getFn: (book) => book.title },
     { name: 'authorName', getFn: (book) => book.author.name }
   ]
-})
+}
 
 const fuse = new Fuse(list, options)
 
