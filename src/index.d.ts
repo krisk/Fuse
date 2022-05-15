@@ -1,7 +1,7 @@
 export default Fuse
 export as namespace Fuse
 
-declare class Fuse<T, OP extends Fuse.IFuseOptions<T>> {
+declare class Fuse<T, OP extends Fuse.IFuseOptions<T> = {}> {
   constructor(
     list: ReadonlyArray<T>,
     options?: OP,
