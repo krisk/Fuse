@@ -148,9 +148,15 @@ declare namespace Fuse {
   // }
   export type FuseSortFunctionMatch = {
     score: number
-    key: string
+    key: {
+      path: string[]
+      id: string
+      weight: number
+      src: string
+    }
+    norm: number
     value: string
-    indices: ReadonlyArray<number>[]
+    indices?: ReadonlyArray<number>[]
   }
 
   // {

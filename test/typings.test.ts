@@ -103,3 +103,73 @@ describe('Logical search results', () => {
     expect(idx(result)).toMatchObject([0])
   })
 })
+
+describe('FuseSortFunctionMatch', () => {
+  type Foo = { foo: string }
+  const list: Array<Foo> = [
+    {
+      foo: 'foo'
+    },
+    {
+      foo: 'bar'
+    },
+    {
+      foo: 'baz'
+    }
+  ]
+
+  test('without includeMatches', () => {
+    let sortFnCalled = false
+    const options: Fuse.IFuseOptions<Foo> = {
+      keys: ['foo'],
+      sortFn: (a, b) => {
+        sortFnCalled = true
+        ;[a, b].forEach((c) => {
+          expect(c.idx).toBeDefined()
+          expect(c.item).toBeDefined()
+          expect(c.matches).toBeDefined()
+          expect(c.score).toBeDefined()
+          c.matches.forEach((m) => {
+            expect(m.indices).toBeUndefined()
+            expect(m.key).toBeDefined()
+            expect(m.norm).toBeDefined()
+            expect(m.value).toBeDefined()
+            expect(m.score).toBeDefined()
+          })
+        })
+        return 1
+      }
+    }
+    const fuse = new Fuse(list, options)
+    fuse.search('ba')
+    expect(sortFnCalled).toEqual(true)
+  })
+
+  test('with includeMatches', () => {
+    let sortFnCalled = false
+    const options: Fuse.IFuseOptions<Foo> = {
+      keys: ['foo'],
+      includeMatches: true,
+      sortFn: (a, b) => {
+        sortFnCalled = true
+        ;[a, b].forEach((c) => {
+          expect(c.idx).toBeDefined()
+          expect(c.item).toBeDefined()
+          expect(c.matches).toBeDefined()
+          expect(c.score).toBeDefined()
+          c.matches.forEach((m) => {
+            expect(m.indices).toBeDefined()
+            expect(m.key).toBeDefined()
+            expect(m.norm).toBeDefined()
+            expect(m.value).toBeDefined()
+            expect(m.score).toBeDefined()
+          })
+        })
+        return 1
+      }
+    }
+    const fuse = new Fuse(list, options)
+    fuse.search('ba')
+    expect(sortFnCalled).toEqual(true)
+  })
+})
