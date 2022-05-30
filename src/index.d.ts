@@ -287,7 +287,8 @@ declare namespace Fuse {
   }
 
   export type FuseSearchOptions = {
-    limit: number
+    limit?: number
+    keys?: string[]
   }
 
   export type FuseResult<T> = {
