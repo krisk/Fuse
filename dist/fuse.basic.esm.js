@@ -1112,7 +1112,7 @@ class Fuse {
     return this._myIndex
   }
 
-  search(query, { limit = -1 } = {}) {
+  search(query, { limit = -1, keys = [] } = {}) {
     const {
       includeMatches,
       includeScore,
@@ -1124,7 +1124,7 @@ class Fuse {
     let results = isString(query)
       ? isString(this._docs[0])
         ? this._searchStringList(query)
-        : this._searchObjectList(query)
+        : this._searchObjectList(query, keys)
       : this._searchLogical(query);
 
     computeScore(results, { ignoreFieldNorm });
@@ -1174,7 +1174,7 @@ class Fuse {
     }
   }
 
-  _searchObjectList(query) {
+  _searchObjectList(query, searchKeys) {
     const searcher = createSearcher(query, this.options);
     const { keys, records } = this._myIndex;
     const results = [];
@@ -1189,6 +1189,7 @@ class Fuse {
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
+        if (searchKeys.length > 0 && !searchKeys.includes(key.id)) return;
         matches.push(
           ...this._findMatches({
             key,

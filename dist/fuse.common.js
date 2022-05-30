@@ -1971,7 +1971,9 @@ var Fuse$1 = /*#__PURE__*/function () {
     value: function search(query) {
       var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
           _ref$limit = _ref.limit,
-          limit = _ref$limit === void 0 ? -1 : _ref$limit;
+          limit = _ref$limit === void 0 ? -1 : _ref$limit,
+          _ref$keys = _ref.keys,
+          keys = _ref$keys === void 0 ? [] : _ref$keys;
 
       var _this$options = this.options,
           includeMatches = _this$options.includeMatches,
@@ -1979,7 +1981,7 @@ var Fuse$1 = /*#__PURE__*/function () {
           shouldSort = _this$options.shouldSort,
           sortFn = _this$options.sortFn,
           ignoreFieldNorm = _this$options.ignoreFieldNorm;
-      var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
+      var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query, keys) : this._searchLogical(query);
       computeScore(results, {
         ignoreFieldNorm: ignoreFieldNorm
       });
@@ -2113,7 +2115,7 @@ var Fuse$1 = /*#__PURE__*/function () {
     }
   }, {
     key: "_searchObjectList",
-    value: function _searchObjectList(query) {
+    value: function _searchObjectList(query, searchKeys) {
       var _this2 = this;
 
       var searcher = createSearcher(query, this.options);
@@ -2133,6 +2135,7 @@ var Fuse$1 = /*#__PURE__*/function () {
         var matches = []; // Iterate over every key (i.e, path), and fetch the value at that key
 
         keys.forEach(function (key, keyIndex) {
+          if (searchKeys.length > 0 && !searchKeys.includes(key.id)) return;
           matches.push.apply(matches, _toConsumableArray(_this2._findMatches({
             key: key,
             value: item[keyIndex],

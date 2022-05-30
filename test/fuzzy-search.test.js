@@ -1067,6 +1067,57 @@ describe('Searching taking into account field length', () => {
   })
 })
 
+describe.only('Searching with custom keys', () => {
+  const customBookList = [
+    {
+      title: "Old Man's War",
+      author: {
+        firstName: 'John',
+        lastName: 'Scalzi'
+      }
+    },
+    {
+      title: 'The Lock Artist',
+      author: {
+        firstName: 'Steve',
+        lastName: 'Hamilton'
+      }
+    }
+  ]
+  const customOptions = {
+    includeMatches: true,
+    keys: ['title', 'author.lastName'],
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the term "Hmlt" with custom keys ["author.lastName"]', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Hmlt', { keys: ['author.lastName'] })))
+
+    test('we get a list containing at least 1 item', () => {
+      expect(result.length).toBeGreaterThanOrEqual(1)
+    })
+
+    test('and the first item only has exactly one match', () => {
+      expect(result[0].matches).toHaveLength(1)
+    })
+
+    test('and the key of the that match should be "author.lastName"', () => {
+      expect(result[0].matches[0].key).toBe('author.lastName')
+    })
+  })
+
+  describe('When searching for the term "Hmlt" with custom keys ["title"]', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Hmlt', { keys: ['title'] })))
+
+    test('we get a list of exactly 0 items', () => {
+      expect(result).toHaveLength(0)
+    })
+  })
+})
+
 describe('Ignore location and field length norm', () => {
   const list = [
     'beforeEach',
