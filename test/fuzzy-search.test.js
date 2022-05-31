@@ -1067,7 +1067,7 @@ describe('Searching taking into account field length', () => {
   })
 })
 
-describe.only('Searching with custom keys', () => {
+describe('Searching with custom keys', () => {
   const customBookList = [
     {
       title: "Old Man's War",
