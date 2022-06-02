@@ -1,6 +1,23 @@
 # Backers
 
-You can join them in supporting Fuse.js development by [pledging on Patreon](https://www.patreon.com/fusejs)! Backers in the same pledge level appear in the order of pledge date.
+Thank you to everyone to support Fuse.js development. The amount of effort needed to maintain this and develop new features for the project is only made sustainable thanks to your generous financial backing.
 
-- Sam Corcos
+You can join these backers by [sponsoring on GitHub](https://github.com/sponsors/krisk).
+
+## 🥇 Gold Sponsor
+
+- Be the first!
+
+## 🥈 Silver Sponsor
+
+- [Worksome](https://www.worksome.com/)
+
+## 🥉 Bronze Sponsor
+
+- Be the first!
+
+## ☕ Standard
+
 - [Daniel Murawsky](https://github.com/dmurawsky) of [Urgos](https://urgos.io)
+- [Linda Macdonald](https://github.com/lindamacdonald)
+- Sam Corcos
