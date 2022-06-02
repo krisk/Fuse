@@ -9,7 +9,7 @@ module.exports = {
   locales: {
     '/': {
       lang: 'en-US',
-      title: 'Fuse.js',
+      title: 'Fuse.js - JavaScript fuzzy-search library',
       description: 'Lightweight fuzzy-search library, in JavaScript'
     }
   },
