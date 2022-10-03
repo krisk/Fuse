@@ -1,4 +1,4 @@
-const Fuse = require('../dist/fuse')
+import Fuse from '../dist/fuse.esm.mjs'
 
 const defaultList = ['Stove', 'My good friend Steve from college']
 const defaultOptions = {}

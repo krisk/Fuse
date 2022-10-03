@@ -3,7 +3,8 @@ const path = require('path')
 const zlib = require('zlib')
 const terser = require('terser')
 const rollup = require('rollup')
-const configs = require('./configs')
+const configs = require('./configs.cjs')
+const configTypes = require('./config-types.cjs')
 
 if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist')
@@ -18,6 +19,12 @@ async function build(builds) {
     } catch (err) {
       logError(err)
     }
+  }
+
+  try {
+    await buildTypes()
+  } catch (err) {
+    logError(err)
   }
 }
 
@@ -35,6 +42,22 @@ async function buildEntry(config) {
     return isProd
       ? write(file, await minify(banner, code), true)
       : write(file, code)
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+async function buildTypes() {
+  const output = configTypes.output
+  const { file } = output
+
+  try {
+    let bundle = await rollup.rollup(configTypes)
+    let {
+      output: [{ code }]
+    } = await bundle.generate(output)
+
+    return write(file, code)
   } catch (err) {
     throw new Error(err)
   }

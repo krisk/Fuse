@@ -1,4 +1,4 @@
-const Fuse = require('../dist/fuse')
+import Fuse from '../dist/fuse.esm.mjs'
 import * as ErrorMsg from '../src/core/errorMessages'
 
 const defaultList = ['Apple', 'Orange', 'Banana']
