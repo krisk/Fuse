@@ -2,9 +2,7 @@ const path = require('path')
 const replace = require('@rollup/plugin-replace')
 const { nodeResolve } = require('@rollup/plugin-node-resolve')
 const { babel } = require('@rollup/plugin-babel')
-const copy = require('rollup-plugin-copy')
 const pckg = require('../package.json')
-const typescript = require('typescript')
 
 const FILENAME = 'fuse'
 const VERSION = process.env.VERSION || pckg.version
@@ -41,21 +39,7 @@ const builds = {
     env: 'development',
     features: {
       ...fullBuildFeatures
-    },
-    plugins: [
-      copy({
-        targets: [
-          {
-            src: resolve('src/index.d.ts'),
-            dest: resolve('dist'),
-            rename: `${FILENAME}.d.ts`,
-            transform: (content) => {
-              return `// Type definitions for Fuse.js v${VERSION}\n// TypeScript v${typescript.version}\n\n${content}`
-            }
-          }
-        ]
-      })
-    ]
+    }
   },
   // UMD production build
   'umd-prod-full': {
@@ -78,23 +62,38 @@ const builds = {
     env: 'production'
   },
   // CommonJS full build
-  'commonjs-full': {
-    dest: `dist/${FILENAME}.common.js`,
+  'commonjs-dev-full': {
+    dest: `dist/${FILENAME}.common.cjs`,
     env: 'development',
     features: {
       ...fullBuildFeatures
     },
     format: 'cjs'
   },
+  // CommonJS full minified build
+  'commonjs-prod-full': {
+    dest: `dist/${FILENAME}.common.min.cjs`,
+    env: 'production',
+    features: {
+      ...fullBuildFeatures
+    },
+    format: 'cjs'
+  },
   // CommonJS basic build
-  'commonjs-basic': {
-    dest: `dist/${FILENAME}.basic.common.js`,
+  'commonjs-dev-basic': {
+    dest: `dist/${FILENAME}.basic.common.cjs`,
     env: 'development',
+    format: 'cjs'
+  },
+  // CommonJS basic minified build
+  'commonjs-prod-basic': {
+    dest: `dist/${FILENAME}.basic.common.min.cjs`,
+    env: 'production',
     format: 'cjs'
   },
   // ES modules build (for bundlers)
   'esm-dev-full': {
-    dest: `dist/${FILENAME}.esm.js`,
+    dest: `dist/${FILENAME}.esm.mjs`,
     format: 'es',
     env: 'development',
     features: {
@@ -103,7 +102,7 @@ const builds = {
     transpile: false
   },
   'esm-prod-full': {
-    dest: `dist/${FILENAME}.esm.min.js`,
+    dest: `dist/${FILENAME}.esm.min.mjs`,
     format: 'es',
     env: 'production',
     features: {
@@ -112,13 +111,13 @@ const builds = {
     transpile: false
   },
   'esm-basic': {
-    dest: `dist/${FILENAME}.basic.esm.js`,
+    dest: `dist/${FILENAME}.basic.esm.mjs`,
     format: 'es',
     env: 'development',
     transpile: false
   },
   'esm-prod-basic': {
-    dest: `dist/${FILENAME}.basic.esm.min.js`,
+    dest: `dist/${FILENAME}.basic.esm.min.mjs`,
     format: 'es',
     env: 'production',
     transpile: false

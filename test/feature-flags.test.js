@@ -1,7 +1,7 @@
 // use basic build so that errors are thrown
-const Fuse = require('../dist/fuse.basic')
+import Fuse from '../dist/fuse.basic.esm.mjs'
 import * as ErrorMsg from '../src/core/errorMessages'
-const Books = require('./fixtures/books.json')
+import Books from './fixtures/books.json' assert { type: "json" }
 
 describe('Initialization errors', () => {
   test('Errors are thrown', () => {
