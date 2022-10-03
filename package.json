@@ -9,7 +9,15 @@
   "module": "./dist/fuse.esm.js",
   "unpkg": "./dist/fuse.js",
   "jsdelivr": "./dist/fuse.js",
-  "typings": "./dist/fuse.d.ts",
+  "types": "./dist/fuse.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/fuse.d.ts",
+      "import": "./dist/fuse.esm.js",
+      "require":  "./dist/fuse.common.js"
+    }
+  },
   "sideEffects": false,
   "files": [
     "dist"
@@ -31,11 +39,11 @@
     "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev-full",
     "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs-full",
     "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm-dev-full",
-    "build": "rm -r dist && mkdir dist && node ./scripts/build.main.js",
+    "build": "rm -r dist && mkdir dist && node ./scripts/build.main.cjs",
     "test": "jest",
     "lint": "eslint src scripts test",
     "release": "./scripts/release.sh",
-    "docs:bump": "node ./scripts/bump-docs.js",
+    "docs:bump": "node ./scripts/bump-docs.cjs",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:release": "./scripts/deploy-docs.sh",
