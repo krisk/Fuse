@@ -1,11 +1,10 @@
-import Fuse from '../dist/fuse'
+import Fuse, { FuseResult, IFuseOptions } from '../'
 import { BattlePokedex } from './fixtures/pokedex'
 import { PokedexType } from './fixtures/types'
 
-const idx = (result: Fuse.FuseResult<Author>[]) =>
-  result.map((obj) => obj.refIndex)
+const idx = (result: FuseResult<Author>[]) => result.map((obj) => obj.refIndex)
 
-const defaultOptions: Fuse.IFuseOptions<PokedexType> = {
+const defaultOptions: IFuseOptions<PokedexType> = {
   keys: ['alias', 'species', 'name', 'num'],
   threshold: 0.2
 }
@@ -55,7 +54,7 @@ describe('Search results with indices', () => {
         name: 'Arduino Duemilanove or Diecimila'
       }
     ]
-    const options: Fuse.IFuseOptions<Board> = {
+    const options: IFuseOptions<Board> = {
       includeMatches: true,
       minMatchCharLength: 1,
       keys: ['name']
@@ -82,7 +81,7 @@ describe('Logical search results', () => {
     }
   ]
 
-  const options: Fuse.IFuseOptions<Author> = {
+  const options: IFuseOptions<Author> = {
     useExtendedSearch: true,
     includeMatches: true,
     includeScore: true,

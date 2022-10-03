@@ -1,5 +1,5 @@
-const Fuse = require('../dist/fuse')
-const Books = require('./fixtures/books.json')
+import Fuse from '../dist/fuse.esm.mjs'
+import Books from './fixtures/books.json' assert { type: 'json' }
 
 const idx = (result) => result.map((obj) => obj.refIndex)
 const idxMap = (fuse) => fuse.getIndex().records.map((item) => [item.v, item.i])

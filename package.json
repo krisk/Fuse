@@ -5,11 +5,34 @@
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
-  "main": "./dist/fuse.common.js",
-  "module": "./dist/fuse.esm.js",
+  "type": "module",
+  "main": "./dist/fuse.common.cjs",
+  "module": "./dist/fuse.esm.mjs",
   "unpkg": "./dist/fuse.js",
   "jsdelivr": "./dist/fuse.js",
-  "typings": "./dist/fuse.d.ts",
+  "types": "./dist/fuse.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/fuse.d.ts",
+      "import": "./dist/fuse.esm.mjs",
+      "require": "./dist/fuse.common.cjs"
+    },
+    "./min": {
+      "types": "./dist/fuse.d.ts",
+      "import": "./dist/fuse.esm.min.mjs",
+      "require": "./dist/fuse.common.min.cjs"
+    },
+    "./basic": {
+      "types": "./dist/fuse.d.ts",
+      "import": "./dist/fuse.basic.esm.mjs",
+      "require": "./dist/fuse.basic.common.cjs"
+    },
+    "./min-basic": {
+      "types": "./dist/fuse.d.ts",
+      "import": "./dist/fuse.basic.esm.min.mjs",
+      "require": "./dist/fuse.basic.common.min.cjs"
+    }
+  },
   "sideEffects": false,
   "files": [
     "dist"
@@ -28,14 +51,14 @@
     "bitap"
   ],
   "scripts": {
-    "dev": "rollup -w -c scripts/configs.js --environment TARGET:umd-dev-full",
-    "dev:cjs": "rollup -w -c scripts/configs.js --environment TARGET:commonjs-full",
-    "dev:esm": "rollup -w -c scripts/configs.js --environment TARGET:esm-dev-full",
-    "build": "rm -r dist && mkdir dist && node ./scripts/build.main.js",
+    "dev": "rollup -w -c scripts/configs.cjs --environment TARGET:umd-dev-full",
+    "dev:cjs": "rollup -w -c scripts/configs.cjs --environment TARGET:commonjs-full",
+    "dev:esm": "rollup -w -c scripts/configs.cjs --environment TARGET:esm-dev-full",
+    "build": "rm -r dist && mkdir dist && node ./scripts/build.main.cjs",
     "test": "vitest run",
-    "lint": "eslint src scripts test",
+    "lint": "eslint src test",
     "release": "./scripts/release.sh",
-    "docs:bump": "node ./scripts/bump-docs.js",
+    "docs:bump": "node ./scripts/bump-docs.cjs",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:release": "./scripts/deploy-docs.sh",
@@ -44,7 +67,7 @@
   "standard-version": {
     "scripts": {
       "postbump": "npm run build && npm run lint && npm run test 2>/dev/null",
-      "precommit": "git add dist/*.js dist/*.ts"
+      "precommit": "git add dist/*.js dist/*.cjs dist/*.mjs dist/*.d.ts"
     }
   },
   "commitlint": {
@@ -57,6 +80,7 @@
     "@babel/core": "^7.20.12",
     "@babel/eslint-parser": "^7.19.1",
     "@babel/plugin-proposal-object-rest-spread": "7.20.7",
+    "@babel/plugin-syntax-import-assertions": "^7.22.5",
     "@babel/preset-env": "7.20.2",
     "@babel/preset-typescript": "7.18.6",
     "@commitlint/cli": "^17.4.2",
@@ -80,7 +104,7 @@
     "prettier": "2.8.3",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.79.1",
-    "rollup-plugin-copy": "3.4.0",
+    "rollup-plugin-dts": "^5.3.0",
     "standard-version": "^9.5.0",
     "terser": "^5.16.1",
     "typescript": "^4.9.4",
@@ -90,6 +114,5 @@
   },
   "engines": {
     "node": ">=10"
-  },
-  "dependencies": {}
+  }
 }
