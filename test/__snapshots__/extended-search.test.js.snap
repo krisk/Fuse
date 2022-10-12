@@ -50,6 +50,31 @@ Array [
   },
   Object {
     "item": Object {
+      "text": "multiline
+text",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            13,
+          ],
+          Array [
+            0,
+            13,
+          ],
+        ],
+        "key": "text",
+        "value": "multiline
+text",
+      },
+    ],
+    "refIndex": 6,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
       "text": "hello word",
     },
     "matches": Array [
@@ -206,6 +231,27 @@ Array [
   },
   Object {
     "item": Object {
+      "text": "multiline
+text",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            13,
+          ],
+        ],
+        "key": "text",
+        "value": "multiline
+text",
+      },
+    ],
+    "refIndex": 6,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
       "text": "hello word",
     },
     "matches": Array [
@@ -306,6 +352,27 @@ Array [
   },
   Object {
     "item": Object {
+      "text": "multiline
+text",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            13,
+          ],
+        ],
+        "key": "text",
+        "value": "multiline
+text",
+      },
+    ],
+    "refIndex": 6,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
       "text": "how are you",
     },
     "matches": Array [
@@ -402,6 +469,27 @@ Array [
       },
     ],
     "refIndex": 5,
+    "score": 2.220446049250313e-16,
+  },
+  Object {
+    "item": Object {
+      "text": "multiline
+text",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            13,
+          ],
+        ],
+        "key": "text",
+        "value": "multiline
+text",
+      },
+    ],
+    "refIndex": 6,
     "score": 2.220446049250313e-16,
   },
   Object {
@@ -602,6 +690,32 @@ Array [
     ],
     "refIndex": 2,
     "score": 1.4901161193847656e-8,
+  },
+]
+`;
+
+exports[`Searching using extended search Search: single literal match with newline 1`] = `
+Array [
+  Object {
+    "item": Object {
+      "text": "multiline
+text",
+    },
+    "matches": Array [
+      Object {
+        "indices": Array [
+          Array [
+            0,
+            13,
+          ],
+        ],
+        "key": "text",
+        "value": "multiline
+text",
+      },
+    ],
+    "refIndex": 6,
+    "score": 2.220446049250313e-16,
   },
 ]
 `;

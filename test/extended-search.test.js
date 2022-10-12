@@ -19,6 +19,9 @@ describe('Searching using extended search', () => {
     },
     {
       text: 'smith'
+    },
+    {
+      text: 'multiline\ntext'
     }
   ]
 
@@ -86,6 +89,12 @@ describe('Searching using extended search', () => {
     let result = fuse.search('\'"indeed fine" foo$ | helol')
     expect(result).toMatchSnapshot()
   })
+
+  test('Search: single literal match with newline', () => {
+    let result = fuse.search('\'"multiline\ntext"')
+    expect(result).toMatchSnapshot()
+  })
+
 })
 
 describe('ignoreLocation when useExtendedSearch is true', () => {
