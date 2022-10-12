@@ -12,7 +12,7 @@ export default class ExactMatch extends BaseMatch {
     return 'exact'
   }
   static get multiRegex() {
-    return /^="(.*)"$/
+    return /^="(.*)"$/s
   }
   static get singleRegex() {
     return /^=(.*)$/

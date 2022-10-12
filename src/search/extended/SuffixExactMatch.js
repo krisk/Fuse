@@ -11,7 +11,7 @@ export default class SuffixExactMatch extends BaseMatch {
     return 'suffix-exact'
   }
   static get multiRegex() {
-    return /^"(.*)"\$$/
+    return /^"(.*)"\$$/s
   }
   static get singleRegex() {
     return /^(.*)\$$/

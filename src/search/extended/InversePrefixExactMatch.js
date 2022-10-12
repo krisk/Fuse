@@ -12,7 +12,7 @@ export default class InversePrefixExactMatch extends BaseMatch {
     return 'inverse-prefix-exact'
   }
   static get multiRegex() {
-    return /^!\^"(.*)"$/
+    return /^!\^"(.*)"$/s
   }
   static get singleRegex() {
     return /^!\^(.*)$/

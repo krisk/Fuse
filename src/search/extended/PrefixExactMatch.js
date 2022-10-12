@@ -11,7 +11,7 @@ export default class PrefixExactMatch extends BaseMatch {
     return 'prefix-exact'
   }
   static get multiRegex() {
-    return /^\^"(.*)"$/
+    return /^\^"(.*)"$/s
   }
   static get singleRegex() {
     return /^\^(.*)$/

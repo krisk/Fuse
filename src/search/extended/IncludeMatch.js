@@ -12,7 +12,7 @@ export default class IncludeMatch extends BaseMatch {
     return 'include'
   }
   static get multiRegex() {
-    return /^'"(.*)"$/
+    return /^'"(.*)"$/s
   }
   static get singleRegex() {
     return /^'(.*)$/

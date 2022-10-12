@@ -32,7 +32,7 @@ export default class FuzzyMatch extends BaseMatch {
     return 'fuzzy'
   }
   static get multiRegex() {
-    return /^"(.*)"$/
+    return /^"(.*)"$/s
   }
   static get singleRegex() {
     return /^(.*)$/
