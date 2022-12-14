@@ -2,7 +2,7 @@
 
 Latest stable version: **{{ $themeConfig.version }}**
 
-### NPM
+### npm
 
 ```sh
 $ npm install --save fuse.js
@@ -54,7 +54,7 @@ If you are using native ES Modules, there is also an ES Modules compatible build
 </script>
 ```
 
-You can browse the source of the NPM package at [cdn.jsdelivr.net/npm/fuse.js](https://cdn.jsdelivr.net/npm/fuse.js).
+You can browse the source of the npm package at [cdn.jsdelivr.net/npm/fuse.js](https://cdn.jsdelivr.net/npm/fuse.js).
 
 Fuse.js is also available on [unpkg](https://unpkg.com/fuse.js).
 
