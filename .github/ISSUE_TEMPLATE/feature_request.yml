@@ -1,4 +1,4 @@
-name: '🚀 Feature request'
+name: Feature request
 description: Suggest a feature for Fuse.js.
 labels: ['feature']
 body:

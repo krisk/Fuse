@@ -1,4 +1,4 @@
-name: '❓ Support request'
+name: Support request
 description: Questions and requests for support.
 labels: ['question']
 body:

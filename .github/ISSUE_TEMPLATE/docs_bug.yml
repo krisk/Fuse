@@ -1,4 +1,4 @@
-name: '📚 Docs on fusejs.io'
+name: Docs on fusejs.io
 description: Report an issue in Fuse.js documentation or fusejs.io
 labels: ['docs']
 body:
