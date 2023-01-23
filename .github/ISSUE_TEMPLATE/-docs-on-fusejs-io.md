@@ -4,7 +4,6 @@ about: Report an issue in Fuse.js documentation or fusejs.io
 title: ''
 labels: docs
 assignees: ''
-
 ---
 
 <!--

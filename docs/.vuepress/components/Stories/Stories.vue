@@ -3,7 +3,7 @@
     <li class="story-container" v-for="story in stories">
       <div class="logo-container">
         <a :href="story.url" target="_blank" rel="noopener">
-          <img :src="story.imgUrl" style="width: 100px;" />
+          <img :src="story.imgUrl" style="width: 100px" />
         </a>
       </div>
       <div class="story-data">
