@@ -5,7 +5,7 @@ Latest stable version: **{{ $themeConfig.version }}**
 ### NPM
 
 ```sh
-$ npm install --save fuse.js
+$ npm install fuse.js
 ```
 
 ### Yarn

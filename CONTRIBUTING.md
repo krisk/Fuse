@@ -35,7 +35,7 @@ Before you submit your pull request consider the following guidelines:
   ```
 
 - Create your patch commit, **including appropriate test cases**.
-- Run `yarn lint` to check that you have followed the automatically enforced coding rules
+- Run `npm run lint` to check that you have followed the automatically enforced coding rules
 - Commit your changes using a descriptive commit message that follows our
   [commit message conventions][developers.commits]. Adherence to the
   [commit message conventions][developers.commits] is required, because release notes are
@@ -48,7 +48,7 @@ Before you submit your pull request consider the following guidelines:
 - Before creating the Pull Request, package and run all tests a last time:
 
   ```shell
-  yarn test
+  npm run test
   ```
 
 - Push your branch to GitHub:

@@ -7,8 +7,8 @@ node_modules/
 .vs/
 .vscode/
 
-# Ignore package locks
-package-lock.json
+# Ignore yarn lock files
+yarn.lock
 
 dist/*.d.ts
 dist/*.js
@@ -18,7 +18,3 @@ RELEASE_NOTE*.md
 
 playground/
 Makefile
-
-# Yarn files
-.yarn/install-state.gz
-.yarn/build-state.yml

@@ -39,13 +39,11 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:release": "./scripts/deploy-docs.sh",
-    "postinstall": "husky install",
-    "prepack": "yarn build && pinst --disable",
-    "postpack": "pinst --enable"
+    "prepare": "husky install"
   },
   "standard-version": {
     "scripts": {
-      "postbump": "yarn build && yarn lint && yarn test 2>/dev/null",
+      "postbump": "npm run build && npm run lint && npm run test 2>/dev/null",
       "precommit": "git add dist/*.js dist/*.ts"
     }
   },
@@ -73,7 +71,6 @@
     "eslint": "8.32.0",
     "eslint-config-prettier": "8.6.0",
     "husky": "^8.0.3",
-    "pinst": "^3.0.0",
     "prettier": "2.8.3",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.79.1",
@@ -91,6 +88,5 @@
   },
   "engines": {
     "node": ">=10"
-  },
-  "packageManager": "yarn@3.3.1"
+  }
 }
