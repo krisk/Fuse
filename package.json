@@ -39,17 +39,14 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "docs:release": "./scripts/deploy-docs.sh",
-    "prepare": "husky install"
+    "postinstall": "husky install",
+    "prepack": "yarn build && pinst --disable",
+    "postpack": "pinst --enable"
   },
   "standard-version": {
     "scripts": {
       "postbump": "yarn build && yarn lint && yarn test 2>/dev/null",
       "precommit": "git add dist/*.js dist/*.ts"
-    }
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
   "commitlint": {
