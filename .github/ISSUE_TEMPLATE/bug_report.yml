@@ -1,4 +1,4 @@
-name: \U0001F41E Bug Report
+name: 🐞 Bug Report
 description: Report a bug in Fuse.js.
 labels: ['bug']
 body:
