@@ -1,33 +1,33 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`Ignore location and field length norm Check order of entries when location and field-length norm are ignored 1`] = `
-Array [
-  Object {
+exports[`Ignore location and field length norm > Check order of entries when location and field-length norm are ignored 1`] = `
+[
+  {
     "item": "Module with Promise-aware beforeEach",
     "refIndex": 3,
     "score": 0.09090909090909091,
   },
-  Object {
+  {
     "item": "Module with Promise-aware afterEach",
     "refIndex": 5,
     "score": 0.2727272727272727,
   },
-  Object {
+  {
     "item": "Promise-aware return values without beforeEach/afterEach",
     "refIndex": 4,
     "score": 0.4090909090909091,
   },
-  Object {
+  {
     "item": "async beforeEach test",
     "refIndex": 1,
     "score": 0.5,
   },
-  Object {
+  {
     "item": "assert.async in beforeEach",
     "refIndex": 2,
     "score": 0.5,
   },
-  Object {
+  {
     "item": "beforeEach",
     "refIndex": 0,
     "score": 0.5454545454545454,
@@ -35,39 +35,39 @@ Array [
 ]
 `;
 
-exports[`Ignore location and field length norm Check order of entries when location and field-length norm are not ignored 1`] = `
-Array [
-  Object {
+exports[`Ignore location and field length norm > Check order of entries when location and field-length norm are not ignored 1`] = `
+[
+  {
     "item": "beforeEach",
     "refIndex": 0,
     "score": 0,
   },
-  Object {
+  {
     "item": "async beforeEach test",
     "refIndex": 1,
     "score": 0.1972392177586917,
   },
-  Object {
+  {
     "item": "before",
     "refIndex": 6,
     "score": 0.4,
   },
-  Object {
+  {
     "item": "assert.async in beforeEach",
     "refIndex": 2,
     "score": 0.4493775633055149,
   },
-  Object {
+  {
     "item": "before (skip)",
     "refIndex": 7,
     "score": 0.5231863610884103,
   },
-  Object {
+  {
     "item": "Module with Promise-aware beforeEach",
     "refIndex": 3,
     "score": 0.5916079783099616,
   },
-  Object {
+  {
     "item": "Promise-aware return values without beforeEach/afterEach",
     "refIndex": 4,
     "score": 0.699819425905295,

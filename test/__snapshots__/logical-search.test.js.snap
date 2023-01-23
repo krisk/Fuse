@@ -1,28 +1,28 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`Logical parser Implicit operations 1`] = `
-Object {
-  "children": Array [
-    Object {
+exports[`Logical parser > Implicit operations 1`] = `
+{
+  "children": [
+    {
       "keyId": "title",
       "pattern": "old war",
     },
-    Object {
-      "children": Array [
-        Object {
-          "children": Array [
-            Object {
+    {
+      "children": [
+        {
+          "children": [
+            {
               "keyId": "title",
               "pattern": "!arts",
             },
-            Object {
+            {
               "keyId": "tags",
               "pattern": "kiro",
             },
           ],
           "operator": "$and",
         },
-        Object {
+        {
           "keyId": "title",
           "pattern": "^lock",
         },
@@ -34,20 +34,20 @@ Object {
 }
 `;
 
-exports[`Logical parser Tree structure 1`] = `
-Object {
-  "children": Array [
-    Object {
+exports[`Logical parser > Tree structure 1`] = `
+{
+  "children": [
+    {
       "keyId": "title",
       "pattern": "old war",
     },
-    Object {
-      "children": Array [
-        Object {
+    {
+      "children": [
+        {
           "keyId": "title",
           "pattern": "!arts",
         },
-        Object {
+        {
           "keyId": "title",
           "pattern": "^lock",
         },

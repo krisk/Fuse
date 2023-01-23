@@ -8,8 +8,6 @@
     "esModuleInterop": true,
     "strict": true,
     "declaration": true,
-    "noImplicitAny": true,
-    "declarationDir": "./dist"
-  },
-  "include": ["src/*", "src/**/*"]
+    "noImplicitAny": true
+  }
 }
