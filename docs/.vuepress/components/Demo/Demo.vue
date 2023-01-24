@@ -60,17 +60,19 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import 'prismjs/components/prism-json'
+import { defineComponent, onMounted, ref, shallowRef } from 'vue'
+
 import Fuse from '../../../../dist/fuse.esm.js'
 import Books from './books.js'
 
 import Prism from 'prismjs'
-import 'prismjs/components/prism-json'
 
-import { codemirror } from 'vue-codemirror'
-import 'codemirror/lib/codemirror.css'
-import 'codemirror/mode/javascript/javascript.js'
-import 'codemirror/theme/monokai.css'
+// import { javascript } from '@codemirror/lang-javascript'
+import { javascript } from '@codemirror/lang-javascript'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { Codemirror } from 'vue-codemirror'
 
 let keys = []
 for (const key in Fuse.config) {
@@ -98,114 +100,129 @@ return fuse.search(pattern)`
 
 // Purely here to make two-way binding possible:
 // Extend Fuse such that we can expose the pattern that was
-// modified direclty in the CodeMirror input.
+// modified directly in the CodeMirror input.
 class DemoFuse extends Fuse {
-  constructor(list, options, index) {
-    super(list, options, index)
-  }
-  search(pattern, opts = { limit: false }) {
+  public override search(pattern: any, opts = { limit: -1 }) {
     const results = super.search(pattern, opts)
     return { pattern, results }
   }
 }
 
-export default {
-  name: 'Demo',
-  components: {
-    codemirror
-  },
-  data: () => ({
-    listJSON: JSON.stringify(Books, null, 2),
-    list: Books,
-    code: codify(''),
-    result: '',
-    outputHtml: '',
-    count: 0,
-    searchTime: 0,
-    listErrorMessage: '',
-    codeErrorMessage: '',
-    hasErrors: false,
-    pattern: '',
-    showCode: true,
-    listOptions: {
-      tabSize: 2,
-      mode: 'text/javascript',
-      theme: 'default',
-      lineNumbers: true,
-      line: true
-    },
-    cmOptions: {
-      tabSize: 2,
-      mode: 'text/javascript',
-      theme: 'default',
-      lineNumbers: true,
-      line: true
-    }
-  }),
-  methods: {
-    toggleCode() {
-      this.showCode = !this.showCode
-    },
-    onCmCodeChange(newCode) {
-      this.code = newCode
-      try {
-        this.parse()
-        this.update()
-      } catch (err) {}
-    },
-    onCmListChange(newCode) {
-      try {
-        this.list = eval(newCode)
-        this.listErrorMessage = null
-        this.hasErrors = !!this.codeErrorMessage
-        this.update()
-      } catch (err) {
-        this.listErrorMessage = err
-        this.hasErrors = true
-        this.outputHtml = ''
-        throw err
-      }
-    },
-    parse() {
-      try {
-        let func = eval(`[function (Fuse, list){${this.code}}][0]`)
+let listJSON = ref(JSON.stringify(Books, null, 2))
+let list = ref(Books)
+let code = ref(codify(''))
+let result = ref('')
+let outputHtml = ref('')
+let count = ref(0)
+let searchTime = ref<string | number>(0)
+let listErrorMessage = ref('')
+let codeErrorMessage = ref('')
+let hasErrors = ref(false)
+let pattern = ref('')
+let showCode = ref(true)
+let listOptions = ref({
+  tabSize: 2,
+  mode: 'text/javascript',
+  theme: 'default',
+  lineNumbers: true,
+  line: true
+})
+let cmOptions = ref({
+  tabSize: 2,
+  mode: 'text/javascript',
+  theme: 'default',
+  lineNumbers: true,
+  line: true
+})
 
-        let start = new Date().getTime()
-        const { pattern, results } = func(DemoFuse, this.list)
-        this.result = results
-        this.pattern = pattern
-        let end = new Date().getTime()
-        this.searchTime = end - start + ' ms'
-        this.codeErrorMessage = null
-        this.hasErrors = !!this.listErrorMessage
-      } catch (err) {
-        this.codeErrorMessage = err
-        this.hasErrors = true
-        this.outputHtml = ''
-        throw err
-      }
-    },
-    update() {
-      if (this.hasErrors) {
-        return
-      }
-      const html = Prism.highlight(
-        JSON.stringify(this.result, null, 2),
-        Prism.languages.json,
-        'json'
-      )
-      this.count = this.result.length
-      this.outputHtml = html
-    },
-    onPatternKeyUp() {
-      this.code = codify(this.pattern)
-    }
-  },
-  mounted() {
-    this.parse()
-    this.update()
+function toggleCode() {
+  showCode.value = !showCode.value
+}
+
+function onCmCodeChange(newCode) {
+  code.value = newCode
+  try {
+    parse()
+    update()
+  } catch (err) {}
+}
+
+function onCmListChange(newCode) {
+  try {
+    list.value = eval(newCode)
+    listErrorMessage.value = null
+    hasErrors.value = !!codeErrorMessage.value
+    update()
+  } catch (err) {
+    listErrorMessage.value = err
+    hasErrors.value = true
+    outputHtml.value = ''
+    throw err
   }
 }
+
+function parse() {
+  try {
+    let func = eval(`[function (Fuse, list){${this.code}}][0]`)
+
+    let start = new Date().getTime()
+    const { pattern, results } = func(DemoFuse, this.list)
+    result.value = results
+    pattern.value = pattern
+    let end = new Date().getTime()
+    searchTime.value = end - start + ' ms'
+    codeErrorMessage.value = null
+    hasErrors.value = !!this.listErrorMessage
+  } catch (err) {
+    codeErrorMessage.value = err
+    hasErrors.value = true
+    outputHtml.value = ''
+    throw err
+  }
+}
+
+function update() {
+  if (hasErrors.value) {
+    return
+  }
+  const html = Prism.highlight(
+    JSON.stringify(this.result, null, 2),
+    Prism.languages.json,
+    'json'
+  )
+  count.value = this.result.length
+  outputHtml.value = html
+}
+function onPatternKeyUp() {
+  code.value = codify(this.pattern)
+}
+
+onMounted(() => {
+  parse()
+  update()
+})
+
+defineComponent({
+  components: {
+    Codemirror
+  },
+  setup: () => {
+    const extensions = [javascript(), oneDark]
+
+    // Codemirror EditorView instance ref
+    const view = shallowRef()
+    const handleReady = (payload) => {
+      view.value = payload.view
+    }
+
+    return {
+      code,
+      extensions,
+      handleReady,
+      log: console.log
+    }
+  }
+})
 </script>
 
 <style lang="css">

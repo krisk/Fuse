@@ -14,8 +14,8 @@
   </div>
 </template>
 
-<script>
-let sponsors = require('./sponsors.json')
+<script lang="ts">
+import sponsors from './sponsors'
 
 export default {
   name: 'Sponsors',

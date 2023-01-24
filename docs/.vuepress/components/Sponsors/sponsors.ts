@@ -1,4 +1,4 @@
-[
+export default [
   {
     "name": "Worksome",
     "imgUrl": "/assets/img/sponsors/worksome.svg",

@@ -16,8 +16,8 @@
   </ul>
 </template>
 
-<script>
-let stories = require('./stories.json')
+<script lang="ts">
+import stories from './stories'
 
 export default {
   name: 'Stories',

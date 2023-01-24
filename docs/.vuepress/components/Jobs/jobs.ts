@@ -1,4 +1,4 @@
-[
+export default [
   {
     "role": "Senior Full Stack Engineer",
     "company": "RebelMouse",

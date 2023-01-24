@@ -92,10 +92,8 @@
   </ul>
 </template>
 
-<script>
-/* global globalThis */
-
-let team = require('./people.json')
+<script lang="ts">
+import team from './people'
 
 const languageNameFor = {
   en: 'English',

@@ -22,10 +22,9 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Fuse from '../../../../dist/fuse.esm.js'
-
-let jobs = require('./jobs.json')
+import jobs from './jobs'
 
 export default {
   name: 'Jobs',

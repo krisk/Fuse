@@ -18,3 +18,7 @@ RELEASE_NOTE*.md
 
 playground/
 Makefile
+
+# Vuepress files
+.temp
+.cache
