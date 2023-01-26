@@ -1,8 +1,18 @@
 @import url('https://use.fontawesome.com/releases/v5.7.1/css/all.css');
 @import url('https://fonts.bunny.net/css?family=dosis:500|inconsolata:200|roboto:400,500,700|roboto-mono:400|source-sans-pro:300,400,600');
 
-body {
-  font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+html.dark {
+  --c-brand: #9066b8;
+}
+
+:root {
+  --c-brand: #9066b8;
+  --c-text: #2c3e50;
+  --c-border: #282c34;
+  --c-tip: #42b983;
+  --c-badge-warning: darken(#ffe564, 35%);
+  --c-badge-danger: #da5961;
+  --font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .navbar .site-name {
