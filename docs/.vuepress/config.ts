@@ -33,7 +33,21 @@ export default defineUserConfig({
     docsDir: 'docs',
     docsBranch: 'master',
     sidebarDepth: 6,
-    sidebar: [...getGuideSidebar()]
+    sidebar: [...getGuideSidebar()],
+    navbar: [
+      {
+        text: 'Guide',
+        link: '/'
+      },
+      {
+        text: 'Sponsor',
+        link: '/support/'
+      },
+      {
+        text: 'Twitter',
+        link: 'https://twitter.com/intent/user?screen_name=kirorisk'
+      }
+    ]
   })
 })
 

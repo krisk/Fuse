@@ -2,7 +2,6 @@ import { defineClientConfig } from '@vuepress/client'
 import MyLayout from './theme/layouts/Layout.vue'
 
 export default defineClientConfig({
-  
   enhance({ router }) {
     router.addRoute('/', {
       path: '/ads.txt',

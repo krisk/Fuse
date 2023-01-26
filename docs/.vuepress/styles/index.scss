@@ -1,0 +1,69 @@
+@import url('https://use.fontawesome.com/releases/v5.7.1/css/all.css');
+@import url('https://fonts.bunny.net/css?family=dosis:500|inconsolata:200|roboto:400,500,700|roboto-mono:400|source-sans-pro:300,400,600');
+
+body {
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.navbar .site-name {
+  font-family: 'Dosis', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: normal !important;
+
+  &.can-hide {
+    display: inline-block !important;
+  }
+}
+
+.navbar .home-link:hover {
+  .logo {
+    animation: spin 0.5s ease-in-out 1 !important;
+  }
+}
+
+.navbar .logo {
+  margin-right: 0.4rem !important;
+}
+
+@keyframes spin {
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+
+  to {
+    transform: rotate(180deg) scale(1);
+  }
+}
+
+h2 {
+  padding-bottom: 1rem;
+  border-bottom: none;
+}
+
+// Twitter
+nav > div:nth-child(3) > a {
+  background-image: url(/assets/img/twitter-black.svg);
+  background-repeat: no-repeat;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding-left: 30px; /* width of the image plus a little extra padding */
+}
+
+.dark nav > div:nth-child(3) > a {
+  background-image: url(/assets/img/twitter-white.svg);
+}
+
+// Github
+nav > div:nth-child(4) > a {
+  background-image: url(/assets/img/github-black.svg);
+  background-repeat: no-repeat;
+  height: 20px;
+  display: flex;
+  fill: #ffffff;
+  align-items: center;
+  padding-left: 30px; /* width of the image plus a little extra padding */
+}
+
+.dark nav > div:nth-child(4) > a {
+  background-image: url(/assets/img/github-white.svg);
+}
