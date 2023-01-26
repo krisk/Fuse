@@ -1,17 +1,17 @@
 # Installation
 
-Latest stable version: **{{ $themeConfig.version }}**
+<Version />
 
 ### NPM
 
 ```sh
-$ npm install fuse.js
+npm install fuse.js
 ```
 
 ### Yarn
 
 ```sh
-$ yarn add fuse.js
+yarn add fuse.js
 ```
 
 #### Importing

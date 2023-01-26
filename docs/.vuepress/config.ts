@@ -2,6 +2,7 @@ import tabsPlugin from '@snippetors/vuepress-plugin-tabs'
 import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { pwaPlugin } from '@vuepress/plugin-pwa'
 import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
+import { searchPlugin } from '@vuepress/plugin-search'
 import { defaultTheme } from '@vuepress/theme-default'
 import {
   defineUserConfig,
@@ -12,6 +13,7 @@ import {
   type HeadConfig,
   type HeadTagEmpty
 } from 'vuepress'
+import { version } from '../../package.json'
 
 const GA_MEASUREMENT_ID = 'UA-82107035-1'
 const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
@@ -28,6 +30,7 @@ export default defineUserConfig({
   head: getHead(),
   plugins: getPlugins(),
   theme: defaultTheme({
+    version,
     logo: '/assets/img/logo.png',
     repo: 'krisk/fuse',
     docsDir: 'docs',
@@ -93,6 +96,7 @@ function getPlugins(): PluginConfig {
     //     id: GOOGLE_AD_CLIENT_ID,
     //   },
     // ],
+    searchPlugin(),
     googleAnalyticsPlugin({
       id: GA_MEASUREMENT_ID
     }),
@@ -105,7 +109,8 @@ function getPlugins(): PluginConfig {
         ...getComponent('Team'),
         ...getComponent('Jobs'),
         ...getComponent('Donate'),
-        ...getComponent('TwitterFollow')
+        ...getComponent('TwitterFollow'),
+        ...getComponent('Version')
       }
     }),
     pwaPlugin()
@@ -177,4 +182,10 @@ function getHead(): HeadConfig[] {
     ['link', { rel: 'manifest', href: '/manifest.webmanifest' }],
     ...scripts
   ]
+}
+
+declare module '@vuepress/theme-default' {
+  export interface DefaultThemeLocaleData {
+    version: string
+  }
 }
