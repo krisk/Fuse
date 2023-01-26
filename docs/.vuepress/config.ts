@@ -1,5 +1,8 @@
+import tabsPlugin from '@snippetors/vuepress-plugin-tabs'
+import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { pwaPlugin } from '@vuepress/plugin-pwa'
 import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
+import { defaultTheme } from '@vuepress/theme-default'
 import {
   defineUserConfig,
   HeadAttrsConfig,
@@ -9,11 +12,6 @@ import {
   type HeadConfig,
   type HeadTagEmpty
 } from 'vuepress'
-
-import { defaultTheme } from '@vuepress/theme-default'
-
-import tabsPlugin from '@snippetors/vuepress-plugin-tabs'
-import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 
 const GA_MEASUREMENT_ID = 'UA-82107035-1'
 const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
@@ -111,7 +109,7 @@ function getHead(): HeadConfig[] {
     '144x144',
     '152x152',
     '180x180'
-  ].flatMap<[HeadTagEmpty, HeadAttrsConfig]>((size) => [
+  ].map<[HeadTagEmpty, HeadAttrsConfig]>((size) => [
     'link',
     { rel: 'apple-touch-icon', size, href: `/icons/apple-icon-${size}.png` }
   ])
@@ -124,7 +122,7 @@ function getHead(): HeadConfig[] {
     { size: '32x32', href: 'favicon-32x32.png' },
     { size: '96x96', href: 'favicon-96x96.png' },
     { size: '16x16', href: 'favicon-16x16.png' }
-  ].flatMap<[HeadTagEmpty, HeadAttrsConfig]>(({ size, href }) => [
+  ].map<[HeadTagEmpty, HeadAttrsConfig]>(({ size, href }) => [
     'link',
     { rel: 'icon', type: 'image/png', size, href: `/icons/${href}` }
   ])
@@ -137,7 +135,7 @@ function getHead(): HeadConfig[] {
       name: 'google-site-verification',
       content: GOOGLE_SITE_VERIFICATION
     }
-  ].flatMap<[HeadTagEmpty, HeadAttrsConfig]>(({ name, content }) => [
+  ].map<[HeadTagEmpty, HeadAttrsConfig]>(({ name, content }) => [
     'meta',
     { name, content }
   ])
@@ -152,7 +150,7 @@ function getHead(): HeadConfig[] {
         (document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(bsa_optimize);
       })();
       `
-  ].flatMap<[HeadTagNonEmpty, HeadAttrsConfig, string]>((content) => [
+  ].map<[HeadTagNonEmpty, HeadAttrsConfig, string]>((content) => [
     'script',
     {},
     content

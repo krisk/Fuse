@@ -66,10 +66,10 @@
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-replace": "^5.0.2",
-    "@snippetors/vuepress-plugin-tabs": "^1.2.3",
-    "@vuepress/plugin-google-analytics": "^2.0.0-beta.60",
-    "@vuepress/plugin-pwa": "^2.0.0-beta.60",
-    "@vuepress/plugin-register-components": "^2.0.0-beta.60",
+    "@snippetors/vuepress-plugin-tabs": "1.2.3",
+    "@vuepress/plugin-google-analytics": "2.0.0-beta.60",
+    "@vuepress/plugin-pwa": "2.0.0-beta.60",
+    "@vuepress/plugin-register-components": "2.0.0-beta.60",
     "babel-loader": "^9.1.2",
     "codemirror": "6.0.1",
     "eslint": "8.32.0",
@@ -85,9 +85,8 @@
     "typescript": "^4.9.4",
     "vitest": "^0.28.1",
     "vue-codemirror": "^6.1.1",
-    "vuepress": "next",
-    "vuepress-plugin-google-adsense2": "^1.0.2",
-    "vuepress-plugin-social-share": "next"
+    "vuepress": "2.0.0-beta.60",
+    "vuepress-plugin-google-adsense2": "1.0.2"
   },
   "engines": {
     "node": ">=10"
