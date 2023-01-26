@@ -70,6 +70,7 @@
     "@vuepress/plugin-google-analytics": "2.0.0-beta.60",
     "@vuepress/plugin-pwa": "2.0.0-beta.60",
     "@vuepress/plugin-register-components": "2.0.0-beta.60",
+    "@vuepress/plugin-search": "2.0.0-beta.60",
     "babel-loader": "^9.1.2",
     "codemirror": "6.0.1",
     "eslint": "8.32.0",
