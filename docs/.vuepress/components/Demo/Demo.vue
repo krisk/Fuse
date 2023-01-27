@@ -1,300 +1,211 @@
 <template>
-  <div class="live-demo">
-    <article class="code-container">
-      <span class="header">
-        <span>list.json</span>
-        <span class="instruction">(list of items to search)</span>
-      </span>
-      <codemirror
-        class="cm-list-editor"
-        ref="listEditor"
-        :value="listJSON"
-        :options="listOptions"
-        @input="onCmListChange"
-      />
-    </article>
-    <span v-if="listErrorMessage" class="error-msg">
-      {{ listErrorMessage }}
-    </span>
+  <section>
+    <MonacoEditor
+      language="json"
+      :value="jsonData"
+      id="json-list-monaco-editor"
+      file-name="list.json"
+      file-description="list of items to search"
+    ></MonacoEditor>
+  </section>
 
-    <section class="search-section">
-      <input
-        type="text"
-        v-model="pattern"
-        @keyup="onPatternKeyUp"
-        placeholder="Search..."
-      />
-      <!-- <label class="toggle-code" @click="toggleCode">
-        {{ showCode ? '[hide code]' : '[show code]' }}
-      </label> -->
-    </section>
+  <section class="search-section">
+    <input
+      type="text"
+      class="search-section-input"
+      v-model="searchPattern"
+      @keyup="onSearchPatternKeyUp"
+      placeholder="Search..."
+    />
+  </section>
 
-    <div class="code-container-wrapper">
-      <Content slot-key="middle" />
-      <article class="code-container">
-        <span class="header">
-          <span>main.js</span>
-          <span class="instruction">(entry module)</span>
-        </span>
-        <codemirror
-          ref="cmEditor"
-          class="cm-code-editor"
-          :value="code"
-          :options="cmOptions"
-          @input="onCmCodeChange"
-        />
-      </article>
-      <span v-if="codeErrorMessage" class="error-msg">
-        {{ codeErrorMessage }}
-      </span>
-    </div>
-    <article class="code-container">
-      <span class="header">
-        <span v-if="!hasErrors">
-          <b>Results:</b> found {{ count }} items in {{ searchTime }}
-        </span>
-        <span v-else>--</span>
-      </span>
-      <pre class="output"><code v-html="outputHtml"></code></pre>
-    </article>
-  </div>
+  <section>
+    <MonacoEditor
+      language="typescript"
+      :value="mainJsData"
+      id="main-monaco-editor"
+      file-name="main.js"
+      file-description="entry module"
+    ></MonacoEditor>
+  </section>
+
+  <section class="monaco-editor-results">
+    <MonacoEditor
+      language="json"
+      :value="resultsData"
+      id="main-monaco-editor"
+      file-name="Results:"
+      :file-description="
+        isNullish(count) || isNullish(searchTime)
+          ? ''
+          : 'found ' + count + ' in ' + searchTime + 'ms'
+      "
+      readonly
+    ></MonacoEditor>
+  </section>
 </template>
 
 <script setup lang="ts">
-import 'prismjs/components/prism-json'
-import { defineComponent, onMounted, ref, shallowRef } from 'vue'
-
+import { Stopwatch } from '@sapphire/stopwatch'
+import { ref } from 'vue'
 import Fuse from '../../../../dist/fuse.esm.js'
 import Books from './books.js'
+import MonacoEditor from './MonacoEditor.vue'
 
-import Prism from 'prismjs'
-
-// import { javascript } from '@codemirror/lang-javascript'
-import { javascript } from '@codemirror/lang-javascript'
-import { oneDark } from '@codemirror/theme-one-dark'
-import { Codemirror } from 'vue-codemirror'
-
-let keys = []
+let possibleFuseKeys: string[] = []
 for (const key in Fuse.config) {
   if (typeof Fuse.config[key] != 'function' && key !== 'keys') {
-    keys.push(key)
+    possibleFuseKeys.push(key)
   }
 }
 
-let codify = (pattern) => {
-  return `const options = {
-${keys.map((key) => `  // ${key}: ${Fuse.config[key]},`).join('\n')}
-  keys: [
-    "title",
-    "author.firstName"
-  ]
+const searchPattern = ref('')
+
+let codify = () => {
+  return `
+const Fuse = require('fuse.js');
+
+const fuseOptions = {
+${possibleFuseKeys.map((key) => `\t// ${key}: ${Fuse.config[key]},`).join('\n')}
+\tkeys: [
+\t\t"title",
+\t\t"author.firstName"
+\t]
 };
 
-const fuse = new Fuse(list, options);
+const fuse = new Fuse(list, fuseOptions);
 
 // Change the pattern
-const pattern = "${pattern}"
+const pattern = "${searchPattern.value}"
 
 return fuse.search(pattern)`
 }
 
-// Purely here to make two-way binding possible:
-// Extend Fuse such that we can expose the pattern that was
-// modified directly in the CodeMirror input.
-class DemoFuse extends Fuse {
-  public override search(pattern: any, opts = { limit: -1 }) {
-    const results = super.search(pattern, opts)
-    return { pattern, results }
-  }
+const isNullish = <T>(
+  value: null | undefined | T
+): value is null | undefined => {
+  return value === null || value === undefined
 }
 
-let listJSON = ref(JSON.stringify(Books, null, 2))
-let list = ref(Books)
-let code = ref(codify(''))
-let result = ref('')
-let outputHtml = ref('')
-let count = ref(0)
-let searchTime = ref<string | number>(0)
-let listErrorMessage = ref('')
-let codeErrorMessage = ref('')
-let hasErrors = ref(false)
-let pattern = ref('')
-let showCode = ref(true)
-let listOptions = ref({
-  tabSize: 2,
-  mode: 'text/javascript',
-  theme: 'default',
-  lineNumbers: true,
-  line: true
-})
-let cmOptions = ref({
-  tabSize: 2,
-  mode: 'text/javascript',
-  theme: 'default',
-  lineNumbers: true,
-  line: true
-})
+const jsonData = ref(JSON.stringify(Books, null, 2))
+const mainJsData = ref(codify())
+const resultsData = ref(JSON.stringify({}, null, 2))
+const count = ref<number | null>(null)
+const searchTime = ref<number | null>(null)
 
-function toggleCode() {
-  showCode.value = !showCode.value
+console.log('>>>>', resultsData.value)
+
+function onSearchPatternKeyUp() {
+  mainJsData.value = codify()
+
+  doFuseSearch()
 }
 
-function onCmCodeChange(newCode) {
-  code.value = newCode
+function doFuseSearch() {
   try {
-    parse()
-    update()
-  } catch (err) {}
-}
-
-function onCmListChange(newCode) {
-  try {
-    list.value = eval(newCode)
-    listErrorMessage.value = null
-    hasErrors.value = !!codeErrorMessage.value
-    update()
-  } catch (err) {
-    listErrorMessage.value = err
-    hasErrors.value = true
-    outputHtml.value = ''
-    throw err
-  }
-}
-
-function parse() {
-  try {
-    let func = eval(`[function (Fuse, list){${this.code}}][0]`)
-
-    let start = new Date().getTime()
-    const { pattern, results } = func(DemoFuse, this.list)
-    result.value = results
-    pattern.value = pattern
-    let end = new Date().getTime()
-    searchTime.value = end - start + ' ms'
-    codeErrorMessage.value = null
-    hasErrors.value = !!this.listErrorMessage
-  } catch (err) {
-    codeErrorMessage.value = err
-    hasErrors.value = true
-    outputHtml.value = ''
-    throw err
-  }
-}
-
-function update() {
-  if (hasErrors.value) {
-    return
-  }
-  const html = Prism.highlight(
-    JSON.stringify(this.result, null, 2),
-    Prism.languages.json,
-    'json'
-  )
-  count.value = this.result.length
-  outputHtml.value = html
-}
-function onPatternKeyUp() {
-  code.value = codify(this.pattern)
-}
-
-onMounted(() => {
-  parse()
-  update()
-})
-
-defineComponent({
-  components: {
-    Codemirror
-  },
-  setup: () => {
-    const extensions = [javascript(), oneDark]
-
-    // Codemirror EditorView instance ref
-    const view = shallowRef()
-    const handleReady = (payload) => {
-      view.value = payload.view
+    const fuseOptions = {
+      // isCaseSensitive: false,
+      // includeScore: false,
+      // shouldSort: true,
+      // includeMatches: false,
+      // findAllMatches: false,
+      // minMatchCharLength: 1,
+      // location: 0,
+      // threshold: 0.6,
+      // distance: 100,
+      // useExtendedSearch: false,
+      // ignoreLocation: false,
+      // ignoreFieldNorm: false,
+      // fieldNormWeight: 1,
+      keys: ['title', 'author.firstName']
     }
 
-    return {
-      code,
-      extensions,
-      handleReady,
-      log: console.log
-    }
+    const fuse = new Fuse(JSON.parse(jsonData.value), fuseOptions)
+
+    const stopwatch = new Stopwatch()
+
+    const result = fuse.search(searchPattern.value)
+
+    count.value = result.length
+    searchTime.value = Math.floor(stopwatch.stop().duration)
+    resultsData.value = JSON.stringify(result, null, 2)
+  } catch {
+    count.value = null
+    searchTime.value = null
+    resultsData.value = JSON.stringify({}, null, 2)
   }
-})
+}
+
+// function onCmCodeChange(newCode) {
+//   code.value = newCode
+//   try {
+//     parse()
+//     update()
+//   } catch (err) {}
+// }
+
+// function onCmListChange(newCode) {
+//   try {
+//     list.value = eval(newCode)
+//     listErrorMessage.value = null
+//     hasErrors.value = !!codeErrorMessage.value
+//     update()
+//   } catch (err) {
+//     listErrorMessage.value = err
+//     hasErrors.value = true
+//     outputHtml.value = ''
+//     throw err
+//   }
+// }
+
+// function update() {
+//   if (hasErrors.value) {
+//     return
+//   }
+//   const html = Prism.highlight(
+//     JSON.stringify(result.value, null, 2),
+//     Prism.languages.json,
+//     'json'
+//   )
+//   count.value = result.value.length
+//   outputHtml.value = html
+// }
+
+// onMounted(() => {
+//   // parse()
+//   // update()
+// })
 </script>
 
-<style lang="css">
-.live-demo .code-container {
-  border: 1px solid #ccc;
+<style scoped lang="css">
+.monaco-editor-results {
+  margin-top: 20px;
+}
+
+.search-section {
+  margin-top: 20px;
   margin-bottom: 20px;
+  width: 100%;
 }
 
-.live-demo .code-container .header {
-  display: block;
-  padding: 0.5em;
-  border-bottom: 1px solid #f4f4f4;
-  color: #555;
-  position: relative;
-}
-
-.live-demo .code-container .header .instruction {
-  color: #555;
-  opacity: 0.6;
-  position: absolute;
-  right: 0;
-  padding-right: 0.5em;
-}
-
-.live-demo .CodeMirror {
-  height: 100%;
-  border-radius: 3px;
-  font-family: Inconsolata, monospace;
+.search-section-input {
   font-size: 16px;
-  line-height: 1.2;
-  font-weight: 400;
-  color: #333;
-}
-.live-demo .cm-list-editor {
-  height: 250px;
-}
-.live-demo .error-msg {
-  margin: 5px 0px;
-  color: red;
-  display: inline-block;
-}
-.live-demo .output {
-  max-height: 300px;
-  border-radius: 3px;
-  background: white;
-  font-family: Inconsolata, monospace;
-  font-size: 16px;
-  line-height: 1.2;
+  width: 100%;
+
+  color: rgb(156, 181, 200);
+  background-color: rgb(24, 26, 27);
+  background-image: none;
+  border-color: rgb(56, 60, 63);
+
+  padding: 0.45rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  width: 96%;
+  border: 1px solid #e1e3e6;
+  border-radius: 4px;
 }
 
-.live-demo .output .token.punctuation,
-.live-demo .output .token.operator {
-  color: #333;
-}
-
-.live-demo .output .token.property,
-.live-demo .output .token.string,
-.live-demo .output .token.number,
-.live-demo .output .token.comment,
-.live-demo .output .token.prolog,
-.live-demo .output .token.doctype,
-.live-demo .output .token.cdata {
-  color: #a11 !important;
-}
-
-.live-demo .search-section {
-  margin-bottom: 20px;
-}
-.live-demo .search-section input {
-  font-size: 16px;
-}
-.live-demo .toggle-code {
-  cursor: pointer;
+html.dark .search-section-input {
+  border: 1px solid #878e99;
 }
 </style>
