@@ -1,5 +1,5 @@
 <template>
-  <ul id="team-members">
+  <ul class="team-members">
     <li class="profile-container" v-for="profile in team">
       <div class="avatar">
         <img
@@ -56,7 +56,7 @@
             <a
               class="github"
               v-if="profile.social.github"
-              :href="githubUrl(profile.social.github)"
+              :href="`https://github.com/${profile.social.github}`"
             >
               <i class="fab fa-github"></i>
               <span class="sr-only">Github</span>
@@ -92,8 +92,52 @@
   </ul>
 </template>
 
-<script lang="ts">
-import team from './people'
+<script setup lang="ts">
+import { ref } from 'vue'
+
+interface ProfileSocial {
+  github: string
+  twitter: string
+  linkedin: string
+  reddit: string
+}
+
+interface ProfileWork {
+  role: string
+  org: string
+}
+
+interface Profile {
+  name: string
+  city: string
+  social: ProfileSocial
+  languages: string[]
+  work: ProfileWork
+  links: string[]
+  title?: string
+}
+
+const team = ref<Profile[]>([
+  {
+    name: 'Kiro Risk',
+    city: 'San Francisco, CA, USA',
+    social: {
+      github: 'krisk',
+      twitter: 'kirorisk',
+      linkedin: 'kirollos',
+      reddit: 'kirorisk'
+    },
+    languages: ['en', 'it', 'fr'],
+    work: {
+      role: 'Creator',
+      org: 'Fuse.js'
+    },
+    links: [
+      'https://github.com/sponsors/krisk',
+      'https://www.patreon.com/krisk'
+    ]
+  }
+])
 
 const languageNameFor = {
   en: 'English',
@@ -114,95 +158,73 @@ const languageNameFor = {
   ro: 'Română'
 }
 
-export default {
-  name: 'Team',
-  data: () => ({
-    team
-  }),
-  methods: {
-    workHtml(profile) {
-      var work = profile.work
-      var html = ''
-      if (work.orgUrl) {
-        html += `<a href="${work.orgUrl}" target="_blank">`
-        if (work.org) {
-          html += work.org
-        } else {
-          this.minimizeLink(work.orgUrl)
-        }
-        html += '</a>'
-      } else if (work.org) {
-        html += work.org
-      }
-      if (work.role) {
-        if (html.length > 0) {
-          html = `${work.role} @ ${html}`
-        } else {
-          html = work.role
-        }
-      }
-      return html
-    },
-    /**
-     * Generate a GitHub URL using a repo and a handle.
-     */
-    githubUrl(handle, repo) {
-      if (repo && repo.url) {
-        return repo.url
-      }
-      if (repo && repo.indexOf('/') !== -1) {
-        // If the repo name has a slash, it must be an organization repo.
-        // In such a case, we discard the (personal) handle.
-        return `https://github.com/${repo.replace(/\/\*$/, '')}`
-      }
-      return `https://github.com/${handle}/${repo || ''}`
-    },
-    languageListHtml(profile) {
-      if (!profile.languages) return ''
-
-      let nav = globalThis.navigator
-
-      let preferredLanguageCode = nav
-        ? nav.languages
-          ? // The preferred language set in the browser
-            nav.languages[0]
-          : // The system language in IE
-            nav.userLanguage ||
-            // The language in the current page
-            nav.language
-        : null
-
-      return (
-        '<ul><li>' +
-        profile.languages
-          .map((languageCode, index) => {
-            const language = languageNameFor[languageCode]
-            if (
-              languageCode !== 'en' &&
-              preferredLanguageCode &&
-              languageCode === preferredLanguageCode.slice(0, 2)
-            ) {
-              const title = `${profile.name} can give technical talks in your preferred language.`
-              return `<span class="user-match" title="${title}">${language}</span>`
-            }
-            return language
-          })
-          .join('</li><li>') +
-        '</li></ul>'
-      )
-    },
-    minimizeLink(link) {
-      return link
-        .replace(/^https?:\/\/(www\.)?/, '')
-        .replace(/\/$/, '')
-        .replace(/^mailto:/, '')
+function workHtml(profile) {
+  var work = profile.work
+  var html = ''
+  if (work.orgUrl) {
+    html += `<a href="${work.orgUrl}" target="_blank">`
+    if (work.org) {
+      html += work.org
+    } else {
+      minimizeLink(work.orgUrl)
+    }
+    html += '</a>'
+  } else if (work.org) {
+    html += work.org
+  }
+  if (work.role) {
+    if (html.length > 0) {
+      html = `${work.role} @ ${html}`
+    } else {
+      html = work.role
     }
   }
+  return html
+}
+
+function languageListHtml(profile) {
+  if (!profile.languages) return ''
+
+  let nav = globalThis.navigator
+
+  let preferredLanguageCode = nav
+    ? nav.languages
+      ? // The preferred language set in the browser
+        nav.languages[0]
+      : // The language in the current page
+        nav.language
+    : null
+
+  return (
+    '<ul><li>' +
+    profile.languages
+      .map((languageCode: string) => {
+        const language = languageNameFor[languageCode]
+        if (
+          languageCode !== 'en' &&
+          preferredLanguageCode &&
+          languageCode === preferredLanguageCode.slice(0, 2)
+        ) {
+          const title = `${profile.name} can give technical talks in your preferred language.`
+          return `<span class="user-match" title="${title}">${language}</span>`
+        }
+        return language
+      })
+      .join('</li><li>') +
+    '</li></ul>'
+  )
+}
+
+function minimizeLink(link: string) {
+  return link
+    .replace(/^https?:\/\/(www\.)?/, '')
+    .replace(/\/$/, '')
+    .replace(/^mailto:/, '')
 }
 </script>
 
-<style lang="css">
-#team-members .sort-by-distance-button {
+<style scoped lang="css">
+.team-members .sort-by-distance-button {
   display: inline-block;
   padding: 0.4em 0.7em 0.45em;
   font-weight: bold;
@@ -218,47 +240,59 @@ export default {
   float: right;
   margin-top: 0.3em;
 }
-#team-members .sort-by-distance-button i {
+
+.team-members .sort-by-distance-button i {
   margin-right: 0.25em;
 }
-#team-members .sort-by-distance-button i:last-child {
+
+.team-members .sort-by-distance-button i:last-child {
   margin-right: 0;
 }
-#team-members .sort-by-distance-button[disabled] {
+
+.team-members .sort-by-distance-button[disabled] {
   opacity: 0.7;
   cursor: default;
 }
-#team-members .profile-container {
+
+.team-members .profile-container {
   display: flex;
   padding: 25px 0;
   border-bottom: 1px dotted #ddd;
 }
-#team-members .profile-container:first-of-type {
+
+.team-members .profile-container:first-of-type {
   margin-top: 15px;
 }
-#team-members .profile-container:last-of-type {
+
+.team-members .profile-container:last-of-type {
   border-bottom: none;
 }
-#team-members .profile-container .avatar {
+
+.team-members .profile-container .avatar {
   flex: 0 0 80px;
 }
-#team-members .profile-container .avatar img {
+
+.team-members .profile-container .avatar img {
   border-radius: 50%;
   object-fit: cover;
 }
-#team-members .profile-container .profile {
+
+.team-members .profile-container .profile {
   padding-left: 26px;
   flex: 1;
 }
-#team-members .profile-container .profile h3 {
+
+.team-members .profile-container .profile h3 {
   margin: 0;
   font-size: 1.3em;
 }
-#team-members .profile-container .profile h3::before,
-#team-members .profile-container .profile h3::after {
+
+.team-members .profile-container .profile h3::before,
+.team-members .profile-container .profile h3::after {
   display: none;
 }
-#team-members .profile-container .profile h3 > sup {
+
+.team-members .profile-container .profile h3 > sup {
   text-transform: uppercase;
   font-size: 0.7em;
   letter-spacing: 0.3px;
@@ -268,11 +302,13 @@ export default {
   background: #f9f7f5;
   border-radius: 5px;
 }
-#team-members .profile-container .profile .user-match {
+
+.team-members .profile-container .profile .user-match {
   cursor: help;
   color: #4682b4;
 }
-#team-members .profile-container .profile .user-match:after {
+
+.team-members .profile-container .profile .user-match:after {
   content: '\f06a';
   font-family: 'Font Awesome 5 Free';
   font-size: 0.75em;
@@ -281,84 +317,104 @@ export default {
   margin-right: 2px;
   position: relative;
 }
-#team-members .profile-container .profile dl {
+
+.team-members .profile-container .profile dl {
   margin: 0.6em 0 0;
 }
-#team-members .profile-container .profile dt,
-#team-members .profile-container .profile dd,
-#team-members .profile-container .profile ul,
-#team-members .profile-container .profile li {
+
+.team-members .profile-container .profile dt,
+.team-members .profile-container .profile dd,
+.team-members .profile-container .profile ul,
+.team-members .profile-container .profile li {
   display: inline;
   padding: 0;
   margin: 0;
   line-height: 1.3;
 }
-#team-members .profile-container .profile dt {
+
+.team-members .profile-container .profile dt {
   text-transform: uppercase;
   font-size: 0.84em;
   font-weight: 600;
 }
-#team-members .profile-container .profile dt::after {
+
+.team-members .profile-container .profile dt::after {
   content: '';
   margin-right: 7px;
 }
-#team-members .profile-container .profile dt i {
+
+.team-members .profile-container .profile dt i {
   width: 14px;
   text-align: center;
 }
-#team-members .profile-container .profile dt i.fa-map-marker {
+
+.team-members .profile-container .profile dt i.fa-map-marker {
   font-size: 1.15em;
 }
-#team-members .profile-container .profile dt i.fa-globe {
+
+.team-members .profile-container .profile dt i.fa-globe {
   font-size: 1.2em;
 }
-#team-members .profile-container .profile dt i.fa-link {
+
+.team-members .profile-container .profile dt i.fa-link {
   font-size: 1.05em;
 }
-#team-members .profile-container .profile dd {
+
+.team-members .profile-container .profile dd {
   font-weight: 600;
 }
-#team-members .profile-container .profile dd::after {
+
+.team-members .profile-container .profile dd::after {
   display: block;
   content: ' ';
   margin-top: 0.6em;
 }
-#team-members .profile-container .profile li {
+
+.team-members .profile-container .profile li {
   display: inline-block;
 }
-#team-members .profile-container .profile li::after {
+
+.team-members .profile-container .profile li::after {
   display: inline-block;
   content: '·';
   margin: 0 8px;
 }
-#team-members .profile-container .profile li:last-child::after {
+
+.team-members .profile-container .profile li:last-child::after {
   content: '';
 }
-#team-members .profile-container .profile .social a {
+
+.team-members .profile-container .profile .social a {
   display: inline-block;
   line-height: 1;
   vertical-align: middle;
   margin-right: 4px;
 }
-#team-members .profile-container .profile .social a.github,
-#team-members .profile-container .profile .social a.codepen {
+
+.team-members .profile-container .profile .social a.github,
+.team-members .profile-container .profile .social a.codepen {
   color: #000;
 }
-#team-members .profile-container .profile .social a.twitter {
+
+.team-members .profile-container .profile .social a.twitter {
   color: #1da1f3;
 }
-#team-members .profile-container .profile .social a.linkedin {
+
+.team-members .profile-container .profile .social a.linkedin {
   color: #0077b5;
 }
-#team-members .profile-container .profile .social a.reddit {
+
+.team-members .profile-container .profile .social a.reddit {
   color: #ff4501;
 }
-#team-members .profile-container .profile .social i {
+
+.team-members .profile-container .profile .social i {
   vertical-align: text-bottom;
   font-size: 1.3em;
 }
+
 @media (max-width: 640px) {
-  #team-members .profile-container .profile h3 sup {
+  .team-members .profile-container .profile h3 sup {
     display: inline-block;
     margin-left: 0;
   }
