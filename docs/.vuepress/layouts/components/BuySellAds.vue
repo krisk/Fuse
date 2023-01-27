@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { isNullish } from '@sapphire/utilities';
+import { isNullish } from '@sapphire/utilities'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 

@@ -49,7 +49,7 @@ export default defineClientConfig({
 
 declare global {
   const __VUEPRESS_SSR__: boolean
-  const _bsa: any;
+  const _bsa: any
 
   interface Window {
     MonacoEnvironment?: import('monaco-editor').Environment | undefined

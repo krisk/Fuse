@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { Stopwatch } from '@sapphire/stopwatch'
-import {isNullish, isObject, tryParseJSON} from '@sapphire/utilities'
+import { isNullish, isObject, tryParseJSON } from '@sapphire/utilities'
 import { reactive } from 'vue'
 import type FuseTypes from '../../../../dist/fuse'
 import Fuse from '../../../../dist/fuse.esm.js'
