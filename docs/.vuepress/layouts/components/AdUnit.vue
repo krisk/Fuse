@@ -9,6 +9,6 @@
   ></ins>
 </template>
 
-<script>
+<script setup lang="js">
 ;(adsbygoogle = window.adsbygoogle || []).push({})
 </script>
