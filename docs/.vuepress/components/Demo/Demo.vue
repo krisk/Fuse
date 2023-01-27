@@ -52,21 +52,29 @@ import Fuse from '../../../../dist/fuse.esm.js'
 import Books from './books.js'
 import MonacoEditor from './MonacoEditor.vue'
 
-let possibleFuseKeys: string[] = []
-for (const key in Fuse.config) {
-  if (typeof Fuse.config[key] != 'function' && key !== 'keys') {
-    possibleFuseKeys.push(key)
-  }
-}
-
 const searchPattern = ref('')
+const fuseSearchOptions = ref({
+  isCaseSensitive: false,
+  includeScore: false,
+  shouldSort: true,
+  includeMatches: false,
+  findAllMatches: false,
+  minMatchCharLength: 1,
+  location: 0,
+  threshold: 0.6,
+  distance: 100,
+  useExtendedSearch: false,
+  ignoreLocation: false,
+  ignoreFieldNorm: false,
+  fieldNormWeight: 1
+})
 
 let codify = () => {
   return `
 const Fuse = require('fuse.js');
 
 const fuseOptions = {
-${possibleFuseKeys.map((key) => `\t// ${key}: ${Fuse.config[key]},`).join('\n')}
+${Object.entries(fuseSearchOptions).map(([key, value]) => `\t// ${key}: ${value},`).join('\n')}
 \tkeys: [
 \t\t"title",
 \t\t"author.firstName"
