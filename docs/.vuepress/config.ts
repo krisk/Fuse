@@ -43,8 +43,8 @@ export default defineUserConfig({
         link: '/'
       },
       {
-        text: 'Sponsor',
-        link: '/support/'
+        text: 'Donate',
+        link: '/donate/'
       },
       {
         text: 'Twitter',
