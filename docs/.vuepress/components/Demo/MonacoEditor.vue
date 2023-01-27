@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as Monaco from 'monaco-editor'
-import { computed, defineProps, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import loader from '@monaco-editor/loader';
 
 interface Emits {

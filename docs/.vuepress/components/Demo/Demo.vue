@@ -26,6 +26,7 @@
       id="main-monaco-editor"
       file-name="main.js"
       file-description="entry module"
+      @update:modelValue="updateMainJsData"
     ></MonacoEditor>
   </section>
 
@@ -47,6 +48,7 @@
 
 <script setup lang="ts">
 import { Stopwatch } from '@sapphire/stopwatch'
+import {isNullish, isObject, tryParseJSON} from '@sapphire/utilities'
 import { reactive } from 'vue'
 import type FuseTypes from '../../../../dist/fuse'
 import Fuse from '../../../../dist/fuse.esm.js'
@@ -59,7 +61,7 @@ interface State {
   mainJsData: string
   resultsData: string
   count: number | null
-  searchTime: number | null
+  searchTime: string | null
   fuseSearchOptions: FuseTypes.IFuseOptions<never>
 }
 
@@ -76,14 +78,13 @@ const defaultFuseSearchOptions: FuseTypes.IFuseOptions<never> = {
   useExtendedSearch: false,
   ignoreLocation: false,
   ignoreFieldNorm: false,
-  fieldNormWeight: 1,
-  keys: ['title', 'author.firstName']
+  fieldNormWeight: 1
 }
 
-let codify = (
+function codify(
   searchPattern: string,
   fuseSearchOptions: FuseTypes.IFuseOptions<never> = defaultFuseSearchOptions
-): string => {
+): string {
   return `
 const Fuse = require('fuse.js');
 
@@ -115,10 +116,29 @@ const state = reactive<State>({
   fuseSearchOptions: defaultFuseSearchOptions
 })
 
-const isNullish = <T>(
-  value: null | undefined | T
-): value is null | undefined => {
-  return value === null || value === undefined
+function removeComments(str: string) {
+  let lines = str.split('\n')
+  lines = lines.filter((line) => !line.startsWith('//'))
+  return lines.join('\n')
+}
+
+function updateMainJsData(newValue: string) {
+  const newFuseOptionsString = removeComments(
+    newValue
+      .replace(/const Fuse = require\('fuse\.js'\);\n\n/, '')
+      .replace(/const fuse = new Fuse\(list, fuseOptions\);\n\n/, '')
+      .replace(/\/\/ Change the pattern\n/, '')
+      .replace(/const searchPattern = ".+"\n\n/, '')
+      .replace(/return fuse\.search\(searchPattern\)/, '')
+      .replace(/\n\n/, '')
+      .replace(/\t/g, '')
+      .replaceAll(';', '')
+      .replace(/const fuseOptions = /, '')
+  ).replaceAll(/([a-zA-Z]+):/g, '"$1":')
+
+  const newFuseOptions = tryParseJSON(newFuseOptionsString)
+
+  doFuseSearch(isObject(newFuseOptions) ? newFuseOptions : undefined)
 }
 
 function onSearchPatternKeyUp() {
@@ -127,21 +147,22 @@ function onSearchPatternKeyUp() {
   doFuseSearch()
 }
 
-function doFuseSearch() {
+function doFuseSearch(fuseSearchOptions = state.fuseSearchOptions) {
   try {
     const fuseOptions: FuseTypes.IFuseOptions<never> = {
-      ...state.fuseSearchOptions,
-      keys: ['title', 'author.firstName']
+      keys: ['title', 'author.firstName'],
+      ...fuseSearchOptions
     }
 
-    const fuse = new Fuse(JSON.parse(state.jsonData), state.fuseSearchOptions)
+    const fuse = new Fuse(JSON.parse(state.jsonData), fuseOptions)
 
     const stopwatch = new Stopwatch()
 
     const result = fuse.search(state.searchPattern)
+    const searchTime = stopwatch.stop().duration
 
     state.count = result.length
-    state.searchTime = Math.floor(stopwatch.stop().duration)
+    state.searchTime = searchTime.toFixed(1)
     state.resultsData = JSON.stringify(result, null, 2)
   } catch {
     state.count = null
