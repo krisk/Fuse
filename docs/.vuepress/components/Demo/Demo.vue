@@ -2,7 +2,7 @@
   <section>
     <MonacoEditor
       language="json"
-      :value="jsonData"
+      v-model="state.jsonData"
       id="json-list-monaco-editor"
       file-name="list.json"
       file-description="list of items to search"
@@ -13,7 +13,7 @@
     <input
       type="text"
       class="search-section-input"
-      v-model="searchPattern"
+      v-model="state.searchPattern"
       @keyup="onSearchPatternKeyUp"
       placeholder="Search..."
     />
@@ -21,8 +21,8 @@
 
   <section>
     <MonacoEditor
-      language="typescript"
-      :value="mainJsData"
+      language="javascript"
+      v-model="state.mainJsData"
       id="main-monaco-editor"
       file-name="main.js"
       file-description="entry module"
@@ -32,13 +32,13 @@
   <section class="monaco-editor-results">
     <MonacoEditor
       language="json"
-      :value="resultsData"
+      v-model="state.resultsData"
       id="main-monaco-editor"
       file-name="Results:"
       :file-description="
-        isNullish(count) || isNullish(searchTime)
+        isNullish(state.count) || isNullish(state.searchTime)
           ? ''
-          : 'found ' + count + ' in ' + searchTime + 'ms'
+          : 'found ' + state.count + ' in ' + state.searchTime + 'ms'
       "
       readonly
     ></MonacoEditor>
@@ -47,13 +47,23 @@
 
 <script setup lang="ts">
 import { Stopwatch } from '@sapphire/stopwatch'
-import { ref } from 'vue'
+import { reactive } from 'vue'
+import type FuseTypes from '../../../../dist/fuse'
 import Fuse from '../../../../dist/fuse.esm.js'
 import Books from './books.js'
 import MonacoEditor from './MonacoEditor.vue'
 
-const searchPattern = ref('')
-const fuseSearchOptions = ref({
+interface State {
+  searchPattern: string
+  jsonData: string
+  mainJsData: string
+  resultsData: string
+  count: number | null
+  searchTime: number | null
+  fuseSearchOptions: FuseTypes.IFuseOptions<never>
+}
+
+const defaultFuseSearchOptions: FuseTypes.IFuseOptions<never> = {
   isCaseSensitive: false,
   includeScore: false,
   shouldSort: true,
@@ -66,15 +76,21 @@ const fuseSearchOptions = ref({
   useExtendedSearch: false,
   ignoreLocation: false,
   ignoreFieldNorm: false,
-  fieldNormWeight: 1
-})
+  fieldNormWeight: 1,
+  keys: ['title', 'author.firstName']
+}
 
-let codify = () => {
+let codify = (
+  searchPattern: string,
+  fuseSearchOptions: FuseTypes.IFuseOptions<never> = defaultFuseSearchOptions
+): string => {
   return `
 const Fuse = require('fuse.js');
 
 const fuseOptions = {
-${Object.entries(fuseSearchOptions).map(([key, value]) => `\t// ${key}: ${value},`).join('\n')}
+${Object.entries(fuseSearchOptions)
+  .map(([key, value]) => `\t// ${key}: ${value},`)
+  .join('\n')}
 \tkeys: [
 \t\t"title",
 \t\t"author.firstName"
@@ -84,10 +100,20 @@ ${Object.entries(fuseSearchOptions).map(([key, value]) => `\t// ${key}: ${value}
 const fuse = new Fuse(list, fuseOptions);
 
 // Change the pattern
-const pattern = "${searchPattern.value}"
+const searchPattern = "${searchPattern}"
 
-return fuse.search(pattern)`
+return fuse.search(searchPattern)`
 }
+
+const state = reactive<State>({
+  searchPattern: '',
+  jsonData: JSON.stringify(Books, null, 2),
+  mainJsData: codify(''),
+  resultsData: JSON.stringify({}, null, 2),
+  count: null,
+  searchTime: null,
+  fuseSearchOptions: defaultFuseSearchOptions
+})
 
 const isNullish = <T>(
   value: null | undefined | T
@@ -95,94 +121,34 @@ const isNullish = <T>(
   return value === null || value === undefined
 }
 
-const jsonData = ref(JSON.stringify(Books, null, 2))
-const mainJsData = ref(codify())
-const resultsData = ref(JSON.stringify({}, null, 2))
-const count = ref<number | null>(null)
-const searchTime = ref<number | null>(null)
-
-console.log('>>>>', resultsData.value)
-
 function onSearchPatternKeyUp() {
-  mainJsData.value = codify()
+  state.mainJsData = codify(state.searchPattern, state.fuseSearchOptions)
 
   doFuseSearch()
 }
 
 function doFuseSearch() {
   try {
-    const fuseOptions = {
-      // isCaseSensitive: false,
-      // includeScore: false,
-      // shouldSort: true,
-      // includeMatches: false,
-      // findAllMatches: false,
-      // minMatchCharLength: 1,
-      // location: 0,
-      // threshold: 0.6,
-      // distance: 100,
-      // useExtendedSearch: false,
-      // ignoreLocation: false,
-      // ignoreFieldNorm: false,
-      // fieldNormWeight: 1,
+    const fuseOptions: FuseTypes.IFuseOptions<never> = {
+      ...state.fuseSearchOptions,
       keys: ['title', 'author.firstName']
     }
 
-    const fuse = new Fuse(JSON.parse(jsonData.value), fuseOptions)
+    const fuse = new Fuse(JSON.parse(state.jsonData), state.fuseSearchOptions)
 
     const stopwatch = new Stopwatch()
 
-    const result = fuse.search(searchPattern.value)
+    const result = fuse.search(state.searchPattern)
 
-    count.value = result.length
-    searchTime.value = Math.floor(stopwatch.stop().duration)
-    resultsData.value = JSON.stringify(result, null, 2)
+    state.count = result.length
+    state.searchTime = Math.floor(stopwatch.stop().duration)
+    state.resultsData = JSON.stringify(result, null, 2)
   } catch {
-    count.value = null
-    searchTime.value = null
-    resultsData.value = JSON.stringify({}, null, 2)
+    state.count = null
+    state.searchTime = null
+    state.resultsData = JSON.stringify({}, null, 2)
   }
 }
-
-// function onCmCodeChange(newCode) {
-//   code.value = newCode
-//   try {
-//     parse()
-//     update()
-//   } catch (err) {}
-// }
-
-// function onCmListChange(newCode) {
-//   try {
-//     list.value = eval(newCode)
-//     listErrorMessage.value = null
-//     hasErrors.value = !!codeErrorMessage.value
-//     update()
-//   } catch (err) {
-//     listErrorMessage.value = err
-//     hasErrors.value = true
-//     outputHtml.value = ''
-//     throw err
-//   }
-// }
-
-// function update() {
-//   if (hasErrors.value) {
-//     return
-//   }
-//   const html = Prism.highlight(
-//     JSON.stringify(result.value, null, 2),
-//     Prism.languages.json,
-//     'json'
-//   )
-//   count.value = result.value.length
-//   outputHtml.value = html
-// }
-
-// onMounted(() => {
-//   // parse()
-//   // update()
-// })
 </script>
 
 <style scoped lang="css">

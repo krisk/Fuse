@@ -1,20 +1,63 @@
 <script setup lang="ts">
-import * as monaco from 'monaco-editor'
-import { defineProps, onMounted, ref } from 'vue'
+import * as Monaco from 'monaco-editor'
+import { computed, defineProps, onMounted, ref, watch } from 'vue'
+import loader from '@monaco-editor/loader';
 
-const editorRef = ref()
+interface Emits {
+  (event: 'update:modelValue', value: string): void
+  (event: 'load', editor: Monaco.editor.IStandaloneCodeEditor): void
+}
+
 const props = defineProps<{
   language: string
-  value: any
+  modelValue: string
   id: string
   fileName: string
   fileDescription: string
   readonly?: boolean
 }>()
 
+const loadedMonaco = await loader.init();
+
+const emit = defineEmits<Emits>()
+const isLoading = ref(true)
+const lang = computed(() => props.language)
+const editorElement = ref<HTMLDivElement>()
+const monaco = ref(loadedMonaco)
+
+let editor: Monaco.editor.IStandaloneCodeEditor
+let model: Monaco.editor.ITextModel
+const editorRef = ref()
+
+watch(
+  () => props.modelValue,
+  () => {
+    if (editor?.getValue() !== props.modelValue) {
+      editor?.setValue(props.modelValue)
+    }
+  }
+)
+
+watch(
+  () => props.language,
+  () => {
+    if (model) {
+      model.dispose()
+    }
+    model = monaco.value.editor.createModel(props.modelValue, lang.value)
+    editor?.setModel(model)
+  }
+)
+
+defineExpose({
+  /**
+   * Monaco editor instance
+   */
+  $editor: editorRef
+})
+
 onMounted(() => {
-  monaco.editor.create(editorRef.value, {
-    value: props.value,
+  editor = monaco.value.editor.create(editorElement.value, {
     language: props.language,
     automaticLayout: true,
     selectOnLineNumbers: true,
@@ -49,6 +92,15 @@ onMounted(() => {
       contextmenu: false
     })
   })
+
+  editorRef.value = editor
+  model = monaco.value.editor.createModel(props.modelValue, lang.value)
+  editor.setModel(model)
+  editor.onDidChangeModelContent(() => {
+    emit('update:modelValue', editor.getValue())
+  })
+  isLoading.value = false
+  emit('load', editor)
 })
 </script>
 
@@ -57,7 +109,9 @@ onMounted(() => {
     <div>{{ props.fileName }}</div>
     <div>{{ props.fileDescription }}</div>
   </div>
-  <div :id="props.id" class="editor" ref="editorRef"></div>
+  <div :id="props.id" class="editor" ref="editorElement">
+    <slot v-if="isLoading" />
+  </div>
 </template>
 
 <style scoped>

@@ -106,6 +106,7 @@ function getPlugins(): PluginConfig {
         ...getComponent('Stories'),
         ...getComponent('Sponsors'),
         ...getComponent('Demo'),
+        ...getComponent('SuspensefulDemo'),
         ...getComponent('Team'),
         ...getComponent('Jobs'),
         ...getComponent('Donate'),
