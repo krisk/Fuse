@@ -1,4 +1,4 @@
-;[
+export default [
   {
     name: 'Notejoy',
     imgUrl: '/assets/img/products/notejoy@2x.png',

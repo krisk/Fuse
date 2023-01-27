@@ -1,4 +1,4 @@
-;[
+export default [
   {
     name: 'Kiro Risk',
     city: 'San Francisco, CA, USA',
