@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import loader from '@monaco-editor/loader'
+import { isFunction } from '@sapphire/utilities'
 import * as Monaco from 'monaco-editor'
 import { computed, onMounted, ref, watch } from 'vue'
-import loader from '@monaco-editor/loader';
 
 interface Emits {
   (event: 'update:modelValue', value: string): void
@@ -17,7 +18,7 @@ const props = defineProps<{
   readonly?: boolean
 }>()
 
-const loadedMonaco = await loader.init();
+const loadedMonaco = isFunction(loader.init) ? await loader.init() : undefined
 
 const emit = defineEmits<Emits>()
 const isLoading = ref(true)

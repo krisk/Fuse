@@ -6,11 +6,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-
 import TwitterBird from './TwitterBird.vue'
 
 const url = new URL('https://twitter.com/intent/follow')
-url.searchParams.append('original_referer', window.location.href)
+url.searchParams.append(
+  'original_referer',
+  __VUEPRESS_SSR__ ? 'https://fusejs.io' : window.location.href
+)
 url.searchParams.append(
   'ref_src',
   encodeURIComponent('twsrc^tfw|twcamp^buttonembed|twterm^follow|twgr^kirorisk')

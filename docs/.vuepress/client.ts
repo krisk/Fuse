@@ -13,16 +13,18 @@ export default defineClientConfig({
     Layout
   },
   enhance({ router }) {
-    self.MonacoEnvironment = {
-      getWorker(_, label) {
-        switch (label) {
-          case 'json':
-            return new jsonWorker()
-          case 'typescript':
-          case 'javascript':
-            return new tsWorker()
-          default:
-            return editorWorker()
+    if (!__VUEPRESS_SSR__) {
+      self.MonacoEnvironment = {
+        getWorker(_, label) {
+          switch (label) {
+            case 'json':
+              return new jsonWorker()
+            case 'typescript':
+            case 'javascript':
+              return new tsWorker()
+            default:
+              return editorWorker()
+          }
         }
       }
     }
@@ -46,6 +48,8 @@ export default defineClientConfig({
 })
 
 declare global {
+  const __VUEPRESS_SSR__: boolean
+
   interface Window {
     MonacoEnvironment?: import('monaco-editor').Environment | undefined
   }
