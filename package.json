@@ -66,6 +66,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-replace": "^5.0.2",
     "@sapphire/stopwatch": "^1.5.0",
+    "@sapphire/utilities": "^3.11.0",
     "@snippetors/vuepress-plugin-tabs": "1.2.3",
     "@vuepress/plugin-google-analytics": "2.0.0-beta.60",
     "@vuepress/plugin-pwa": "2.0.0-beta.60",
@@ -83,7 +84,7 @@
     "standard-version": "^9.5.0",
     "terser": "^5.16.1",
     "typescript": "^4.9.4",
-    "vitest": "^0.28.2",
+    "vitest": "^0.28.3",
     "vuepress": "2.0.0-beta.60",
     "vuepress-plugin-google-adsense2": "1.0.2"
   },
