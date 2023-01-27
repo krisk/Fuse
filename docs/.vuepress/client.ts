@@ -1,4 +1,5 @@
 import { defineClientConfig } from '@vuepress/client'
+import Layout from './layouts/Layout.vue'
 
 // @ts-expect-error monaco editor doesn't have types for the workers
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
@@ -8,6 +9,9 @@ import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
 export default defineClientConfig({
+  layouts: {
+    Layout
+  },
   enhance({ router }) {
     self.MonacoEnvironment = {
       getWorker(_, label) {
