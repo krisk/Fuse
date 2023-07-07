@@ -31,7 +31,7 @@ Before you submit your pull request consider the following guidelines:
 - Make your changes in a new git branch:
 
   ```shell
-  git checkout -b my-fix-branch master
+  git checkout -b my-fix-branch main
   ```
 
 - Create your patch commit, **including appropriate test cases**.
@@ -67,7 +67,7 @@ Before you submit your pull request consider the following guidelines:
     You can also amend the initial commits and force push them to the branch.
 
     ```shell
-    git rebase master -i
+    git rebase main -i
     git push origin my-fix-branch -f
     ```
 
@@ -87,10 +87,10 @@ from the main (upstream) repository:
   git push origin --delete my-fix-branch
   ```
 
-- Check out the master branch:
+- Check out the main branch:
 
   ```shell
-  git checkout master -f
+  git checkout main -f
   ```
 
 - Delete the local branch:
@@ -99,10 +99,10 @@ from the main (upstream) repository:
   git branch -D my-fix-branch
   ```
 
-- Update your master with the latest upstream version:
+- Update your main with the latest upstream version:
 
   ```shell
-  git pull --ff upstream master
+  git pull --ff upstream main
   ```
 
 [stackoverflow]: http://stackoverflow.com/questions/tagged/fuse.js

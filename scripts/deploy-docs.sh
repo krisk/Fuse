@@ -28,7 +28,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   git add -A
   git commit -m 'docs(site): publish site'
 
-  git push -f git@github.com:krisk/fuse.git master:gh-pages
+  git push -f git@github.com:krisk/Fuse.git main:gh-pages
 
   echo "✅ Pushed to GitHub"
 else

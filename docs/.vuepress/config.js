@@ -22,7 +22,7 @@ module.exports = {
     base: 'docs',
     lastUpdated: 'Last Updated',
     docsDir: 'docs',
-    docsBranch: 'master',
+    docsBranch: 'main',
     editLinks: true,
     version: VERSION,
     GA_MEASUREMENT_ID,
