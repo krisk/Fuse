@@ -11,6 +11,7 @@ You can join these backers by [sponsoring on GitHub](https://github.com/sponsors
 ## 🥈 Silver Sponsor
 
 - [Worksome](https://www.worksome.com/)
+- [BairesDev](https://www.bairesdev.com/sponsoring-open-source-projects/)
 
 ## 🥉 Bronze Sponsor
 
