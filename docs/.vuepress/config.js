@@ -6,6 +6,7 @@ const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
 //const GOOGLE_AD_CLIENT_ID = 'ca-pub-3734944050099256'
 
 module.exports = {
+  base: '/fuse/',
   locales: {
     '/': {
       lang: 'en-US',
