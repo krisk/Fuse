@@ -1,5 +1,5 @@
 // Type definitions for Fuse.js v6.6.2
-// TypeScript v4.5.4
+// TypeScript v4.9.4
 
 export default Fuse
 export as namespace Fuse
@@ -181,8 +181,10 @@ declare namespace Fuse {
   //   'n': 0.5773502691896258
   // }
   type RecordEntryObject = {
-    v: string // The text value
-    n: number // The field-length norm
+    /** The text value */
+    v: string
+    /** The field-length norm */
+    n: number
   }
 
   // 'author.tags.name': [{
@@ -208,7 +210,8 @@ declare namespace Fuse {
   //   }
   // }
   type FuseIndexObjectRecord = {
-    i: number // The index of the record in the source list
+    /** The index of the record in the source list */
+    i: number
     $: RecordEntry
   }
 
@@ -221,9 +224,12 @@ declare namespace Fuse {
   //   ]
   // }
   type FuseIndexStringRecord = {
-    i: number // The index of the record in the source list
-    v: string // The text value
-    n: number // The field-length norm
+    /** The index of the record in the source list */
+    i: number
+    /** The text value */
+    v: string
+    /** The field-length norm */
+    n: number
   }
 
   type FuseIndexRecords =
@@ -277,9 +283,18 @@ declare namespace Fuse {
     useExtendedSearch?: boolean
   }
 
-  // Denotes the start/end indices of a match
-  //                 start    end
-  //                   ↓       ↓
+  /**
+   * Denotes the start/end indices of a match
+   *
+   * @example
+   *
+   * ```ts
+   * const startIndex = 0;
+   * const endIndex = 5;
+   *
+   * const range: RangeTuple = [startIndex, endIndex];
+   * ```
+   */
   type RangeTuple = [number, number]
 
   export type FuseResultMatch = {

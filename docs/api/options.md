@@ -5,8 +5,6 @@ tags:
 
 # Options
 
-<TwitterFollow />
-
 ## Basic Options
 
 ### `isCaseSensitive`

@@ -22,7 +22,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   # navigate into the build output directory
   cd docs/.vuepress/dist
 
-  echo 'fusejs.io' > CNAME
+  echo 'www.fusejs.io' > CNAME
 
   git init
   git add -A

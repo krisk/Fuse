@@ -1,0 +1,36 @@
+name: Docs on fusejs.io
+description: Report an issue in Fuse.js documentation or fusejs.io
+labels: ['docs']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: checkboxes
+    id: new-bug
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description of the bug
+      description: Tell us what bug you encountered and what should have happened
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+      placeholder: Paste your screenshots here.
+  - type: markdown
+    attributes:
+      value: |
+        Love Fuse.js? Please consider supporting:
+          👉  https://github.com/sponsors/krisk
+          👉  https://www.patreon.com/krisk
+          👉  https://www.paypal.com/paypalme2/kirorisk

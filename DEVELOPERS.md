@@ -6,7 +6,7 @@
 ## <a name="tests"> Running Tests
 
 ```shell
-yarn test
+npm run test
 ```
 
 ## <a name="commits"></a> Git Commit Guidelines

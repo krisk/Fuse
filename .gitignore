@@ -7,7 +7,8 @@ node_modules/
 .vs/
 .vscode/
 
-package-lock.json
+# Ignore yarn lock files
+yarn.lock
 
 dist/*.d.ts
 dist/*.js
@@ -17,3 +18,7 @@ RELEASE_NOTE*.md
 
 playground/
 Makefile
+
+# Vuepress files
+.temp
+.cache

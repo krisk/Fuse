@@ -11,7 +11,6 @@ const setup = (itemList, overwriteOptions) => {
 }
 
 describe('Flat list of strings: ["Stove", "My good friend Steve from college"]', () => {
-
   describe('When performing a fuzzy search for the term "Steve" with ignoreFieldNorm off', () => {
     let result, fuse
     beforeEach(() => {

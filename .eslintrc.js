@@ -14,11 +14,10 @@ module.exports = {
     browser: true,
     jest: true
   },
-  extends: ['eslint:recommended'],
+  extends: ['eslint:recommended', 'prettier'],
   rules: {
     'no-console': process.env.NODE_ENV !== 'production' ? 0 : 2,
     'no-useless-escape': 0,
-    'no-empty': 0,
-    indent: ['error', 2]
+    'no-empty': 0
   }
 }

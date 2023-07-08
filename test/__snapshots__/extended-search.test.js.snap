@@ -1,19 +1,19 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`Searching using extended search Search: all 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: all 1`] = `
+[
+  {
+    "item": {
       "text": "smithee",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             6,
           ],
-          Array [
+          [
             0,
             6,
           ],
@@ -25,18 +25,18 @@ Array [
     "refIndex": 4,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "smith",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
-          Array [
+          [
             0,
             4,
           ],
@@ -48,18 +48,18 @@ Array [
     "refIndex": 5,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "hello word",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             9,
           ],
-          Array [
+          [
             0,
             9,
           ],
@@ -71,18 +71,18 @@ Array [
     "refIndex": 0,
     "score": 8.569061098350962e-12,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "I am fine",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             8,
           ],
-          Array [
+          [
             0,
             8,
           ],
@@ -97,16 +97,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: exact-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: exact-match 1`] = `
+[
+  {
+    "item": {
       "text": "smith",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -121,16 +121,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: include-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: include-match 1`] = `
+[
+  {
+    "item": {
       "text": "hello word",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -142,14 +142,14 @@ Array [
     "refIndex": 0,
     "score": 8.569061098350962e-12,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "indeed fine hello foo",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             12,
             16,
           ],
@@ -164,16 +164,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: inverse-exact-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: inverse-exact-match 1`] = `
+[
+  {
+    "item": {
       "text": "smithee",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             6,
           ],
@@ -185,14 +185,14 @@ Array [
     "refIndex": 4,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "smith",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -204,14 +204,14 @@ Array [
     "refIndex": 5,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "hello word",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             9,
           ],
@@ -223,14 +223,14 @@ Array [
     "refIndex": 0,
     "score": 8.569061098350962e-12,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "how are you",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             10,
           ],
@@ -242,14 +242,14 @@ Array [
     "refIndex": 1,
     "score": 9.287439764962262e-10,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "I am fine",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             8,
           ],
@@ -264,16 +264,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: inverse-prefix-exact-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: inverse-prefix-exact-match 1`] = `
+[
+  {
+    "item": {
       "text": "smithee",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             6,
           ],
@@ -285,14 +285,14 @@ Array [
     "refIndex": 4,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "smith",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -304,14 +304,14 @@ Array [
     "refIndex": 5,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "how are you",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             10,
           ],
@@ -323,14 +323,14 @@ Array [
     "refIndex": 1,
     "score": 9.287439764962262e-10,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "I am fine",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             8,
           ],
@@ -342,14 +342,14 @@ Array [
     "refIndex": 3,
     "score": 9.287439764962262e-10,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "indeed fine hello foo",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             20,
           ],
@@ -364,16 +364,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: inverse-suffix-exact-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: inverse-suffix-exact-match 1`] = `
+[
+  {
+    "item": {
       "text": "smithee",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             6,
           ],
@@ -385,14 +385,14 @@ Array [
     "refIndex": 4,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "smith",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -404,14 +404,14 @@ Array [
     "refIndex": 5,
     "score": 2.220446049250313e-16,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "hello word",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             9,
           ],
@@ -423,14 +423,14 @@ Array [
     "refIndex": 0,
     "score": 8.569061098350962e-12,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "how are you",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             10,
           ],
@@ -442,14 +442,14 @@ Array [
     "refIndex": 1,
     "score": 9.287439764962262e-10,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "I am fine",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             8,
           ],
@@ -464,20 +464,20 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: literal match with fuzzy match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: literal match with fuzzy match 1`] = `
+[
+  {
+    "item": {
       "text": "indeed fine hello foo",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             10,
           ],
-          Array [
+          [
             18,
             20,
           ],
@@ -489,14 +489,14 @@ Array [
     "refIndex": 2,
     "score": 1.4901161193847656e-8,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "hello word",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -511,16 +511,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: literal match with regular match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: literal match with regular match 1`] = `
+[
+  {
+    "item": {
       "text": "how are you",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             4,
             6,
           ],
@@ -532,18 +532,18 @@ Array [
     "refIndex": 1,
     "score": 9.287439764962262e-10,
   },
-  Object {
-    "item": Object {
+  {
+    "item": {
       "text": "indeed fine hello foo",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             10,
           ],
-          Array [
+          [
             18,
             20,
           ],
@@ -558,16 +558,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: prefix-exact-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: prefix-exact-match 1`] = `
+[
+  {
+    "item": {
       "text": "hello word",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             4,
           ],
@@ -582,16 +582,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: single literal match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: single literal match 1`] = `
+[
+  {
+    "item": {
       "text": "indeed fine hello foo",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             0,
             10,
           ],
@@ -606,16 +606,16 @@ Array [
 ]
 `;
 
-exports[`Searching using extended search Search: suffix-exact-match 1`] = `
-Array [
-  Object {
-    "item": Object {
+exports[`Searching using extended search > Search: suffix-exact-match 1`] = `
+[
+  {
+    "item": {
       "text": "I am fine",
     },
-    "matches": Array [
-      Object {
-        "indices": Array [
-          Array [
+    "matches": [
+      {
+        "indices": [
+          [
             5,
             8,
           ],

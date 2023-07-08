@@ -5,9 +5,15 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - master
   pull_request:
-    branches: [main]
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -15,16 +21,22 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x]
+        node: [14, 15, 16, 17, 18, 19]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: Checkout Project
+        uses: actions/checkout@v3
+
+      - name: Use Node.js v${{ matrix.node }}
+        uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: yarn --frozen-lockfile
-      - run: yarn build
-      - run: yarn test
-        env:
-          CI: true
+          node-version: ${{ matrix.node }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Code
+        run: npm run build
+
+      - name: Test Code
+        run: npm run test

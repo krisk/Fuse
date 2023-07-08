@@ -1,0 +1,25 @@
+name: Support request
+description: Questions and requests for support.
+labels: ['question']
+body:
+  - type: checkboxes
+    id: new-question
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the question you want answered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    id: question-description
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Love Fuse.js? Please consider supporting:
+          👉  https://github.com/sponsors/krisk
+          👉  https://www.patreon.com/krisk
+          👉  https://www.paypal.com/paypalme2/kirorisk

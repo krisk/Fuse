@@ -1,0 +1,135 @@
+name: Bug Report
+description: Report a bug in Fuse.js.
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: checkboxes
+    id: new-bug
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description of the bug
+      description: Tell us what bug you encountered and what should have happened
+    validations:
+      required: true
+  - type: dropdown
+    id: fuse-version
+    attributes:
+      label: The Fuse.js version where this bug is happening.
+      options:
+        - '6.6.2'
+        - '6.6.1'
+        - '6.6.0'
+        - '6.5.3'
+        - '6.5.2'
+        - '6.5.1'
+        - '6.4.6'
+        - '6.4.5'
+        - '6.4.4'
+        - '6.4.3'
+        - '6.4.2'
+        - '6.4.1'
+        - '6.4.0'
+        - '6.3.1'
+        - '6.3.0'
+        - '6.2.1'
+        - '6.2.0'
+        - '6.0.0'
+        - '5.2.1'
+        - '2.2.0'
+        - '2.0.0'
+        - '1.2.0'
+        - '1.1.0'
+        - '1.0.0'
+        - '1.0.1'
+        - 'Other (please specify in description)'
+    validations:
+      required: true
+  - type: checkboxes
+    id: regression-bug
+    attributes:
+      label: Is this a regression?
+      description: Did this behavior use to work in the previous version?
+      options:
+        - label: This is a regression bug
+          required: false
+  - type: dropdown
+    id: regression-version
+    attributes:
+      label: Which version did this behavior use to work in?
+      description: In case you checked the regression bug checkbox, please provide the version in which this bug was not present.
+      options:
+        - '6.6.2'
+        - '6.6.1'
+        - '6.6.0'
+        - '6.5.3'
+        - '6.5.2'
+        - '6.5.1'
+        - '6.4.6'
+        - '6.4.5'
+        - '6.4.4'
+        - '6.4.3'
+        - '6.4.2'
+        - '6.4.1'
+        - '6.4.0'
+        - '6.3.1'
+        - '6.3.0'
+        - '6.2.1'
+        - '6.2.0'
+        - '6.0.0'
+        - '5.2.1'
+        - '2.2.0'
+        - '2.0.0'
+        - '1.2.0'
+        - '1.1.0'
+        - '1.0.0'
+        - '1.0.1'
+        - 'Other (please specify in description)'
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        Please tell us how to reproduce this bug, for example:
+        1. Write '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What should be the expected behavior.
+      placeholder: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+      placeholder: Paste your screenshots here.
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Do you want to share any additional context about this bug?
+      placeholder: Add any other context about the problem here.
+  - type: markdown
+    attributes:
+      value: |
+        Love Fuse.js? Please consider supporting:
+          👉  https://github.com/sponsors/krisk
+          👉  https://www.patreon.com/krisk
+          👉  https://www.paypal.com/paypalme2/kirorisk

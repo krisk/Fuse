@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest a feature for Fuse.js.
+labels: ['feature']
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for suggesting this feature! The more information you provide, the more likely it is that it will be picked up.
+  - type: checkboxes
+    id: new-feature
+    attributes:
+      label: Is there an existing issue or pull request for this?
+      description: Please search to see if an issue or pull request already exists for the feature you desire.
+      options:
+        - label: I have searched the existing issues and pull requests
+          required: true
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature description
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+    validations:
+      required: true
+  - type: textarea
+    id: desired-solution
+    attributes:
+      label: Desired solution
+      description: Describe the solution you'd like
+      placeholder: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives considered
+      description: Describe alternatives you've considered
+      placeholder: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Do you want to share any additional context about this bug?
+      placeholder: Add any other context about the problem here.
+  - type: markdown
+    attributes:
+      value: |
+        Love Fuse.js? Please consider supporting:
+          👉  https://github.com/sponsors/krisk
+          👉  https://www.patreon.com/krisk
+          👉  https://www.paypal.com/paypalme2/kirorisk

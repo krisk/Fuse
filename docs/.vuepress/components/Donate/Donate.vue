@@ -6,12 +6,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Donate'
-}
-</script>
-
 <style>
 .donate-link-wrapper {
   padding-top: 20px;
