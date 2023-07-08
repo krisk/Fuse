@@ -41,7 +41,7 @@ const sponsors = ref([
 
 .sponsors h4 {
   text-align: center;
-  color: #999;
+  color: var(--c-text-lighter);
 }
 
 .sponsors .sponsor-section {

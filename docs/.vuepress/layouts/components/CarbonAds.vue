@@ -43,7 +43,7 @@ watch(route, () => {
 }
 
 .carbon-ads a {
-  color: #444;
+  color: var(--c-text);
   font-weight: normal;
   display: inline;
 }
