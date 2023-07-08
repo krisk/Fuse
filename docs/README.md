@@ -4,8 +4,6 @@ shareTitle: Fuse.js - JavaScript fuzzy-search library
 
 # What is Fuse.js?
 
-<TwitterFollow />
-
 Fuse.js is a **powerful, lightweight fuzzy-search library, with zero dependencies**.
 
 <Sponsors />

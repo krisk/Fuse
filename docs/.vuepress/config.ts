@@ -34,9 +34,11 @@ export default defineUserConfig({
     logo: '/assets/img/logo.png',
     repo: 'krisk/fuse',
     docsDir: 'docs',
-    docsBranch: 'master',
+    docsBranch: 'main',
     sidebarDepth: 6,
     sidebar: [...getGuideSidebar()],
+    contributors: false,
+    editLink: false,
     navbar: [
       {
         text: 'Guide',

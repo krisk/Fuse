@@ -8,7 +8,7 @@ html.dark {
 :root {
   --c-brand: #9066b8;
   --c-text: #2c3e50;
-  --c-border: #282c34;
+  --c-border: #eaecef;
   --c-tip: #42b983;
   --c-badge-warning: darken(#ffe564, 35%);
   --c-badge-danger: #da5961;
@@ -24,7 +24,7 @@ html.dark {
   }
 }
 
-.navbar .home-link:hover {
+.navbar .router-link-active:hover {
   .logo {
     animation: spin 0.5s ease-in-out 1 !important;
   }

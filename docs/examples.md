@@ -1,7 +1,5 @@
 # Examples
 
-<TwitterFollow />
-
 ---
 
 ## Search String Array

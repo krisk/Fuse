@@ -1,7 +1,5 @@
 # Scoring Theory
 
-<TwitterFollow />
-
 Once we have a list of matching items, they need to be ranked by a **relevance score**. This score is determined by three factors:
 
 - Fuzziness score

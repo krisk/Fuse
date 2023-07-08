@@ -24,6 +24,12 @@ const sponsors = ref([
     url: 'https://www.worksome.com',
     description:
       'Hire and manage talent globally with automated contracts and payroll.'
+  },
+  {
+    name: 'BairesDev',
+    imgUrl: '/assets/img/sponsors/bairesdev.png',
+    url: 'https://www.bairesdev.com/sponsoring-open-source-projects/',
+    description: 'Outsourced Tech Talent. Fast and Flexible.'
   }
 ])
 </script>

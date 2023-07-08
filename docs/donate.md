@@ -26,18 +26,18 @@ You can also try to convince your employer to sponsor Fuse.js as a business 😊
 
 ## Tier Benefits
 
-- **Coffee Sponsor (USD $5/month):**
+- **☕ Coffee Sponsor (USD $5/month):**
 
   - Your name will be added to the [BACKERS.md](https://github.com/krisk/Fuse/blob/main/backers.md) file of the GitHub repo. Also, thank you! It’s like buying me a cup of coffee every month ☕️.
 
-- **Bronze Sponsor (USD $20/month):**
+- **🥉 Bronze Sponsor (USD $20/month):**
 
   - Your name or logo in the [README.md](https://github.com/krisk/Fuse) file of the GitHub repo.
 
-- **Silver Sponsor (USD $100/month):**
+- **🥈 Silver Sponsor (USD $100/month):**
 
   - Your company's logo placed on both the front page of [fusejs.io](https://fusejs.io/) and in the [README.md](https://github.com/krisk/Fuse) file of the GitHub repo.
 
-- **Gold Sponsor (USD $400/month):**
+- **🥇 Gold Sponsor (USD $400/month):**
 
   - All of the above but with a bigger logo, and most prominent placement.
