@@ -90,5 +90,6 @@
   },
   "engines": {
     "node": ">=10"
-  }
+  },
+  "dependencies": {}
 }

@@ -28,7 +28,7 @@ You can also try to convince your employer to sponsor Fuse.js as a business 😊
 
 - **Coffee Sponsor (USD $5/month):**
 
-  - Your name will be added to the [BACKERS.md](https://github.com/krisk/Fuse/blob/master/backers.md) file of the GitHub repo. Also, thank you! It’s like buying me a cup of coffee every month ☕️.
+  - Your name will be added to the [BACKERS.md](https://github.com/krisk/Fuse/blob/main/backers.md) file of the GitHub repo. Also, thank you! It’s like buying me a cup of coffee every month ☕️.
 
 - **Bronze Sponsor (USD $20/month):**
 
