@@ -59,7 +59,7 @@
               :href="`https://github.com/${profile.social.github}`"
             >
               <i class="fab fa-github"></i>
-              <span class="sr-only">Github</span>
+              <span class="sr-only">GitHub</span>
             </a>
             <a
               class="twitter"

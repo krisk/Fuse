@@ -21,7 +21,7 @@ When creating issues, it's important to follow common guidelines to make them ex
 
 - [GitHub Guides: Mastering Issues](https://guides.github.com/features/issues/)
 - [Wiredcraft: How We Write Github Issues](https://wiredcraft.com/blog/how-we-write-our-github-issues/)
-- [NYC Planning Digital: Writing Useful Github Issues](https://medium.com/nyc-planning-digital/writing-a-proper-github-issue-97427d62a20f)
+- [NYC Planning Digital: Writing a proper GitHub issue](https://medium.com/nyc-planning-digital/writing-a-proper-github-issue-97427d62a20f)
 
 ## <a name="submit-pr"></a> Pull Request Submission Guidelines
 

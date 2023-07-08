@@ -1,6 +1,6 @@
 # Explanation of Different Builds
 
-In the [`dist/` directory of the NPM package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an overview of the difference between them.
+In the [`dist/` directory of the npm package](https://cdn.jsdelivr.net/npm/fuse.js/dist/) you will find many different builds of Fuse.js. Here's an overview of the difference between them.
 
 |                        | UMD               | CommonJS             | ES Module (for bundlers) |
 | ---------------------- | ----------------- | -------------------- | ------------------------ |
