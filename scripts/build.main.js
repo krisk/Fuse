@@ -3,7 +3,7 @@ const path = require('path')
 const zlib = require('zlib')
 const terser = require('terser')
 const rollup = require('rollup')
-const configs = require('./configs.cjs')
+const configs = require('./configs')
 
 if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist')

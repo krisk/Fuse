@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/test/*.test.(ts|js|cjs)'],
+  testMatch: ['<rootDir>/test/*.test.(ts|js)']
 }
