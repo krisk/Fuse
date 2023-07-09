@@ -83,7 +83,7 @@ const sponsors = ref([
 }
 
 .dark .sponsors .sponsor-item {
-  background-color: #242424;
+  background-color: var(--c-details-bg);
 }
 .dark .sponsors img {
   filter: grayscale(1) invert(1);
