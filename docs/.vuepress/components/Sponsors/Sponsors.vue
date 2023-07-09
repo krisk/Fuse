@@ -1,16 +1,19 @@
 <template>
   <div class="sponsors">
-    <h4>GitHub Silver Sponsors</h4>
-    <p class="sponsor-section">
+    <h4>Sponsors</h4>
+    <div class="sponsor-section silver">
       <a
+        class="sponsor-item"
         :href="sponsor.url"
         target="_blank"
         rel="noopener"
         v-for="sponsor in sponsors"
+        :key="sponsor.id"
       >
-        <img :src="sponsor.imgUrl" />
+        <img :src="sponsor.imgUrl" :alt="sponsor.name" />
       </a>
-    </p>
+      <a href="/donate" class="sponsor-item action">Your logo</a>
+    </div>
   </div>
 </template>
 
@@ -19,6 +22,7 @@ import { ref } from 'vue'
 
 const sponsors = ref([
   {
+    id: 1,
     name: 'Worksome',
     imgUrl: '/assets/img/sponsors/worksome.svg',
     url: 'https://www.worksome.com',
@@ -26,6 +30,7 @@ const sponsors = ref([
       'Hire and manage talent globally with automated contracts and payroll.'
   },
   {
+    id: 2,
     name: 'BairesDev',
     imgUrl: '/assets/img/sponsors/bairesdev.png',
     url: 'https://www.bairesdev.com/sponsoring-open-source-projects/',
@@ -40,23 +45,67 @@ const sponsors = ref([
 }
 
 .sponsors h4 {
-  text-align: center;
+  /* text-align: center; */
   color: var(--c-text-lighter);
 }
 
-.sponsors .sponsor-section {
-  text-align: center;
-  margin-top: 0;
+.sponsors .sponsor-section.silver {
+  /* text-align: center;
+  margin-top: 0; */
+  --max-width: 240px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--max-width), 1fr));
+  column-gap: 4px;
 }
 
-.sponsors .sponsor-section a {
-  margin: 10px 20px;
+@media (max-width: 720px) {
+  .sponsors .sponsor-section.silver {
+    --max-width: 180px;
+  }
 }
 
-.sponsors .sponsor-section a,
-.sponsors .sponsor-section img {
-  max-width: 180px;
-  display: inline-block;
-  vertical-align: middle;
+@media (max-width: 480px) {
+  .sponsors .sponsor-section.silver {
+    --max-width: 150px;
+  }
+}
+
+.sponsors .sponsor-item {
+  /* margin: 10px 20px; */
+  background-color: #f9f9f9;
+  margin: 2px 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+  height: calc(var(--max-width) / 2 - 50px);
+}
+
+.dark .sponsors .sponsor-item {
+  background-color: #242424;
+}
+.dark .sponsors img {
+  filter: grayscale(1) invert(1);
+}
+
+.dark .sponsors .sponsor-item:hover {
+  color: #213547;
+  background-color: #f1f1f1;
+}
+.dark .sponsors .sponsor-item:hover img {
+  filter: none;
+}
+
+.sponsors img {
+  max-width: calc(var(--max-width) - 30px);
+  max-height: calc(var(--max-width) / 2 - 20px);
+}
+.sponsors .action {
+  font-size: 13px;
+  color: var(--c-text-lighter);
+}
+.dark .sponsors .action {
+  color: white;
 }
 </style>

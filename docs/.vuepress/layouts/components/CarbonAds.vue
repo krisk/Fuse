@@ -19,7 +19,7 @@ async function loadCarbonAds() {
   const s = document.createElement('script')
   s.id = SCRIPT_ID
   s.src = `//cdn.carbonads.com/carbon.js?serve=${ACCOUNT_ID}&placement=${PLACEMENT}`
-  carbonAdsElementRef.value.appendChild(s)
+  carbonAdsElementRef?.value?.appendChild(s)
 }
 
 onMounted(() => {
@@ -28,7 +28,9 @@ onMounted(() => {
 
 watch(route, () => {
   if (!isNullish(document.querySelector('#carbonads'))) {
-    carbonAdsElementRef.value.innerHTML = ''
+    if (carbonAdsElementRef && carbonAdsElementRef.value) {
+      carbonAdsElementRef.value.innerHTML = ''
+    }
     loadCarbonAds()
   }
 })
