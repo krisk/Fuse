@@ -1,4 +1,4 @@
-import Fuse from '../dist/fuse.esm.mjs'
+import Fuse from '../dist/fuse.mjs'
 
 describe('Searching using extended search', () => {
   const list = [

@@ -1,5 +1,5 @@
 // use basic build so that errors are thrown
-import Fuse from '../dist/fuse.basic.esm.mjs'
+import Fuse from '../dist/fuse.basic.mjs'
 import * as ErrorMsg from '../src/core/errorMessages'
 import Books from './fixtures/books.json' assert { type: "json" }
 
