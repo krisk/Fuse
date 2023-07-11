@@ -15,7 +15,7 @@ import {
 } from 'vuepress'
 import { version } from '../../package.json'
 
-const GA_MEASUREMENT_ID = 'UA-82107035-1'
+const GA_MEASUREMENT_ID = 'G-78VK1PFWH1'
 const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
 //const GOOGLE_AD_CLIENT_ID = 'ca-pub-3734944050099256'
 
