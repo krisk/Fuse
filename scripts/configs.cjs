@@ -63,7 +63,7 @@ const builds = {
   },
   // CommonJS full build
   'commonjs-dev-full': {
-    dest: `dist/${FILENAME}.common.cjs`,
+    dest: `dist/${FILENAME}.cjs`,
     env: 'development',
     features: {
       ...fullBuildFeatures
@@ -72,7 +72,7 @@ const builds = {
   },
   // CommonJS full minified build
   'commonjs-prod-full': {
-    dest: `dist/${FILENAME}.common.min.cjs`,
+    dest: `dist/${FILENAME}.min.cjs`,
     env: 'production',
     features: {
       ...fullBuildFeatures
@@ -81,19 +81,19 @@ const builds = {
   },
   // CommonJS basic build
   'commonjs-dev-basic': {
-    dest: `dist/${FILENAME}.basic.common.cjs`,
+    dest: `dist/${FILENAME}.basic.cjs`,
     env: 'development',
     format: 'cjs'
   },
   // CommonJS basic minified build
   'commonjs-prod-basic': {
-    dest: `dist/${FILENAME}.basic.common.min.cjs`,
+    dest: `dist/${FILENAME}.basic.min.cjs`,
     env: 'production',
     format: 'cjs'
   },
   // ES modules build (for bundlers)
   'esm-dev-full': {
-    dest: `dist/${FILENAME}.esm.mjs`,
+    dest: `dist/${FILENAME}.mjs`,
     format: 'es',
     env: 'development',
     features: {
@@ -102,7 +102,7 @@ const builds = {
     transpile: false
   },
   'esm-prod-full': {
-    dest: `dist/${FILENAME}.esm.min.mjs`,
+    dest: `dist/${FILENAME}.min.mjs`,
     format: 'es',
     env: 'production',
     features: {
@@ -111,13 +111,13 @@ const builds = {
     transpile: false
   },
   'esm-basic': {
-    dest: `dist/${FILENAME}.basic.esm.mjs`,
+    dest: `dist/${FILENAME}.basic.mjs`,
     format: 'es',
     env: 'development',
     transpile: false
   },
   'esm-prod-basic': {
-    dest: `dist/${FILENAME}.basic.esm.min.mjs`,
+    dest: `dist/${FILENAME}.basic.min.mjs`,
     format: 'es',
     env: 'production',
     transpile: false
