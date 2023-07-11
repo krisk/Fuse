@@ -31,7 +31,7 @@ async function build(builds) {
 async function buildEntry(config) {
   const output = config.output
   const { file, banner } = output
-  const isProd = /(min|prod)\.js$/.test(file)
+  const isProd = /(min|prod)\.(?:c|m)?js$/.test(file)
 
   try {
     let bundle = await rollup.rollup(config)

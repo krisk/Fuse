@@ -6,31 +6,31 @@
     "url": "http://kiro.me"
   },
   "type": "module",
-  "main": "./dist/fuse.common.cjs",
-  "module": "./dist/fuse.esm.mjs",
+  "main": "./dist/fuse.cjs",
+  "module": "./dist/fuse.mjs",
   "unpkg": "./dist/fuse.js",
   "jsdelivr": "./dist/fuse.js",
   "types": "./dist/fuse.d.ts",
   "exports": {
     ".": {
       "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.esm.mjs",
-      "require": "./dist/fuse.common.cjs"
+      "import": "./dist/fuse.mjs",
+      "require": "./dist/fuse.cjs"
     },
     "./min": {
       "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.esm.min.mjs",
-      "require": "./dist/fuse.common.min.cjs"
+      "import": "./dist/fuse.min.mjs",
+      "require": "./dist/fuse.min.cjs"
     },
     "./basic": {
       "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.basic.esm.mjs",
-      "require": "./dist/fuse.basic.common.cjs"
+      "import": "./dist/fuse.basic.mjs",
+      "require": "./dist/fuse.basic.cjs"
     },
     "./min-basic": {
       "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.basic.esm.min.mjs",
-      "require": "./dist/fuse.basic.common.min.cjs"
+      "import": "./dist/fuse.basic.min.mjs",
+      "require": "./dist/fuse.basic.min.cjs"
     }
   },
   "sideEffects": false,
