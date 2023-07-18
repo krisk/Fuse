@@ -18,6 +18,8 @@ export const BasicOptions = {
   isCaseSensitive: false,
   // When true, the matching function will continue to the end of a search pattern even if
   includeScore: false,
+  // When true, an empty query will return all items, otherwise no items are returned on empty query
+  emptyGetsAll: false,
   // List of properties that will be searched. This also supports nested properties.
   keys: [],
   // Whether to sort the result list, by score
