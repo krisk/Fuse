@@ -118,7 +118,7 @@ export default class Fuse {
 
       const { isMatch, score, indices } = searcher.searchIn(text)
 
-      if (isMatch) {
+      if (isMatch || this.options.emptyGetsAll) {
         results.push({
           item: text,
           idx,
@@ -233,7 +233,7 @@ export default class Fuse {
     return results
   }
   _findMatches({ key, value, searcher }) {
-    if (!isDefined(value)) {
+    if (!isDefined(value) || (this.options.emptyGetsAll && value === "")) {
       return []
     }
 
@@ -246,8 +246,7 @@ export default class Fuse {
         }
 
         const { isMatch, score, indices } = searcher.searchIn(text)
-
-        if (isMatch) {
+        if (isMatch || this.options.emptyGetsAll) {
           matches.push({
             score,
             key,

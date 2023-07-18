@@ -386,6 +386,8 @@
     isCaseSensitive: false,
     // When true, the matching function will continue to the end of a search pattern even if
     includeScore: false,
+    // When true, an empty query will return all items, otherwise no items are returned on empty query
+    emptyGetsAll: false,
     // List of properties that will be searched. This also supports nested properties.
     keys: [],
     // Whether to sort the result list, by score
@@ -1806,6 +1808,7 @@
     }, {
       key: "_searchStringList",
       value: function _searchStringList(query) {
+        var _this = this;
         var searcher = createSearcher(query, this.options);
         var records = this._myIndex.records;
         var results = [];
@@ -1822,7 +1825,7 @@
             isMatch = _searcher$searchIn.isMatch,
             score = _searcher$searchIn.score,
             indices = _searcher$searchIn.indices;
-          if (isMatch) {
+          if (isMatch || _this.options.emptyGetsAll) {
             results.push({
               item: text,
               idx: idx,
@@ -1840,15 +1843,15 @@
     }, {
       key: "_searchLogical",
       value: function _searchLogical(query) {
-        var _this = this;
+        var _this2 = this;
         var expression = parse(query, this.options);
         var evaluate = function evaluate(node, item, idx) {
           if (!node.children) {
             var keyId = node.keyId,
               searcher = node.searcher;
-            var matches = _this._findMatches({
-              key: _this._keyStore.get(keyId),
-              value: _this._myIndex.getValueForItemAtKeyId(item, keyId),
+            var matches = _this2._findMatches({
+              key: _this2._keyStore.get(keyId),
+              value: _this2._myIndex.getValueForItemAtKeyId(item, keyId),
               searcher: searcher
             });
             if (matches && matches.length) {
@@ -1903,7 +1906,7 @@
     }, {
       key: "_searchObjectList",
       value: function _searchObjectList(query) {
-        var _this2 = this;
+        var _this3 = this;
         var searcher = createSearcher(query, this.options);
         var _this$_myIndex = this._myIndex,
           keys = _this$_myIndex.keys,
@@ -1921,7 +1924,7 @@
 
           // Iterate over every key (i.e, path), and fetch the value at that key
           keys.forEach(function (key, keyIndex) {
-            matches.push.apply(matches, _toConsumableArray(_this2._findMatches({
+            matches.push.apply(matches, _toConsumableArray(_this3._findMatches({
               key: key,
               value: item[keyIndex],
               searcher: searcher
@@ -1940,10 +1943,11 @@
     }, {
       key: "_findMatches",
       value: function _findMatches(_ref6) {
+        var _this4 = this;
         var key = _ref6.key,
           value = _ref6.value,
           searcher = _ref6.searcher;
-        if (!isDefined(value)) {
+        if (!isDefined(value) || this.options.emptyGetsAll && value === "") {
           return [];
         }
         var matches = [];
@@ -1959,7 +1963,7 @@
               isMatch = _searcher$searchIn2.isMatch,
               score = _searcher$searchIn2.score,
               indices = _searcher$searchIn2.indices;
-            if (isMatch) {
+            if (isMatch || _this4.options.emptyGetsAll) {
               matches.push({
                 score: score,
                 key: key,

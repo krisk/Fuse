@@ -1,5 +1,12 @@
 // Vitest Snapshot v1
 
+exports[`Empty gets all > emptyGetsAll flag on 1`] = `
+{
+  "children": [],
+  "operator": "$and",
+}
+`;
+
 exports[`Logical parser > Implicit operations 1`] = `
 {
   "children": [

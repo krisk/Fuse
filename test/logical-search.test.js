@@ -40,6 +40,22 @@ describe('Logical parser', () => {
   })
 })
 
+describe('Empty gets all', () => {
+  const options = {
+    emptyGetsAll: true
+  }
+
+  test('emptyGetsAll flag on', () => {
+    const pool = ["a"];
+    const fuse = new Fuse(pool, options);
+    let result = fuse.search("");
+    expect(result).toMatchObject([{
+      item: "a",
+      refIndex: 0
+    }]);
+  })
+})
+
 describe('Searching using logical search', () => {
   const options = {
     useExtendedSearch: true,
