@@ -1,4 +1,4 @@
-export default Fuse
+export = Fuse
 export as namespace Fuse
 
 declare class Fuse<T> {
