@@ -24,39 +24,20 @@ async function injectTypes() {
   const typingsMJSFile = join(__dirname, '../src/typings/fuse.d.mts')
   let typingsMJS = await readFile(typingsMJSFile, 'utf-8')
 
-  const typingsStartMarker = '/* TYPINGS START */'
-  const typingsEndMarker = '/* TYPINGS END */'
-
-  const outputFiles = [
+  const files = [
     [typingsCJSFile, typingsCJS],
     [typingsMJSFile, typingsMJS]
   ]
 
-  for (const [outputFile, outputFileContent] of outputFiles) {
-    const startIndex = outputFileContent.indexOf(typingsStartMarker)
-    const endIndex = outputFileContent.indexOf(typingsEndMarker)
+  for (const [file, fileContent] of files) {
+    const contentToInject = [
+      //
+      banner,
+      typingsTemplate,
+      fileContent
+    ].join('\n')
 
-    if (startIndex !== -1 && endIndex !== -1) {
-      const replaceableContent = outputFileContent.substring(
-        startIndex,
-        endIndex + typingsEndMarker.length
-      )
-      const contentToInject = [
-        typingsStartMarker,
-        '',
-        banner,
-        '',
-        typingsTemplate,
-        typingsEndMarker
-      ].join('\n')
-
-      const replacedContent = outputFileContent.replace(
-        replaceableContent,
-        contentToInject
-      )
-
-      await writeFile(outputFile, replacedContent)
-    }
+    await writeFile(file, contentToInject)
   }
 
   await copyFilesToDist()
@@ -90,3 +71,5 @@ function bytesToKilobytes(bytes) {
 }
 
 module.exports = injectTypes
+
+injectTypes()
