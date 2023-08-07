@@ -1,0 +1,2 @@
+export default Fuse
+export as namespace Fuse

@@ -1,5 +1,5 @@
 const { readFile, writeFile, stat } = require('node:fs/promises')
-const { join, sep } = require('node:path')
+const { join, sep, basename } = require('node:path')
 const pckg = require('../package.json')
 const typescript = require('typescript')
 const chalk = require('chalk')
@@ -18,18 +18,20 @@ async function injectTypes() {
   )
   let typingsTemplate = await readFile(typingsTemplateFile, 'utf-8')
 
-  const typingsCJSFile = join(__dirname, '../src/typings/fuse.d.cts')
+  const typingsCJSFile = join(__dirname, '../src/typings/fuse.d.cts.template')
+  const distTypingsCJSFile = join(__dirname, '../dist/fuse.d.cts')
   let typingsCJS = await readFile(typingsCJSFile, 'utf-8')
 
-  const typingsMJSFile = join(__dirname, '../src/typings/fuse.d.mts')
+  const typingsMJSFile = join(__dirname, '../src/typings/fuse.d.mts.template')
+  const distTypingsMJSFile = join(__dirname, '../dist/fuse.d.mts')
   let typingsMJS = await readFile(typingsMJSFile, 'utf-8')
 
   const files = [
-    [typingsCJSFile, typingsCJS],
-    [typingsMJSFile, typingsMJS]
+    [distTypingsCJSFile, typingsCJS],
+    [distTypingsMJSFile, typingsMJS]
   ]
 
-  for (const [file, fileContent] of files) {
+  for (const [outputFile, fileContent] of files) {
     const contentToInject = [
       //
       banner,
@@ -37,30 +39,14 @@ async function injectTypes() {
       fileContent
     ].join('\n')
 
-    await writeFile(file, contentToInject)
+    await writeFile(outputFile, contentToInject)
+
+    const outputFileSize = bytesToKilobytes((await stat(outputFile)).size)
+
+    console.log(
+      `${chalk.bold.blue(`dist${sep}${basename(outputFile)}`)} ${outputFileSize}kb`
+    )
   }
-
-  await copyFilesToDist()
-}
-
-async function copyFilesToDist() {
-  const typingsCJSFile = join(__dirname, '../src/typings/fuse.d.cts')
-  let typingsCJS = await readFile(typingsCJSFile, 'utf-8')
-
-  const typingsMJSFile = join(__dirname, '../src/typings/fuse.d.mts')
-  let typingsMJS = await readFile(typingsMJSFile, 'utf-8')
-
-  const distTypingsCJSFile = join(__dirname, '../dist/fuse.d.cts')
-  const distTypingsMJSFile = join(__dirname, '../dist/fuse.d.mts')
-
-  const typingsCJSSize = bytesToKilobytes((await stat(typingsCJSFile)).size)
-  const typingsMJSSize = bytesToKilobytes((await stat(typingsMJSFile)).size)
-
-  console.log(`${chalk.bold.blue(`dist${sep}fuse.d.cts`)} ${typingsCJSSize}kb`)
-  await writeFile(distTypingsCJSFile, typingsCJS)
-
-  console.log(`${chalk.bold.blue(`dist${sep}fuse.d.mts`)} ${typingsMJSSize}kb`)
-  await writeFile(distTypingsMJSFile, typingsMJS)
 }
 
 /**
@@ -71,5 +57,3 @@ function bytesToKilobytes(bytes) {
 }
 
 module.exports = injectTypes
-
-injectTypes()
