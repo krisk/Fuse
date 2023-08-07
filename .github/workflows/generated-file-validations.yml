@@ -1,0 +1,36 @@
+name: Validate Generated Files
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ValidateGeneratedTypingsFiles:
+    name: Validate Typoings files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v3
+
+      - name: Use Node.js v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Code
+        run: npm run build
+
+      - name: Validate changes
+        run: |
+          git status
+          if ! git diff-index --quiet HEAD --; then
+            echo "::error file=src/typings/fuse.d.cts::File did not match generated file after script. Please review and adjust accordingly."
+            echo "::error file=src/typings/fuse.d.mts::File did not match generated file after script. Please review and adjust accordingly."
+            exit 1;
+          fi
