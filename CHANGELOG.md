@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.0.0](https://github.com/krisk/Fuse/compare/v6.6.2...v7.0.0) (2023-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Extension changed
+
+### Features
+
+* finish all but state handling of live demo ([9b5421a](https://github.com/krisk/Fuse/commit/9b5421a7febd1f57cbd504855ea375eec5d57843))
+* implementing reacting to option changes ([46c561c](https://github.com/krisk/Fuse/commit/46c561c05c97abd05f7ab7de7e78b03ede8d07da))
+* improve fuse keys ([c47f3d4](https://github.com/krisk/Fuse/commit/c47f3d49f9b0262164368b765e2cf8d053556359))
+* proper ESM exports ([eebcf2c](https://github.com/krisk/Fuse/commit/eebcf2c77b4c9869fab4bdbd93f3a15198514333))
+* properly configure monaco editors ([fe0d33e](https://github.com/krisk/Fuse/commit/fe0d33e3025857c3db9ada7f66d834a6fc36f076))
+
+
+### Bug Fixes
+
+* add favicon on public root ([bc155a3](https://github.com/krisk/Fuse/commit/bc155a31440438d29904aadfe9075225ceddc689))
+* add proper ESM exports in package.json ([98366b1](https://github.com/krisk/Fuse/commit/98366b1630c83e1c64eaae5cccf8f39403b7fc4d))
+* build fixes ([5969ca7](https://github.com/krisk/Fuse/commit/5969ca716a52aa24fafa476bee02140518202593))
+* double totalWeight ([5c0ab46](https://github.com/krisk/Fuse/commit/5c0ab467242d1de5d62bd3cdb812518e4b037c0f))
+* fixed browserconfig xml file ([ca0cbbb](https://github.com/krisk/Fuse/commit/ca0cbbbc2fa64d7e0511c86cced2d09d3ec8efcb))
+* fixed config, packages, and twitter social button ([bd7555c](https://github.com/krisk/Fuse/commit/bd7555cd0b8b990ca38faf8196a92207785e95a3))
+* fixed navbar ([29b2599](https://github.com/krisk/Fuse/commit/29b25990d592a797df51a3dc15c678defce56538))
+* fixed version display and active search plugin ([6e2a592](https://github.com/krisk/Fuse/commit/6e2a5922270a22bc9f1b827efd311608a2ea1839))
+* imports ([ec4e3bc](https://github.com/krisk/Fuse/commit/ec4e3bc1ee6ba4655642e5740cabb864bcb70275))
+* re-implement sidebar advertisements ([67a10cf](https://github.com/krisk/Fuse/commit/67a10cf8d8df22dd198a2e9c3ee5413631459d4a))
+* support -> donate for clarity of what it is ([ef99f56](https://github.com/krisk/Fuse/commit/ef99f5633d65e26cd555e847216bf231bcd43823))
+* vite SSR build fixes ([3ae8299](https://github.com/krisk/Fuse/commit/3ae8299faac02ca33ea9c7773ea34be2217d533c))
+
 ### [6.6.2](https://github.com/krisk/Fuse/compare/v6.6.1...v6.6.2) (2022-05-11)
 
 
