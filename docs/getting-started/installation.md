@@ -50,7 +50,7 @@ If you are using native ES Modules, there is also an ES Modules compatible build
 
 ```html
 <script type="module">
-  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.esm.js'
+  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.mjs'
 </script>
 ```
 
@@ -67,7 +67,7 @@ You can directly import `Fuse` as an ES module from the deno.land/x service:
 
 ```typescript
 // @deno-types="https://deno.land/x/fuse@v6.6.2/dist/fuse.d.ts"
-import Fuse from 'https://deno.land/x/fuse@v6.6.2/dist/fuse.esm.min.js'
+import Fuse from 'https://deno.land/x/fuse@v6.6.2/dist/fuse.min.mjs'
 ```
 
 <Donate />

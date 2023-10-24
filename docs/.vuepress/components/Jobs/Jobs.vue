@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Fuse from '../../../../dist/fuse.esm.js'
+import Fuse from '../../../../dist/fuse'
 import jobsData from './jobs'
 
 const results = ref(jobsData)
