@@ -50,8 +50,7 @@
 import { Stopwatch } from '@sapphire/stopwatch'
 import { isNullish, isObject, tryParseJSON } from '@sapphire/utilities'
 import { reactive } from 'vue'
-import type FuseTypes from '../../../../dist/fuse'
-import Fuse from '../../../../dist/fuse.esm.js'
+import Fuse, { IFuseOptions } from '../../../../dist/fuse'
 import Books from './books.js'
 import MonacoEditor from './MonacoEditor.vue'
 
@@ -62,10 +61,10 @@ interface State {
   resultsData: string
   count: number | null
   searchTime: string | null
-  fuseSearchOptions: FuseTypes.IFuseOptions<never>
+  fuseSearchOptions: IFuseOptions<never>
 }
 
-const defaultFuseSearchOptions: FuseTypes.IFuseOptions<never> = {
+const defaultFuseSearchOptions: IFuseOptions<never> = {
   isCaseSensitive: false,
   includeScore: false,
   shouldSort: true,
@@ -83,7 +82,7 @@ const defaultFuseSearchOptions: FuseTypes.IFuseOptions<never> = {
 
 function codify(
   searchPattern: string,
-  fuseSearchOptions: FuseTypes.IFuseOptions<never> = defaultFuseSearchOptions
+  fuseSearchOptions: IFuseOptions<never> = defaultFuseSearchOptions
 ): string {
   return `
 const Fuse = require('fuse.js');
@@ -149,7 +148,7 @@ function onSearchPatternKeyUp() {
 
 function doFuseSearch(fuseSearchOptions = state.fuseSearchOptions) {
   try {
-    const fuseOptions: FuseTypes.IFuseOptions<never> = {
+    const fuseOptions: IFuseOptions<never> = {
       keys: ['title', 'author.firstName'],
       ...fuseSearchOptions
     }
