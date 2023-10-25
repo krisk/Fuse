@@ -6,8 +6,8 @@ In the [`dist/` directory of the npm package](https://cdn.jsdelivr.net/npm/fuse.
 | ---------------------- | ----------------- | -------------- | ------------------------ |
 | **Full**               | fuse.js           | fuse.cjs       | fuse.mjs                 |
 | **Basic**              | fuse.basic.js     | fuse.basic.cjs | fuse.basic.mjs           |
-| **Full (Production)**  | fuse.min.js       | -              | fuse.esm.min.js          |
-| **Basic (Production)** | fuse.basic.min.js | -              | fuse.basic.esm.min.js    |
+| **Full (Production)**  | fuse.min.js       | -              | fuse.min.mjs             |
+| **Basic (Production)** | fuse.basic.min.js | -              | fuse.basic.min.mjs       |
 
 ### Terms
 
