@@ -35,6 +35,13 @@ const sponsors = ref([
     imgUrl: '/assets/img/sponsors/bairesdev.png',
     url: 'https://www.bairesdev.com/sponsoring-open-source-projects/',
     description: 'Outsourced Tech Talent. Fast and Flexible.'
+  },
+  {
+    id: 3,
+    name: 'Quadratica',
+    imgUrl: '/assets/img/sponsors/quadratica.png',
+    url: 'https://quadrati.ca',
+    description: 'We will take you from an idea to an in-market product you can rely on. All in record time.'
   }
 ])
 </script>
