@@ -16,6 +16,7 @@ const route = useRoute()
 const carbonAdsElementRef = ref<HTMLDivElement>()
 
 async function loadCarbonAds() {
+  console.log("loadCarbonAds")
   const s = document.createElement('script')
   s.id = SCRIPT_ID
   s.src = `//cdn.carbonads.com/carbon.js?serve=${ACCOUNT_ID}&placement=${PLACEMENT}`
@@ -26,12 +27,16 @@ onMounted(() => {
   loadCarbonAds()
 })
 
-watch(route, () => {
+let hash = window.location.hash
+watch(route, (to, from) => {
   if (!isNullish(document.querySelector('#carbonads'))) {
-    if (carbonAdsElementRef && carbonAdsElementRef.value) {
-      carbonAdsElementRef.value.innerHTML = ''
+    if (window.location.hash == hash) {
+      if (carbonAdsElementRef && carbonAdsElementRef.value) {
+        carbonAdsElementRef.value.innerHTML = ''
+      }
+      loadCarbonAds()
     }
-    loadCarbonAds()
+    hash = window.location.hash
   }
 })
 </script>
