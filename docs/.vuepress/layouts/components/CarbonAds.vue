@@ -6,6 +6,7 @@
 import { isNullish } from '@sapphire/utilities'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import Demo from '../../components/Demo/Demo.vue';
 
 const SCRIPT_ID = '_carbonads_js'
 const ACCOUNT_ID = 'CE7IC27U'
@@ -16,18 +17,18 @@ const route = useRoute()
 const carbonAdsElementRef = ref<HTMLDivElement>()
 
 async function loadCarbonAds() {
-  console.log("loadCarbonAds")
   const s = document.createElement('script')
   s.id = SCRIPT_ID
   s.src = `//cdn.carbonads.com/carbon.js?serve=${ACCOUNT_ID}&placement=${PLACEMENT}`
   carbonAdsElementRef?.value?.appendChild(s)
 }
 
+let hash = '';
 onMounted(() => {
+  hash = window.location.hash
   loadCarbonAds()
 })
 
-let hash = window.location.hash
 watch(route, (to, from) => {
   if (!isNullish(document.querySelector('#carbonads'))) {
     if (window.location.hash == hash) {
