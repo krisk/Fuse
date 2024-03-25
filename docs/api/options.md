@@ -56,6 +56,8 @@ When true, the matching function will continue to the end of a search pattern ev
 
 List of keys that will be searched. This supports nested paths, weighted search, searching in arrays of [strings](/examples.html#search-string-array) and [objects](/examples.html#nested-search).
 
+Note: an empty array won't return anything. At least one key is required in order to get the result. There is currently no built-in way to search all keys, as doing this implicitly isn't straightforward when you don't know how many levels of nesting Fuse should handle.
+
 ## Fuzzy Matching Options
 
 <!-- ::: warning
