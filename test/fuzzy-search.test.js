@@ -840,6 +840,34 @@ describe('Searching with minCharLength', () => {
   })
 })
 
+describe('Searching with threshold 0', () => {
+  const customList = ['t te tes test tes te t']
+  let fuse
+
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        threshold: 0,
+        ignoreLocation: true,
+      }))
+  )
+
+  describe('When searching for the term "test"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('test')))
+
+    test('We get a match containing 1 indices', () => {
+      expect(result[0].matches[0].indices).toHaveLength(1)
+    })
+
+    test('and the matching index is a exact match', () => {
+      expect(result[0].matches[0].indices[0][0]).toBe(9)
+      expect(result[0].matches[0].indices[0][1]).toBe(12)
+    })
+  })
+})
+
 describe('Searching with minCharLength and pattern larger than machine word size', () => {
   const customList = [
     'Apple pie is a tasty treat that is always best made by mom! But we love store bought too.',

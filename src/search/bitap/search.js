@@ -112,7 +112,7 @@ export default function search(
       let currentLocation = j - 1
       let charMatch = patternAlphabet[text.charAt(currentLocation)]
 
-      if (computeMatches) {
+      if (computeMatches && threshold !== 0) {
         // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
         matchMask[currentLocation] = +!!charMatch
       }
