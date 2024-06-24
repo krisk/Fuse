@@ -16,6 +16,8 @@ export const BasicOptions = {
   // When `true`, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
+  // When `true`, the algorithm will ignore diacritics (accents) in comparisons
+  ignoreDiacritics: false,
   // When true, the matching function will continue to the end of a search pattern even if
   includeScore: false,
   // List of properties that will be searched. This also supports nested properties.

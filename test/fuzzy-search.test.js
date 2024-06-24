@@ -1209,3 +1209,45 @@ describe('Breaking values', () => {
     expect(result).toHaveLength(1)
   })
 })
+
+describe('Searching ignoring diactrictics', () => {
+  const list = [
+    {
+      text: 'déjà'
+    },
+    {
+      text: 'cafe'
+    }
+  ]
+
+  const options = {
+    ignoreDiacritics: true,
+    threshold: 0,
+    keys: ['text']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: query with diactrictics, list with diactrictics', () => {
+    let result = fuse.search('déjà')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(0)
+  })
+
+  test('Search: query without diactrictics, list with diactrictics', () => {
+    let result = fuse.search('deja')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(0)
+  })
+
+  test('Search: query with diactrictics, list without diactrictics', () => {
+    let result = fuse.search('café')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(1)
+  })
+
+  test('Search: query without diactrictics, list without diactrictics', () => {
+    let result = fuse.search('cafe')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(1)
+  })
+})

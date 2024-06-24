@@ -2,6 +2,7 @@ import parseQuery from './parseQuery'
 import FuzzyMatch from './FuzzyMatch'
 import IncludeMatch from './IncludeMatch'
 import Config from '../../core/config'
+import { stripDiacritics } from '../../helpers/diacritics'
 
 // These extended matchers can return an array of matches, as opposed
 // to a singl match
@@ -40,6 +41,7 @@ export default class ExtendedSearch {
     pattern,
     {
       isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
       ignoreLocation = Config.ignoreLocation,
@@ -52,6 +54,7 @@ export default class ExtendedSearch {
     this.query = null
     this.options = {
       isCaseSensitive,
+      ignoreDiacritics,
       includeMatches,
       minMatchCharLength,
       findAllMatches,
@@ -61,7 +64,9 @@ export default class ExtendedSearch {
       distance
     }
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern
+    this.pattern = pattern
     this.query = parseQuery(this.pattern, this.options)
   }
 
@@ -79,9 +84,10 @@ export default class ExtendedSearch {
       }
     }
 
-    const { includeMatches, isCaseSensitive } = this.options
+    const { includeMatches, isCaseSensitive, ignoreDiacritics } = this.options
 
     text = isCaseSensitive ? text : text.toLowerCase()
+    text = ignoreDiacritics ? stripDiacritics(text) : text
 
     let numMatches = 0
     let allIndices = []
