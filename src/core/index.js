@@ -12,7 +12,6 @@ export default class Fuse {
   constructor(docs, options = {}, index) {
     this.options = { ...Config, ...options }
 
-    console.log(this.options);
     if (
       this.options.useExtendedSearch &&
       !process.env.EXTENDED_SEARCH_ENABLED
