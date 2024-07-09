@@ -153,11 +153,19 @@ export type FuseSortFunctionItem = {
  * }
  * ```
  */
-export type FuseSortFunctionMatch = {
+export type FuseSortFunctionMatch<T> = {
   score: number
-  key: string
+  key: FuseSortFunctionMatchKey<T>
   value: string
   indices: ReadonlyArray<number>[]
+}
+
+export interface FuseSortFunctionMatchKey<T> {
+  id: string
+  getFn?: FuseGetFunction<T>
+  path: string[]
+  src: string
+  weight: number
 }
 
 /**
@@ -172,20 +180,20 @@ export type FuseSortFunctionMatch = {
  * }
  * ```
  */
-export type FuseSortFunctionMatchList = FuseSortFunctionMatch & {
+export type FuseSortFunctionMatchList<T> = FuseSortFunctionMatch<T> & {
   idx: number
 }
 
-export type FuseSortFunctionArg = {
+export type FuseSortFunctionArg<T> = {
   idx: number
   item: FuseSortFunctionItem
   score: number
-  matches?: (FuseSortFunctionMatch | FuseSortFunctionMatchList)[]
+  matches?: (FuseSortFunctionMatch<T> | FuseSortFunctionMatchList<T>)[]
 }
 
-export type FuseSortFunction = (
-  a: FuseSortFunctionArg,
-  b: FuseSortFunctionArg
+export type FuseSortFunction<T> = (
+  a: FuseSortFunctionArg<T>,
+  b: FuseSortFunctionArg<T>
 ) => number
 
 /**
@@ -317,7 +325,7 @@ export interface IFuseOptions<T> {
   /** Whether to sort the result list, by score. */
   shouldSort?: boolean
   /** The function to use to sort all the results. The default will sort by ascending relevance score, ascending index. */
-  sortFn?: FuseSortFunction
+  sortFn?: FuseSortFunction<T>
   /** At what point does the match algorithm give up. A threshold of `0.0` requires a perfect match (of both letters and location), a threshold of `1.0` would match anything. */
   threshold?: number
   /** When `true`, it enables the use of unix-like search commands. See [example](/examples.html#extended-search). */
