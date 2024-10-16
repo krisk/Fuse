@@ -91,7 +91,10 @@ declare class Fuse<T> {
   ): FuseIndex<U>
 
   public static parseIndex<U>(
-    index: any,
+    index: {
+      keys: ReadonlyArray<string>
+      records: FuseIndexRecords
+    },
     options?: FuseIndexOptions<U>
   ): FuseIndex<U>
 
