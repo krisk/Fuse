@@ -55,7 +55,7 @@ Fuse will automatically index the table if one isn't provided during instantiati
 
 ### `Fuse.parseIndex`
 
-Parses a serialized Fuse index.
+Parses a serialized Fuse index from a json object representation.
 
 **Example**
 
@@ -69,6 +69,9 @@ fs.writeFile('fuse-index.json', JSON.stringify(myIndex.toJSON()))
 // (2) When app starts
 // Load and deserialize index
 const fuseIndex = await require('fuse-index.json')
+// Alternatively, if fetching the index, convert to json before parsing.
+const fuseIndex = await fetch('./fuse-index.json').then(r => r.json())
+
 const myIndex = Fuse.parseIndex(fuseIndex)
 // initialize Fuse with the index
 const fuse = new Fuse(books, options, myIndex)
