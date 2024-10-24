@@ -163,7 +163,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 - Added [logical query expressions](https://fusejs.io/api/query.html) (#411)
 - Added ability to dynamically add/remove items (#412)
-- Mix different `options:key` types during intialization (#413)
+- Mix different `options:key` types during initialization (#413)
 - Improved indexing performances, as well storage savings (#405, #407)
 
 # Version 5.2.0
@@ -173,7 +173,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 # Version 5.0.9-beta
 
-- Fixed Fuse global name. Erroenously set as 'Fuse.js'
+- Fixed Fuse global name. Erroneously set as 'Fuse.js'
 
 # Version 5.0.8-beta
 
@@ -238,7 +238,7 @@ All notable changes to this project will be documented in this file. See [standa
 # Version 4.0.1-beta
 
 - Removed unused codepath
-- Fixed case sensititivity check
+- Fixed case sensitivity check
 - Upgraded dev dependencies
 
 # Version 4.0.0-beta
