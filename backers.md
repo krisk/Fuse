@@ -12,6 +12,7 @@ You can join these backers by [sponsoring on GitHub](https://github.com/sponsors
 
 - [Worksome](https://www.worksome.com/)
 - [BairesDev](https://www.bairesdev.com/sponsoring-open-source-projects/)
+- [LITSLINK](https://litslink.com/)
 
 ## 🥉 Bronze Sponsor
 
@@ -19,6 +20,5 @@ You can join these backers by [sponsoring on GitHub](https://github.com/sponsors
 
 ## ☕ Standard
 
-- [Daniel Murawsky](https://github.com/dmurawsky) of [Urgos](https://urgos.io)
-- [Linda Macdonald](https://github.com/lindamacdonald)
-- Sam Corcos
+- [roboflow](https://roboflow.com/)
+- [getsentry](https://sentry.io/welcome/)

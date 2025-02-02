@@ -17,8 +17,7 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 
 ---
 
-<h3 align="center">Silver Sponsors</h3>
-<!--Silver start-->
+<h3 align="center">Sponsors</h3>
 <table>
 <tbody>
     <tr>
@@ -32,10 +31,14 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
           <img width="222px" src="https://github.com/krisk/Fuse/blob/gh-pages/assets/img/sponsors/bairesdev.png?raw=true">
         </a>
       </td>
+      <!-- <td align="center" valign="middle">
+        <a href="https://litslink.com/" target="_blank">
+          <img width="222px" src="https://github.com/krisk/Fuse/blob/gh-pages/assets/img/sponsors/litslink.svg?raw=true">
+        </a>
+      </td> -->
     </tr>
 </body>
 </table>
-<!--Silver end-->
 
 ---
 

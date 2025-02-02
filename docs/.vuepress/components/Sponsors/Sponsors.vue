@@ -38,6 +38,13 @@ const sponsors = ref([
   },
   {
     id: 3,
+    name: 'LITSLINK',
+    imgUrl: '/assets/img/sponsors/litslink.svg',
+    url: 'https://litslink.com',
+    description: 'Custom Software Development Company to Empower You with AI'
+  },
+  {
+    id: 4,
     name: 'Quadratica',
     imgUrl: '/assets/img/sponsors/quadratica.png',
     url: 'https://quadrati.ca',
