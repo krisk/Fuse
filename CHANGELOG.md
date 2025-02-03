@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.1.0](https://github.com/krisk/Fuse/compare/v7.0.0...v7.1.0) (2025-02-03)
+
+
+### Features
+
+* add ignore diacritics ([e0fcdb1](https://github.com/krisk/Fuse/commit/e0fcdb15d491e7db28c4902727d2d859833ea9ee))
+* add option to ignore diacritics ([fb012b7](https://github.com/krisk/Fuse/commit/fb012b7388442f7dcc0facb43f0b2840057ca8c5))
+
+
+### Bug Fixes
+
+* remove console.log ([1c749a3](https://github.com/krisk/Fuse/commit/1c749a3f43d37d89233fdac9014009b3dac9e53d))
+* **typescript:** clarify input to `parseIndex` ([72b6e25](https://github.com/krisk/Fuse/commit/72b6e25e14663cdbea9dee297b60963c7d6a8983)), closes [#524](https://github.com/krisk/Fuse/issues/524) [#624](https://github.com/krisk/Fuse/issues/624)
+* **typescript:** clarify input to `parseIndex` ([78c628e](https://github.com/krisk/Fuse/commit/78c628e50f6b3b7d185eaa27ded60002ba9d15ef)), closes [#524](https://github.com/krisk/Fuse/issues/524) [#624](https://github.com/krisk/Fuse/issues/624)
+
 ## [7.0.0](https://github.com/krisk/Fuse/compare/v6.6.2...v7.0.0) (2023-10-24)
 
 

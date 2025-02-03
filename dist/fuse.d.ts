@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v7.0.0
+// Type definitions for Fuse.js v7.1.0
 // TypeScript v4.9.5
 declare class Fuse<T> {
   public constructor(
