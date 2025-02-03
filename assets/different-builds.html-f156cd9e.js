@@ -1,0 +1,1 @@
+const e=JSON.parse('{"key":"v-6df9e570","path":"/getting-started/different-builds.html","title":"Explanation of Different Builds","lang":"en-US","frontmatter":{},"headers":[{"level":3,"title":"Terms","slug":"terms","link":"#terms","children":[]}],"git":{"updatedTime":1698246945000},"filePathRelative":"getting-started/different-builds.md"}');export{e as data};

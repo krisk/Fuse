@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="generator" content="VuePress 2.0.0-beta.60">
+    <style>
+      :root {
+        --c-bg: #fff;
+      }
+      html.dark {
+        --c-bg: #22272e;
+      }
+      html, body {
+        background-color: var(--c-bg);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem('vuepress-color-scheme');
+			const systemDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			if (userMode === 'dark' || (userMode !== 'light' && systemDarkMode)) {
+				document.documentElement.classList.toggle('dark', true);
+			}
+    </script>
+    <link rel="apple-touch-icon" size="57x57" href="/icons/apple-icon-57x57.png"><link rel="apple-touch-icon" size="60x60" href="/icons/apple-icon-60x60.png"><link rel="apple-touch-icon" size="72x72" href="/icons/apple-icon-72x72.png"><link rel="apple-touch-icon" size="76x76" href="/icons/apple-icon-76x76.png"><link rel="apple-touch-icon" size="114x114" href="/icons/apple-icon-114x114.png"><link rel="apple-touch-icon" size="120x120" href="/icons/apple-icon-120x120.png"><link rel="apple-touch-icon" size="144x144" href="/icons/apple-icon-144x144.png"><link rel="apple-touch-icon" size="152x152" href="/icons/apple-icon-152x152.png"><link rel="apple-touch-icon" size="180x180" href="/icons/apple-icon-180x180.png"><link rel="icon" type="image/png" size="192x192" href="/icons/android-icon-192x192.png"><link rel="icon" type="image/png" size="32x32" href="/icons/favicon-32x32.png"><link rel="icon" type="image/png" size="96x96" href="/icons/favicon-96x96.png"><link rel="icon" type="image/png" size="16x16" href="/icons/favicon-16x16.png"><meta name="msapplication-TileColor" content="#ffffff"><meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png"><meta name="theme-color" content="#ffffff"><meta name="google-site-verification" content="4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY"><link rel="manifest" href="/manifest.webmanifest"><script>
+      (function(){
+        var bsa_optimize=document.createElement('script');
+        bsa_optimize.type='text/javascript';
+        bsa_optimize.async=true;
+        bsa_optimize.src='https://cdn4.buysellads.net/pub/fusejs.js?'+(new Date()-new Date()%600000);
+        (document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(bsa_optimize);
+      })();
+      </script><title>Fuse.js</title><meta name="description" content="Lightweight fuzzy-search library, in JavaScript">
+    <link rel="preload" href="/assets/style-afd8e69f.css" as="style"><link rel="stylesheet" href="/assets/style-afd8e69f.css">
+    <link rel="modulepreload" href="/assets/app-315d3ec7.js"><link rel="modulepreload" href="/assets/framework-a05dfeeb.js"><link rel="modulepreload" href="/assets/404.html-ca825db8.js"><link rel="modulepreload" href="/assets/404.html-60b35caa.js"><link rel="prefetch" href="/assets/index.html-ef55746a.js" as="script"><link rel="prefetch" href="/assets/demo.html-3b2ce3ae.js" as="script"><link rel="prefetch" href="/assets/donate.html-09e014fc.js" as="script"><link rel="prefetch" href="/assets/examples.html-90a340b1.js" as="script"><link rel="prefetch" href="/assets/jobs.html-8e2d900d.js" as="script"><link rel="prefetch" href="/assets/stories.html-03c65f6a.js" as="script"><link rel="prefetch" href="/assets/team.html-15b57719.js" as="script"><link rel="prefetch" href="/assets/test.html-27962ca0.js" as="script"><link rel="prefetch" href="/assets/index.html-f81cc564.js" as="script"><link rel="prefetch" href="/assets/config.html-1dbabc7c.js" as="script"><link rel="prefetch" href="/assets/indexing.html-ee65c503.js" as="script"><link rel="prefetch" href="/assets/methods.html-3845476a.js" as="script"><link rel="prefetch" href="/assets/options.html-1dadc2a8.js" as="script"><link rel="prefetch" href="/assets/query.html-1b6269f5.js" as="script"><link rel="prefetch" href="/assets/scoring-theory.html-33dc6dbd.js" as="script"><link rel="prefetch" href="/assets/different-builds.html-f156cd9e.js" as="script"><link rel="prefetch" href="/assets/installation.html-16e0da1a.js" as="script"><link rel="prefetch" href="/assets/index.html-136ca0a4.js" as="script"><link rel="prefetch" href="/assets/demo.html-15ba09ad.js" as="script"><link rel="prefetch" href="/assets/donate.html-c93efc24.js" as="script"><link rel="prefetch" href="/assets/examples.html-bdade32c.js" as="script"><link rel="prefetch" href="/assets/jobs.html-6c2497f3.js" as="script"><link rel="prefetch" href="/assets/stories.html-c695743e.js" as="script"><link rel="prefetch" href="/assets/team.html-76d162a9.js" as="script"><link rel="prefetch" href="/assets/test.html-3574f54b.js" as="script"><link rel="prefetch" href="/assets/index.html-091ac784.js" as="script"><link rel="prefetch" href="/assets/config.html-ca090c3f.js" as="script"><link rel="prefetch" href="/assets/indexing.html-c81f22b7.js" as="script"><link rel="prefetch" href="/assets/methods.html-196f6817.js" as="script"><link rel="prefetch" href="/assets/options.html-39b89c9c.js" as="script"><link rel="prefetch" href="/assets/query.html-210d417e.js" as="script"><link rel="prefetch" href="/assets/scoring-theory.html-5724200c.js" as="script"><link rel="prefetch" href="/assets/different-builds.html-a4b318ad.js" as="script"><link rel="prefetch" href="/assets/installation.html-aba432ff.js" as="script"><link rel="prefetch" href="/assets/Stories-100b6ef7.js" as="script"><link rel="prefetch" href="/assets/Sponsors-57da3461.js" as="script"><link rel="prefetch" href="/assets/Demo-486a98f9.js" as="script"><link rel="prefetch" href="/assets/SuspensefulDemo-daee6225.js" as="script"><link rel="prefetch" href="/assets/Team-096cc16c.js" as="script"><link rel="prefetch" href="/assets/Jobs-76bfe6af.js" as="script"><link rel="prefetch" href="/assets/Donate-7bb4ae97.js" as="script"><link rel="prefetch" href="/assets/TwitterFollow-2e5ed823.js" as="script"><link rel="prefetch" href="/assets/Version-77a7d85a.js" as="script"><link rel="prefetch" href="/assets/index-70769223.js" as="script">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="theme-container"><main class="page"><div class="theme-default-content"><h1>404</h1><blockquote>How did we get here?</blockquote><a href="/" class="">Take me home</a></div></main></div><!----><!--]--></div>
+    <script type="module" src="/assets/app-315d3ec7.js" defer></script>
+  </body>
+</html>
