@@ -67,6 +67,7 @@ interface State {
 const defaultFuseSearchOptions: IFuseOptions<never> = {
   isCaseSensitive: false,
   includeScore: false,
+  ignoreDiacritics: false,
   shouldSort: true,
   includeMatches: false,
   findAllMatches: false,
