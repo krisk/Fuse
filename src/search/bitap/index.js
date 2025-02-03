@@ -2,6 +2,7 @@ import search from './search'
 import createPatternAlphabet from './createPatternAlphabet'
 import { MAX_BITS } from './constants'
 import Config from '../../core/config'
+import { stripDiacritics } from '../../helpers/diacritics'
 
 export default class BitapSearch {
   constructor(
@@ -14,6 +15,7 @@ export default class BitapSearch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics,
       ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
@@ -25,10 +27,13 @@ export default class BitapSearch {
       findAllMatches,
       minMatchCharLength,
       isCaseSensitive,
+      ignoreDiacritics,
       ignoreLocation
     }
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
 
     this.chunks = []
 
@@ -66,11 +71,10 @@ export default class BitapSearch {
   }
 
   searchIn(text) {
-    const { isCaseSensitive, includeMatches } = this.options
+    const { isCaseSensitive, ignoreDiacritics, includeMatches } = this.options
 
-    if (!isCaseSensitive) {
-      text = text.toLowerCase()
-    }
+    text = isCaseSensitive ? text : text.toLowerCase()
+    text = ignoreDiacritics ? stripDiacritics(text) : text
 
     // Exact match
     if (this.pattern === text) {

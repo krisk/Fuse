@@ -14,6 +14,13 @@ tags:
 
 Indicates whether comparisons should be case sensitive.
 
+### `ignoreDiacritics`
+
+- Type: `boolean`
+- Default: `false`
+
+Indicates whether comparisons should ignore diacritics (accents).
+
 ### `includeScore`
 
 - Type: `boolean`

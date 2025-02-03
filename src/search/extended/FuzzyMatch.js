@@ -13,6 +13,7 @@ export default class FuzzyMatch extends BaseMatch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics,
       ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
@@ -25,6 +26,7 @@ export default class FuzzyMatch extends BaseMatch {
       findAllMatches,
       minMatchCharLength,
       isCaseSensitive,
+      ignoreDiacritics,
       ignoreLocation
     })
   }
