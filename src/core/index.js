@@ -212,9 +212,10 @@ export default class Fuse {
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
+        const keyStoreKey = this._keyStore.get(key.id);
         matches.push(
           ...this._findMatches({
-            key,
+            key: keyStoreKey,
             value: item[keyIndex],
             searcher
           })
