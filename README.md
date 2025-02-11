@@ -48,7 +48,7 @@ Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
 
 ### Browser Compatibility
 
-Fuse.js supports all browsers that are [ES5-compliant](http://kangax.github.io/compat-table/es5/) (IE8 and below are not supported).
+Fuse.js supports all browsers that are [ES5-compliant](https://compat-table.github.io/compat-table/es5/) (IE8 and below are not supported).
 
 ## Documentation
 
