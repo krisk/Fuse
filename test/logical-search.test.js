@@ -103,6 +103,25 @@ describe('Searching using logical search', () => {
     expect(result.length).toBe(2)
     expect(idx(result)).toMatchObject([7, 0])
   })
+
+  test('Exact match in fuzzy searched field should give same score for text and \'logical OR\' search', () => {
+    const contacts = [
+      {email: 'wojciech.gomola@company.com', importantId: 'ABC123'},
+      {email: 'magdalena.mitura@company.com', importantId: 'DEF456'}
+    ];
+
+    const fuseinstance = new Fuse(contacts, {
+      useExtendedSearch: true,
+      includeScore: true,
+      keys: ['email', 'importantId']
+    });
+
+    const queryString = 'wojciech';
+    const logicalOrResult = fuseinstance.search({$or: [{email: queryString}, {importantId: `'${queryString}`}]});
+    const plainTextResult = fuseinstance.search(queryString);
+
+    expect(logicalOrResult[0].score).toBe(plainTextResult[0].score);
+  });
 })
 
 describe('Multiple nested conditions', () => {

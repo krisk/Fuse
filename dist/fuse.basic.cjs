@@ -1258,8 +1258,9 @@ var Fuse$1 = /*#__PURE__*/function () {
 
         // Iterate over every key (i.e, path), and fetch the value at that key
         keys.forEach(function (key, keyIndex) {
+          var keyStoreKey = _this2._keyStore.get(key.id);
           matches.push.apply(matches, _toConsumableArray(_this2._findMatches({
-            key: key,
+            key: keyStoreKey,
             value: item[keyIndex],
             searcher: searcher
           })));
