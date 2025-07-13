@@ -276,6 +276,20 @@ type FuseIndexRecords =
   | ReadonlyArray<FuseIndexStringRecord>
 
 /**
+ * Object type that represents all possible paths of an object,
+ * including dot notation for nested objects.
+ */
+type Paths<T> = T extends Array<infer U>
+  ? `${Paths<U>}`
+  : T extends object
+  ? {
+      [K in keyof T & (string | number)]: K extends string
+        ? `${K}` | `${K}.${Paths<T[K]>}`
+        : never
+    }[keyof T & (string | number)]
+  : never
+
+/**
  * @example
  * ```ts
  * {
@@ -285,12 +299,12 @@ type FuseIndexRecords =
  * ```
  */
 type FuseOptionKeyObject<T> = {
-  name: string | string[]
+  name: Paths<T> | string[]
   weight?: number
   getFn?: (obj: T) => ReadonlyArray<string> | string
 }
 
-type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
+type FuseOptionKey<T> = FuseOptionKeyObject<T> | Paths<T> | string[]
 
 interface IFuseOptions<T> {
   /** Indicates whether comparisons should be case sensitive. */
@@ -370,4 +384,4 @@ type Expression =
   | { $and?: Expression[] }
   | { $or?: Expression[] }
 
-export { Expression, FuseGetFunction, FuseIndex, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject, Fuse as default };
+export { Expression, FuseGetFunction, FuseIndex, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, Paths, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject, Fuse as default };

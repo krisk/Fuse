@@ -276,6 +276,20 @@ export type FuseIndexRecords =
   | ReadonlyArray<FuseIndexStringRecord>
 
 /**
+ * Object type that represents all possible paths of an object,
+ * including dot notation for nested objects.
+ */
+export type Paths<T> = T extends Array<infer U>
+  ? `${Paths<U>}`
+  : T extends object
+  ? {
+      [K in keyof T & (string | number)]: K extends string
+        ? `${K}` | `${K}.${Paths<T[K]>}`
+        : never
+    }[keyof T & (string | number)]
+  : never
+
+/**
  * @example
  * ```ts
  * {
@@ -285,12 +299,12 @@ export type FuseIndexRecords =
  * ```
  */
 export type FuseOptionKeyObject<T> = {
-  name: string | string[]
+  name: Paths<T> | string[]
   weight?: number
   getFn?: (obj: T) => ReadonlyArray<string> | string
 }
 
-export type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
+export type FuseOptionKey<T> = FuseOptionKeyObject<T> | Paths<T> | string[]
 
 export interface IFuseOptions<T> {
   /** Indicates whether comparisons should be case sensitive. */
