@@ -5,7 +5,7 @@ import { PokedexType } from './fixtures/types'
 const idx = (result: FuseResult<Author>[]) => result.map((obj) => obj.refIndex)
 
 const defaultOptions: IFuseOptions<PokedexType> = {
-  keys: ['alias', 'species', 'name', 'num'],
+  keys: ['species', 'name', 'num'],
   threshold: 0.2
 }
 
