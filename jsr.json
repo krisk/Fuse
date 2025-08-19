@@ -7,7 +7,7 @@
     "include": [
       "./src/",
       "./README.md",
-      "LICENSE"
+      "./LICENSE"
     ]
   }
 }
