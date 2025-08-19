@@ -1,6 +1,6 @@
 {
-  "name": "@sigmasd/lab",
-  "version": "0.1.2",
+  "name": "@krisk/fuse",
+  "version": "7.1.0",
   "exports": "./src/entry.js",
   "license": "Apache-2.0",
   "publish": {

@@ -63,11 +63,10 @@ version in your published site, replacing `fuse.js` with `fuse.min.js`. This is 
 
 ### Deno
 
-You can directly import `Fuse` as an ES module from the deno.land/x service:
+You can directly import `Fuse` as an ES module from the jsr registry:
 
 ```typescript
-// @deno-types="https://deno.land/x/fuse@v7.1.0/dist/fuse.d.ts"
-import Fuse from 'https://deno.land/x/fuse@v7.1.0/dist/fuse.min.mjs'
+import Fuse from 'jsr:@krisk/fuse@7.1.0'
 ```
 
 <Donate />
