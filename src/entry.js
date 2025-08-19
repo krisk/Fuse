@@ -1,3 +1,4 @@
+/* @ts-self-types="./index.d.ts" */
 import Fuse from './core'
 import Config from './core/config'
 import { createIndex, parseIndex } from './tools/FuseIndex'

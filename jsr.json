@@ -1,0 +1,13 @@
+{
+  "name": "@sigmasd/lab",
+  "version": "0.1.2",
+  "exports": "./src/entry.js",
+  "license": "Apache-2.0",
+  "publish": {
+    "include": [
+      "./src/",
+      "./README.md",
+      "LICENSE"
+    ]
+  }
+}
