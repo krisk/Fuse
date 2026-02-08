@@ -146,11 +146,27 @@ export type FuseSortFunctionItem = {
 }
 
 /**
+ * Represents a key object created internally by Fuse.js for searching.
+ */
+export type FuseKey<T> = {
+  /** The path segments of the key */
+  path: string[]
+  /** The key identifier (joined path segments) */
+  id: string
+  /** The weight assigned to this key */
+  weight: number
+  /** The original source key name */
+  src: string | string[]
+  /** Optional custom function to retrieve the value */
+  getFn: ((obj: T) => ReadonlyArray<string> | string) | null
+}
+
+/**
  * @example
  * ```ts
  * {
  *   score: 0.001,
- *   key: 'author.firstName',
+ *   key: { path: ['author', 'firstName'], id: 'author.firstName', weight: 1, src: 'author.firstName', getFn: null },
  *   value: 'Codenar',
  *   indices: [ [ 0, 3 ] ]
  * }
@@ -158,7 +174,7 @@ export type FuseSortFunctionItem = {
  */
 export type FuseSortFunctionMatch = {
   score: number
-  key: string
+  key: FuseKey<any>
   value: string
   indices: ReadonlyArray<number>[]
 }
