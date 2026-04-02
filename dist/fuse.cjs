@@ -1317,10 +1317,54 @@ var IncludeMatch = /*#__PURE__*/function (_BaseMatch) {
 // ❗Order is important. DO NOT CHANGE.
 var searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
 var searchersLen = searchers.length;
-
-// Regex to split by spaces, but keep anything in quotes together
-var SPACE_RE = / +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/;
 var OR_TOKEN = '|';
+
+// Tokenize a query string into individual search terms.
+// Respects multi-match quoted tokens like ="said "test"" or ^"hello world"$
+// where inner spaces and quotes are part of the token.
+function tokenize(pattern) {
+  var tokens = [];
+  var len = pattern.length;
+  var i = 0;
+  while (i < len) {
+    // Skip spaces
+    while (i < len && pattern[i] === ' ') i++;
+    if (i >= len) break;
+
+    // Scan past prefix characters (=, !, ^, ') to see if a quote follows
+    var j = i;
+    while (j < len && pattern[j] !== ' ' && pattern[j] !== '"') j++;
+    if (j < len && pattern[j] === '"') {
+      // Multi-match token: prefix + "content" (possibly with inner quotes)
+      // Find the closing " that ends this token:
+      // it must be followed by optional $, then space or end-of-string
+      j++; // skip opening quote
+      while (j < len) {
+        if (pattern[j] === '"') {
+          // Check if this is the closing quote
+          var next = j + 1;
+          if (next >= len || pattern[next] === ' ') {
+            j++; // include closing quote
+            break;
+          }
+          if (pattern[next] === '$' && (next + 1 >= len || pattern[next + 1] === ' ')) {
+            j += 2; // include "$
+            break;
+          }
+        }
+        j++;
+      }
+      tokens.push(pattern.substring(i, j));
+      i = j;
+    } else {
+      // Regular (unquoted) token: read until space or end
+      while (j < len && pattern[j] !== ' ') j++;
+      tokens.push(pattern.substring(i, j));
+      i = j;
+    }
+  }
+  return tokens;
+}
 
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
@@ -1328,7 +1372,7 @@ var OR_TOKEN = '|';
 function parseQuery(pattern) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   return pattern.split(OR_TOKEN).map(function (item) {
-    var query = item.trim().split(SPACE_RE).filter(function (item) {
+    var query = tokenize(item.trim()).filter(function (item) {
       return item && !!item.trim();
     });
     var results = [];

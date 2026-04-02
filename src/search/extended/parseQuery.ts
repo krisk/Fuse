@@ -22,19 +22,64 @@ const searchers: Array<typeof BaseMatch> = [
 
 const searchersLen = searchers.length
 
-// Regex to split by spaces, but keep anything in quotes together
-const SPACE_RE = / +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/
 const OR_TOKEN = '|'
+
+// Tokenize a query string into individual search terms.
+// Respects multi-match quoted tokens like ="said "test"" or ^"hello world"$
+// where inner spaces and quotes are part of the token.
+function tokenize(pattern: string): string[] {
+  const tokens: string[] = []
+  const len = pattern.length
+  let i = 0
+
+  while (i < len) {
+    // Skip spaces
+    while (i < len && pattern[i] === ' ') i++
+    if (i >= len) break
+
+    // Scan past prefix characters (=, !, ^, ') to see if a quote follows
+    let j = i
+    while (j < len && pattern[j] !== ' ' && pattern[j] !== '"') j++
+
+    if (j < len && pattern[j] === '"') {
+      // Multi-match token: prefix + "content" (possibly with inner quotes)
+      // Find the closing " that ends this token:
+      // it must be followed by optional $, then space or end-of-string
+      j++ // skip opening quote
+      while (j < len) {
+        if (pattern[j] === '"') {
+          // Check if this is the closing quote
+          const next = j + 1
+          if (next >= len || pattern[next] === ' ') {
+            j++ // include closing quote
+            break
+          }
+          if (pattern[next] === '$' && (next + 1 >= len || pattern[next + 1] === ' ')) {
+            j += 2 // include "$
+            break
+          }
+        }
+        j++
+      }
+      tokens.push(pattern.substring(i, j))
+      i = j
+    } else {
+      // Regular (unquoted) token: read until space or end
+      while (j < len && pattern[j] !== ' ') j++
+      tokens.push(pattern.substring(i, j))
+      i = j
+    }
+  }
+
+  return tokens
+}
 
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 export default function parseQuery(pattern: string, options: any = {}): BaseMatch[][] {
   return pattern.split(OR_TOKEN).map((item) => {
-    const query = item
-      .trim()
-      .split(SPACE_RE)
-      .filter((item) => item && !!item.trim())
+    const query = tokenize(item.trim()).filter((item) => item && !!item.trim())
 
     const results: BaseMatch[] = []
     for (let i = 0, len = query.length; i < len; i += 1) {

@@ -88,6 +88,51 @@ describe('Searching using extended search', () => {
   })
 })
 
+describe('Searching with quoted tokens containing spaces and inner quotes', () => {
+  const list = [
+    { text: 'said "test' },
+    { text: 'said' },
+    { text: 'test' },
+    { text: 'hello world' },
+    { text: 'hello "world"' }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    keys: ['text']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: exact-match with inner quote', () => {
+    const result = fuse.search('="said "test"')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('said "test')
+  })
+
+  test('Search: include-match with space (\'\"hello world\")', () => {
+    const result = fuse.search('\'"hello world"')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('hello world')
+  })
+
+  test('Search: prefix-match with space (^"hello w")', () => {
+    const result = fuse.search('^"hello w"')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('hello world')
+  })
+
+  test('Search: suffix-match with space ("lo world"$)', () => {
+    const result = fuse.search('"lo world"$')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('hello world')
+  })
+
+  test('Search: inverse-exact with space (!"hello world")', () => {
+    const result = fuse.search('!"hello world"')
+    expect(result).toHaveLength(4)
+  })
+})
+
 describe('ignoreLocation when useExtendedSearch is true', () => {
   const list = [
     {
