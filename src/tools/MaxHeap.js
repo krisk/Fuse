@@ -37,8 +37,9 @@ export default class MaxHeap {
   _sinkDown(i) {
     const heap = this.heap
     const len = heap.length
-    while (true) {
-      let largest = i
+    let largest = i
+    do {
+      i = largest
       const left = 2 * i + 1
       const right = 2 * i + 2
       if (left < len && heap[left].score > heap[largest].score) {
@@ -47,11 +48,11 @@ export default class MaxHeap {
       if (right < len && heap[right].score > heap[largest].score) {
         largest = right
       }
-      if (largest === i) break
-      const tmp = heap[i]
-      heap[i] = heap[largest]
-      heap[largest] = tmp
-      i = largest
-    }
+      if (largest !== i) {
+        const tmp = heap[i]
+        heap[i] = heap[largest]
+        heap[largest] = tmp
+      }
+    } while (largest !== i)
   }
 }
