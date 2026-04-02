@@ -13,7 +13,7 @@ const banner = [
 ].join('\n')
 
 const configTypes = {
-  input: resolve('src/index.d.ts'),
+  input: resolve('src/entry.ts'),
   output: {
     banner,
     file: resolve(`dist/${FILENAME}.d.ts`),

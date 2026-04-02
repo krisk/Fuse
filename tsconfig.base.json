@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "strict": true,
     "declaration": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "skipLibCheck": true
   }
 }

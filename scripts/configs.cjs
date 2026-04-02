@@ -139,8 +139,8 @@ function genConfig(options) {
   const vars = { ...defaultVars, ...defaultFeatures }
 
   const config = {
-    input: resolve('src/entry.js'),
-    plugins: [nodeResolve(), ...(options.plugins || [])],
+    input: resolve('src/entry.ts'),
+    plugins: [nodeResolve({ extensions: ['.ts', '.js'] }), ...(options.plugins || [])],
     output: {
       banner,
       file: resolve(options.dest),
@@ -165,7 +165,15 @@ function genConfig(options) {
   config.plugins.push(replace(vars))
 
   if (options.transpile !== false) {
-    config.plugins.push(babel({ babelHelpers: 'bundled' }))
+    config.plugins.push(babel({ babelHelpers: 'bundled', extensions: ['.js', '.ts'] }))
+  } else {
+    // ESM builds: only strip TypeScript, no downlevel transpilation
+    config.plugins.push(babel({
+      babelHelpers: 'bundled',
+      extensions: ['.js', '.ts'],
+      configFile: false,
+      presets: ['@babel/preset-typescript']
+    }))
   }
 
   return config

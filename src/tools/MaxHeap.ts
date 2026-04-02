@@ -1,0 +1,63 @@
+import type { InternalResult } from '../types'
+
+// Max-heap by score: keeps the worst (highest) score at the top
+// so we can efficiently evict it when a better result arrives.
+export default class MaxHeap {
+  limit: number
+  heap: InternalResult[]
+
+  constructor(limit: number) {
+    this.limit = limit
+    this.heap = []
+  }
+  get size(): number {
+    return this.heap.length
+  }
+  shouldInsert(score: number): boolean {
+    return this.size < this.limit || score < this.heap[0].score!
+  }
+  insert(item: InternalResult): void {
+    if (this.size < this.limit) {
+      this.heap.push(item)
+      this._bubbleUp(this.size - 1)
+    } else if (item.score! < this.heap[0].score!) {
+      this.heap[0] = item
+      this._sinkDown(0)
+    }
+  }
+  extractSorted(sortFn: (a: InternalResult, b: InternalResult) => number): InternalResult[] {
+    return this.heap.sort(sortFn)
+  }
+  _bubbleUp(i: number): void {
+    const heap = this.heap
+    while (i > 0) {
+      const parent = (i - 1) >> 1
+      if (heap[i].score! <= heap[parent].score!) break
+      const tmp = heap[i]
+      heap[i] = heap[parent]
+      heap[parent] = tmp
+      i = parent
+    }
+  }
+  _sinkDown(i: number): void {
+    const heap = this.heap
+    const len = heap.length
+    let largest = i
+    do {
+      i = largest
+      const left = 2 * i + 1
+      const right = 2 * i + 2
+      if (left < len && heap[left].score! > heap[largest].score!) {
+        largest = left
+      }
+      if (right < len && heap[right].score! > heap[largest].score!) {
+        largest = right
+      }
+      if (largest !== i) {
+        const tmp = heap[i]
+        heap[i] = heap[largest]
+        heap[largest] = tmp
+      }
+    } while (largest !== i)
+  }
+}

@@ -305,64 +305,34 @@ function get(obj, path) {
 }
 
 var MatchOptions = {
-  // Whether the matches should be included in the result set. When `true`, each record in the result
-  // set will include the indices of the matched characters.
-  // These can consequently be used for highlighting purposes.
   includeMatches: false,
-  // When `true`, the matching function will continue to the end of a search pattern even if
-  // a perfect match has already been located in the string.
   findAllMatches: false,
-  // Minimum number of characters that must be matched before a result is considered a match
   minMatchCharLength: 1
 };
 var BasicOptions = {
-  // When `true`, the algorithm continues searching to the end of the input even if a perfect
-  // match is found before the end of the same input.
   isCaseSensitive: false,
-  // When `true`, the algorithm will ignore diacritics (accents) in comparisons
   ignoreDiacritics: false,
-  // When true, the matching function will continue to the end of a search pattern even if
   includeScore: false,
-  // List of properties that will be searched. This also supports nested properties.
   keys: [],
-  // Whether to sort the result list, by score
   shouldSort: true,
-  // Default sort function: sort by ascending score, ascending index
   sortFn: function sortFn(a, b) {
     return a.score === b.score ? a.idx < b.idx ? -1 : 1 : a.score < b.score ? -1 : 1;
   }
 };
 var FuzzyOptions = {
-  // Approximately where in the text is the pattern expected to be found?
   location: 0,
-  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
-  // (of both letters and location), a threshold of '1.0' would match anything.
   threshold: 0.6,
-  // Determines how close the match must be to the fuzzy location (specified above).
-  // An exact letter match which is 'distance' characters away from the fuzzy location
-  // would score as a complete mismatch. A distance of '0' requires the match be at
-  // the exact location specified, a threshold of '1000' would require a perfect match
-  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
   distance: 100
 };
 var AdvancedOptions = {
-  // When `true`, it enables the use of unix-like search commands
   useExtendedSearch: false,
-  // The get function to use when fetching an object's properties.
-  // The default will search nested paths *ie foo.bar.baz*
   getFn: get,
-  // When `true`, search will ignore `location` and `distance`, so it won't matter
-  // where in the string the pattern appears.
-  // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
   ignoreLocation: false,
-  // When `true`, the calculation for the relevance score (used for sorting) will
-  // ignore the field-length norm.
-  // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
   ignoreFieldNorm: false,
-  // The weight to determine how much field length norm effects scoring.
   fieldNormWeight: 1
 };
 var Config = _objectSpread2(_objectSpread2(_objectSpread2(_objectSpread2({}, BasicOptions), MatchOptions), FuzzyOptions), AdvancedOptions);
+var Config$1 = Config;
 
 var SPACE = /[^ ]+/g;
 
@@ -398,13 +368,16 @@ var FuseIndex = /*#__PURE__*/function () {
   function FuseIndex() {
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
       _ref$getFn = _ref.getFn,
-      getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn,
+      getFn = _ref$getFn === void 0 ? Config$1.getFn : _ref$getFn,
       _ref$fieldNormWeight = _ref.fieldNormWeight,
-      fieldNormWeight = _ref$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref$fieldNormWeight;
+      fieldNormWeight = _ref$fieldNormWeight === void 0 ? Config$1.fieldNormWeight : _ref$fieldNormWeight;
     _classCallCheck(this, FuseIndex);
     this.norm = norm(fieldNormWeight, 3);
     this.getFn = getFn;
     this.isCreated = false;
+    this.docs = [];
+    this.keys = [];
+    this._keysMap = {};
     this.setIndexRecords();
   }
   _createClass(FuseIndex, [{
@@ -577,9 +550,9 @@ var FuseIndex = /*#__PURE__*/function () {
 function createIndex(keys, docs) {
   var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
     _ref2$getFn = _ref2.getFn,
-    getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn,
+    getFn = _ref2$getFn === void 0 ? Config$1.getFn : _ref2$getFn,
     _ref2$fieldNormWeight = _ref2.fieldNormWeight,
-    fieldNormWeight = _ref2$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref2$fieldNormWeight;
+    fieldNormWeight = _ref2$fieldNormWeight === void 0 ? Config$1.fieldNormWeight : _ref2$fieldNormWeight;
   var myIndex = new FuseIndex({
     getFn: getFn,
     fieldNormWeight: fieldNormWeight
@@ -592,9 +565,9 @@ function createIndex(keys, docs) {
 function parseIndex(data) {
   var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
     _ref3$getFn = _ref3.getFn,
-    getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn,
+    getFn = _ref3$getFn === void 0 ? Config$1.getFn : _ref3$getFn,
     _ref3$fieldNormWeight = _ref3.fieldNormWeight,
-    fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref3$fieldNormWeight;
+    fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config$1.fieldNormWeight : _ref3$fieldNormWeight;
   var keys = data.keys,
     records = data.records;
   var myIndex = new FuseIndex({
@@ -608,7 +581,7 @@ function parseIndex(data) {
 
 function convertMaskToIndices() {
   var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
+  var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config$1.minMatchCharLength;
   var indices = [];
   var start = -1;
   var end = -1;
@@ -639,19 +612,19 @@ var MAX_BITS = 32;
 function search(text, pattern, patternAlphabet) {
   var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
     _ref$location = _ref.location,
-    location = _ref$location === void 0 ? Config.location : _ref$location,
+    location = _ref$location === void 0 ? Config$1.location : _ref$location,
     _ref$distance = _ref.distance,
-    distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+    distance = _ref$distance === void 0 ? Config$1.distance : _ref$distance,
     _ref$threshold = _ref.threshold,
-    threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+    threshold = _ref$threshold === void 0 ? Config$1.threshold : _ref$threshold,
     _ref$findAllMatches = _ref.findAllMatches,
-    findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+    findAllMatches = _ref$findAllMatches === void 0 ? Config$1.findAllMatches : _ref$findAllMatches,
     _ref$minMatchCharLeng = _ref.minMatchCharLength,
-    minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+    minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config$1.minMatchCharLength : _ref$minMatchCharLeng,
     _ref$includeMatches = _ref.includeMatches,
-    includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+    includeMatches = _ref$includeMatches === void 0 ? Config$1.includeMatches : _ref$includeMatches,
     _ref$ignoreLocation = _ref.ignoreLocation,
-    ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
+    ignoreLocation = _ref$ignoreLocation === void 0 ? Config$1.ignoreLocation : _ref$ignoreLocation;
   if (pattern.length > MAX_BITS) {
     throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
   }
@@ -666,7 +639,7 @@ function search(text, pattern, patternAlphabet) {
   var bestLocation = expectedLocation;
 
   // Inlined score computation — avoids object allocation per call in hot loops.
-  // See ./computeScore.js for the documented version of this formula.
+  // See ./computeScore.ts for the documented version of this formula.
   var calcScore = function calcScore(errors, currentLocation) {
     var accuracy = errors / patternLen;
     if (ignoreLocation) return accuracy;
@@ -822,23 +795,23 @@ var BitapSearch = /*#__PURE__*/function () {
     var _this = this;
     var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
       _ref$location = _ref.location,
-      location = _ref$location === void 0 ? Config.location : _ref$location,
+      location = _ref$location === void 0 ? Config$1.location : _ref$location,
       _ref$threshold = _ref.threshold,
-      threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
+      threshold = _ref$threshold === void 0 ? Config$1.threshold : _ref$threshold,
       _ref$distance = _ref.distance,
-      distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
+      distance = _ref$distance === void 0 ? Config$1.distance : _ref$distance,
       _ref$includeMatches = _ref.includeMatches,
-      includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+      includeMatches = _ref$includeMatches === void 0 ? Config$1.includeMatches : _ref$includeMatches,
       _ref$findAllMatches = _ref.findAllMatches,
-      findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
+      findAllMatches = _ref$findAllMatches === void 0 ? Config$1.findAllMatches : _ref$findAllMatches,
       _ref$minMatchCharLeng = _ref.minMatchCharLength,
-      minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
+      minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config$1.minMatchCharLength : _ref$minMatchCharLeng,
       _ref$isCaseSensitive = _ref.isCaseSensitive,
-      isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
+      isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config$1.isCaseSensitive : _ref$isCaseSensitive,
       _ref$ignoreDiacritics = _ref.ignoreDiacritics,
-      ignoreDiacritics = _ref$ignoreDiacritics === void 0 ? Config.ignoreDiacritics : _ref$ignoreDiacritics,
+      ignoreDiacritics = _ref$ignoreDiacritics === void 0 ? Config$1.ignoreDiacritics : _ref$ignoreDiacritics,
       _ref$ignoreLocation = _ref.ignoreLocation,
-      ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
+      ignoreLocation = _ref$ignoreLocation === void 0 ? Config$1.ignoreLocation : _ref$ignoreLocation;
     _classCallCheck(this, BitapSearch);
     this.options = {
       location: location,
@@ -1038,7 +1011,7 @@ function parse(query, options) {
 
 function computeScoreSingle(result, _ref) {
   var _ref$ignoreFieldNorm = _ref.ignoreFieldNorm,
-    ignoreFieldNorm = _ref$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref$ignoreFieldNorm;
+    ignoreFieldNorm = _ref$ignoreFieldNorm === void 0 ? Config$1.ignoreFieldNorm : _ref$ignoreFieldNorm;
   var totalScore = 1;
   result.matches.forEach(function (_ref2) {
     var key = _ref2.key,
@@ -1053,7 +1026,7 @@ function computeScoreSingle(result, _ref) {
 // Practical scoring function
 function computeScore(results, _ref3) {
   var _ref3$ignoreFieldNorm = _ref3.ignoreFieldNorm,
-    ignoreFieldNorm = _ref3$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref3$ignoreFieldNorm;
+    ignoreFieldNorm = _ref3$ignoreFieldNorm === void 0 ? Config$1.ignoreFieldNorm : _ref3$ignoreFieldNorm;
   results.forEach(function (result) {
     computeScoreSingle(result, {
       ignoreFieldNorm: ignoreFieldNorm
@@ -1168,9 +1141,9 @@ function transformScore(result, data) {
 function format(results, docs) {
   var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
     _ref$includeMatches = _ref.includeMatches,
-    includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
+    includeMatches = _ref$includeMatches === void 0 ? Config$1.includeMatches : _ref$includeMatches,
     _ref$includeScore = _ref.includeScore,
-    includeScore = _ref$includeScore === void 0 ? Config.includeScore : _ref$includeScore;
+    includeScore = _ref$includeScore === void 0 ? Config$1.includeScore : _ref$includeScore;
   var transformers = [];
   if (includeMatches) transformers.push(transformMatches);
   if (includeScore) transformers.push(transformScore);
@@ -1190,15 +1163,17 @@ function format(results, docs) {
 }
 
 var Fuse$1 = /*#__PURE__*/function () {
-  function Fuse(docs) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var index = arguments.length > 2 ? arguments[2] : undefined;
+  // Statics are assigned in entry.ts
+
+  function Fuse(docs, options, index) {
     _classCallCheck(this, Fuse);
-    this.options = _objectSpread2(_objectSpread2({}, Config), options);
+    this.options = _objectSpread2(_objectSpread2({}, Config$1), options);
     if (this.options.useExtendedSearch && !false) {
       throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
     }
     this._keyStore = new KeyStore(this.options.keys);
+    this._docs = docs;
+    this._myIndex = null;
     this.setCollection(docs, index);
     this._lastQuery = null;
     this._lastSearcher = null;
@@ -1238,7 +1213,7 @@ var Fuse$1 = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove() {
-      var predicate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function /* doc, idx */ () {
+      var predicate = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {
         return false;
       };
       var results = [];
@@ -1271,8 +1246,8 @@ var Fuse$1 = /*#__PURE__*/function () {
     }
   }, {
     key: "search",
-    value: function search(query) {
-      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+    value: function search(query, options) {
+      var _ref = options || {},
         _ref$limit = _ref.limit,
         limit = _ref$limit === void 0 ? -1 : _ref$limit;
       var _this$options = this.options,
@@ -1472,12 +1447,12 @@ var Fuse$1 = /*#__PURE__*/function () {
     }
   }]);
   return Fuse;
-}();
+}(); // Re-export for use by _findMatches type
 
 Fuse$1.version = '7.2.0';
 Fuse$1.createIndex = createIndex;
 Fuse$1.parseIndex = parseIndex;
-Fuse$1.config = Config;
+Fuse$1.config = Config$1;
 {
   Fuse$1.parseQuery = parse;
 }
@@ -1490,5 +1465,7 @@ Fuse$1.use = function () {
   });
 };
 var Fuse = Fuse$1;
+
+// Re-export public types
 
 module.exports = Fuse;

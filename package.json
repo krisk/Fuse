@@ -56,6 +56,7 @@
     "dev:esm": "rollup -w -c scripts/configs.cjs --environment TARGET:esm-dev-full",
     "build": "rm -r dist && mkdir dist && node ./scripts/build.main.cjs",
     "test": "vitest run",
+    "typecheck": "tsc -p src/tsconfig.json --noEmit",
     "lint": "eslint src test",
     "release": "./scripts/release.sh",
     "docs:bump": "node ./scripts/bump-docs.cjs",
