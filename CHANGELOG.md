@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.2.0](https://github.com/krisk/Fuse/compare/v7.1.0...v7.2.0) (2026-04-02)
+
+
+### Features
+
+* add `Fuse.use()` for runtime plugin registration ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+
+
+### Performance
+
+* inline Bitap score computation to reduce object allocation in hot loops ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+* batch `removeAll` for O(n) bulk removes instead of O(n*k) ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+* heap-based top-k selection when `limit` is set ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+* cache compiled searcher for repeated queries ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+
+
+### Bug Fixes
+
+* **search:** deduplicate and merge overlapping match indices ([60c393a](https://github.com/krisk/Fuse/commit/60c393a45f75e63ebbecd5e4913d539c8d4a3752)), closes [#735](https://github.com/krisk/Fuse/issues/735)
+* **search:** preserve original array indices in nested path traversal ([a1451be](https://github.com/krisk/Fuse/commit/a1451be8ad46d453799b330f6ad00c58996eb9df)), closes [#786](https://github.com/krisk/Fuse/issues/786)
+* **types:** correct key type in FuseSortFunctionMatch ([fecee16](https://github.com/krisk/Fuse/commit/fecee16f19dd5d8280260854717a9821256f6702)), closes [#811](https://github.com/krisk/Fuse/issues/811)
+* **types:** correct keys type in parseIndex parameter ([58c7c73](https://github.com/krisk/Fuse/commit/58c7c73bb8c015c46f583c7cdac377839f5c61ce)), closes [#794](https://github.com/krisk/Fuse/issues/794)
+
 ## [7.1.0](https://github.com/krisk/Fuse/compare/v7.0.0...v7.1.0) (2025-02-03)
 
 

@@ -1,5 +1,5 @@
 /**
- * Fuse.js v7.1.0 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v7.2.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2026 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
@@ -1496,8 +1496,9 @@ class MaxHeap {
   _sinkDown(i) {
     const heap = this.heap;
     const len = heap.length;
-    while (true) {
-      let largest = i;
+    let largest = i;
+    do {
+      i = largest;
       const left = 2 * i + 1;
       const right = 2 * i + 2;
       if (left < len && heap[left].score > heap[largest].score) {
@@ -1506,12 +1507,12 @@ class MaxHeap {
       if (right < len && heap[right].score > heap[largest].score) {
         largest = right;
       }
-      if (largest === i) break
-      const tmp = heap[i];
-      heap[i] = heap[largest];
-      heap[largest] = tmp;
-      i = largest;
-    }
+      if (largest !== i) {
+        const tmp = heap[i];
+        heap[i] = heap[largest];
+        heap[largest] = tmp;
+      }
+    } while (largest !== i)
   }
 }
 
@@ -1889,7 +1890,7 @@ class Fuse {
   }
 }
 
-Fuse.version = '7.1.0';
+Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
