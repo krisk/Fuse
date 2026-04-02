@@ -92,7 +92,13 @@ declare class Fuse<T> {
 
   public static parseIndex<U>(
     index: {
-      keys: ReadonlyArray<string>
+      keys: ReadonlyArray<{
+        path: string[]
+        id: string
+        weight: number
+        src: string | string[]
+        getFn?: (...args: any[]) => any
+      }>
       records: FuseIndexRecords
     },
     options?: FuseIndexOptions<U>
