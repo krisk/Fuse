@@ -813,6 +813,22 @@ describe('Searching with findAllMatches', () => {
   })
 })
 
+describe('Searching with pattern larger than MAX_BITS should not produce duplicate indices', () => {
+  const list = [{ title: '/images/payment/select-payment-icon.png' }]
+  const fuse = new Fuse(list, { includeMatches: true, keys: ['title'] })
+
+  test('indices are deduplicated and merged when query exceeds 32 chars', () => {
+    const result = fuse.search('images-payment-select-payment-icon')
+    expect(result).toHaveLength(1)
+    const indices = result[0].matches[0].indices
+
+    // Check no duplicates
+    for (let i = 1; i < indices.length; i++) {
+      expect(indices[i][0]).toBeGreaterThan(indices[i - 1][1])
+    }
+  })
+})
+
 describe('Searching with minCharLength', () => {
   const customList = ['t te tes test tes te t']
   let fuse
