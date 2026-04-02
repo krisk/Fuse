@@ -2103,6 +2103,21 @@ var Fuse$1 = /*#__PURE__*/function () {
         value = _ref8.value,
         searcher = _ref8.searcher;
       if (!isDefined(value)) {
+        // For inverse matchers, a missing value should be a match
+        // (e.g., !doe should match when the field is null/undefined)
+        var _searcher$searchIn2 = searcher.searchIn(''),
+          isMatch = _searcher$searchIn2.isMatch,
+          score = _searcher$searchIn2.score,
+          indices = _searcher$searchIn2.indices;
+        if (isMatch) {
+          return [{
+            score: score,
+            key: key,
+            value: '',
+            norm: 1,
+            indices: indices
+          }];
+        }
         return [];
       }
       var matches = [];
@@ -2114,10 +2129,10 @@ var Fuse$1 = /*#__PURE__*/function () {
           if (!isDefined(text)) {
             return;
           }
-          var _searcher$searchIn2 = searcher.searchIn(text),
-            isMatch = _searcher$searchIn2.isMatch,
-            score = _searcher$searchIn2.score,
-            indices = _searcher$searchIn2.indices;
+          var _searcher$searchIn3 = searcher.searchIn(text),
+            isMatch = _searcher$searchIn3.isMatch,
+            score = _searcher$searchIn3.score,
+            indices = _searcher$searchIn3.indices;
           if (isMatch) {
             matches.push({
               score: score,
@@ -2132,17 +2147,17 @@ var Fuse$1 = /*#__PURE__*/function () {
       } else {
         var text = value.v,
           norm = value.n;
-        var _searcher$searchIn3 = searcher.searchIn(text),
-          isMatch = _searcher$searchIn3.isMatch,
-          score = _searcher$searchIn3.score,
-          indices = _searcher$searchIn3.indices;
-        if (isMatch) {
+        var _searcher$searchIn4 = searcher.searchIn(text),
+          _isMatch = _searcher$searchIn4.isMatch,
+          _score = _searcher$searchIn4.score,
+          _indices = _searcher$searchIn4.indices;
+        if (_isMatch) {
           matches.push({
-            score: score,
+            score: _score,
             key: key,
             value: text,
             norm: norm,
-            indices: indices
+            indices: _indices
           });
         }
       }

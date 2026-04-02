@@ -1333,6 +1333,12 @@ class Fuse {
   }
   _findMatches({ key, value, searcher }) {
     if (!isDefined(value)) {
+      // For inverse matchers, a missing value should be a match
+      // (e.g., !doe should match when the field is null/undefined)
+      const { isMatch, score, indices } = searcher.searchIn('');
+      if (isMatch) {
+        return [{ score, key, value: '', norm: 1, indices }]
+      }
       return []
     }
 

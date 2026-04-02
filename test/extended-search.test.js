@@ -152,3 +152,29 @@ describe('Searching using extended search ignoring diactrictics', () => {
     expect(result[0].refIndex).toBe(1)
   })
 })
+
+describe('Inverse match with nullish fields', () => {
+  const items = [
+    { firstName: 'John', lastName: null },
+    { firstName: 'Jack', lastName: undefined },
+    { firstName: 'Jim', lastName: '' },
+    { firstName: 'Jane', lastName: 'Doe' }
+  ]
+  const fuse = new Fuse(items, {
+    keys: ['firstName', 'lastName'],
+    useExtendedSearch: true
+  })
+
+  test('inverse match includes items with null/undefined/empty fields', () => {
+    const result = fuse.search({ lastName: '!doe' })
+    expect(result).toHaveLength(3)
+    const names = result.map((r) => r.item.firstName).sort()
+    expect(names).toEqual(['Jack', 'Jim', 'John'])
+  })
+
+  test('positive match still excludes null/undefined fields', () => {
+    const result = fuse.search({ lastName: "'doe" })
+    expect(result).toHaveLength(1)
+    expect(result[0].item.firstName).toBe('Jane')
+  })
+})
