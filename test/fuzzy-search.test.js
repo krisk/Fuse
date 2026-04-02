@@ -1309,6 +1309,53 @@ describe('Searching ignoring diactrictics', () => {
   })
 })
 
+describe('Searching ignoring non-decomposable diacritics', () => {
+  const list = [
+    { text: 'łódź' },     // Polish city
+    { text: 'straße' },   // German street
+    { text: 'ørsted' },   // Danish name
+    { text: 'đorđe' },    // Serbian name
+    { text: 'ħobż' },     // Maltese bread
+  ]
+
+  const options = {
+    ignoreDiacritics: true,
+    threshold: 0,
+    keys: ['text']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: ł → l (Polish)', () => {
+    const result = fuse.search('lodz')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('łódź')
+  })
+
+  test('Search: ß → ss (German)', () => {
+    const result = fuse.search('strasse')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('straße')
+  })
+
+  test('Search: ø → o (Danish)', () => {
+    const result = fuse.search('orsted')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('ørsted')
+  })
+
+  test('Search: đ → d (Serbian)', () => {
+    const result = fuse.search('dorde')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('đorđe')
+  })
+
+  test('Search: ħ → h (Maltese)', () => {
+    const result = fuse.search('hobz')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('ħobż')
+  })
+})
+
 // Issue #813: threshold should filter results by score
 describe('Threshold filtering', () => {
   const list = [
