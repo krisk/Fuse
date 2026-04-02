@@ -353,14 +353,17 @@ class FuseIndex {
               };
               subRecords.push(subRecord);
             }
-          } else if (isString(item.v) && !isBlank(item.v)) {
+          } else if (isDefined(item.v)) {
             // Default get() returns {v, i} objects with original array indices
-            const subRecord = {
-              v: item.v,
-              i: item.i,
-              n: this.norm.get(item.v)
-            };
-            subRecords.push(subRecord);
+            const text = isString(item.v) ? item.v : toString(item.v);
+            if (!isBlank(text)) {
+              const subRecord = {
+                v: text,
+                i: item.i,
+                n: this.norm.get(text)
+              };
+              subRecords.push(subRecord);
+            }
           }
         }
         record.$[keyIndex] = subRecords;

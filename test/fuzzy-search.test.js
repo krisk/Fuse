@@ -1346,6 +1346,18 @@ describe('Threshold filtering', () => {
     expect(results[0].item.name).toBe('Simple Storage Service')
   })
 
+  test('number arrays are searchable', () => {
+    const list = [
+      { name: 'item1', years: [2022, 2023] },
+      { name: 'item2', years: [2024] },
+      { name: 'item3', years: [2025, 2026] }
+    ]
+    const fuse = new Fuse(list, { keys: ['years'] })
+    const results = fuse.search('2024')
+    expect(results.length).toBeGreaterThan(0)
+    expect(results[0].item.name).toBe('item2')
+  })
+
   test('threshold=0 only returns exact matches', () => {
     const fuse = new Fuse(['apple', 'application', 'apply'], {
       includeScore: true,

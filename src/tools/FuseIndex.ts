@@ -1,4 +1,4 @@
-import { isArray, isDefined, isString, isBlank } from '../helpers/types'
+import { isArray, isDefined, isString, isBlank, toString } from '../helpers/types'
 import Config from '../core/config'
 import normGenerator from './norm'
 import { createKey } from './KeyStore'
@@ -148,15 +148,18 @@ export default class FuseIndex<T = any> {
 
               subRecords.push(subRecord)
             }
-          } else if (isString(item.v) && !isBlank(item.v)) {
+          } else if (isDefined(item.v)) {
             // Default get() returns {v, i} objects with original array indices
-            const subRecord: SubRecord = {
-              v: item.v,
-              i: item.i,
-              n: this.norm.get(item.v)
-            }
+            const text = isString(item.v) ? item.v : toString(item.v)
+            if (!isBlank(text)) {
+              const subRecord: SubRecord = {
+                v: text,
+                i: item.i,
+                n: this.norm.get(text)
+              }
 
-            subRecords.push(subRecord)
+              subRecords.push(subRecord)
+            }
           }
         }
         record.$![keyIndex] = subRecords

@@ -521,14 +521,17 @@
                   };
                   subRecords.push(subRecord);
                 }
-              } else if (isString(item.v) && !isBlank(item.v)) {
+              } else if (isDefined(item.v)) {
                 // Default get() returns {v, i} objects with original array indices
-                var _subRecord = {
-                  v: item.v,
-                  i: item.i,
-                  n: _this3.norm.get(item.v)
-                };
-                subRecords.push(_subRecord);
+                var text = isString(item.v) ? item.v : toString(item.v);
+                if (!isBlank(text)) {
+                  var _subRecord = {
+                    v: text,
+                    i: item.i,
+                    n: _this3.norm.get(text)
+                  };
+                  subRecords.push(_subRecord);
+                }
               }
             }
             record.$[keyIndex] = subRecords;
