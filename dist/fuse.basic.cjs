@@ -262,13 +262,16 @@ function createKeyId(key) {
 function get(obj, path) {
   var list = [];
   var arr = false;
-  var deepGet = function deepGet(obj, path, index) {
+  var deepGet = function deepGet(obj, path, index, arrayIndex) {
     if (!isDefined(obj)) {
       return;
     }
     if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
-      list.push(obj);
+      list.push(arrayIndex !== undefined ? {
+        v: obj,
+        i: arrayIndex
+      } : obj);
     } else {
       var key = path[index];
       var value = obj[key];
@@ -279,16 +282,19 @@ function get(obj, path) {
       // If we're at the last value in the path, and if it's a string/number/bool,
       // add it to the list
       if (index === path.length - 1 && (isString(value) || isNumber(value) || isBoolean(value))) {
-        list.push(toString(value));
+        list.push(arrayIndex !== undefined ? {
+          v: toString(value),
+          i: arrayIndex
+        } : toString(value));
       } else if (isArray(value)) {
         arr = true;
         // Search each item in the array.
         for (var i = 0, len = value.length; i < len; i += 1) {
-          deepGet(value[i], path, index + 1);
+          deepGet(value[i], path, index + 1, i);
         }
       } else if (path.length) {
         // An object. Recurse further.
-        deepGet(value, path, index + 1);
+        deepGet(value, path, index + 1, arrayIndex);
       }
     }
   };
@@ -521,40 +527,38 @@ var FuseIndex = /*#__PURE__*/function () {
         }
         if (isArray(value)) {
           var subRecords = [];
-          var stack = [{
-            nestedArrIndex: -1,
-            value: value
-          }];
-          while (stack.length) {
-            var _stack$pop = stack.pop(),
-              nestedArrIndex = _stack$pop.nestedArrIndex,
-              _value = _stack$pop.value;
-            if (!isDefined(_value)) {
+          for (var i = 0, len = value.length; i < len; i += 1) {
+            var item = value[i];
+            if (!isDefined(item)) {
               continue;
             }
-            if (isString(_value) && !isBlank(_value)) {
-              var subRecord = {
-                v: _value,
-                i: nestedArrIndex,
-                n: _this3.norm.get(_value)
+            if (isString(item)) {
+              // Custom getFn returning plain string array (backward compat)
+              if (!isBlank(item)) {
+                var subRecord = {
+                  v: item,
+                  i: i,
+                  n: _this3.norm.get(item)
+                };
+                subRecords.push(subRecord);
+              }
+            } else if (isString(item.v) && !isBlank(item.v)) {
+              // Default get() returns {v, i} objects with original array indices
+              var _subRecord = {
+                v: item.v,
+                i: item.i,
+                n: _this3.norm.get(item.v)
               };
-              subRecords.push(subRecord);
-            } else if (isArray(_value)) {
-              _value.forEach(function (item, k) {
-                stack.push({
-                  nestedArrIndex: k,
-                  value: item
-                });
-              });
-            } else ;
+              subRecords.push(_subRecord);
+            }
           }
           record.$[keyIndex] = subRecords;
         } else if (isString(value) && !isBlank(value)) {
-          var _subRecord = {
+          var _subRecord2 = {
             v: value,
             n: _this3.norm.get(value)
           };
-          record.$[keyIndex] = _subRecord;
+          record.$[keyIndex] = _subRecord2;
         }
       });
       this.records.push(record);

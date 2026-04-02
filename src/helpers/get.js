@@ -11,13 +11,13 @@ export default function get(obj, path) {
   let list = []
   let arr = false
 
-  const deepGet = (obj, path, index) => {
+  const deepGet = (obj, path, index, arrayIndex) => {
     if (!isDefined(obj)) {
       return
     }
     if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
-      list.push(obj)
+      list.push(arrayIndex !== undefined ? { v: obj, i: arrayIndex } : obj)
     } else {
       let key = path[index]
 
@@ -33,16 +33,20 @@ export default function get(obj, path) {
         index === path.length - 1 &&
         (isString(value) || isNumber(value) || isBoolean(value))
       ) {
-        list.push(toString(value))
+        list.push(
+          arrayIndex !== undefined
+            ? { v: toString(value), i: arrayIndex }
+            : toString(value)
+        )
       } else if (isArray(value)) {
         arr = true
         // Search each item in the array.
         for (let i = 0, len = value.length; i < len; i += 1) {
-          deepGet(value[i], path, index + 1)
+          deepGet(value[i], path, index + 1, i)
         }
       } else if (path.length) {
         // An object. Recurse further.
-        deepGet(value, path, index + 1)
+        deepGet(value, path, index + 1, arrayIndex)
       }
     }
   }

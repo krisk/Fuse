@@ -170,13 +170,13 @@ function get(obj, path) {
   let list = [];
   let arr = false;
 
-  const deepGet = (obj, path, index) => {
+  const deepGet = (obj, path, index, arrayIndex) => {
     if (!isDefined(obj)) {
       return
     }
     if (!path[index]) {
       // If there's no path left, we've arrived at the object we care about.
-      list.push(obj);
+      list.push(arrayIndex !== undefined ? { v: obj, i: arrayIndex } : obj);
     } else {
       let key = path[index];
 
@@ -192,16 +192,20 @@ function get(obj, path) {
         index === path.length - 1 &&
         (isString(value) || isNumber(value) || isBoolean(value))
       ) {
-        list.push(toString(value));
+        list.push(
+          arrayIndex !== undefined
+            ? { v: toString(value), i: arrayIndex }
+            : toString(value)
+        );
       } else if (isArray(value)) {
         arr = true;
         // Search each item in the array.
         for (let i = 0, len = value.length; i < len; i += 1) {
-          deepGet(value[i], path, index + 1);
+          deepGet(value[i], path, index + 1, i);
         }
       } else if (path.length) {
         // An object. Recurse further.
-        deepGet(value, path, index + 1);
+        deepGet(value, path, index + 1, arrayIndex);
       }
     }
   };
@@ -419,31 +423,35 @@ class FuseIndex {
 
       if (isArray(value)) {
         let subRecords = [];
-        const stack = [{ nestedArrIndex: -1, value }];
 
-        while (stack.length) {
-          const { nestedArrIndex, value } = stack.pop();
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          const item = value[i];
 
-          if (!isDefined(value)) {
+          if (!isDefined(item)) {
             continue
           }
 
-          if (isString(value) && !isBlank(value)) {
+          if (isString(item)) {
+            // Custom getFn returning plain string array (backward compat)
+            if (!isBlank(item)) {
+              let subRecord = {
+                v: item,
+                i: i,
+                n: this.norm.get(item)
+              };
+
+              subRecords.push(subRecord);
+            }
+          } else if (isString(item.v) && !isBlank(item.v)) {
+            // Default get() returns {v, i} objects with original array indices
             let subRecord = {
-              v: value,
-              i: nestedArrIndex,
-              n: this.norm.get(value)
+              v: item.v,
+              i: item.i,
+              n: this.norm.get(item.v)
             };
 
             subRecords.push(subRecord);
-          } else if (isArray(value)) {
-            value.forEach((item, k) => {
-              stack.push({
-                nestedArrIndex: k,
-                value: item
-              });
-            });
-          } else ;
+          }
         }
         record.$[keyIndex] = subRecords;
       } else if (isString(value) && !isBlank(value)) {

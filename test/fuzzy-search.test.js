@@ -406,6 +406,47 @@ describe('Recurse into objects in arrays with null object in array', () => {
   })
 })
 
+describe('Recurse into arrays with empty/undefined elements', () => {
+  test('refIndex is correct when array has undefined gaps', () => {
+    const list = [{ tags: ['alpha', 'beta', undefined, 'delta'] }]
+    const fuse = new Fuse(list, {
+      keys: ['tags'],
+      threshold: 0,
+      includeMatches: true
+    })
+    const result = fuse.search('delta')
+    expect(result).toHaveLength(1)
+    expect(result[0].matches[0]).toMatchObject({
+      value: 'delta',
+      key: 'tags',
+      refIndex: 3
+    })
+  })
+
+  test('refIndex is correct when nested content array is empty', () => {
+    const list = [{
+      blocks: [
+        { content: [{ text: 'first' }] },
+        { content: [] },
+        { content: [{ text: 'third' }] },
+      ]
+    }]
+    const fuse = new Fuse(list, {
+      keys: ['blocks.content.text'],
+      threshold: 0,
+      includeMatches: true
+    })
+    const result = fuse.search('third')
+    expect(result).toHaveLength(1)
+    // refIndex is the innermost array index (position within content[])
+    expect(result[0].matches[0]).toMatchObject({
+      value: 'third',
+      key: 'blocks.content.text',
+      refIndex: 0
+    })
+  })
+})
+
 describe('Recurse into objects in arrays', () => {
   const customBookList = [
     {

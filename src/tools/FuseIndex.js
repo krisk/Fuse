@@ -110,33 +110,34 @@ export default class FuseIndex {
 
       if (isArray(value)) {
         let subRecords = []
-        const stack = [{ nestedArrIndex: -1, value }]
 
-        while (stack.length) {
-          const { nestedArrIndex, value } = stack.pop()
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          const item = value[i]
 
-          if (!isDefined(value)) {
+          if (!isDefined(item)) {
             continue
           }
 
-          if (isString(value) && !isBlank(value)) {
+          if (isString(item)) {
+            // Custom getFn returning plain string array (backward compat)
+            if (!isBlank(item)) {
+              let subRecord = {
+                v: item,
+                i: i,
+                n: this.norm.get(item)
+              }
+
+              subRecords.push(subRecord)
+            }
+          } else if (isString(item.v) && !isBlank(item.v)) {
+            // Default get() returns {v, i} objects with original array indices
             let subRecord = {
-              v: value,
-              i: nestedArrIndex,
-              n: this.norm.get(value)
+              v: item.v,
+              i: item.i,
+              n: this.norm.get(item.v)
             }
 
             subRecords.push(subRecord)
-          } else if (isArray(value)) {
-            value.forEach((item, k) => {
-              stack.push({
-                nestedArrIndex: k,
-                value: item
-              })
-            })
-          } else {
-            // If we're here, the `path` is either incorrect, or pointing to a non-string.
-            // console.error(new Error(`Path "${key}" points to a non-string value. Received: ${value}`))
           }
         }
         record.$[keyIndex] = subRecords
