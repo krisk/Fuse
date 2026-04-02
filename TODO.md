@@ -4,16 +4,16 @@ Triaged from stale-closed issues (April 2026). Items are roughly priority-ordere
 
 ## Bugs
 
-- [ ] #798 — `toJSON()` includes `getFn` functions in keys, breaking serialization to IndexedDB
-- [ ] #712 — `!` exclusion in extended search doesn't work properly across multiple keys
-- [ ] #730 — Leading space in search pattern drastically changes the score
-- [ ] #762 — `threshold: 0` with `ignoreLocation: true` returns non-perfect matches
-- [ ] #764 — `minMatchCharLength` does not filter results as expected
-- [ ] #785 — Incorrect `refIndex` for nested array field matches
-- [ ] #781 — Match indices include leading spaces when query contains spaces
-- [ ] #778 — Duplicate indices in match results on long strings
-- [ ] #761 — Indices incorrect when search pattern contains parentheses
-- [ ] #725 — Multi-word search ranks non-matching item equal to correct match
+- [x] #798 — `toJSON()` includes `getFn` functions in keys, breaking serialization — **fixed**
+- [ ] #712 — `!` exclusion in extended search doesn't work properly across multiple keys — architectural issue, needs design work
+- [ ] #762 — Bitap match mask flags characters from the pattern alphabet across the entire text, producing noisy indices — root cause of #781, #778, #761
+- [ ] #781 — Match indices include leading spaces when query contains spaces — same root cause as #762
+- [x] #730 — Leading space in search pattern changes score — **not a bug**, space is part of the pattern
+- [x] #764 — `minMatchCharLength` not filtering — **not a bug**, filters by match span length, not item length
+- [x] #785 — Incorrect `refIndex` for nested arrays — **cannot reproduce** on v7.2.0
+- [x] #778 — Duplicate indices on long strings — **cannot reproduce** on v7.2.0
+- [x] #761 — Indices wrong with parentheses — **cannot reproduce** on v7.2.0
+- [x] #725 — Multi-word ranking — **not a bug**, expected Bitap character-level behavior
 
 ## Features
 
