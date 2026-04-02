@@ -1251,3 +1251,53 @@ describe('Searching ignoring diactrictics', () => {
     expect(result[0].refIndex).toBe(1)
   })
 })
+
+// Issue #813: threshold should filter results by score
+describe('Threshold filtering', () => {
+  const list = [
+    { name: 'Simple Storage Service' },
+    { name: 'Elastic File System' }
+  ]
+
+  test('results with score > threshold are excluded (ignoreLocation: true)', () => {
+    const fuse = new Fuse(list, {
+      keys: ['name'],
+      includeScore: true,
+      threshold: 0.3,
+      ignoreLocation: true
+    })
+    const results = fuse.search('Simple Storage Service')
+    results.forEach((r) => {
+      expect(r.score).toBeLessThanOrEqual(0.3)
+    })
+    expect(results.length).toBe(1)
+    expect(results[0].item.name).toBe('Simple Storage Service')
+  })
+
+  test('results with score > threshold are excluded (distance: 500)', () => {
+    const fuse = new Fuse(list, {
+      keys: ['name'],
+      includeScore: true,
+      threshold: 0.3,
+      distance: 500
+    })
+    const results = fuse.search('Simple Storage Service')
+    results.forEach((r) => {
+      expect(r.score).toBeLessThanOrEqual(0.3)
+    })
+    expect(results.length).toBe(1)
+    expect(results[0].item.name).toBe('Simple Storage Service')
+  })
+
+  test('threshold=0 only returns exact matches', () => {
+    const fuse = new Fuse(['apple', 'application', 'apply'], {
+      includeScore: true,
+      threshold: 0
+    })
+    const results = fuse.search('apple')
+    expect(results.length).toBe(1)
+    results.forEach((r) => {
+      expect(r.score).toBeLessThanOrEqual(0.001)
+    })
+  })
+})

@@ -158,7 +158,13 @@ export type FuseSortFunctionItem = {
  */
 export type FuseSortFunctionMatch = {
   score: number
-  key: string
+  key: {
+    path: string[]
+    id: string
+    weight: number
+    src: string | string[]
+    getFn?: (...args: any[]) => any
+  }
   value: string
   indices: ReadonlyArray<number>[]
 }
