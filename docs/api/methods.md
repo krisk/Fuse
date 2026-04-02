@@ -89,4 +89,43 @@ console.log(fuse.getIndex().size())
 // => 4
 ```
 
+### `Fuse.use`
+
+Register a custom searcher plugin at runtime. This allows you to extend Fuse.js with custom search logic without relying on build-time feature flags.
+
+```js
+import Fuse from 'fuse.js/basic'
+import { ExtendedSearch } from 'fuse.js'
+
+// Register the extended search plugin at runtime
+Fuse.use(ExtendedSearch)
+
+const fuse = new Fuse(list, {
+  useExtendedSearch: true,
+  keys: ['title']
+})
+```
+
+A custom searcher must implement:
+
+- A static `condition(pattern, options)` method that returns `true` when the searcher should be used.
+- A `searchIn(text)` method that returns `{ isMatch, score, indices }`.
+
+```js
+class MySearcher {
+  constructor(pattern, options) {
+    this.pattern = pattern
+  }
+  static condition(pattern, options) {
+    return options.useMySearcher
+  }
+  searchIn(text) {
+    const isMatch = /* your matching logic */
+    return { isMatch, score: isMatch ? 0 : 1, indices: [] }
+  }
+}
+
+Fuse.use(MySearcher)
+```
+
 <Donate />
