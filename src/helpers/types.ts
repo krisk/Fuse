@@ -11,7 +11,7 @@ export function baseToString(value: unknown): string {
   if (typeof value == 'string') {
     return value
   }
-  let result = value + ''
+  const result = value + ''
   return result == '0' && 1 / (value as number) == -INFINITY ? '-0' : result
 }
 

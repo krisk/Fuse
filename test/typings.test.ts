@@ -11,7 +11,7 @@ const defaultOptions: IFuseOptions<PokedexType> = {
 
 describe('Search with typings', () => {
   test('When searching by number', () => {
-    let pokeFuse = new Fuse(BattlePokedex, defaultOptions)
+    const pokeFuse = new Fuse(BattlePokedex, defaultOptions)
 
     const pokemon = '2'
     const firstSearch = pokeFuse.search(pokemon)
@@ -91,7 +91,7 @@ describe('Logical search results', () => {
   const fuse = new Fuse(list, options)
 
   test('Search: AND with multiple entries + exact match', () => {
-    let result = fuse.search({
+    const result = fuse.search({
       $and: [{ name: 'Woodhose' }, { title: "'The" }]
     })
     expect(result.length).toBe(1)
