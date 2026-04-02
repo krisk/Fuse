@@ -111,6 +111,26 @@
     }
     return e;
   }
+  function _objectWithoutProperties(e, t) {
+    if (null == e) return {};
+    var o,
+      r,
+      i = _objectWithoutPropertiesLoose(e, t);
+    if (Object.getOwnPropertySymbols) {
+      var n = Object.getOwnPropertySymbols(e);
+      for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]);
+    }
+    return i;
+  }
+  function _objectWithoutPropertiesLoose(r, e) {
+    if (null == r) return {};
+    var t = {};
+    for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+      if (-1 !== e.indexOf(n)) continue;
+      t[n] = r[n];
+    }
+    return t;
+  }
   function _possibleConstructorReturn(t, e) {
     if (e && ("object" == typeof e || "function" == typeof e)) return e;
     if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined");
@@ -398,6 +418,7 @@
     };
   }
 
+  var _excluded = ["getFn"];
   var FuseIndex = /*#__PURE__*/function () {
     function FuseIndex() {
       var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
@@ -574,7 +595,11 @@
       key: "toJSON",
       value: function toJSON() {
         return {
-          keys: this.keys,
+          keys: this.keys.map(function (_ref2) {
+            _ref2.getFn;
+              var key = _objectWithoutProperties(_ref2, _excluded);
+            return key;
+          }),
           records: this.records
         };
       }
@@ -582,11 +607,11 @@
     return FuseIndex;
   }();
   function createIndex(keys, docs) {
-    var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-      _ref2$getFn = _ref2.getFn,
-      getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn,
-      _ref2$fieldNormWeight = _ref2.fieldNormWeight,
-      fieldNormWeight = _ref2$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref2$fieldNormWeight;
+    var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      _ref3$getFn = _ref3.getFn,
+      getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn,
+      _ref3$fieldNormWeight = _ref3.fieldNormWeight,
+      fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref3$fieldNormWeight;
     var myIndex = new FuseIndex({
       getFn: getFn,
       fieldNormWeight: fieldNormWeight
@@ -597,11 +622,11 @@
     return myIndex;
   }
   function parseIndex(data) {
-    var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-      _ref3$getFn = _ref3.getFn,
-      getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn,
-      _ref3$fieldNormWeight = _ref3.fieldNormWeight,
-      fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref3$fieldNormWeight;
+    var _ref4 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref4$getFn = _ref4.getFn,
+      getFn = _ref4$getFn === void 0 ? Config.getFn : _ref4$getFn,
+      _ref4$fieldNormWeight = _ref4.fieldNormWeight,
+      fieldNormWeight = _ref4$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref4$fieldNormWeight;
     var keys = data.keys,
       records = data.records;
     var myIndex = new FuseIndex({

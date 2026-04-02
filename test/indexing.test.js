@@ -74,6 +74,29 @@ describe('Searching', () => {
     expect(idx(result)).toMatchObject([0])
   })
 
+  test('toJSON: strips getFn from keys for serialization', () => {
+    const myIndex = Fuse.createIndex(
+      [
+        { name: 'title', getFn: (book) => book.title },
+        { name: 'author.firstName' }
+      ],
+      Books
+    )
+    const data = myIndex.toJSON()
+
+    // getFn should not appear in any key
+    data.keys.forEach((key) => {
+      expect(key).not.toHaveProperty('getFn')
+    })
+
+    // Should be safe to serialize (no functions)
+    expect(() => JSON.parse(JSON.stringify(data))).not.toThrow()
+
+    // Should still be parseable
+    const parsedIndex = Fuse.parseIndex(data)
+    expect(parsedIndex.size()).toBe(Books.length)
+  })
+
   test('Fuse can be instantiated with an index', () => {
     let myIndex = Fuse.createIndex(options.keys, Books)
     const fuse = new Fuse(Books, options, myIndex)

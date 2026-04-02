@@ -190,7 +190,7 @@ declare class FuseIndex<T = any> {
     _addString(doc: string, docIndex: number): void;
     _addObject(doc: any, docIndex: number): void;
     toJSON(): {
-        keys: ReadonlyArray<KeyObject>;
+        keys: ReadonlyArray<Omit<KeyObject, 'getFn'>>;
         records: IndexRecord[];
     };
 }

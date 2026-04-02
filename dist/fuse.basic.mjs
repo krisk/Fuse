@@ -378,7 +378,10 @@ class FuseIndex {
   }
   toJSON() {
     return {
-      keys: this.keys,
+      keys: this.keys.map(({
+        getFn,
+        ...key
+      }) => key),
       records: this.records
     };
   }

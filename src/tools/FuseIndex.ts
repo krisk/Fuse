@@ -173,11 +173,11 @@ export default class FuseIndex<T = any> {
     this.records.push(record)
   }
   toJSON(): {
-    keys: ReadonlyArray<KeyObject>
+    keys: ReadonlyArray<Omit<KeyObject, 'getFn'>>
     records: IndexRecord[]
   } {
     return {
-      keys: this.keys,
+      keys: this.keys.map(({ getFn, ...key }) => key),
       records: this.records
     }
   }
