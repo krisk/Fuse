@@ -1,4 +1,3 @@
-import computeScore from './computeScore'
 import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
 import { MAX_BITS } from './constants'
@@ -32,6 +31,16 @@ export default function search(
   // Is there a nearby exact match? (speedup)
   let bestLocation = expectedLocation
 
+  // Inlined score computation — avoids object allocation per call in hot loops.
+  // See ./computeScore.js for the documented version of this formula.
+  const calcScore = (errors, currentLocation) => {
+    const accuracy = errors / patternLen
+    if (ignoreLocation) return accuracy
+    const proximity = Math.abs(expectedLocation - currentLocation)
+    if (!distance) return proximity ? 1.0 : accuracy
+    return accuracy + proximity / distance
+  }
+
   // Performance: only computer matches when the minMatchCharLength > 1
   // OR if `includeMatches` is true.
   const computeMatches = minMatchCharLength > 1 || includeMatches
@@ -42,12 +51,7 @@ export default function search(
 
   // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-    let score = computeScore(pattern, {
-      currentLocation: index,
-      expectedLocation,
-      distance,
-      ignoreLocation
-    })
+    let score = calcScore(0, index)
 
     currentThreshold = Math.min(score, currentThreshold)
     bestLocation = index + patternLen
@@ -78,13 +82,7 @@ export default function search(
     let binMid = binMax
 
     while (binMin < binMid) {
-      const score = computeScore(pattern, {
-        errors: i,
-        currentLocation: expectedLocation + binMid,
-        expectedLocation,
-        distance,
-        ignoreLocation
-      })
+      const score = calcScore(i, expectedLocation + binMid)
 
       if (score <= currentThreshold) {
         binMin = binMid
@@ -110,7 +108,7 @@ export default function search(
 
     for (let j = finish; j >= start; j -= 1) {
       let currentLocation = j - 1
-      let charMatch = patternAlphabet[text.charAt(currentLocation)]
+      let charMatch = patternAlphabet[text[currentLocation]]
 
       if (computeMatches) {
         // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
@@ -127,13 +125,7 @@ export default function search(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = computeScore(pattern, {
-          errors: i,
-          currentLocation,
-          expectedLocation,
-          distance,
-          ignoreLocation
-        })
+        finalScore = calcScore(i, currentLocation)
 
         // This match will almost certainly be better than any existing match.
         // But check anyway.
@@ -154,13 +146,7 @@ export default function search(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = computeScore(pattern, {
-      errors: i + 1,
-      currentLocation: expectedLocation,
-      expectedLocation,
-      distance,
-      ignoreLocation
-    })
+    const score = calcScore(i + 1, expectedLocation)
 
     if (score > currentThreshold) {
       break

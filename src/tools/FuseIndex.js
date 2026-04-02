@@ -67,6 +67,17 @@ export default class FuseIndex {
       this.records[i].i -= 1
     }
   }
+  // Removes docs at the specified indices (must be sorted ascending)
+  removeAll(indices) {
+    // Remove in reverse order to avoid index shifting during splice
+    for (let i = indices.length - 1; i >= 0; i -= 1) {
+      this.records.splice(indices[i], 1)
+    }
+    // Single re-index pass
+    for (let i = 0, len = this.records.length; i < len; i += 1) {
+      this.records[i].i = i
+    }
+  }
   getValueForItemAtKeyId(item, keyId) {
     return item[this._keysMap[keyId]]
   }

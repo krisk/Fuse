@@ -4,7 +4,8 @@ import FuseIndex, { createIndex } from '../tools/FuseIndex'
 import { LogicalOperator, parse } from './queryParser'
 import { createSearcher } from './register'
 import Config from './config'
-import computeScore from './computeScore'
+import computeScore, { computeScoreSingle } from './computeScore'
+import MaxHeap from '../tools/MaxHeap'
 import format from './format'
 import * as ErrorMsg from './errorMessages'
 
@@ -22,6 +23,19 @@ export default class Fuse {
     this._keyStore = new KeyStore(this.options.keys)
 
     this.setCollection(docs, index)
+
+    this._lastQuery = null
+    this._lastSearcher = null
+  }
+
+  _getSearcher(query) {
+    if (this._lastQuery === query) {
+      return this._lastSearcher
+    }
+    const searcher = createSearcher(query, this.options)
+    this._lastQuery = query
+    this._lastSearcher = searcher
+    return searcher
   }
 
   setCollection(docs, index) {
@@ -50,16 +64,21 @@ export default class Fuse {
 
   remove(predicate = (/* doc, idx */) => false) {
     const results = []
+    const indicesToRemove = []
 
     for (let i = 0, len = this._docs.length; i < len; i += 1) {
-      const doc = this._docs[i]
-      if (predicate(doc, i)) {
-        this.removeAt(i)
-        i -= 1
-        len -= 1
-
-        results.push(doc)
+      if (predicate(this._docs[i], i)) {
+        results.push(this._docs[i])
+        indicesToRemove.push(i)
       }
+    }
+
+    if (indicesToRemove.length) {
+      // Remove from docs in reverse to preserve indices
+      for (let i = indicesToRemove.length - 1; i >= 0; i -= 1) {
+        this._docs.splice(indicesToRemove[i], 1)
+      }
+      this._myIndex.removeAll(indicesToRemove)
     }
 
     return results
@@ -83,20 +102,34 @@ export default class Fuse {
       ignoreFieldNorm
     } = this.options
 
-    let results = isString(query)
-      ? isString(this._docs[0])
-        ? this._searchStringList(query)
-        : this._searchObjectList(query)
-      : this._searchLogical(query)
+    const useHeap = isNumber(limit) && limit > 0 && isString(query)
 
-    computeScore(results, { ignoreFieldNorm })
+    let results
 
-    if (shouldSort) {
-      results.sort(sortFn)
-    }
+    if (useHeap) {
+      const heap = new MaxHeap(limit)
+      if (isString(this._docs[0])) {
+        this._searchStringList(query, { heap, ignoreFieldNorm })
+      } else {
+        this._searchObjectList(query, { heap, ignoreFieldNorm })
+      }
+      results = heap.extractSorted(sortFn)
+    } else {
+      results = isString(query)
+        ? isString(this._docs[0])
+          ? this._searchStringList(query)
+          : this._searchObjectList(query)
+        : this._searchLogical(query)
 
-    if (isNumber(limit) && limit > -1) {
-      results = results.slice(0, limit)
+      computeScore(results, { ignoreFieldNorm })
+
+      if (shouldSort) {
+        results.sort(sortFn)
+      }
+
+      if (isNumber(limit) && limit > -1) {
+        results = results.slice(0, limit)
+      }
     }
 
     return format(results, this._docs, {
@@ -105,10 +138,10 @@ export default class Fuse {
     })
   }
 
-  _searchStringList(query) {
-    const searcher = createSearcher(query, this.options)
+  _searchStringList(query, { heap, ignoreFieldNorm } = {}) {
+    const searcher = this._getSearcher(query)
     const { records } = this._myIndex
-    const results = []
+    const results = heap ? null : []
 
     // Iterate over every string in the index
     records.forEach(({ v: text, i: idx, n: norm }) => {
@@ -119,11 +152,20 @@ export default class Fuse {
       const { isMatch, score, indices } = searcher.searchIn(text)
 
       if (isMatch) {
-        results.push({
+        const result = {
           item: text,
           idx,
           matches: [{ score, value: text, norm, indices }]
-        })
+        }
+
+        if (heap) {
+          computeScoreSingle(result, { ignoreFieldNorm })
+          if (heap.shouldInsert(result.score)) {
+            heap.insert(result)
+          }
+        } else {
+          results.push(result)
+        }
       }
     })
 
@@ -174,7 +216,7 @@ export default class Fuse {
     }
 
     const records = this._myIndex.records
-    const resultMap = {}
+    const resultMap = new Map()
     const results = []
 
     records.forEach(({ $: item, i: idx }) => {
@@ -183,12 +225,12 @@ export default class Fuse {
 
         if (expResults.length) {
           // Dedupe when adding
-          if (!resultMap[idx]) {
-            resultMap[idx] = { idx, item, matches: [] }
-            results.push(resultMap[idx])
+          if (!resultMap.has(idx)) {
+            resultMap.set(idx, { idx, item, matches: [] })
+            results.push(resultMap.get(idx))
           }
           expResults.forEach(({ matches }) => {
-            resultMap[idx].matches.push(...matches)
+            resultMap.get(idx).matches.push(...matches)
           })
         }
       }
@@ -197,10 +239,10 @@ export default class Fuse {
     return results
   }
 
-  _searchObjectList(query) {
-    const searcher = createSearcher(query, this.options)
+  _searchObjectList(query, { heap, ignoreFieldNorm } = {}) {
+    const searcher = this._getSearcher(query)
     const { keys, records } = this._myIndex
-    const results = []
+    const results = heap ? null : []
 
     // List is Array<Object>
     records.forEach(({ $: item, i: idx }) => {
@@ -222,11 +264,16 @@ export default class Fuse {
       })
 
       if (matches.length) {
-        results.push({
-          idx,
-          item,
-          matches
-        })
+        const result = { idx, item, matches }
+
+        if (heap) {
+          computeScoreSingle(result, { ignoreFieldNorm })
+          if (heap.shouldInsert(result.score)) {
+            heap.insert(result)
+          }
+        } else {
+          results.push(result)
+        }
       }
     })
 

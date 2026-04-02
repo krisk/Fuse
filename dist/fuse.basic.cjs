@@ -1,7 +1,7 @@
 /**
  * Fuse.js v7.1.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
- * Copyright (c) 2025 Kiro Risk (http://kiro.me)
+ * Copyright (c) 2026 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -468,6 +468,19 @@ var FuseIndex = /*#__PURE__*/function () {
         this.records[i].i -= 1;
       }
     }
+    // Removes docs at the specified indices (must be sorted ascending)
+  }, {
+    key: "removeAll",
+    value: function removeAll(indices) {
+      // Remove in reverse order to avoid index shifting during splice
+      for (var i = indices.length - 1; i >= 0; i -= 1) {
+        this.records.splice(indices[i], 1);
+      }
+      // Single re-index pass
+      for (var _i = 0, len = this.records.length; _i < len; _i += 1) {
+        this.records[_i].i = _i;
+      }
+    }
   }, {
     key: "getValueForItemAtKeyId",
     value: function getValueForItemAtKeyId(item, keyId) {
@@ -589,30 +602,6 @@ function parseIndex(data) {
   return myIndex;
 }
 
-function computeScore$1(pattern) {
-  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-    _ref$errors = _ref.errors,
-    errors = _ref$errors === void 0 ? 0 : _ref$errors,
-    _ref$currentLocation = _ref.currentLocation,
-    currentLocation = _ref$currentLocation === void 0 ? 0 : _ref$currentLocation,
-    _ref$expectedLocation = _ref.expectedLocation,
-    expectedLocation = _ref$expectedLocation === void 0 ? 0 : _ref$expectedLocation,
-    _ref$distance = _ref.distance,
-    distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
-    _ref$ignoreLocation = _ref.ignoreLocation,
-    ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
-  var accuracy = errors / pattern.length;
-  if (ignoreLocation) {
-    return accuracy;
-  }
-  var proximity = Math.abs(expectedLocation - currentLocation);
-  if (!distance) {
-    // Dodge divide by zero error.
-    return proximity ? 1.0 : accuracy;
-  }
-  return accuracy + proximity / distance;
-}
-
 function convertMaskToIndices() {
   var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
   var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
@@ -672,6 +661,16 @@ function search(text, pattern, patternAlphabet) {
   // Is there a nearby exact match? (speedup)
   var bestLocation = expectedLocation;
 
+  // Inlined score computation — avoids object allocation per call in hot loops.
+  // See ./computeScore.js for the documented version of this formula.
+  var calcScore = function calcScore(errors, currentLocation) {
+    var accuracy = errors / patternLen;
+    if (ignoreLocation) return accuracy;
+    var proximity = Math.abs(expectedLocation - currentLocation);
+    if (!distance) return proximity ? 1.0 : accuracy;
+    return accuracy + proximity / distance;
+  };
+
   // Performance: only computer matches when the minMatchCharLength > 1
   // OR if `includeMatches` is true.
   var computeMatches = minMatchCharLength > 1 || includeMatches;
@@ -681,12 +680,7 @@ function search(text, pattern, patternAlphabet) {
 
   // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-    var score = computeScore$1(pattern, {
-      currentLocation: index,
-      expectedLocation: expectedLocation,
-      distance: distance,
-      ignoreLocation: ignoreLocation
-    });
+    var score = calcScore(0, index);
     currentThreshold = Math.min(score, currentThreshold);
     bestLocation = index + patternLen;
     if (computeMatches) {
@@ -711,13 +705,7 @@ function search(text, pattern, patternAlphabet) {
     var binMin = 0;
     var binMid = binMax;
     while (binMin < binMid) {
-      var _score = computeScore$1(pattern, {
-        errors: _i,
-        currentLocation: expectedLocation + binMid,
-        expectedLocation: expectedLocation,
-        distance: distance,
-        ignoreLocation: ignoreLocation
-      });
+      var _score = calcScore(_i, expectedLocation + binMid);
       if (_score <= currentThreshold) {
         binMin = binMid;
       } else {
@@ -736,7 +724,7 @@ function search(text, pattern, patternAlphabet) {
     bitArr[finish + 1] = (1 << _i) - 1;
     for (var j = finish; j >= start; j -= 1) {
       var currentLocation = j - 1;
-      var charMatch = patternAlphabet[text.charAt(currentLocation)];
+      var charMatch = patternAlphabet[text[currentLocation]];
       if (computeMatches) {
         // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
         matchMask[currentLocation] = +!!charMatch;
@@ -750,13 +738,7 @@ function search(text, pattern, patternAlphabet) {
         bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
       }
       if (bitArr[j] & mask) {
-        finalScore = computeScore$1(pattern, {
-          errors: _i,
-          currentLocation: currentLocation,
-          expectedLocation: expectedLocation,
-          distance: distance,
-          ignoreLocation: ignoreLocation
-        });
+        finalScore = calcScore(_i, currentLocation);
 
         // This match will almost certainly be better than any existing match.
         // But check anyway.
@@ -777,13 +759,7 @@ function search(text, pattern, patternAlphabet) {
     }
 
     // No hope for a (better) match at greater error levels.
-    var _score2 = computeScore$1(pattern, {
-      errors: _i + 1,
-      currentLocation: expectedLocation,
-      expectedLocation: expectedLocation,
-      distance: distance,
-      ignoreLocation: ignoreLocation
-    });
+    var _score2 = calcScore(_i + 1, expectedLocation);
     if (_score2 > currentThreshold) {
       break;
     }
@@ -939,7 +915,7 @@ var BitapSearch = /*#__PURE__*/function () {
         }
         totalScore += score;
         if (isMatch && indices) {
-          allIndices = [].concat(_toConsumableArray(allIndices), _toConsumableArray(indices));
+          allIndices.push.apply(allIndices, _toConsumableArray(indices));
         }
       });
       var result = {
@@ -956,6 +932,9 @@ var BitapSearch = /*#__PURE__*/function () {
 }();
 
 var registeredSearchers = [];
+function register() {
+  registeredSearchers.push.apply(registeredSearchers, arguments);
+}
 function createSearcher(pattern, options) {
   for (var i = 0, len = registeredSearchers.length; i < len; i += 1) {
     var searcherClass = registeredSearchers[i];
@@ -1036,22 +1015,103 @@ function parse(query, options) {
   return next(query);
 }
 
-// Practical scoring function
-function computeScore(results, _ref) {
+function computeScoreSingle(result, _ref) {
   var _ref$ignoreFieldNorm = _ref.ignoreFieldNorm,
     ignoreFieldNorm = _ref$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref$ignoreFieldNorm;
+  var totalScore = 1;
+  result.matches.forEach(function (_ref2) {
+    var key = _ref2.key,
+      norm = _ref2.norm,
+      score = _ref2.score;
+    var weight = key ? key.weight : null;
+    totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
+  });
+  result.score = totalScore;
+}
+
+// Practical scoring function
+function computeScore(results, _ref3) {
+  var _ref3$ignoreFieldNorm = _ref3.ignoreFieldNorm,
+    ignoreFieldNorm = _ref3$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref3$ignoreFieldNorm;
   results.forEach(function (result) {
-    var totalScore = 1;
-    result.matches.forEach(function (_ref2) {
-      var key = _ref2.key,
-        norm = _ref2.norm,
-        score = _ref2.score;
-      var weight = key ? key.weight : null;
-      totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
+    computeScoreSingle(result, {
+      ignoreFieldNorm: ignoreFieldNorm
     });
-    result.score = totalScore;
   });
 }
+
+// Max-heap by score: keeps the worst (highest) score at the top
+// so we can efficiently evict it when a better result arrives.
+var MaxHeap = /*#__PURE__*/function () {
+  function MaxHeap(limit) {
+    _classCallCheck(this, MaxHeap);
+    this.limit = limit;
+    this.heap = [];
+  }
+  _createClass(MaxHeap, [{
+    key: "size",
+    get: function get() {
+      return this.heap.length;
+    }
+  }, {
+    key: "shouldInsert",
+    value: function shouldInsert(score) {
+      return this.size < this.limit || score < this.heap[0].score;
+    }
+  }, {
+    key: "insert",
+    value: function insert(item) {
+      if (this.size < this.limit) {
+        this.heap.push(item);
+        this._bubbleUp(this.size - 1);
+      } else if (item.score < this.heap[0].score) {
+        this.heap[0] = item;
+        this._sinkDown(0);
+      }
+    }
+  }, {
+    key: "extractSorted",
+    value: function extractSorted(sortFn) {
+      return this.heap.sort(sortFn);
+    }
+  }, {
+    key: "_bubbleUp",
+    value: function _bubbleUp(i) {
+      var heap = this.heap;
+      while (i > 0) {
+        var parent = i - 1 >> 1;
+        if (heap[i].score <= heap[parent].score) break;
+        var tmp = heap[i];
+        heap[i] = heap[parent];
+        heap[parent] = tmp;
+        i = parent;
+      }
+    }
+  }, {
+    key: "_sinkDown",
+    value: function _sinkDown(i) {
+      var heap = this.heap;
+      var len = heap.length;
+      while (true) {
+        var largest = i;
+        var left = 2 * i + 1;
+        var right = 2 * i + 2;
+        if (left < len && heap[left].score > heap[largest].score) {
+          largest = left;
+        }
+        if (right < len && heap[right].score > heap[largest].score) {
+          largest = right;
+        }
+        if (largest === i) break;
+        var tmp = heap[i];
+        heap[i] = heap[largest];
+        heap[largest] = tmp;
+        i = largest;
+      }
+    }
+  }]);
+  return MaxHeap;
+}();
 
 function transformMatches(result, data) {
   var matches = result.matches;
@@ -1118,8 +1178,21 @@ var Fuse$1 = /*#__PURE__*/function () {
     }
     this._keyStore = new KeyStore(this.options.keys);
     this.setCollection(docs, index);
+    this._lastQuery = null;
+    this._lastSearcher = null;
   }
   _createClass(Fuse, [{
+    key: "_getSearcher",
+    value: function _getSearcher(query) {
+      if (this._lastQuery === query) {
+        return this._lastSearcher;
+      }
+      var searcher = createSearcher(query, this.options);
+      this._lastQuery = query;
+      this._lastSearcher = searcher;
+      return searcher;
+    }
+  }, {
     key: "setCollection",
     value: function setCollection(docs, index) {
       this._docs = docs;
@@ -1147,14 +1220,19 @@ var Fuse$1 = /*#__PURE__*/function () {
         return false;
       };
       var results = [];
+      var indicesToRemove = [];
       for (var i = 0, len = this._docs.length; i < len; i += 1) {
-        var doc = this._docs[i];
-        if (predicate(doc, i)) {
-          this.removeAt(i);
-          i -= 1;
-          len -= 1;
-          results.push(doc);
+        if (predicate(this._docs[i], i)) {
+          results.push(this._docs[i]);
+          indicesToRemove.push(i);
         }
+      }
+      if (indicesToRemove.length) {
+        // Remove from docs in reverse to preserve indices
+        for (var _i = indicesToRemove.length - 1; _i >= 0; _i -= 1) {
+          this._docs.splice(indicesToRemove[_i], 1);
+        }
+        this._myIndex.removeAll(indicesToRemove);
       }
       return results;
     }
@@ -1181,15 +1259,33 @@ var Fuse$1 = /*#__PURE__*/function () {
         shouldSort = _this$options.shouldSort,
         sortFn = _this$options.sortFn,
         ignoreFieldNorm = _this$options.ignoreFieldNorm;
-      var results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
-      computeScore(results, {
-        ignoreFieldNorm: ignoreFieldNorm
-      });
-      if (shouldSort) {
-        results.sort(sortFn);
-      }
-      if (isNumber(limit) && limit > -1) {
-        results = results.slice(0, limit);
+      var useHeap = isNumber(limit) && limit > 0 && isString(query);
+      var results;
+      if (useHeap) {
+        var heap = new MaxHeap(limit);
+        if (isString(this._docs[0])) {
+          this._searchStringList(query, {
+            heap: heap,
+            ignoreFieldNorm: ignoreFieldNorm
+          });
+        } else {
+          this._searchObjectList(query, {
+            heap: heap,
+            ignoreFieldNorm: ignoreFieldNorm
+          });
+        }
+        results = heap.extractSorted(sortFn);
+      } else {
+        results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
+        computeScore(results, {
+          ignoreFieldNorm: ignoreFieldNorm
+        });
+        if (shouldSort) {
+          results.sort(sortFn);
+        }
+        if (isNumber(limit) && limit > -1) {
+          results = results.slice(0, limit);
+        }
       }
       return format(results, this._docs, {
         includeMatches: includeMatches,
@@ -1199,15 +1295,18 @@ var Fuse$1 = /*#__PURE__*/function () {
   }, {
     key: "_searchStringList",
     value: function _searchStringList(query) {
-      var searcher = createSearcher(query, this.options);
+      var _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        heap = _ref2.heap,
+        ignoreFieldNorm = _ref2.ignoreFieldNorm;
+      var searcher = this._getSearcher(query);
       var records = this._myIndex.records;
-      var results = [];
+      var results = heap ? null : [];
 
       // Iterate over every string in the index
-      records.forEach(function (_ref2) {
-        var text = _ref2.v,
-          idx = _ref2.i,
-          norm = _ref2.n;
+      records.forEach(function (_ref3) {
+        var text = _ref3.v,
+          idx = _ref3.i,
+          norm = _ref3.n;
         if (!isDefined(text)) {
           return;
         }
@@ -1216,7 +1315,7 @@ var Fuse$1 = /*#__PURE__*/function () {
           score = _searcher$searchIn.score,
           indices = _searcher$searchIn.indices;
         if (isMatch) {
-          results.push({
+          var result = {
             item: text,
             idx: idx,
             matches: [{
@@ -1225,7 +1324,17 @@ var Fuse$1 = /*#__PURE__*/function () {
               norm: norm,
               indices: indices
             }]
-          });
+          };
+          if (heap) {
+            computeScoreSingle(result, {
+              ignoreFieldNorm: ignoreFieldNorm
+            });
+            if (heap.shouldInsert(result.score)) {
+              heap.insert(result);
+            }
+          } else {
+            results.push(result);
+          }
         }
       });
       return results;
@@ -1241,16 +1350,19 @@ var Fuse$1 = /*#__PURE__*/function () {
     key: "_searchObjectList",
     value: function _searchObjectList(query) {
       var _this2 = this;
-      var searcher = createSearcher(query, this.options);
+      var _ref6 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        heap = _ref6.heap,
+        ignoreFieldNorm = _ref6.ignoreFieldNorm;
+      var searcher = this._getSearcher(query);
       var _this$_myIndex = this._myIndex,
         keys = _this$_myIndex.keys,
         records = _this$_myIndex.records;
-      var results = [];
+      var results = heap ? null : [];
 
       // List is Array<Object>
-      records.forEach(function (_ref5) {
-        var item = _ref5.$,
-          idx = _ref5.i;
+      records.forEach(function (_ref7) {
+        var item = _ref7.$,
+          idx = _ref7.i;
         if (!isDefined(item)) {
           return;
         }
@@ -1265,30 +1377,40 @@ var Fuse$1 = /*#__PURE__*/function () {
           })));
         });
         if (matches.length) {
-          results.push({
+          var result = {
             idx: idx,
             item: item,
             matches: matches
-          });
+          };
+          if (heap) {
+            computeScoreSingle(result, {
+              ignoreFieldNorm: ignoreFieldNorm
+            });
+            if (heap.shouldInsert(result.score)) {
+              heap.insert(result);
+            }
+          } else {
+            results.push(result);
+          }
         }
       });
       return results;
     }
   }, {
     key: "_findMatches",
-    value: function _findMatches(_ref6) {
-      var key = _ref6.key,
-        value = _ref6.value,
-        searcher = _ref6.searcher;
+    value: function _findMatches(_ref8) {
+      var key = _ref8.key,
+        value = _ref8.value,
+        searcher = _ref8.searcher;
       if (!isDefined(value)) {
         return [];
       }
       var matches = [];
       if (isArray(value)) {
-        value.forEach(function (_ref7) {
-          var text = _ref7.v,
-            idx = _ref7.i,
-            norm = _ref7.n;
+        value.forEach(function (_ref9) {
+          var text = _ref9.v,
+            idx = _ref9.i,
+            norm = _ref9.n;
           if (!isDefined(text)) {
             return;
           }
@@ -1337,6 +1459,14 @@ Fuse$1.config = Config;
 {
   Fuse$1.parseQuery = parse;
 }
+Fuse$1.use = function () {
+  for (var _len = arguments.length, plugins = new Array(_len), _key = 0; _key < _len; _key++) {
+    plugins[_key] = arguments[_key];
+  }
+  plugins.forEach(function (plugin) {
+    return register(plugin);
+  });
+};
 var Fuse = Fuse$1;
 
 module.exports = Fuse;

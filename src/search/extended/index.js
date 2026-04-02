@@ -112,7 +112,7 @@ export default class ExtendedSearch {
           if (includeMatches) {
             const type = searcher.constructor.type
             if (MultiMatchSet.has(type)) {
-              allIndices = [...allIndices, ...indices]
+              allIndices.push(...indices)
             } else {
               allIndices.push(indices)
             }

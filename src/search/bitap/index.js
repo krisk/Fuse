@@ -122,7 +122,7 @@ export default class BitapSearch {
       totalScore += score
 
       if (isMatch && indices) {
-        allIndices = [...allIndices, ...indices]
+        allIndices.push(...indices)
       }
     })
 

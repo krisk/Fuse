@@ -18,4 +18,8 @@ if (process.env.EXTENDED_SEARCH_ENABLED) {
   register(ExtendedSearch)
 }
 
+Fuse.use = function (...plugins) {
+  plugins.forEach((plugin) => register(plugin))
+}
+
 export default Fuse

@@ -1,7 +1,7 @@
 /**
  * Fuse.js v7.1.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
- * Copyright (c) 2025 Kiro Risk (http://kiro.me)
+ * Copyright (c) 2026 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -374,6 +374,17 @@ class FuseIndex {
       this.records[i].i -= 1;
     }
   }
+  // Removes docs at the specified indices (must be sorted ascending)
+  removeAll(indices) {
+    // Remove in reverse order to avoid index shifting during splice
+    for (let i = indices.length - 1; i >= 0; i -= 1) {
+      this.records.splice(indices[i], 1);
+    }
+    // Single re-index pass
+    for (let i = 0, len = this.records.length; i < len; i += 1) {
+      this.records[i].i = i;
+    }
+  }
   getValueForItemAtKeyId(item, keyId) {
     return item[this._keysMap[keyId]]
   }
@@ -476,32 +487,6 @@ function parseIndex(
   return myIndex
 }
 
-function computeScore$1(
-  pattern,
-  {
-    errors = 0,
-    currentLocation = 0,
-    expectedLocation = 0,
-    distance = Config.distance,
-    ignoreLocation = Config.ignoreLocation
-  } = {}
-) {
-  const accuracy = errors / pattern.length;
-
-  if (ignoreLocation) {
-    return accuracy
-  }
-
-  const proximity = Math.abs(expectedLocation - currentLocation);
-
-  if (!distance) {
-    // Dodge divide by zero error.
-    return proximity ? 1.0 : accuracy
-  }
-
-  return accuracy + proximity / distance
-}
-
 function convertMaskToIndices(
   matchmask = [],
   minMatchCharLength = Config.minMatchCharLength
@@ -563,6 +548,16 @@ function search(
   // Is there a nearby exact match? (speedup)
   let bestLocation = expectedLocation;
 
+  // Inlined score computation — avoids object allocation per call in hot loops.
+  // See ./computeScore.js for the documented version of this formula.
+  const calcScore = (errors, currentLocation) => {
+    const accuracy = errors / patternLen;
+    if (ignoreLocation) return accuracy
+    const proximity = Math.abs(expectedLocation - currentLocation);
+    if (!distance) return proximity ? 1.0 : accuracy
+    return accuracy + proximity / distance
+  };
+
   // Performance: only computer matches when the minMatchCharLength > 1
   // OR if `includeMatches` is true.
   const computeMatches = minMatchCharLength > 1 || includeMatches;
@@ -573,12 +568,7 @@ function search(
 
   // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-    let score = computeScore$1(pattern, {
-      currentLocation: index,
-      expectedLocation,
-      distance,
-      ignoreLocation
-    });
+    let score = calcScore(0, index);
 
     currentThreshold = Math.min(score, currentThreshold);
     bestLocation = index + patternLen;
@@ -609,13 +599,7 @@ function search(
     let binMid = binMax;
 
     while (binMin < binMid) {
-      const score = computeScore$1(pattern, {
-        errors: i,
-        currentLocation: expectedLocation + binMid,
-        expectedLocation,
-        distance,
-        ignoreLocation
-      });
+      const score = calcScore(i, expectedLocation + binMid);
 
       if (score <= currentThreshold) {
         binMin = binMid;
@@ -641,7 +625,7 @@ function search(
 
     for (let j = finish; j >= start; j -= 1) {
       let currentLocation = j - 1;
-      let charMatch = patternAlphabet[text.charAt(currentLocation)];
+      let charMatch = patternAlphabet[text[currentLocation]];
 
       if (computeMatches) {
         // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
@@ -658,13 +642,7 @@ function search(
       }
 
       if (bitArr[j] & mask) {
-        finalScore = computeScore$1(pattern, {
-          errors: i,
-          currentLocation,
-          expectedLocation,
-          distance,
-          ignoreLocation
-        });
+        finalScore = calcScore(i, currentLocation);
 
         // This match will almost certainly be better than any existing match.
         // But check anyway.
@@ -685,13 +663,7 @@ function search(
     }
 
     // No hope for a (better) match at greater error levels.
-    const score = computeScore$1(pattern, {
-      errors: i + 1,
-      currentLocation: expectedLocation,
-      expectedLocation,
-      distance,
-      ignoreLocation
-    });
+    const score = calcScore(i + 1, expectedLocation);
 
     if (score > currentThreshold) {
       break
@@ -851,7 +823,7 @@ class BitapSearch {
       totalScore += score;
 
       if (isMatch && indices) {
-        allIndices = [...allIndices, ...indices];
+        allIndices.push(...indices);
       }
     });
 
@@ -1294,7 +1266,7 @@ class ExtendedSearch {
           if (includeMatches) {
             const type = searcher.constructor.type;
             if (MultiMatchSet.has(type)) {
-              allIndices = [...allIndices, ...indices];
+              allIndices.push(...indices);
             } else {
               allIndices.push(indices);
             }
@@ -1429,25 +1401,90 @@ function parse(query, options, { auto = true } = {}) {
   return next(query)
 }
 
+function computeScoreSingle(
+  result,
+  { ignoreFieldNorm = Config.ignoreFieldNorm }
+) {
+  let totalScore = 1;
+
+  result.matches.forEach(({ key, norm, score }) => {
+    const weight = key ? key.weight : null;
+
+    totalScore *= Math.pow(
+      score === 0 && weight ? Number.EPSILON : score,
+      (weight || 1) * (ignoreFieldNorm ? 1 : norm)
+    );
+  });
+
+  result.score = totalScore;
+}
+
 // Practical scoring function
 function computeScore(
   results,
   { ignoreFieldNorm = Config.ignoreFieldNorm }
 ) {
   results.forEach((result) => {
-    let totalScore = 1;
-
-    result.matches.forEach(({ key, norm, score }) => {
-      const weight = key ? key.weight : null;
-
-      totalScore *= Math.pow(
-        score === 0 && weight ? Number.EPSILON : score,
-        (weight || 1) * (ignoreFieldNorm ? 1 : norm)
-      );
-    });
-
-    result.score = totalScore;
+    computeScoreSingle(result, { ignoreFieldNorm });
   });
+}
+
+// Max-heap by score: keeps the worst (highest) score at the top
+// so we can efficiently evict it when a better result arrives.
+class MaxHeap {
+  constructor(limit) {
+    this.limit = limit;
+    this.heap = [];
+  }
+  get size() {
+    return this.heap.length
+  }
+  shouldInsert(score) {
+    return this.size < this.limit || score < this.heap[0].score
+  }
+  insert(item) {
+    if (this.size < this.limit) {
+      this.heap.push(item);
+      this._bubbleUp(this.size - 1);
+    } else if (item.score < this.heap[0].score) {
+      this.heap[0] = item;
+      this._sinkDown(0);
+    }
+  }
+  extractSorted(sortFn) {
+    return this.heap.sort(sortFn)
+  }
+  _bubbleUp(i) {
+    const heap = this.heap;
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (heap[i].score <= heap[parent].score) break
+      const tmp = heap[i];
+      heap[i] = heap[parent];
+      heap[parent] = tmp;
+      i = parent;
+    }
+  }
+  _sinkDown(i) {
+    const heap = this.heap;
+    const len = heap.length;
+    while (true) {
+      let largest = i;
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      if (left < len && heap[left].score > heap[largest].score) {
+        largest = left;
+      }
+      if (right < len && heap[right].score > heap[largest].score) {
+        largest = right;
+      }
+      if (largest === i) break
+      const tmp = heap[i];
+      heap[i] = heap[largest];
+      heap[largest] = tmp;
+      i = largest;
+    }
+  }
 }
 
 function transformMatches(result, data) {
@@ -1531,6 +1568,19 @@ class Fuse {
     this._keyStore = new KeyStore(this.options.keys);
 
     this.setCollection(docs, index);
+
+    this._lastQuery = null;
+    this._lastSearcher = null;
+  }
+
+  _getSearcher(query) {
+    if (this._lastQuery === query) {
+      return this._lastSearcher
+    }
+    const searcher = createSearcher(query, this.options);
+    this._lastQuery = query;
+    this._lastSearcher = searcher;
+    return searcher
   }
 
   setCollection(docs, index) {
@@ -1559,16 +1609,21 @@ class Fuse {
 
   remove(predicate = (/* doc, idx */) => false) {
     const results = [];
+    const indicesToRemove = [];
 
     for (let i = 0, len = this._docs.length; i < len; i += 1) {
-      const doc = this._docs[i];
-      if (predicate(doc, i)) {
-        this.removeAt(i);
-        i -= 1;
-        len -= 1;
-
-        results.push(doc);
+      if (predicate(this._docs[i], i)) {
+        results.push(this._docs[i]);
+        indicesToRemove.push(i);
       }
+    }
+
+    if (indicesToRemove.length) {
+      // Remove from docs in reverse to preserve indices
+      for (let i = indicesToRemove.length - 1; i >= 0; i -= 1) {
+        this._docs.splice(indicesToRemove[i], 1);
+      }
+      this._myIndex.removeAll(indicesToRemove);
     }
 
     return results
@@ -1592,20 +1647,34 @@ class Fuse {
       ignoreFieldNorm
     } = this.options;
 
-    let results = isString(query)
-      ? isString(this._docs[0])
-        ? this._searchStringList(query)
-        : this._searchObjectList(query)
-      : this._searchLogical(query);
+    const useHeap = isNumber(limit) && limit > 0 && isString(query);
 
-    computeScore(results, { ignoreFieldNorm });
+    let results;
 
-    if (shouldSort) {
-      results.sort(sortFn);
-    }
+    if (useHeap) {
+      const heap = new MaxHeap(limit);
+      if (isString(this._docs[0])) {
+        this._searchStringList(query, { heap, ignoreFieldNorm });
+      } else {
+        this._searchObjectList(query, { heap, ignoreFieldNorm });
+      }
+      results = heap.extractSorted(sortFn);
+    } else {
+      results = isString(query)
+        ? isString(this._docs[0])
+          ? this._searchStringList(query)
+          : this._searchObjectList(query)
+        : this._searchLogical(query);
 
-    if (isNumber(limit) && limit > -1) {
-      results = results.slice(0, limit);
+      computeScore(results, { ignoreFieldNorm });
+
+      if (shouldSort) {
+        results.sort(sortFn);
+      }
+
+      if (isNumber(limit) && limit > -1) {
+        results = results.slice(0, limit);
+      }
     }
 
     return format(results, this._docs, {
@@ -1614,10 +1683,10 @@ class Fuse {
     })
   }
 
-  _searchStringList(query) {
-    const searcher = createSearcher(query, this.options);
+  _searchStringList(query, { heap, ignoreFieldNorm } = {}) {
+    const searcher = this._getSearcher(query);
     const { records } = this._myIndex;
-    const results = [];
+    const results = heap ? null : [];
 
     // Iterate over every string in the index
     records.forEach(({ v: text, i: idx, n: norm }) => {
@@ -1628,11 +1697,20 @@ class Fuse {
       const { isMatch, score, indices } = searcher.searchIn(text);
 
       if (isMatch) {
-        results.push({
+        const result = {
           item: text,
           idx,
           matches: [{ score, value: text, norm, indices }]
-        });
+        };
+
+        if (heap) {
+          computeScoreSingle(result, { ignoreFieldNorm });
+          if (heap.shouldInsert(result.score)) {
+            heap.insert(result);
+          }
+        } else {
+          results.push(result);
+        }
       }
     });
 
@@ -1680,7 +1758,7 @@ class Fuse {
     };
 
     const records = this._myIndex.records;
-    const resultMap = {};
+    const resultMap = new Map();
     const results = [];
 
     records.forEach(({ $: item, i: idx }) => {
@@ -1689,12 +1767,12 @@ class Fuse {
 
         if (expResults.length) {
           // Dedupe when adding
-          if (!resultMap[idx]) {
-            resultMap[idx] = { idx, item, matches: [] };
-            results.push(resultMap[idx]);
+          if (!resultMap.has(idx)) {
+            resultMap.set(idx, { idx, item, matches: [] });
+            results.push(resultMap.get(idx));
           }
           expResults.forEach(({ matches }) => {
-            resultMap[idx].matches.push(...matches);
+            resultMap.get(idx).matches.push(...matches);
           });
         }
       }
@@ -1703,10 +1781,10 @@ class Fuse {
     return results
   }
 
-  _searchObjectList(query) {
-    const searcher = createSearcher(query, this.options);
+  _searchObjectList(query, { heap, ignoreFieldNorm } = {}) {
+    const searcher = this._getSearcher(query);
     const { keys, records } = this._myIndex;
-    const results = [];
+    const results = heap ? null : [];
 
     // List is Array<Object>
     records.forEach(({ $: item, i: idx }) => {
@@ -1728,11 +1806,16 @@ class Fuse {
       });
 
       if (matches.length) {
-        results.push({
-          idx,
-          item,
-          matches
-        });
+        const result = { idx, item, matches };
+
+        if (heap) {
+          computeScoreSingle(result, { ignoreFieldNorm });
+          if (heap.shouldInsert(result.score)) {
+            heap.insert(result);
+          }
+        } else {
+          results.push(result);
+        }
       }
     });
 
@@ -1790,5 +1873,9 @@ Fuse.config = Config;
 {
   register(ExtendedSearch);
 }
+
+Fuse.use = function (...plugins) {
+  plugins.forEach((plugin) => register(plugin));
+};
 
 export { Fuse as default };
