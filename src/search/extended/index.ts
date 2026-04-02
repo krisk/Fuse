@@ -3,7 +3,7 @@ import FuzzyMatch from './FuzzyMatch'
 import IncludeMatch from './IncludeMatch'
 import Config from '../../core/config'
 import { stripDiacritics } from '../../helpers/diacritics'
-import type { SearchResult, RangeTuple } from '../../types'
+import type { SearchResult } from '../../types'
 import type BaseMatch from './BaseMatch'
 
 // These extended matchers can return an array of matches, as opposed
@@ -80,7 +80,7 @@ export default class ExtendedSearch {
     text = ignoreDiacritics ? stripDiacritics(text) : text
 
     let numMatches = 0
-    let allIndices: any[] = []
+    const allIndices: any[] = []
     let totalScore = 0
 
     // ORs
@@ -117,7 +117,7 @@ export default class ExtendedSearch {
 
       // OR condition, so if TRUE, return
       if (numMatches) {
-        let result: SearchResult = {
+        const result: SearchResult = {
           isMatch: true,
           score: totalScore / numMatches
         }

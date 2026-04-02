@@ -31,12 +31,12 @@ const OR_TOKEN = '|'
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 export default function parseQuery(pattern: string, options: any = {}): BaseMatch[][] {
   return pattern.split(OR_TOKEN).map((item) => {
-    let query = item
+    const query = item
       .trim()
       .split(SPACE_RE)
       .filter((item) => item && !!item.trim())
 
-    let results: BaseMatch[] = []
+    const results: BaseMatch[] = []
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i]
 
@@ -45,7 +45,7 @@ export default function parseQuery(pattern: string, options: any = {}): BaseMatc
       let idx = -1
       while (!found && ++idx < searchersLen) {
         const searcher = searchers[idx]
-        let token = searcher.isMultiMatch(queryItem)
+        const token = searcher.isMultiMatch(queryItem)
         if (token) {
           results.push(new (searcher as any)(token, options))
           found = true
@@ -60,7 +60,7 @@ export default function parseQuery(pattern: string, options: any = {}): BaseMatc
       idx = -1
       while (++idx < searchersLen) {
         const searcher = searchers[idx]
-        let token = searcher.isSingleMatch(queryItem)
+        const token = searcher.isSingleMatch(queryItem)
         if (token) {
           results.push(new (searcher as any)(token, options))
           break

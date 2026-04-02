@@ -2,7 +2,7 @@ import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
 import { MAX_BITS } from './constants'
 import * as ErrorMsg from '../../core/errorMessages'
-import type { SearchResult, RangeTuple } from '../../types'
+import type { SearchResult } from '../../types'
 
 export default function search(
   text: string,
@@ -52,7 +52,7 @@ export default function search(
 
   // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-    let score = calcScore(0, index)
+    const score = calcScore(0, index)
 
     currentThreshold = Math.min(score, currentThreshold)
     bestLocation = index + patternLen
@@ -98,18 +98,18 @@ export default function search(
     binMax = binMid
 
     let start = Math.max(1, expectedLocation - binMid + 1)
-    let finish = findAllMatches
+    const finish = findAllMatches
       ? textLen
       : Math.min(expectedLocation + binMid, textLen) + patternLen
 
     // Initialize the bit array
-    let bitArr: number[] = Array(finish + 2)
+    const bitArr: number[] = Array(finish + 2)
 
     bitArr[finish + 1] = (1 << i) - 1
 
     for (let j = finish; j >= start; j -= 1) {
-      let currentLocation = j - 1
-      let charMatch = patternAlphabet[text[currentLocation]]
+      const currentLocation = j - 1
+      const charMatch = patternAlphabet[text[currentLocation]]
 
       if (computeMatches) {
         // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)

@@ -3,7 +3,7 @@
     "module": "es6",
     "lib": ["es6"],
     "target": "es6",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "strict": true,

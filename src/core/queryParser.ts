@@ -31,7 +31,7 @@ const convertToExplicit = (query: any): any => ({
 // the appropriate `Searcher` instance
 export function parse(query: any, options: any, { auto = true } = {}): any {
   const next = (query: any): any => {
-    let keys = Object.keys(query)
+    const keys = Object.keys(query)
 
     const isQueryPath = isPath(query)
 
@@ -60,7 +60,7 @@ export function parse(query: any, options: any, { auto = true } = {}): any {
       return obj
     }
 
-    let node: any = {
+    const node: any = {
       children: [],
       operator: keys[0]
     }

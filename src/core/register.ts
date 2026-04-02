@@ -9,7 +9,7 @@ export default function register(...args: any[]): void {
 
 export function createSearcher(pattern: string, options: any): Searcher {
   for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
-    let searcherClass = registeredSearchers[i]
+    const searcherClass = registeredSearchers[i]
     if (searcherClass.condition(pattern, options)) {
       return new searcherClass(pattern, options)
     }

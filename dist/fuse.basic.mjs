@@ -10,16 +10,13 @@
 function isArray(value) {
   return !Array.isArray ? getTag(value) === '[object Array]' : Array.isArray(value);
 }
-
-// Adapted from: https://github.com/lodash/lodash/blob/master/.internal/baseToString.js
-const INFINITY = 1 / 0;
 function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
   if (typeof value == 'string') {
     return value;
   }
-  let result = value + '';
-  return result == '0' && 1 / value == -INFINITY ? '-0' : result;
+  const result = value + '';
+  return result == '0' && 1 / value == -Infinity ? '-0' : result;
 }
 function toString(value) {
   return value == null ? '' : baseToString(value);
@@ -71,7 +68,7 @@ class KeyStore {
     this._keyMap = {};
     let totalWeight = 0;
     keys.forEach(key => {
-      let obj = createKey(key);
+      const obj = createKey(key);
       this._keys.push(obj);
       this._keyMap[obj.id] = obj;
       totalWeight += obj.weight;
@@ -134,7 +131,7 @@ function createKeyId(key) {
 }
 
 function get(obj, path) {
-  let list = [];
+  const list = [];
   let arr = false;
   const deepGet = (obj, path, index, arrayIndex) => {
     if (!isDefined(obj)) {
@@ -147,7 +144,7 @@ function get(obj, path) {
         i: arrayIndex
       } : obj);
     } else {
-      let key = path[index];
+      const key = path[index];
       const value = obj[key];
       if (!isDefined(value)) {
         return;
@@ -209,7 +206,6 @@ const Config = {
   ...FuzzyOptions,
   ...AdvancedOptions
 };
-var Config$1 = Config;
 
 const SPACE = /[^ ]+/g;
 
@@ -241,8 +237,8 @@ function norm(weight = 1, mantissa = 3) {
 
 class FuseIndex {
   constructor({
-    getFn = Config$1.getFn,
-    fieldNormWeight = Config$1.fieldNormWeight
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
   } = {}) {
     this.norm = norm(fieldNormWeight, 3);
     this.getFn = getFn;
@@ -323,7 +319,7 @@ class FuseIndex {
     if (!isDefined(doc) || isBlank(doc)) {
       return;
     }
-    let record = {
+    const record = {
       v: doc,
       i: docIndex,
       n: this.norm.get(doc)
@@ -331,19 +327,19 @@ class FuseIndex {
     this.records.push(record);
   }
   _addObject(doc, docIndex) {
-    let record = {
+    const record = {
       i: docIndex,
       $: {}
     };
 
     // Iterate over every key (i.e, path), and fetch the value at that key
     this.keys.forEach((key, keyIndex) => {
-      let value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
+      const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
       if (!isDefined(value)) {
         return;
       }
       if (isArray(value)) {
-        let subRecords = [];
+        const subRecords = [];
         for (let i = 0, len = value.length; i < len; i += 1) {
           const item = value[i];
           if (!isDefined(item)) {
@@ -352,7 +348,7 @@ class FuseIndex {
           if (isString(item)) {
             // Custom getFn returning plain string array (backward compat)
             if (!isBlank(item)) {
-              let subRecord = {
+              const subRecord = {
                 v: item,
                 i: i,
                 n: this.norm.get(item)
@@ -361,7 +357,7 @@ class FuseIndex {
             }
           } else if (isString(item.v) && !isBlank(item.v)) {
             // Default get() returns {v, i} objects with original array indices
-            let subRecord = {
+            const subRecord = {
               v: item.v,
               i: item.i,
               n: this.norm.get(item.v)
@@ -371,7 +367,7 @@ class FuseIndex {
         }
         record.$[keyIndex] = subRecords;
       } else if (isString(value) && !isBlank(value)) {
-        let subRecord = {
+        const subRecord = {
           v: value,
           n: this.norm.get(value)
         };
@@ -388,8 +384,8 @@ class FuseIndex {
   }
 }
 function createIndex(keys, docs, {
-  getFn = Config$1.getFn,
-  fieldNormWeight = Config$1.fieldNormWeight
+  getFn = Config.getFn,
+  fieldNormWeight = Config.fieldNormWeight
 } = {}) {
   const myIndex = new FuseIndex({
     getFn,
@@ -401,8 +397,8 @@ function createIndex(keys, docs, {
   return myIndex;
 }
 function parseIndex(data, {
-  getFn = Config$1.getFn,
-  fieldNormWeight = Config$1.fieldNormWeight
+  getFn = Config.getFn,
+  fieldNormWeight = Config.fieldNormWeight
 } = {}) {
   const {
     keys,
@@ -417,13 +413,13 @@ function parseIndex(data, {
   return myIndex;
 }
 
-function convertMaskToIndices(matchmask = [], minMatchCharLength = Config$1.minMatchCharLength) {
-  let indices = [];
+function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMatchCharLength) {
+  const indices = [];
   let start = -1;
   let end = -1;
   let i = 0;
   for (let len = matchmask.length; i < len; i += 1) {
-    let match = matchmask[i];
+    const match = matchmask[i];
     if (match && start === -1) {
       start = i;
     } else if (!match && start !== -1) {
@@ -446,13 +442,13 @@ function convertMaskToIndices(matchmask = [], minMatchCharLength = Config$1.minM
 const MAX_BITS = 32;
 
 function search(text, pattern, patternAlphabet, {
-  location = Config$1.location,
-  distance = Config$1.distance,
-  threshold = Config$1.threshold,
-  findAllMatches = Config$1.findAllMatches,
-  minMatchCharLength = Config$1.minMatchCharLength,
-  includeMatches = Config$1.includeMatches,
-  ignoreLocation = Config$1.ignoreLocation
+  location = Config.location,
+  distance = Config.distance,
+  threshold = Config.threshold,
+  findAllMatches = Config.findAllMatches,
+  minMatchCharLength = Config.minMatchCharLength,
+  includeMatches = Config.includeMatches,
+  ignoreLocation = Config.ignoreLocation
 } = {}) {
   if (pattern.length > MAX_BITS) {
     throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
@@ -486,7 +482,7 @@ function search(text, pattern, patternAlphabet, {
 
   // Get all exact matches, here for speed up
   while ((index = text.indexOf(pattern, bestLocation)) > -1) {
-    let score = calcScore(0, index);
+    const score = calcScore(0, index);
     currentThreshold = Math.min(score, currentThreshold);
     bestLocation = index + patternLen;
     if (computeMatches) {
@@ -523,14 +519,14 @@ function search(text, pattern, patternAlphabet, {
     // Use the result from this iteration as the maximum for the next.
     binMax = binMid;
     let start = Math.max(1, expectedLocation - binMid + 1);
-    let finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
+    const finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
 
     // Initialize the bit array
-    let bitArr = Array(finish + 2);
+    const bitArr = Array(finish + 2);
     bitArr[finish + 1] = (1 << i) - 1;
     for (let j = finish; j >= start; j -= 1) {
-      let currentLocation = j - 1;
-      let charMatch = patternAlphabet[text[currentLocation]];
+      const currentLocation = j - 1;
+      const charMatch = patternAlphabet[text[currentLocation]];
       if (computeMatches) {
         // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
         matchMask[currentLocation] = +!!charMatch;
@@ -588,7 +584,7 @@ function search(text, pattern, patternAlphabet, {
 }
 
 function createPatternAlphabet(pattern) {
-  let mask = {};
+  const mask = {};
   for (let i = 0, len = pattern.length; i < len; i += 1) {
     const char = pattern.charAt(i);
     mask[char] = (mask[char] || 0) | 1 << len - i - 1;
@@ -615,15 +611,15 @@ function mergeIndices(indices) {
 }
 class BitapSearch {
   constructor(pattern, {
-    location = Config$1.location,
-    threshold = Config$1.threshold,
-    distance = Config$1.distance,
-    includeMatches = Config$1.includeMatches,
-    findAllMatches = Config$1.findAllMatches,
-    minMatchCharLength = Config$1.minMatchCharLength,
-    isCaseSensitive = Config$1.isCaseSensitive,
-    ignoreDiacritics = Config$1.ignoreDiacritics,
-    ignoreLocation = Config$1.ignoreLocation
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    ignoreLocation = Config.ignoreLocation
   } = {}) {
     this.options = {
       location,
@@ -678,7 +674,7 @@ class BitapSearch {
 
     // Exact match
     if (this.pattern === text) {
-      let result = {
+      const result = {
         isMatch: true,
         score: 0
       };
@@ -697,7 +693,7 @@ class BitapSearch {
       minMatchCharLength,
       ignoreLocation
     } = this.options;
-    let allIndices = [];
+    const allIndices = [];
     let totalScore = 0;
     let hasMatches = false;
     this.chunks.forEach(({
@@ -726,7 +722,7 @@ class BitapSearch {
         allIndices.push(...indices);
       }
     });
-    let result = {
+    const result = {
       isMatch: hasMatches,
       score: hasMatches ? totalScore / this.chunks.length : 1
     };
@@ -743,7 +739,7 @@ function register(...args) {
 }
 function createSearcher(pattern, options) {
   for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
-    let searcherClass = registeredSearchers[i];
+    const searcherClass = registeredSearchers[i];
     if (searcherClass.condition(pattern, options)) {
       return new searcherClass(pattern, options);
     }
@@ -774,7 +770,7 @@ function parse(query, options, {
   auto = true
 } = {}) {
   const next = query => {
-    let keys = Object.keys(query);
+    const keys = Object.keys(query);
     const isQueryPath = isPath(query);
     if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
       return next(convertToExplicit(query));
@@ -794,7 +790,7 @@ function parse(query, options, {
       }
       return obj;
     }
-    let node = {
+    const node = {
       children: [],
       operator: keys[0]
     };
@@ -815,7 +811,7 @@ function parse(query, options, {
 }
 
 function computeScoreSingle(result, {
-  ignoreFieldNorm = Config$1.ignoreFieldNorm
+  ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
   let totalScore = 1;
   result.matches.forEach(({
@@ -831,7 +827,7 @@ function computeScoreSingle(result, {
 
 // Practical scoring function
 function computeScore(results, {
-  ignoreFieldNorm = Config$1.ignoreFieldNorm
+  ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
   results.forEach(result => {
     computeScoreSingle(result, {
@@ -913,7 +909,7 @@ function transformMatches(result, data) {
       indices,
       value
     } = match;
-    let obj = {
+    const obj = {
       indices,
       value
     };
@@ -932,8 +928,8 @@ function transformScore(result, data) {
 }
 
 function format(results, docs, {
-  includeMatches = Config$1.includeMatches,
-  includeScore = Config$1.includeScore
+  includeMatches = Config.includeMatches,
+  includeScore = Config.includeScore
 } = {}) {
   const transformers = [];
   if (includeMatches) transformers.push(transformMatches);
@@ -960,10 +956,10 @@ class Fuse {
 
   constructor(docs, options, index) {
     this.options = {
-      ...Config$1,
+      ...Config,
       ...options
     };
-    if (this.options.useExtendedSearch && !false) {
+    if (this.options.useExtendedSearch && true) {
       throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
     }
     this._keyStore = new KeyStore(this.options.keys);
@@ -1141,7 +1137,7 @@ class Fuse {
       if (!isDefined(item)) {
         return;
       }
-      let matches = [];
+      const matches = [];
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
@@ -1179,7 +1175,7 @@ class Fuse {
     if (!isDefined(value)) {
       return [];
     }
-    let matches = [];
+    const matches = [];
     if (isArray(value)) {
       value.forEach(({
         v: text,
@@ -1234,7 +1230,7 @@ class Fuse {
 Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
-Fuse.config = Config$1;
+Fuse.config = Config;
 {
   Fuse.parseQuery = parse;
 }

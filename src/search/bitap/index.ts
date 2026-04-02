@@ -121,7 +121,7 @@ export default class BitapSearch {
 
     // Exact match
     if (this.pattern === text) {
-      let result: SearchResult = {
+      const result: SearchResult = {
         isMatch: true,
         score: 0
       }
@@ -143,7 +143,7 @@ export default class BitapSearch {
       ignoreLocation
     } = this.options
 
-    let allIndices: RangeTuple[] = []
+    const allIndices: RangeTuple[] = []
     let totalScore = 0
     let hasMatches = false
 
@@ -169,7 +169,7 @@ export default class BitapSearch {
       }
     })
 
-    let result: SearchResult = {
+    const result: SearchResult = {
       isMatch: hasMatches,
       score: hasMatches ? totalScore / this.chunks.length : 1
     }

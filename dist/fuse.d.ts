@@ -1,5 +1,5 @@
 // Type definitions for Fuse.js v7.2.0
-// TypeScript v4.9.5
+// TypeScript v6.0.2
 type RangeTuple = [number, number];
 interface SearchResult {
     isMatch: boolean;
@@ -246,4 +246,5 @@ declare class Fuse<T> {
     }): MatchScore[];
 }
 
-export { Expression, FuseGetFunction, FuseIndex, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject, Fuse as default };
+export { FuseIndex, Fuse as default };
+export type { Expression, FuseGetFunction, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject };

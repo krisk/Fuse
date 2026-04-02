@@ -108,7 +108,7 @@ export default class FuseIndex<T = any> {
       return
     }
 
-    let record: IndexRecord = {
+    const record: IndexRecord = {
       v: doc,
       i: docIndex,
       n: this.norm.get(doc)
@@ -117,18 +117,18 @@ export default class FuseIndex<T = any> {
     this.records.push(record)
   }
   _addObject(doc: any, docIndex: number): void {
-    let record: IndexRecord = { i: docIndex, $: {} }
+    const record: IndexRecord = { i: docIndex, $: {} }
 
     // Iterate over every key (i.e, path), and fetch the value at that key
     this.keys.forEach((key, keyIndex) => {
-      let value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path)
+      const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path)
 
       if (!isDefined(value)) {
         return
       }
 
       if (isArray(value)) {
-        let subRecords: SubRecord[] = []
+        const subRecords: SubRecord[] = []
 
         for (let i = 0, len = value.length; i < len; i += 1) {
           const item = value[i]
@@ -140,7 +140,7 @@ export default class FuseIndex<T = any> {
           if (isString(item)) {
             // Custom getFn returning plain string array (backward compat)
             if (!isBlank(item)) {
-              let subRecord: SubRecord = {
+              const subRecord: SubRecord = {
                 v: item,
                 i: i,
                 n: this.norm.get(item)
@@ -150,7 +150,7 @@ export default class FuseIndex<T = any> {
             }
           } else if (isString(item.v) && !isBlank(item.v)) {
             // Default get() returns {v, i} objects with original array indices
-            let subRecord: SubRecord = {
+            const subRecord: SubRecord = {
               v: item.v,
               i: item.i,
               n: this.norm.get(item.v)
@@ -161,7 +161,7 @@ export default class FuseIndex<T = any> {
         }
         record.$![keyIndex] = subRecords
       } else if (isString(value) && !isBlank(value)) {
-        let subRecord: SubRecord = {
+        const subRecord: SubRecord = {
           v: value,
           n: this.norm.get(value)
         }

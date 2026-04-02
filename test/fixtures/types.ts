@@ -1,7 +1,3 @@
-type PokeAliasType = {
-  alias: string
-}
-
 type PokeStatType = {
   hp: number
   atk: number
@@ -49,6 +45,3 @@ export type PokedexType = {
   otherFormes?: string[]
 }
 
-// export interface IPokeDexAliases extends PokeAliasType, PokedexType {
-//   name: string
-// }

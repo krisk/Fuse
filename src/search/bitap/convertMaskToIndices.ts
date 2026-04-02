@@ -5,13 +5,13 @@ export default function convertMaskToIndices(
   matchmask: number[] = [],
   minMatchCharLength: number = Config.minMatchCharLength
 ): RangeTuple[] {
-  let indices: RangeTuple[] = []
+  const indices: RangeTuple[] = []
   let start = -1
   let end = -1
   let i = 0
 
   for (let len = matchmask.length; i < len; i += 1) {
-    let match = matchmask[i]
+    const match = matchmask[i]
     if (match && start === -1) {
       start = i
     } else if (!match && start !== -1) {

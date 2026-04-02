@@ -13,125 +13,107 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Fuse = factory());
 })(this, (function () { 'use strict';
 
-  function ownKeys(object, enumerableOnly) {
-    var keys = Object.keys(object);
-    if (Object.getOwnPropertySymbols) {
-      var symbols = Object.getOwnPropertySymbols(object);
-      enumerableOnly && (symbols = symbols.filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-      })), keys.push.apply(keys, symbols);
-    }
-    return keys;
+  function _arrayLikeToArray(r, a) {
+    (null == a || a > r.length) && (a = r.length);
+    for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+    return n;
   }
-  function _objectSpread2(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = null != arguments[i] ? arguments[i] : {};
-      i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {
-        _defineProperty(target, key, source[key]);
-      }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {
-        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-      });
-    }
-    return target;
+  function _arrayWithoutHoles(r) {
+    if (Array.isArray(r)) return _arrayLikeToArray(r);
   }
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
-      return typeof obj;
-    } : function (obj) {
-      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    }, _typeof(obj);
+  function _classCallCheck(a, n) {
+    if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
   }
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
+  function _defineProperties(e, r) {
+    for (var t = 0; t < r.length; t++) {
+      var o = r[t];
+      o.enumerable = o.enumerable || false, o.configurable = true, "value" in o && (o.writable = true), Object.defineProperty(e, _toPropertyKey(o.key), o);
     }
   }
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor);
-    }
-  }
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    Object.defineProperty(Constructor, "prototype", {
+  function _createClass(e, r, t) {
+    return r && _defineProperties(e.prototype, r), Object.defineProperty(e, "prototype", {
       writable: false
-    });
-    return Constructor;
+    }), e;
   }
-  function _defineProperty(obj, key, value) {
-    key = _toPropertyKey(key);
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-    return obj;
+  function _defineProperty(e, r, t) {
+    return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+      value: t,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    }) : e[r] = t, e;
   }
-  function _toConsumableArray(arr) {
-    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
-  }
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
-  }
-  function _iterableToArray(iter) {
-    if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-  }
-  function _unsupportedIterableToArray(o, minLen) {
-    if (!o) return;
-    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-    var n = Object.prototype.toString.call(o).slice(8, -1);
-    if (n === "Object" && o.constructor) n = o.constructor.name;
-    if (n === "Map" || n === "Set") return Array.from(o);
-    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
-  }
-  function _arrayLikeToArray(arr, len) {
-    if (len == null || len > arr.length) len = arr.length;
-    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-    return arr2;
+  function _iterableToArray(r) {
+    if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
   }
   function _nonIterableSpread() {
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
-  function _toPrimitive(input, hint) {
-    if (typeof input !== "object" || input === null) return input;
-    var prim = input[Symbol.toPrimitive];
-    if (prim !== undefined) {
-      var res = prim.call(input, hint || "default");
-      if (typeof res !== "object") return res;
+  function ownKeys(e, r) {
+    var t = Object.keys(e);
+    if (Object.getOwnPropertySymbols) {
+      var o = Object.getOwnPropertySymbols(e);
+      r && (o = o.filter(function (r) {
+        return Object.getOwnPropertyDescriptor(e, r).enumerable;
+      })), t.push.apply(t, o);
+    }
+    return t;
+  }
+  function _objectSpread2(e) {
+    for (var r = 1; r < arguments.length; r++) {
+      var t = null != arguments[r] ? arguments[r] : {};
+      r % 2 ? ownKeys(Object(t), true).forEach(function (r) {
+        _defineProperty(e, r, t[r]);
+      }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+        Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+      });
+    }
+    return e;
+  }
+  function _toConsumableArray(r) {
+    return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread();
+  }
+  function _toPrimitive(t, r) {
+    if ("object" != typeof t || !t) return t;
+    var e = t[Symbol.toPrimitive];
+    if (void 0 !== e) {
+      var i = e.call(t, r);
+      if ("object" != typeof i) return i;
       throw new TypeError("@@toPrimitive must return a primitive value.");
     }
-    return (hint === "string" ? String : Number)(input);
+    return (String )(t);
   }
-  function _toPropertyKey(arg) {
-    var key = _toPrimitive(arg, "string");
-    return typeof key === "symbol" ? key : String(key);
+  function _toPropertyKey(t) {
+    var i = _toPrimitive(t, "string");
+    return "symbol" == typeof i ? i : i + "";
+  }
+  function _typeof(o) {
+    "@babel/helpers - typeof";
+
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
+      return typeof o;
+    } : function (o) {
+      return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
+    }, _typeof(o);
+  }
+  function _unsupportedIterableToArray(r, a) {
+    if (r) {
+      if ("string" == typeof r) return _arrayLikeToArray(r, a);
+      var t = {}.toString.call(r).slice(8, -1);
+      return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+    }
   }
 
   function isArray(value) {
     return !Array.isArray ? getTag(value) === '[object Array]' : Array.isArray(value);
   }
-
-  // Adapted from: https://github.com/lodash/lodash/blob/master/.internal/baseToString.js
-  var INFINITY = 1 / 0;
   function baseToString(value) {
     // Exit early for strings to avoid a performance hit in some environments.
     if (typeof value == 'string') {
       return value;
     }
     var result = value + '';
-    return result == '0' && 1 / value == -INFINITY ? '-0' : result;
+    return result == '0' && 1 / value == -Infinity ? '-0' : result;
   }
   function toString(value) {
     return value == null ? '' : baseToString(value);
@@ -336,7 +318,6 @@
     fieldNormWeight: 1
   };
   var Config = _objectSpread2(_objectSpread2(_objectSpread2(_objectSpread2({}, BasicOptions), MatchOptions), FuzzyOptions), AdvancedOptions);
-  var Config$1 = Config;
 
   var SPACE = /[^ ]+/g;
 
@@ -372,9 +353,9 @@
     function FuseIndex() {
       var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
         _ref$getFn = _ref.getFn,
-        getFn = _ref$getFn === void 0 ? Config$1.getFn : _ref$getFn,
+        getFn = _ref$getFn === void 0 ? Config.getFn : _ref$getFn,
         _ref$fieldNormWeight = _ref.fieldNormWeight,
-        fieldNormWeight = _ref$fieldNormWeight === void 0 ? Config$1.fieldNormWeight : _ref$fieldNormWeight;
+        fieldNormWeight = _ref$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref$fieldNormWeight;
       _classCallCheck(this, FuseIndex);
       this.norm = norm(fieldNormWeight, 3);
       this.getFn = getFn;
@@ -554,9 +535,9 @@
   function createIndex(keys, docs) {
     var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
       _ref2$getFn = _ref2.getFn,
-      getFn = _ref2$getFn === void 0 ? Config$1.getFn : _ref2$getFn,
+      getFn = _ref2$getFn === void 0 ? Config.getFn : _ref2$getFn,
       _ref2$fieldNormWeight = _ref2.fieldNormWeight,
-      fieldNormWeight = _ref2$fieldNormWeight === void 0 ? Config$1.fieldNormWeight : _ref2$fieldNormWeight;
+      fieldNormWeight = _ref2$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref2$fieldNormWeight;
     var myIndex = new FuseIndex({
       getFn: getFn,
       fieldNormWeight: fieldNormWeight
@@ -569,9 +550,9 @@
   function parseIndex(data) {
     var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
       _ref3$getFn = _ref3.getFn,
-      getFn = _ref3$getFn === void 0 ? Config$1.getFn : _ref3$getFn,
+      getFn = _ref3$getFn === void 0 ? Config.getFn : _ref3$getFn,
       _ref3$fieldNormWeight = _ref3.fieldNormWeight,
-      fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config$1.fieldNormWeight : _ref3$fieldNormWeight;
+      fieldNormWeight = _ref3$fieldNormWeight === void 0 ? Config.fieldNormWeight : _ref3$fieldNormWeight;
     var keys = data.keys,
       records = data.records;
     var myIndex = new FuseIndex({
@@ -585,7 +566,7 @@
 
   function convertMaskToIndices() {
     var matchmask = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config$1.minMatchCharLength;
+    var minMatchCharLength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Config.minMatchCharLength;
     var indices = [];
     var start = -1;
     var end = -1;
@@ -616,19 +597,19 @@
   function search(text, pattern, patternAlphabet) {
     var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {},
       _ref$location = _ref.location,
-      location = _ref$location === void 0 ? Config$1.location : _ref$location,
+      location = _ref$location === void 0 ? Config.location : _ref$location,
       _ref$distance = _ref.distance,
-      distance = _ref$distance === void 0 ? Config$1.distance : _ref$distance,
+      distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
       _ref$threshold = _ref.threshold,
-      threshold = _ref$threshold === void 0 ? Config$1.threshold : _ref$threshold,
+      threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
       _ref$findAllMatches = _ref.findAllMatches,
-      findAllMatches = _ref$findAllMatches === void 0 ? Config$1.findAllMatches : _ref$findAllMatches,
+      findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
       _ref$minMatchCharLeng = _ref.minMatchCharLength,
-      minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config$1.minMatchCharLength : _ref$minMatchCharLeng,
+      minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
       _ref$includeMatches = _ref.includeMatches,
-      includeMatches = _ref$includeMatches === void 0 ? Config$1.includeMatches : _ref$includeMatches,
+      includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
       _ref$ignoreLocation = _ref.ignoreLocation,
-      ignoreLocation = _ref$ignoreLocation === void 0 ? Config$1.ignoreLocation : _ref$ignoreLocation;
+      ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
     if (pattern.length > MAX_BITS) {
       throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
     }
@@ -799,23 +780,23 @@
       var _this = this;
       var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
         _ref$location = _ref.location,
-        location = _ref$location === void 0 ? Config$1.location : _ref$location,
+        location = _ref$location === void 0 ? Config.location : _ref$location,
         _ref$threshold = _ref.threshold,
-        threshold = _ref$threshold === void 0 ? Config$1.threshold : _ref$threshold,
+        threshold = _ref$threshold === void 0 ? Config.threshold : _ref$threshold,
         _ref$distance = _ref.distance,
-        distance = _ref$distance === void 0 ? Config$1.distance : _ref$distance,
+        distance = _ref$distance === void 0 ? Config.distance : _ref$distance,
         _ref$includeMatches = _ref.includeMatches,
-        includeMatches = _ref$includeMatches === void 0 ? Config$1.includeMatches : _ref$includeMatches,
+        includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
         _ref$findAllMatches = _ref.findAllMatches,
-        findAllMatches = _ref$findAllMatches === void 0 ? Config$1.findAllMatches : _ref$findAllMatches,
+        findAllMatches = _ref$findAllMatches === void 0 ? Config.findAllMatches : _ref$findAllMatches,
         _ref$minMatchCharLeng = _ref.minMatchCharLength,
-        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config$1.minMatchCharLength : _ref$minMatchCharLeng,
+        minMatchCharLength = _ref$minMatchCharLeng === void 0 ? Config.minMatchCharLength : _ref$minMatchCharLeng,
         _ref$isCaseSensitive = _ref.isCaseSensitive,
-        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config$1.isCaseSensitive : _ref$isCaseSensitive,
+        isCaseSensitive = _ref$isCaseSensitive === void 0 ? Config.isCaseSensitive : _ref$isCaseSensitive,
         _ref$ignoreDiacritics = _ref.ignoreDiacritics,
-        ignoreDiacritics = _ref$ignoreDiacritics === void 0 ? Config$1.ignoreDiacritics : _ref$ignoreDiacritics,
+        ignoreDiacritics = _ref$ignoreDiacritics === void 0 ? Config.ignoreDiacritics : _ref$ignoreDiacritics,
         _ref$ignoreLocation = _ref.ignoreLocation,
-        ignoreLocation = _ref$ignoreLocation === void 0 ? Config$1.ignoreLocation : _ref$ignoreLocation;
+        ignoreLocation = _ref$ignoreLocation === void 0 ? Config.ignoreLocation : _ref$ignoreLocation;
       _classCallCheck(this, BitapSearch);
       this.options = {
         location: location,
@@ -1015,7 +996,7 @@
 
   function computeScoreSingle(result, _ref) {
     var _ref$ignoreFieldNorm = _ref.ignoreFieldNorm,
-      ignoreFieldNorm = _ref$ignoreFieldNorm === void 0 ? Config$1.ignoreFieldNorm : _ref$ignoreFieldNorm;
+      ignoreFieldNorm = _ref$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref$ignoreFieldNorm;
     var totalScore = 1;
     result.matches.forEach(function (_ref2) {
       var key = _ref2.key,
@@ -1030,7 +1011,7 @@
   // Practical scoring function
   function computeScore(results, _ref3) {
     var _ref3$ignoreFieldNorm = _ref3.ignoreFieldNorm,
-      ignoreFieldNorm = _ref3$ignoreFieldNorm === void 0 ? Config$1.ignoreFieldNorm : _ref3$ignoreFieldNorm;
+      ignoreFieldNorm = _ref3$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref3$ignoreFieldNorm;
     results.forEach(function (result) {
       computeScoreSingle(result, {
         ignoreFieldNorm: ignoreFieldNorm
@@ -1145,9 +1126,9 @@
   function format(results, docs) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
       _ref$includeMatches = _ref.includeMatches,
-      includeMatches = _ref$includeMatches === void 0 ? Config$1.includeMatches : _ref$includeMatches,
+      includeMatches = _ref$includeMatches === void 0 ? Config.includeMatches : _ref$includeMatches,
       _ref$includeScore = _ref.includeScore,
-      includeScore = _ref$includeScore === void 0 ? Config$1.includeScore : _ref$includeScore;
+      includeScore = _ref$includeScore === void 0 ? Config.includeScore : _ref$includeScore;
     var transformers = [];
     if (includeMatches) transformers.push(transformMatches);
     if (includeScore) transformers.push(transformScore);
@@ -1166,13 +1147,13 @@
     });
   }
 
-  var Fuse$1 = /*#__PURE__*/function () {
+  var Fuse = /*#__PURE__*/function () {
     // Statics are assigned in entry.ts
 
     function Fuse(docs, options, index) {
       _classCallCheck(this, Fuse);
-      this.options = _objectSpread2(_objectSpread2({}, Config$1), options);
-      if (this.options.useExtendedSearch && !false) {
+      this.options = _objectSpread2(_objectSpread2({}, Config), options);
+      if (this.options.useExtendedSearch && true) {
         throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
       }
       this._keyStore = new KeyStore(this.options.keys);
@@ -1453,14 +1434,14 @@
     return Fuse;
   }(); // Re-export for use by _findMatches type
 
-  Fuse$1.version = '7.2.0';
-  Fuse$1.createIndex = createIndex;
-  Fuse$1.parseIndex = parseIndex;
-  Fuse$1.config = Config$1;
+  Fuse.version = '7.2.0';
+  Fuse.createIndex = createIndex;
+  Fuse.parseIndex = parseIndex;
+  Fuse.config = Config;
   {
-    Fuse$1.parseQuery = parse;
+    Fuse.parseQuery = parse;
   }
-  Fuse$1.use = function () {
+  Fuse.use = function () {
     for (var _len = arguments.length, plugins = new Array(_len), _key = 0; _key < _len; _key++) {
       plugins[_key] = arguments[_key];
     }
@@ -1468,7 +1449,6 @@
       return register(plugin);
     });
   };
-  var Fuse = Fuse$1;
 
   // Re-export public types
 

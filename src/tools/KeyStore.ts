@@ -15,7 +15,7 @@ export default class KeyStore {
     let totalWeight = 0
 
     keys.forEach((key) => {
-      let obj = createKey(key)
+      const obj = createKey(key)
 
       this._keys.push(obj)
       this._keyMap[obj.id] = obj

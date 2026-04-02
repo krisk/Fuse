@@ -8,7 +8,7 @@ import {
 } from './types'
 
 export default function get(obj: any, path: string | string[]): any {
-  let list: any[] = []
+  const list: any[] = []
   let arr = false
 
   const deepGet = (obj: any, path: string[], index: number, arrayIndex?: number): void => {
@@ -19,7 +19,7 @@ export default function get(obj: any, path: string | string[]): any {
       // If there's no path left, we've arrived at the object we care about.
       list.push(arrayIndex !== undefined ? { v: obj, i: arrayIndex } : obj)
     } else {
-      let key = path[index]
+      const key = path[index]
 
       const value = obj[key]
 

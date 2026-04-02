@@ -16,7 +16,7 @@ export default function transformMatches(result: InternalResult, data: any): voi
 
     const { indices, value } = match
 
-    let obj: any = {
+    const obj: any = {
       indices,
       value
     }

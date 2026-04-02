@@ -15,8 +15,7 @@ import type {
   IFuseOptions,
   FuseSearchOptions,
   FuseResult,
-  Expression,
-  FuseSortFunction
+  Expression
 } from '../types'
 
 export default class Fuse<T> {
@@ -257,7 +256,7 @@ export default class Fuse<T> {
 
     records.forEach(({ $: item, i: idx }) => {
       if (isDefined(item)) {
-        let expResults = evaluate(expression, item, idx)
+        const expResults = evaluate(expression, item, idx)
 
         if (expResults.length) {
           // Dedupe when adding
@@ -286,7 +285,7 @@ export default class Fuse<T> {
         return
       }
 
-      let matches: MatchScore[] = []
+      const matches: MatchScore[] = []
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
@@ -320,7 +319,7 @@ export default class Fuse<T> {
       return []
     }
 
-    let matches: MatchScore[] = []
+    const matches: MatchScore[] = []
 
     if (isArray(value)) {
       value.forEach(({ v: text, i: idx, n: norm }: any) => {
