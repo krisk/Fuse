@@ -22,6 +22,7 @@ const searchers: Array<typeof BaseMatch> = [
 
 const searchersLen = searchers.length
 
+const ESCAPED_PIPE = '\u0000'  // placeholder for escaped \|
 const OR_TOKEN = '|'
 
 // Tokenize a query string into individual search terms.
@@ -78,8 +79,13 @@ function tokenize(pattern: string): string[] {
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 export default function parseQuery(pattern: string, options: any = {}): BaseMatch[][] {
-  return pattern.split(OR_TOKEN).map((item) => {
-    const query = tokenize(item.trim()).filter((item) => item && !!item.trim())
+  // Replace escaped \| with placeholder before splitting on |
+  const escaped = pattern.replace(/\\\|/g, ESCAPED_PIPE)
+
+  return escaped.split(OR_TOKEN).map((item) => {
+    // Restore escaped pipes in each OR group
+    const restored = item.replace(/\u0000/g, '|')
+    const query = tokenize(restored.trim()).filter((item) => item && !!item.trim())
 
     const results: BaseMatch[] = []
     for (let i = 0, len = query.length; i < len; i += 1) {

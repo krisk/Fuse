@@ -88,6 +88,37 @@ describe('Searching using extended search', () => {
   })
 })
 
+describe('Escaped pipe character in extended search', () => {
+  const list = [
+    { text: 'foo | bar' },
+    { text: 'foo or bar' },
+    { text: 'baz | qux' }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    keys: ['text']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: escaped pipe in include-match', () => {
+    const result = fuse.search("'foo \\| bar")
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('foo | bar')
+  })
+
+  test('Search: escaped pipe in exact-match', () => {
+    const result = fuse.search('="foo \\| bar"')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('foo | bar')
+  })
+
+  test('Search: unescaped pipe still works as OR', () => {
+    const result = fuse.search("'foo | 'qux")
+    expect(result).toHaveLength(3)
+  })
+})
+
 describe('Searching with quoted tokens containing spaces and inner quotes', () => {
   const list = [
     { text: 'said "test' },

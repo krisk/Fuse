@@ -1378,6 +1378,7 @@
   // ❗Order is important. DO NOT CHANGE.
   var searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
   var searchersLen = searchers.length;
+  var ESCAPED_PIPE = "\0"; // placeholder for escaped \|
   var OR_TOKEN = '|';
 
   // Tokenize a query string into individual search terms.
@@ -1432,8 +1433,12 @@
   // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
   function parseQuery(pattern) {
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return pattern.split(OR_TOKEN).map(function (item) {
-      var query = tokenize(item.trim()).filter(function (item) {
+    // Replace escaped \| with placeholder before splitting on |
+    var escaped = pattern.replace(/\\\|/g, ESCAPED_PIPE);
+    return escaped.split(OR_TOKEN).map(function (item) {
+      // Restore escaped pipes in each OR group
+      var restored = item.replace(/\u0000/g, '|');
+      var query = tokenize(restored.trim()).filter(function (item) {
         return item && !!item.trim();
       });
       var results = [];
@@ -1923,6 +1928,20 @@
           shouldSort = _this$options.shouldSort,
           sortFn = _this$options.sortFn,
           ignoreFieldNorm = _this$options.ignoreFieldNorm;
+
+        // Empty string query returns all docs (useful for search UIs)
+        if (isString(query) && !query.trim()) {
+          var docs = this._docs.map(function (item, idx) {
+            return {
+              item: item,
+              refIndex: idx
+            };
+          });
+          if (isNumber(limit) && limit > -1) {
+            docs = docs.slice(0, limit);
+          }
+          return docs;
+        }
         var useHeap = isNumber(limit) && limit > 0 && isString(query);
         var results;
         if (useHeap) {

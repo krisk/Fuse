@@ -15,6 +15,26 @@ describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
   let fuse
   beforeEach(() => (fuse = setup()))
 
+  describe('When searching with an empty string', () => {
+    test('returns all items', () => {
+      const result = fuse.search('')
+      expect(result).toHaveLength(3)
+      expect(result[0].item).toBe('Apple')
+      expect(result[1].item).toBe('Orange')
+      expect(result[2].item).toBe('Banana')
+    })
+
+    test('returns all items for whitespace-only query', () => {
+      const result = fuse.search('   ')
+      expect(result).toHaveLength(3)
+    })
+
+    test('respects limit option', () => {
+      const result = fuse.search('', { limit: 2 })
+      expect(result).toHaveLength(2)
+    })
+  })
+
   describe('When searching for the term "Apple"', () => {
     let result
     beforeEach(() => (result = fuse.search('Apple')))

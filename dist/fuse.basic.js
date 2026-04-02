@@ -1298,6 +1298,20 @@
           shouldSort = _this$options.shouldSort,
           sortFn = _this$options.sortFn,
           ignoreFieldNorm = _this$options.ignoreFieldNorm;
+
+        // Empty string query returns all docs (useful for search UIs)
+        if (isString(query) && !query.trim()) {
+          var docs = this._docs.map(function (item, idx) {
+            return {
+              item: item,
+              refIndex: idx
+            };
+          });
+          if (isNumber(limit) && limit > -1) {
+            docs = docs.slice(0, limit);
+          }
+          return docs;
+        }
         var useHeap = isNumber(limit) && limit > 0 && isString(query);
         var results;
         if (useHeap) {

@@ -24,7 +24,7 @@ export interface SearcherConstructor {
 export interface FuseOptionKeyObject<T> {
   name: string | string[]
   weight?: number
-  getFn?: (obj: T) => ReadonlyArray<string> | string
+  getFn?: (obj: T) => ReadonlyArray<string> | string | null | undefined
 }
 
 export type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[]
@@ -34,7 +34,7 @@ export interface KeyObject {
   id: string
   weight: number
   src: string | string[]
-  getFn?: ((obj: any) => ReadonlyArray<string> | string) | null
+  getFn?: ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null
 }
 
 // ── Get function ───────────────────────────────────────────────────

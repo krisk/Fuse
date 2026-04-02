@@ -12,7 +12,7 @@ interface Searcher {
 interface FuseOptionKeyObject<T> {
     name: string | string[];
     weight?: number;
-    getFn?: (obj: T) => ReadonlyArray<string> | string;
+    getFn?: (obj: T) => ReadonlyArray<string> | string | null | undefined;
 }
 type FuseOptionKey<T> = FuseOptionKeyObject<T> | string | string[];
 interface KeyObject {
@@ -20,7 +20,7 @@ interface KeyObject {
     id: string;
     weight: number;
     src: string | string[];
-    getFn?: ((obj: any) => ReadonlyArray<string> | string) | null;
+    getFn?: ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null;
 }
 type FuseGetFunction<T> = (obj: T, path: string | string[]) => ReadonlyArray<string> | string;
 type GetFunction = (obj: any, path: string | string[]) => any;

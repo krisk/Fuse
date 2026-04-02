@@ -137,6 +137,18 @@ export default class Fuse<T> {
       ignoreFieldNorm
     } = this.options
 
+    // Empty string query returns all docs (useful for search UIs)
+    if (isString(query) && !query.trim()) {
+      let docs: FuseResult<T>[] = this._docs.map((item, idx) => ({
+        item,
+        refIndex: idx
+      }))
+      if (isNumber(limit) && limit > -1) {
+        docs = docs.slice(0, limit)
+      }
+      return docs
+    }
+
     const useHeap = isNumber(limit) && limit > 0 && isString(query)
 
     let results: InternalResult[]

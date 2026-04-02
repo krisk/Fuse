@@ -1026,6 +1026,7 @@ class IncludeMatch extends BaseMatch {
 // ❗Order is important. DO NOT CHANGE.
 const searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
 const searchersLen = searchers.length;
+const ESCAPED_PIPE = '\u0000'; // placeholder for escaped \|
 const OR_TOKEN = '|';
 
 // Tokenize a query string into individual search terms.
@@ -1079,8 +1080,12 @@ function tokenize(pattern) {
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
 function parseQuery(pattern, options = {}) {
-  return pattern.split(OR_TOKEN).map(item => {
-    const query = tokenize(item.trim()).filter(item => item && !!item.trim());
+  // Replace escaped \| with placeholder before splitting on |
+  const escaped = pattern.replace(/\\\|/g, ESCAPED_PIPE);
+  return escaped.split(OR_TOKEN).map(item => {
+    // Restore escaped pipes in each OR group
+    const restored = item.replace(/\u0000/g, '|');
+    const query = tokenize(restored.trim()).filter(item => item && !!item.trim());
     const results = [];
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i];
@@ -1521,6 +1526,18 @@ class Fuse {
       sortFn,
       ignoreFieldNorm
     } = this.options;
+
+    // Empty string query returns all docs (useful for search UIs)
+    if (isString(query) && !query.trim()) {
+      let docs = this._docs.map((item, idx) => ({
+        item,
+        refIndex: idx
+      }));
+      if (isNumber(limit) && limit > -1) {
+        docs = docs.slice(0, limit);
+      }
+      return docs;
+    }
     const useHeap = isNumber(limit) && limit > 0 && isString(query);
     let results;
     if (useHeap) {
