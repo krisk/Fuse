@@ -1,5 +1,6 @@
 import Config from './config'
-import { transformMatches, transformScore } from '../transform'
+import transformMatches from './transformMatches'
+import transformScore from './transformScore'
 import type { InternalResult, FuseResult } from '../types'
 
 export default function format<T>(
