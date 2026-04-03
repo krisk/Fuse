@@ -256,6 +256,7 @@ declare class Fuse<T> {
     static config: typeof Config;
     static parseQuery: typeof parse;
     static use: (...plugins: any[]) => void;
+    static match: (pattern: string, text: string, options?: IFuseOptions<any>) => SearchResult;
     constructor(docs: ReadonlyArray<T>, options?: IFuseOptions<T>, index?: FuseIndex<T>);
     _getSearcher(query: string): Searcher;
     setCollection(docs: ReadonlyArray<T>, index?: FuseIndex<T>): void;
@@ -275,4 +276,4 @@ declare class Fuse<T> {
 }
 
 export { FuseIndex, Fuse as default };
-export type { Expression, FuseGetFunction, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject };
+export type { Expression, FuseGetFunction, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject, SearchResult };

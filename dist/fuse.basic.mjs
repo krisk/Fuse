@@ -1312,6 +1312,13 @@ Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
+Fuse.match = function (pattern, text, options) {
+  const searcher = createSearcher(pattern, {
+    ...Config,
+    ...options
+  });
+  return searcher.searchIn(text);
+};
 {
   Fuse.parseQuery = parse;
 }

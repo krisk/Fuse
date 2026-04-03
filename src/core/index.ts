@@ -10,6 +10,7 @@ import format from './format'
 import * as ErrorMsg from './errorMessages'
 import type {
   Searcher,
+  SearchResult,
   InternalResult,
   MatchScore,
   IFuseOptions,
@@ -40,6 +41,7 @@ export default class Fuse<T> {
   static config: typeof Config
   static parseQuery: typeof parse
   static use: (...plugins: any[]) => void
+  static match: (pattern: string, text: string, options?: IFuseOptions<any>) => SearchResult
 
   constructor(
     docs: ReadonlyArray<T>,

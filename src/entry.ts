@@ -3,12 +3,17 @@ import Config from './core/config'
 import { createIndex, parseIndex } from './tools/FuseIndex'
 import { parse } from './core/queryParser'
 import { ExtendedSearch } from './search'
-import register from './core/register'
+import register, { createSearcher } from './core/register'
 
 Fuse.version = '__VERSION__'
 Fuse.createIndex = createIndex
 Fuse.parseIndex = parseIndex
 Fuse.config = Config
+
+Fuse.match = function (pattern: string, text: string, options?: any) {
+  const searcher = createSearcher(pattern, { ...Config, ...options })
+  return searcher.searchIn(text)
+}
 
 if (process.env.NODE_ENV === 'development') {
   Fuse.parseQuery = parse
@@ -46,7 +51,8 @@ export type {
   RecordEntryObject,
   RecordEntryArrayItem,
   RangeTuple,
-  Expression
+  Expression,
+  SearchResult
 } from './types'
 
 export type { default as FuseIndex } from './tools/FuseIndex'
