@@ -5,7 +5,6 @@ Triaged from stale-closed issues (April 2026).
 ## Open Bugs
 
 - [ ] #712 — `!` exclusion in extended search doesn't work properly across multiple keys — architectural issue, needs design work
-- [ ] #762 — Bitap match mask flags characters from the pattern alphabet across the entire text, producing noisy indices — root cause of #781
 
 ## Resolved
 
