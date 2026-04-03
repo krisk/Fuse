@@ -218,6 +218,7 @@ export interface FuseResult<T> {
 // ── Expression (logical search) ────────────────────────────────────
 
 export type Expression =
+  | string
   | { [key: string]: string }
   | {
       $path: ReadonlyArray<string>

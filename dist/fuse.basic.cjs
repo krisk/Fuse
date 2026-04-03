@@ -1007,6 +1007,17 @@ function parse(query, options) {
     _ref3$auto = _ref3.auto,
     auto = _ref3$auto === void 0 ? true : _ref3$auto;
   var next = function next(query) {
+    // Keyless string entry: search across all keys
+    if (isString(query)) {
+      var obj = {
+        keyId: null,
+        pattern: query
+      };
+      if (auto) {
+        obj.searcher = createSearcher(query, options);
+      }
+      return obj;
+    }
     var keys = Object.keys(query);
     var isQueryPath = isPath(query);
     if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
@@ -1018,14 +1029,14 @@ function parse(query, options) {
       if (!isString(pattern)) {
         throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
       }
-      var obj = {
+      var _obj = {
         keyId: createKeyId(key),
         pattern: pattern
       };
       if (auto) {
-        obj.searcher = createSearcher(pattern, options);
+        _obj.searcher = createSearcher(pattern, options);
       }
-      return obj;
+      return _obj;
     }
     var node = {
       children: [],

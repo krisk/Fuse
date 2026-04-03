@@ -1643,6 +1643,17 @@
       _ref3$auto = _ref3.auto,
       auto = _ref3$auto === void 0 ? true : _ref3$auto;
     var next = function next(query) {
+      // Keyless string entry: search across all keys
+      if (isString(query)) {
+        var obj = {
+          keyId: null,
+          pattern: query
+        };
+        if (auto) {
+          obj.searcher = createSearcher(query, options);
+        }
+        return obj;
+      }
       var keys = Object.keys(query);
       var isQueryPath = isPath(query);
       if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
@@ -1654,14 +1665,14 @@
         if (!isString(pattern)) {
           throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
         }
-        var obj = {
+        var _obj = {
           keyId: createKeyId(key),
           pattern: pattern
         };
         if (auto) {
-          obj.searcher = createSearcher(pattern, options);
+          _obj.searcher = createSearcher(pattern, options);
         }
-        return obj;
+        return _obj;
       }
       var node = {
         children: [],
@@ -2031,11 +2042,25 @@
           if (!node.children) {
             var keyId = node.keyId,
               searcher = node.searcher;
-            var matches = _this._findMatches({
-              key: _this._keyStore.get(keyId),
-              value: _this._myIndex.getValueForItemAtKeyId(item, keyId),
-              searcher: searcher
-            });
+            var matches;
+            if (keyId === null) {
+              // Keyless entry: search across all keys
+              matches = [];
+              _this._myIndex.keys.forEach(function (key, keyIndex) {
+                var _matches;
+                (_matches = matches).push.apply(_matches, _toConsumableArray(_this._findMatches({
+                  key: key,
+                  value: item[keyIndex],
+                  searcher: searcher
+                })));
+              });
+            } else {
+              matches = _this._findMatches({
+                key: _this._keyStore.get(keyId),
+                value: _this._myIndex.getValueForItemAtKeyId(item, keyId),
+                searcher: searcher
+              });
+            }
             if (matches && matches.length) {
               return [{
                 idx: idx,
@@ -2076,9 +2101,9 @@
                 results.push(resultMap.get(idx));
               }
               expResults.forEach(function (_ref5) {
-                var _matches;
+                var _matches2;
                 var matches = _ref5.matches;
-                (_matches = resultMap.get(idx).matches).push.apply(_matches, _toConsumableArray(matches));
+                (_matches2 = resultMap.get(idx).matches).push.apply(_matches2, _toConsumableArray(matches));
               });
             }
           }

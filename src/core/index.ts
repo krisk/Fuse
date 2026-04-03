@@ -230,11 +230,27 @@ export default class Fuse<T> {
       if (!node.children) {
         const { keyId, searcher } = node
 
-        const matches = this._findMatches({
-          key: this._keyStore.get(keyId),
-          value: this._myIndex.getValueForItemAtKeyId(item, keyId),
-          searcher
-        })
+        let matches: MatchScore[]
+
+        if (keyId === null) {
+          // Keyless entry: search across all keys
+          matches = []
+          this._myIndex.keys.forEach((key, keyIndex) => {
+            matches.push(
+              ...this._findMatches({
+                key,
+                value: item[keyIndex],
+                searcher
+              })
+            )
+          })
+        } else {
+          matches = this._findMatches({
+            key: this._keyStore.get(keyId),
+            value: this._myIndex.getValueForItemAtKeyId(item, keyId),
+            searcher
+          })
+        }
 
         if (matches && matches.length) {
           return [

@@ -803,6 +803,17 @@ function parse(query, options, {
   auto = true
 } = {}) {
   const next = query => {
+    // Keyless string entry: search across all keys
+    if (isString(query)) {
+      const obj = {
+        keyId: null,
+        pattern: query
+      };
+      if (auto) {
+        obj.searcher = createSearcher(query, options);
+      }
+      return obj;
+    }
     const keys = Object.keys(query);
     const isQueryPath = isPath(query);
     if (!isQueryPath && keys.length > 1 && !isExpression(query)) {

@@ -158,7 +158,7 @@ interface FuseResult<T> {
     score?: number;
     matches?: ReadonlyArray<FuseResultMatch>;
 }
-type Expression = {
+type Expression = string | {
     [key: string]: string;
 } | {
     $path: ReadonlyArray<string>;

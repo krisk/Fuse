@@ -241,6 +241,43 @@ describe('Logical search with dotted keys', () => {
   })
 })
 
+describe('Keyless string entries in logical queries', () => {
+  const list = [
+    { title: "Old Man's War", author: 'Scalzi' },
+    { title: 'The Lock Artist', author: 'Hamilton' },
+    { title: 'Old Ways', author: 'Macfarlane' }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    keys: ['title', 'author']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: $and with key + keyless string', () => {
+    const result = fuse.search({
+      $and: [{ author: 'Scalzi' }, 'Old']
+    })
+    expect(result.length).toBe(1)
+    expect(result[0].item.title).toBe("Old Man's War")
+  })
+
+  test('Search: $or with key + keyless string', () => {
+    const result = fuse.search({
+      $or: [{ title: "'Lock" }, 'Macfarlane']
+    })
+    expect(result.length).toBe(2)
+  })
+
+  test('Search: keyless string matches across all keys', () => {
+    const result = fuse.search({
+      $and: ['Hamilton']
+    })
+    expect(result.length).toBe(1)
+    expect(result[0].item.author).toBe('Hamilton')
+  })
+})
+
 describe('Searching using logical OR with same query across fields', () => {
   const options = { keys: ['title', 'author.lastName'] }
   const fuse = new Fuse(Books, options)

@@ -31,6 +31,20 @@ const convertToExplicit = (query: any): any => ({
 // the appropriate `Searcher` instance
 export function parse(query: any, options: any, { auto = true } = {}): any {
   const next = (query: any): any => {
+    // Keyless string entry: search across all keys
+    if (isString(query)) {
+      const obj: any = {
+        keyId: null,
+        pattern: query
+      }
+
+      if (auto) {
+        obj.searcher = createSearcher(query, options)
+      }
+
+      return obj
+    }
+
     const keys = Object.keys(query)
 
     const isQueryPath = isPath(query)

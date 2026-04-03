@@ -1267,6 +1267,17 @@ function parse(query, options, {
   auto = true
 } = {}) {
   const next = query => {
+    // Keyless string entry: search across all keys
+    if (isString(query)) {
+      const obj = {
+        keyId: null,
+        pattern: query
+      };
+      if (auto) {
+        obj.searcher = createSearcher(query, options);
+      }
+      return obj;
+    }
     const keys = Object.keys(query);
     const isQueryPath = isPath(query);
     if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
@@ -1628,11 +1639,24 @@ class Fuse {
           keyId,
           searcher
         } = node;
-        const matches = this._findMatches({
-          key: this._keyStore.get(keyId),
-          value: this._myIndex.getValueForItemAtKeyId(item, keyId),
-          searcher
-        });
+        let matches;
+        if (keyId === null) {
+          // Keyless entry: search across all keys
+          matches = [];
+          this._myIndex.keys.forEach((key, keyIndex) => {
+            matches.push(...this._findMatches({
+              key,
+              value: item[keyIndex],
+              searcher
+            }));
+          });
+        } else {
+          matches = this._findMatches({
+            key: this._keyStore.get(keyId),
+            value: this._myIndex.getValueForItemAtKeyId(item, keyId),
+            searcher
+          });
+        }
         if (matches && matches.length) {
           return [{
             idx,
