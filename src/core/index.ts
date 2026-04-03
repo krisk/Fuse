@@ -122,9 +122,10 @@ export default class Fuse<T> {
     return results
   }
 
-  removeAt(idx: number): void {
-    this._docs.splice(idx, 1)
+  removeAt(idx: number): T {
+    const doc = this._docs.splice(idx, 1)[0]
     this._myIndex.removeAt(idx)
+    return doc
   }
 
   getIndex(): FuseIndex<T> {

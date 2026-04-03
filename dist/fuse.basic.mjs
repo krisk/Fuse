@@ -1056,8 +1056,9 @@ class Fuse {
     return results;
   }
   removeAt(idx) {
-    this._docs.splice(idx, 1);
+    const doc = this._docs.splice(idx, 1)[0];
     this._myIndex.removeAt(idx);
+    return doc;
   }
   getIndex() {
     return this._myIndex;

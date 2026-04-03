@@ -1287,8 +1287,9 @@
     }, {
       key: "removeAt",
       value: function removeAt(idx) {
-        this._docs.splice(idx, 1);
+        var doc = this._docs.splice(idx, 1)[0];
         this._myIndex.removeAt(idx);
+        return doc;
       }
     }, {
       key: "getIndex",

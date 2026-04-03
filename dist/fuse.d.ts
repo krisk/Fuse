@@ -261,7 +261,7 @@ declare class Fuse<T> {
     setCollection(docs: ReadonlyArray<T>, index?: FuseIndex<T>): void;
     add(doc: T): void;
     remove(predicate?: (doc: T, idx: number) => boolean): T[];
-    removeAt(idx: number): void;
+    removeAt(idx: number): T;
     getIndex(): FuseIndex<T>;
     search(query: string | Expression, options?: FuseSearchOptions): FuseResult<T>[];
     _searchStringList(query: string, { heap, ignoreFieldNorm }?: HeapSearchOptions): InternalResult[] | null;
