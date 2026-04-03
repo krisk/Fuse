@@ -1515,7 +1515,11 @@ var ExtendedSearch = /*#__PURE__*/function () {
   }
   _createClass(ExtendedSearch, [{
     key: "searchIn",
-    value: function searchIn(text) {
+    value:
+    // Note: searchIn operates on a single text value and sets hasInverse on the
+    // result when inverse patterns are involved. _searchObjectList uses this to
+    // switch from "ANY key" to "ALL keys" aggregation. See #712.
+    function searchIn(text) {
       var query = this.query;
       if (!query) {
         return {
@@ -1532,6 +1536,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
       var numMatches = 0;
       var allIndices = [];
       var totalScore = 0;
+      var hasInverse = false;
 
       // ORs
       for (var i = 0, qLen = query.length; i < qLen; i += 1) {
@@ -1540,6 +1545,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
         // Reset indices
         allIndices.length = 0;
         numMatches = 0;
+        hasInverse = false;
 
         // ANDs
         for (var j = 0, pLen = searchers.length; j < pLen; j += 1) {
@@ -1551,8 +1557,11 @@ var ExtendedSearch = /*#__PURE__*/function () {
           if (isMatch) {
             numMatches += 1;
             totalScore += score;
+            var type = searcher.constructor.type;
+            if (type.startsWith('inverse')) {
+              hasInverse = true;
+            }
             if (includeMatches) {
-              var type = searcher.constructor.type;
               if (MultiMatchSet.has(type)) {
                 allIndices.push.apply(allIndices, _toConsumableArray(indices));
               } else {
@@ -1563,6 +1572,7 @@ var ExtendedSearch = /*#__PURE__*/function () {
             totalScore = 0;
             numMatches = 0;
             allIndices.length = 0;
+            hasInverse = false;
             break;
           }
         }
@@ -1573,6 +1583,9 @@ var ExtendedSearch = /*#__PURE__*/function () {
             isMatch: true,
             score: totalScore / numMatches
           };
+          if (hasInverse) {
+            result.hasInverse = true;
+          }
           if (includeMatches) {
             result.indices = allIndices;
           }
@@ -2109,31 +2122,14 @@ var Fuse = /*#__PURE__*/function () {
       return results;
     }
 
-    // Known limitation: inverse patterns (e.g. !Syrup) don't work correctly
-    // across multiple keys. Each key is searched independently and the item is
-    // included if ANY key matches. This is correct for positive patterns but
-    // wrong for inverse ones:
+    // When a search involves inverse patterns (e.g. !Syrup), the aggregation
+    // across keys switches from "ANY key matches" to "ALL keys must match."
+    // This is signaled by hasInverse on the SearchResult from ExtendedSearch.
     //
-    //   Positive "hello" with keys [title, author]:
-    //     title="hello world" → isMatch: true
-    //     author="Bob Smith"  → isMatch: false
-    //     → include (correct: found in at least one key)
-    //
-    //   Inverse "!Syrup" with keys [title, author]:
-    //     title="Maple Syrup Pancakes" → isMatch: false (contains Syrup)
-    //     author="Chef Bob"            → isMatch: true  (no Syrup)
-    //     → include (wrong: should exclude because title contains Syrup)
-    //
-    // Fixing this requires knowing which results are inverse vs positive, but
-    // searchIn() returns a single { isMatch, score } with no per-term breakdown.
-    // For mixed patterns like "^hello !Syrup", we'd need per-term results from
-    // ExtendedSearch to know whether a key failed due to the positive or inverse
-    // term — which means redesigning the Searcher interface.
-    //
-    // Workaround: use logical queries for inverse patterns across keys:
-    //   fuse.search({ $and: [{ title: '!Syrup' }, { author: '!Syrup' }] })
-    //
-    // See: https://github.com/krisk/Fuse/issues/712
+    // For mixed patterns like "^hello !Syrup", a key failure is ambiguous —
+    // it could be the positive or inverse term that failed. In that case we
+    // conservatively exclude the item, which is strictly better than the old
+    // behavior of including it. See: https://github.com/krisk/Fuse/issues/712
   }, {
     key: "_searchObjectList",
     value: function _searchObjectList(query) {
@@ -2155,15 +2151,30 @@ var Fuse = /*#__PURE__*/function () {
           return;
         }
         var matches = [];
+        var anyKeyFailed = false;
+        var hasInverse = false;
 
         // Iterate over every key (i.e, path), and fetch the value at that key
         keys.forEach(function (key, keyIndex) {
-          matches.push.apply(matches, _toConsumableArray(_this2._findMatches({
+          var keyMatches = _this2._findMatches({
             key: key,
             value: item[keyIndex],
             searcher: searcher
-          })));
+          });
+          if (keyMatches.length) {
+            matches.push.apply(matches, _toConsumableArray(keyMatches));
+            if (keyMatches[0].hasInverse) {
+              hasInverse = true;
+            }
+          } else {
+            anyKeyFailed = true;
+          }
         });
+
+        // If the search involves inverse patterns, ALL keys must match
+        if (hasInverse && anyKeyFailed) {
+          return;
+        }
         if (matches.length) {
           var result = {
             idx: idx,
@@ -2205,7 +2216,8 @@ var Fuse = /*#__PURE__*/function () {
           var _searcher$searchIn2 = searcher.searchIn(text),
             isMatch = _searcher$searchIn2.isMatch,
             score = _searcher$searchIn2.score,
-            indices = _searcher$searchIn2.indices;
+            indices = _searcher$searchIn2.indices,
+            hasInverse = _searcher$searchIn2.hasInverse;
           if (isMatch) {
             matches.push({
               score: score,
@@ -2213,7 +2225,8 @@ var Fuse = /*#__PURE__*/function () {
               value: text,
               idx: idx,
               norm: norm,
-              indices: indices
+              indices: indices,
+              hasInverse: hasInverse
             });
           }
         });
@@ -2223,14 +2236,16 @@ var Fuse = /*#__PURE__*/function () {
         var _searcher$searchIn3 = searcher.searchIn(text),
           isMatch = _searcher$searchIn3.isMatch,
           score = _searcher$searchIn3.score,
-          indices = _searcher$searchIn3.indices;
+          indices = _searcher$searchIn3.indices,
+          hasInverse = _searcher$searchIn3.hasInverse;
         if (isMatch) {
           matches.push({
             score: score,
             key: key,
             value: text,
             norm: norm,
-            indices: indices
+            indices: indices,
+            hasInverse: hasInverse
           });
         }
       }

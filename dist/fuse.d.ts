@@ -5,6 +5,7 @@ interface SearchResult {
     isMatch: boolean;
     score: number;
     indices?: ReadonlyArray<RangeTuple>;
+    hasInverse?: boolean;
 }
 interface Searcher {
     searchIn(text: string): SearchResult;
@@ -94,6 +95,7 @@ interface MatchScore {
     key?: KeyObject | null;
     value: string;
     idx?: number;
+    hasInverse?: boolean;
     norm: number;
     indices?: ReadonlyArray<RangeTuple>;
 }

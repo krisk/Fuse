@@ -310,31 +310,14 @@ export default class Fuse<T> {
     return results
   }
 
-  // Known limitation: inverse patterns (e.g. !Syrup) don't work correctly
-  // across multiple keys. Each key is searched independently and the item is
-  // included if ANY key matches. This is correct for positive patterns but
-  // wrong for inverse ones:
+  // When a search involves inverse patterns (e.g. !Syrup), the aggregation
+  // across keys switches from "ANY key matches" to "ALL keys must match."
+  // This is signaled by hasInverse on the SearchResult from ExtendedSearch.
   //
-  //   Positive "hello" with keys [title, author]:
-  //     title="hello world" → isMatch: true
-  //     author="Bob Smith"  → isMatch: false
-  //     → include (correct: found in at least one key)
-  //
-  //   Inverse "!Syrup" with keys [title, author]:
-  //     title="Maple Syrup Pancakes" → isMatch: false (contains Syrup)
-  //     author="Chef Bob"            → isMatch: true  (no Syrup)
-  //     → include (wrong: should exclude because title contains Syrup)
-  //
-  // Fixing this requires knowing which results are inverse vs positive, but
-  // searchIn() returns a single { isMatch, score } with no per-term breakdown.
-  // For mixed patterns like "^hello !Syrup", we'd need per-term results from
-  // ExtendedSearch to know whether a key failed due to the positive or inverse
-  // term — which means redesigning the Searcher interface.
-  //
-  // Workaround: use logical queries for inverse patterns across keys:
-  //   fuse.search({ $and: [{ title: '!Syrup' }, { author: '!Syrup' }] })
-  //
-  // See: https://github.com/krisk/Fuse/issues/712
+  // For mixed patterns like "^hello !Syrup", a key failure is ambiguous —
+  // it could be the positive or inverse term that failed. In that case we
+  // conservatively exclude the item, which is strictly better than the old
+  // behavior of including it. See: https://github.com/krisk/Fuse/issues/712
   _searchObjectList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
     const searcher = this._getSearcher(query)
     const { keys, records } = this._myIndex
@@ -347,17 +330,31 @@ export default class Fuse<T> {
       }
 
       const matches: MatchScore[] = []
+      let anyKeyFailed = false
+      let hasInverse = false
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
-        matches.push(
-          ...this._findMatches({
-            key,
-            value: item[keyIndex],
-            searcher
-          })
-        )
+        const keyMatches = this._findMatches({
+          key,
+          value: item[keyIndex],
+          searcher
+        })
+
+        if (keyMatches.length) {
+          matches.push(...keyMatches)
+          if (keyMatches[0].hasInverse) {
+            hasInverse = true
+          }
+        } else {
+          anyKeyFailed = true
+        }
       })
+
+      // If the search involves inverse patterns, ALL keys must match
+      if (hasInverse && anyKeyFailed) {
+        return
+      }
 
       if (matches.length) {
         const result: InternalResult = { idx, item, matches }
@@ -388,7 +385,7 @@ export default class Fuse<T> {
           return
         }
 
-        const { isMatch, score, indices } = searcher.searchIn(text)
+        const { isMatch, score, indices, hasInverse } = searcher.searchIn(text)
 
         if (isMatch) {
           matches.push({
@@ -397,17 +394,18 @@ export default class Fuse<T> {
             value: text,
             idx,
             norm,
-            indices
+            indices,
+            hasInverse
           })
         }
       })
     } else {
       const { v: text, n: norm } = value
 
-      const { isMatch, score, indices } = searcher.searchIn(text)
+      const { isMatch, score, indices, hasInverse } = searcher.searchIn(text)
 
       if (isMatch) {
-        matches.push({ score, key, value: text, norm, indices })
+        matches.push({ score, key, value: text, norm, indices, hasInverse })
       }
     }
 

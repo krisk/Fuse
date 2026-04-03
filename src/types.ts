@@ -8,6 +8,7 @@ export interface SearchResult {
   isMatch: boolean
   score: number
   indices?: ReadonlyArray<RangeTuple>
+  hasInverse?: boolean
 }
 
 export interface Searcher {
@@ -138,6 +139,7 @@ export interface MatchScore {
   key?: KeyObject | null
   value: string
   idx?: number
+  hasInverse?: boolean
   norm: number
   indices?: ReadonlyArray<RangeTuple>
 }

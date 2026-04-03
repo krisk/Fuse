@@ -64,10 +64,9 @@ export default class ExtendedSearch {
     return options.useExtendedSearch
   }
 
-  // Note: searchIn operates on a single text value. When Fuse searches across
-  // multiple keys, _searchObjectList calls searchIn per-key and aggregates.
-  // This causes inverse patterns (e.g. !Syrup) to behave incorrectly across
-  // keys — see the comment in core/index.ts _searchObjectList and #712.
+  // Note: searchIn operates on a single text value and sets hasInverse on the
+  // result when inverse patterns are involved. _searchObjectList uses this to
+  // switch from "ANY key" to "ALL keys" aggregation. See #712.
   searchIn(text: string): SearchResult {
     const query = this.query
 
@@ -86,6 +85,7 @@ export default class ExtendedSearch {
     let numMatches = 0
     const allIndices: any[] = []
     let totalScore = 0
+    let hasInverse = false
 
     // ORs
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
@@ -94,6 +94,7 @@ export default class ExtendedSearch {
       // Reset indices
       allIndices.length = 0
       numMatches = 0
+      hasInverse = false
 
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
@@ -103,8 +104,13 @@ export default class ExtendedSearch {
         if (isMatch) {
           numMatches += 1
           totalScore += score
+
+          const type = (searcher.constructor as any).type as string
+          if (type.startsWith('inverse')) {
+            hasInverse = true
+          }
+
           if (includeMatches) {
-            const type = (searcher.constructor as any).type
             if (MultiMatchSet.has(type)) {
               allIndices.push(...(indices as any))
             } else {
@@ -115,6 +121,7 @@ export default class ExtendedSearch {
           totalScore = 0
           numMatches = 0
           allIndices.length = 0
+          hasInverse = false
           break
         }
       }
@@ -124,6 +131,10 @@ export default class ExtendedSearch {
         const result: SearchResult = {
           isMatch: true,
           score: totalScore / numMatches
+        }
+
+        if (hasInverse) {
+          result.hasInverse = true
         }
 
         if (includeMatches) {

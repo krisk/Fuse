@@ -88,6 +88,55 @@ describe('Searching using extended search', () => {
   })
 })
 
+describe('Inverse patterns across multiple keys', () => {
+  const list = [
+    { title: 'Maple Syrup Pancakes', author: 'Chef Bob' },
+    { title: 'Grilled Chicken', author: 'Chef Syrup' },
+    { title: 'Apple Pie', author: 'Baker Joe' },
+    { title: 'Syrup Waffles', author: 'Chef Ann' }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    keys: ['title', 'author']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: !Syrup excludes items containing Syrup in any key', () => {
+    const result = fuse.search('!Syrup')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.title).toBe('Apple Pie')
+  })
+
+  test('Search: !^Chef excludes items starting with Chef in any key', () => {
+    const result = fuse.search('!^Chef')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.author).toBe('Baker Joe')
+  })
+
+  test('Search: !Pancakes$ excludes items ending with Pancakes in any key', () => {
+    const result = fuse.search('!Pancakes$')
+    expect(result).toHaveLength(3)
+    result.forEach((r) => {
+      expect(r.item.title).not.toBe('Maple Syrup Pancakes')
+    })
+  })
+
+  test('Search: positive patterns still use ANY-key aggregation', () => {
+    const list2 = [
+      { title: 'hello world', author: 'Bob' },
+      { title: 'goodbye', author: 'hello person' },
+      { title: 'nothing', author: 'nobody' }
+    ]
+    const fuse2 = new Fuse(list2, {
+      useExtendedSearch: true,
+      keys: ['title', 'author']
+    })
+    const result = fuse2.search("'hello")
+    expect(result).toHaveLength(2)
+  })
+})
+
 describe('Escaped pipe character in extended search', () => {
   const list = [
     { text: 'foo | bar' },

@@ -1155,6 +1155,10 @@ class ExtendedSearch {
   static condition(_, options) {
     return options.useExtendedSearch;
   }
+
+  // Note: searchIn operates on a single text value and sets hasInverse on the
+  // result when inverse patterns are involved. _searchObjectList uses this to
+  // switch from "ANY key" to "ALL keys" aggregation. See #712.
   searchIn(text) {
     const query = this.query;
     if (!query) {
@@ -1173,6 +1177,7 @@ class ExtendedSearch {
     let numMatches = 0;
     const allIndices = [];
     let totalScore = 0;
+    let hasInverse = false;
 
     // ORs
     for (let i = 0, qLen = query.length; i < qLen; i += 1) {
@@ -1181,6 +1186,7 @@ class ExtendedSearch {
       // Reset indices
       allIndices.length = 0;
       numMatches = 0;
+      hasInverse = false;
 
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
@@ -1193,8 +1199,11 @@ class ExtendedSearch {
         if (isMatch) {
           numMatches += 1;
           totalScore += score;
+          const type = searcher.constructor.type;
+          if (type.startsWith('inverse')) {
+            hasInverse = true;
+          }
           if (includeMatches) {
-            const type = searcher.constructor.type;
             if (MultiMatchSet.has(type)) {
               allIndices.push(...indices);
             } else {
@@ -1205,6 +1214,7 @@ class ExtendedSearch {
           totalScore = 0;
           numMatches = 0;
           allIndices.length = 0;
+          hasInverse = false;
           break;
         }
       }
@@ -1215,6 +1225,9 @@ class ExtendedSearch {
           isMatch: true,
           score: totalScore / numMatches
         };
+        if (hasInverse) {
+          result.hasInverse = true;
+        }
         if (includeMatches) {
           result.indices = allIndices;
         }
@@ -1710,31 +1723,14 @@ class Fuse {
     return results;
   }
 
-  // Known limitation: inverse patterns (e.g. !Syrup) don't work correctly
-  // across multiple keys. Each key is searched independently and the item is
-  // included if ANY key matches. This is correct for positive patterns but
-  // wrong for inverse ones:
+  // When a search involves inverse patterns (e.g. !Syrup), the aggregation
+  // across keys switches from "ANY key matches" to "ALL keys must match."
+  // This is signaled by hasInverse on the SearchResult from ExtendedSearch.
   //
-  //   Positive "hello" with keys [title, author]:
-  //     title="hello world" → isMatch: true
-  //     author="Bob Smith"  → isMatch: false
-  //     → include (correct: found in at least one key)
-  //
-  //   Inverse "!Syrup" with keys [title, author]:
-  //     title="Maple Syrup Pancakes" → isMatch: false (contains Syrup)
-  //     author="Chef Bob"            → isMatch: true  (no Syrup)
-  //     → include (wrong: should exclude because title contains Syrup)
-  //
-  // Fixing this requires knowing which results are inverse vs positive, but
-  // searchIn() returns a single { isMatch, score } with no per-term breakdown.
-  // For mixed patterns like "^hello !Syrup", we'd need per-term results from
-  // ExtendedSearch to know whether a key failed due to the positive or inverse
-  // term — which means redesigning the Searcher interface.
-  //
-  // Workaround: use logical queries for inverse patterns across keys:
-  //   fuse.search({ $and: [{ title: '!Syrup' }, { author: '!Syrup' }] })
-  //
-  // See: https://github.com/krisk/Fuse/issues/712
+  // For mixed patterns like "^hello !Syrup", a key failure is ambiguous —
+  // it could be the positive or inverse term that failed. In that case we
+  // conservatively exclude the item, which is strictly better than the old
+  // behavior of including it. See: https://github.com/krisk/Fuse/issues/712
   _searchObjectList(query, {
     heap,
     ignoreFieldNorm
@@ -1755,15 +1751,30 @@ class Fuse {
         return;
       }
       const matches = [];
+      let anyKeyFailed = false;
+      let hasInverse = false;
 
       // Iterate over every key (i.e, path), and fetch the value at that key
       keys.forEach((key, keyIndex) => {
-        matches.push(...this._findMatches({
+        const keyMatches = this._findMatches({
           key,
           value: item[keyIndex],
           searcher
-        }));
+        });
+        if (keyMatches.length) {
+          matches.push(...keyMatches);
+          if (keyMatches[0].hasInverse) {
+            hasInverse = true;
+          }
+        } else {
+          anyKeyFailed = true;
+        }
       });
+
+      // If the search involves inverse patterns, ALL keys must match
+      if (hasInverse && anyKeyFailed) {
+        return;
+      }
       if (matches.length) {
         const result = {
           idx,
@@ -1805,7 +1816,8 @@ class Fuse {
         const {
           isMatch,
           score,
-          indices
+          indices,
+          hasInverse
         } = searcher.searchIn(text);
         if (isMatch) {
           matches.push({
@@ -1814,7 +1826,8 @@ class Fuse {
             value: text,
             idx,
             norm,
-            indices
+            indices,
+            hasInverse
           });
         }
       });
@@ -1826,7 +1839,8 @@ class Fuse {
       const {
         isMatch,
         score,
-        indices
+        indices,
+        hasInverse
       } = searcher.searchIn(text);
       if (isMatch) {
         matches.push({
@@ -1834,7 +1848,8 @@ class Fuse {
           key,
           value: text,
           norm,
-          indices
+          indices,
+          hasInverse
         });
       }
     }
