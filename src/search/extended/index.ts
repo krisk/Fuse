@@ -64,6 +64,10 @@ export default class ExtendedSearch {
     return options.useExtendedSearch
   }
 
+  // Note: searchIn operates on a single text value. When Fuse searches across
+  // multiple keys, _searchObjectList calls searchIn per-key and aggregates.
+  // This causes inverse patterns (e.g. !Syrup) to behave incorrectly across
+  // keys — see the comment in core/index.ts _searchObjectList and #712.
   searchIn(text: string): SearchResult {
     const query = this.query
 
