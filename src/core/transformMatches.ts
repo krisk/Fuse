@@ -1,4 +1,4 @@
-import { isDefined } from '../helpers/types'
+import { isDefined } from '../helpers/typeGuards'
 import type { InternalResult } from '../types'
 
 export default function transformMatches(result: InternalResult, data: any): void {

@@ -1,4 +1,4 @@
-import { isString, isArray } from '../helpers/types'
+import { isString, isArray } from '../helpers/typeGuards'
 import * as ErrorMsg from '../core/errorMessages'
 import type { KeyObject, FuseOptionKey } from '../types'
 

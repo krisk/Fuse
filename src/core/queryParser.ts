@@ -1,4 +1,4 @@
-import { isArray, isObject, isString } from '../helpers/types'
+import { isArray, isObject, isString } from '../helpers/typeGuards'
 import { createSearcher } from './register'
 import * as ErrorMsg from './errorMessages'
 import { createKeyId } from '../tools/KeyStore'

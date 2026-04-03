@@ -1,4 +1,4 @@
-import { isArray, isDefined, isString, isNumber } from '../helpers/types'
+import { isArray, isDefined, isString, isNumber } from '../helpers/typeGuards'
 import KeyStore from '../tools/KeyStore'
 import FuseIndex, { createIndex } from '../tools/FuseIndex'
 import { LogicalOperator, parse, type ParsedNode, type ParsedLeaf, type ParsedOperator } from './queryParser'

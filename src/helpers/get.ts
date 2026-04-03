@@ -5,7 +5,7 @@ import {
   isBoolean,
   isArray,
   toString
-} from './types'
+} from './typeGuards'
 
 export default function get(obj: any, path: string | string[]): any {
   const list: any[] = []

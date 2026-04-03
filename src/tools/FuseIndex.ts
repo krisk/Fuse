@@ -1,6 +1,6 @@
-import { isArray, isDefined, isString, isBlank, toString } from '../helpers/types'
+import { isArray, isDefined, isString, isBlank, toString } from '../helpers/typeGuards'
 import Config from '../core/config'
-import normGenerator from './norm'
+import normGenerator from './fieldNorm'
 import { createKey } from './KeyStore'
 import type {
   KeyObject,
