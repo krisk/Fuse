@@ -1,24 +1,16 @@
 node_modules/
 *.log
-
 .DS_Store
-.idea/
 
+.idea/
 .vs/
 .vscode/
 
-# Ignore yarn lock files
 yarn.lock
 
 dist/*.d.ts
-dist/*.js
 dist/*.map
+
 docs/.vuepress/dist
-RELEASE_NOTE*.md
-
-playground/
-Makefile
-
-# Vuepress files
 .temp
 .cache
