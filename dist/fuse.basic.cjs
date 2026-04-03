@@ -333,7 +333,7 @@ var AdvancedOptions = {
   ignoreFieldNorm: false,
   fieldNormWeight: 1
 };
-var Config = _objectSpread2(_objectSpread2(_objectSpread2(_objectSpread2({}, BasicOptions), MatchOptions), FuzzyOptions), AdvancedOptions);
+var Config = Object.freeze(_objectSpread2(_objectSpread2(_objectSpread2(_objectSpread2({}, BasicOptions), MatchOptions), FuzzyOptions), AdvancedOptions));
 
 var SPACE = /[^ ]+/g;
 

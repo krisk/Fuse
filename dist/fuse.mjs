@@ -198,12 +198,12 @@ const AdvancedOptions = {
   ignoreFieldNorm: false,
   fieldNormWeight: 1
 };
-const Config = {
+const Config = Object.freeze({
   ...BasicOptions,
   ...MatchOptions,
   ...FuzzyOptions,
   ...AdvancedOptions
-};
+});
 
 const SPACE = /[^ ]+/g;
 

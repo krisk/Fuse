@@ -31,11 +31,11 @@ export const AdvancedOptions = {
   fieldNormWeight: 1
 }
 
-const Config: Required<IFuseOptions<any>> = {
+const Config: Required<IFuseOptions<any>> = Object.freeze({
   ...BasicOptions,
   ...MatchOptions,
   ...FuzzyOptions,
   ...AdvancedOptions
-} as Required<IFuseOptions<any>>
+}) as Required<IFuseOptions<any>>
 
 export default Config
