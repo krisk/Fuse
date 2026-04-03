@@ -44,11 +44,7 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 
 ## Introduction
 
-Fuse.js is a lightweight fuzzy-search, in JavaScript, with zero dependencies.
-
-### Browser Compatibility
-
-Fuse.js supports all browsers that are [ES5-compliant](https://compat-table.github.io/compat-table/es5/) (IE8 and below are not supported).
+Fuse.js is a lightweight fuzzy-search library, written in TypeScript, with zero dependencies.
 
 ## Documentation
 
@@ -56,9 +52,8 @@ To check out a [live demo](https://fusejs.io/demo.html) and docs, visit [fusejs.
 
 ## Develop
 
-Here's a separate document for [developers](https://github.com/krisk/Fuse/blob/master/DEVELOPERS.md).
+See [DEVELOPERS.md](DEVELOPERS.md) for setup, scripts, and project structure.
 
 ## Contribute
 
-We've set up a separate document for our
-[contribution guidelines](https://github.com/krisk/Fuse/blob/master/CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on issues and pull requests.
