@@ -206,7 +206,7 @@ export default class Fuse<T> {
         }
 
         if (heap) {
-          computeScoreSingle(result, { ignoreFieldNorm })
+          result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
           if (heap.shouldInsert(result.score)) {
             heap.insert(result)
           }
@@ -330,7 +330,7 @@ export default class Fuse<T> {
         const result: InternalResult = { idx, item, matches }
 
         if (heap) {
-          computeScoreSingle(result, { ignoreFieldNorm })
+          result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
           if (heap.shouldInsert(result.score)) {
             heap.insert(result)
           }

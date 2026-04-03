@@ -854,11 +854,11 @@ function parse(query, options, {
   return next(query);
 }
 
-function computeScoreSingle(result, {
+function computeScoreSingle(matches, {
   ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
   let totalScore = 1;
-  result.matches.forEach(({
+  matches.forEach(({
     key,
     norm,
     score
@@ -866,15 +866,13 @@ function computeScoreSingle(result, {
     const weight = key ? key.weight : null;
     totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
   });
-  result.score = totalScore;
+  return totalScore;
 }
-
-// Practical scoring function
 function computeScore(results, {
   ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
   results.forEach(result => {
-    computeScoreSingle(result, {
+    result.score = computeScoreSingle(result.matches, {
       ignoreFieldNorm
     });
   });
@@ -1156,7 +1154,7 @@ class Fuse {
           }]
         };
         if (heap) {
-          computeScoreSingle(result, {
+          result.score = computeScoreSingle(result.matches, {
             ignoreFieldNorm
           });
           if (heap.shouldInsert(result.score)) {
@@ -1210,7 +1208,7 @@ class Fuse {
           matches
         };
         if (heap) {
-          computeScoreSingle(result, {
+          result.score = computeScoreSingle(result.matches, {
             ignoreFieldNorm
           });
           if (heap.shouldInsert(result.score)) {

@@ -1062,26 +1062,24 @@
     return next(query);
   }
 
-  function computeScoreSingle(result, _ref) {
+  function computeScoreSingle(matches, _ref) {
     var _ref$ignoreFieldNorm = _ref.ignoreFieldNorm,
       ignoreFieldNorm = _ref$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref$ignoreFieldNorm;
     var totalScore = 1;
-    result.matches.forEach(function (_ref2) {
+    matches.forEach(function (_ref2) {
       var key = _ref2.key,
         norm = _ref2.norm,
         score = _ref2.score;
       var weight = key ? key.weight : null;
       totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
     });
-    result.score = totalScore;
+    return totalScore;
   }
-
-  // Practical scoring function
   function computeScore(results, _ref3) {
     var _ref3$ignoreFieldNorm = _ref3.ignoreFieldNorm,
       ignoreFieldNorm = _ref3$ignoreFieldNorm === void 0 ? Config.ignoreFieldNorm : _ref3$ignoreFieldNorm;
     results.forEach(function (result) {
-      computeScoreSingle(result, {
+      result.score = computeScoreSingle(result.matches, {
         ignoreFieldNorm: ignoreFieldNorm
       });
     });
@@ -1390,7 +1388,7 @@
               }]
             };
             if (heap) {
-              computeScoreSingle(result, {
+              result.score = computeScoreSingle(result.matches, {
                 ignoreFieldNorm: ignoreFieldNorm
               });
               if (heap.shouldInsert(result.score)) {
@@ -1447,7 +1445,7 @@
               matches: matches
             };
             if (heap) {
-              computeScoreSingle(result, {
+              result.score = computeScoreSingle(result.matches, {
                 ignoreFieldNorm: ignoreFieldNorm
               });
               if (heap.shouldInsert(result.score)) {

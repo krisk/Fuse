@@ -1,13 +1,13 @@
 import Config from './config'
-import type { InternalResult } from '../types'
+import type { InternalResult, MatchScore } from '../types'
 
 export function computeScoreSingle(
-  result: InternalResult,
+  matches: MatchScore[],
   { ignoreFieldNorm = Config.ignoreFieldNorm }
-): void {
+): number {
   let totalScore = 1
 
-  result.matches.forEach(({ key, norm, score }) => {
+  matches.forEach(({ key, norm, score }) => {
     const weight = key ? key.weight : null
 
     totalScore *= Math.pow(
@@ -16,15 +16,14 @@ export function computeScoreSingle(
     )
   })
 
-  result.score = totalScore
+  return totalScore
 }
 
-// Practical scoring function
 export default function computeScore(
   results: InternalResult[],
   { ignoreFieldNorm = Config.ignoreFieldNorm }
 ): void {
   results.forEach((result) => {
-    computeScoreSingle(result, { ignoreFieldNorm })
+    result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
   })
 }
