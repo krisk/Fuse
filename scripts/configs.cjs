@@ -34,7 +34,7 @@ const fullBuildFeatures = {
 const builds = {
   // UMD full build
   'umd-dev-full': {
-    dest: resolve(`dist/${FILENAME}.js`),
+    dest: `dist/${FILENAME}.js`,
     format: 'umd',
     env: 'development',
     features: {

@@ -33,34 +33,26 @@ async function buildEntry(config) {
   const { file, banner } = output
   const isProd = /(min|prod)\.(?:c|m)?js$/.test(file)
 
-  try {
-    let bundle = await rollup.rollup(config)
-    let {
-      output: [{ code }]
-    } = await bundle.generate(output)
+  const bundle = await rollup.rollup(config)
+  const {
+    output: [{ code }]
+  } = await bundle.generate(output)
 
-    return isProd
-      ? write(file, await minify(banner, code), true)
-      : write(file, code)
-  } catch (err) {
-    throw new Error(err)
-  }
+  return isProd
+    ? write(file, await minify(banner, code), true)
+    : write(file, code)
 }
 
 async function buildTypes() {
   const output = configTypes.output
   const { file } = output
 
-  try {
-    let bundle = await rollup.rollup(configTypes)
-    let {
-      output: [{ code }]
-    } = await bundle.generate(output)
+  const bundle = await rollup.rollup(configTypes)
+  const {
+    output: [{ code }]
+  } = await bundle.generate(output)
 
-    return write(file, code)
-  } catch (err) {
-    throw new Error(err)
-  }
+  return write(file, code)
 }
 
 async function minify(banner, code) {
