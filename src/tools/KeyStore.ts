@@ -1,6 +1,6 @@
 import { isString, isArray } from '../helpers/types'
 import * as ErrorMsg from '../core/errorMessages'
-import type { KeyObject } from '../types'
+import type { KeyObject, FuseOptionKey } from '../types'
 
 const hasOwn = Object.prototype.hasOwnProperty
 
@@ -8,7 +8,7 @@ export default class KeyStore {
   _keys: KeyObject[]
   _keyMap: Record<string, KeyObject>
 
-  constructor(keys: any[]) {
+  constructor(keys: FuseOptionKey<any>[]) {
     this._keys = []
     this._keyMap = {}
 
@@ -39,7 +39,7 @@ export default class KeyStore {
   }
 }
 
-export function createKey(key: any): KeyObject {
+export function createKey(key: FuseOptionKey<any>): KeyObject {
   let path: string[] | null = null
   let id: string | null = null
   let src: string | string[] | null = null

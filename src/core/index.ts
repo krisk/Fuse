@@ -1,7 +1,7 @@
 import { isArray, isDefined, isString, isNumber } from '../helpers/types'
 import KeyStore from '../tools/KeyStore'
 import FuseIndex, { createIndex } from '../tools/FuseIndex'
-import { LogicalOperator, parse } from './queryParser'
+import { LogicalOperator, parse, type ParsedNode, type ParsedLeaf, type ParsedOperator } from './queryParser'
 import { createSearcher } from './register'
 import Config from './config'
 import computeScore, { computeScoreSingle } from './computeScore'
@@ -15,8 +15,15 @@ import type {
   IFuseOptions,
   FuseSearchOptions,
   FuseResult,
-  Expression
+  Expression,
+  KeyObject,
+  SubRecord
 } from '../types'
+
+interface HeapSearchOptions {
+  heap?: MaxHeap
+  ignoreFieldNorm?: boolean
+}
 
 export default class Fuse<T> {
   options: Required<IFuseOptions<T>>
@@ -185,7 +192,7 @@ export default class Fuse<T> {
     })
   }
 
-  _searchStringList(query: string, { heap, ignoreFieldNorm }: any = {}): InternalResult[] | null {
+  _searchStringList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
     const searcher = this._getSearcher(query)
     const { records } = this._myIndex
     const results: InternalResult[] | null = heap ? null : []
@@ -226,9 +233,9 @@ export default class Fuse<T> {
 
     const expression = parse(query, this.options)
 
-    const evaluate = (node: any, item: any, idx: number): InternalResult[] => {
-      if (!node.children) {
-        const { keyId, searcher } = node
+    const evaluate = (node: ParsedNode, item: any, idx: number): InternalResult[] => {
+      if (!('children' in node)) {
+        const { keyId, searcher } = node as ParsedLeaf
 
         let matches: MatchScore[]
 
@@ -240,7 +247,7 @@ export default class Fuse<T> {
               ...this._findMatches({
                 key,
                 value: item[keyIndex],
-                searcher
+                searcher: searcher!
               })
             )
           })
@@ -248,7 +255,7 @@ export default class Fuse<T> {
           matches = this._findMatches({
             key: this._keyStore.get(keyId),
             value: this._myIndex.getValueForItemAtKeyId(item, keyId),
-            searcher
+            searcher: searcher!
           })
         }
 
@@ -265,13 +272,14 @@ export default class Fuse<T> {
         return []
       }
 
+      const { children, operator } = node as ParsedOperator
       const res: InternalResult[] = []
-      for (let i = 0, len = node.children.length; i < len; i += 1) {
-        const child = node.children[i]
+      for (let i = 0, len = children.length; i < len; i += 1) {
+        const child = children[i]
         const result = evaluate(child, item, idx)
         if (result.length) {
           res.push(...result)
-        } else if (node.operator === LogicalOperator.AND) {
+        } else if (operator === LogicalOperator.AND) {
           return []
         }
       }
@@ -302,7 +310,7 @@ export default class Fuse<T> {
     return results
   }
 
-  _searchObjectList(query: string, { heap, ignoreFieldNorm }: any = {}): InternalResult[] | null {
+  _searchObjectList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
     const searcher = this._getSearcher(query)
     const { keys, records } = this._myIndex
     const results: InternalResult[] | null = heap ? null : []
@@ -342,7 +350,7 @@ export default class Fuse<T> {
 
     return results
   }
-  _findMatches({ key, value, searcher }: { key: KeyObject | null; value: any; searcher: Searcher }): MatchScore[] {
+  _findMatches({ key, value, searcher }: { key: KeyObject | null; value: SubRecord | SubRecord[] | undefined; searcher: Searcher }): MatchScore[] {
     if (!isDefined(value)) {
       return []
     }
@@ -350,7 +358,7 @@ export default class Fuse<T> {
     const matches: MatchScore[] = []
 
     if (isArray(value)) {
-      value.forEach(({ v: text, i: idx, n: norm }: any) => {
+      value.forEach(({ v: text, i: idx, n: norm }: SubRecord) => {
         if (!isDefined(text)) {
           return
         }
@@ -381,6 +389,3 @@ export default class Fuse<T> {
     return matches
   }
 }
-
-// Re-export for use by _findMatches type
-import type { KeyObject } from '../types'

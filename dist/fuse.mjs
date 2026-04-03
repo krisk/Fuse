@@ -1632,7 +1632,7 @@ class Fuse {
   _searchLogical(query) {
     const expression = parse(query, this.options);
     const evaluate = (node, item, idx) => {
-      if (!node.children) {
+      if (!('children' in node)) {
         const {
           keyId,
           searcher
@@ -1645,14 +1645,14 @@ class Fuse {
             matches.push(...this._findMatches({
               key,
               value: item[keyIndex],
-              searcher
+              searcher: searcher
             }));
           });
         } else {
           matches = this._findMatches({
             key: this._keyStore.get(keyId),
             value: this._myIndex.getValueForItemAtKeyId(item, keyId),
-            searcher
+            searcher: searcher
           });
         }
         if (matches && matches.length) {
@@ -1664,13 +1664,17 @@ class Fuse {
         }
         return [];
       }
+      const {
+        children,
+        operator
+      } = node;
       const res = [];
-      for (let i = 0, len = node.children.length; i < len; i += 1) {
-        const child = node.children[i];
+      for (let i = 0, len = children.length; i < len; i += 1) {
+        const child = children[i];
         const result = evaluate(child, item, idx);
         if (result.length) {
           res.push(...result);
-        } else if (node.operator === LogicalOperator.AND) {
+        } else if (operator === LogicalOperator.AND) {
           return [];
         }
       }
@@ -1811,8 +1815,6 @@ class Fuse {
     return matches;
   }
 }
-
-// Re-export for use by _findMatches type
 
 Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;

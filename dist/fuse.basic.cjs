@@ -1408,9 +1408,9 @@ var Fuse = /*#__PURE__*/function () {
     key: "_searchObjectList",
     value: function _searchObjectList(query) {
       var _this2 = this;
-      var _ref6 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-        heap = _ref6.heap,
-        ignoreFieldNorm = _ref6.ignoreFieldNorm;
+      var _ref8 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        heap = _ref8.heap,
+        ignoreFieldNorm = _ref8.ignoreFieldNorm;
       var searcher = this._getSearcher(query);
       var _this$_myIndex = this._myIndex,
         keys = _this$_myIndex.keys,
@@ -1418,9 +1418,9 @@ var Fuse = /*#__PURE__*/function () {
       var results = heap ? null : [];
 
       // List is Array<Object>
-      records.forEach(function (_ref7) {
-        var item = _ref7.$,
-          idx = _ref7.i;
+      records.forEach(function (_ref9) {
+        var item = _ref9.$,
+          idx = _ref9.i;
         if (!isDefined(item)) {
           return;
         }
@@ -1456,19 +1456,19 @@ var Fuse = /*#__PURE__*/function () {
     }
   }, {
     key: "_findMatches",
-    value: function _findMatches(_ref8) {
-      var key = _ref8.key,
-        value = _ref8.value,
-        searcher = _ref8.searcher;
+    value: function _findMatches(_ref0) {
+      var key = _ref0.key,
+        value = _ref0.value,
+        searcher = _ref0.searcher;
       if (!isDefined(value)) {
         return [];
       }
       var matches = [];
       if (isArray(value)) {
-        value.forEach(function (_ref9) {
-          var text = _ref9.v,
-            idx = _ref9.i,
-            norm = _ref9.n;
+        value.forEach(function (_ref1) {
+          var text = _ref1.v,
+            idx = _ref1.i,
+            norm = _ref1.n;
           if (!isDefined(text)) {
             return;
           }
@@ -1508,7 +1508,7 @@ var Fuse = /*#__PURE__*/function () {
     }
   }]);
   return Fuse;
-}(); // Re-export for use by _findMatches type
+}();
 
 Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;

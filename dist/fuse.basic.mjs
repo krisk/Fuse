@@ -1279,8 +1279,6 @@ class Fuse {
   }
 }
 
-// Re-export for use by _findMatches type
-
 Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;

@@ -2037,9 +2037,10 @@
         var _this = this;
         var expression = parse(query, this.options);
         var evaluate = function evaluate(node, item, idx) {
-          if (!node.children) {
-            var keyId = node.keyId,
-              searcher = node.searcher;
+          if (!('children' in node)) {
+            var _ref4 = node,
+              keyId = _ref4.keyId,
+              searcher = _ref4.searcher;
             var matches;
             if (keyId === null) {
               // Keyless entry: search across all keys
@@ -2068,13 +2069,16 @@
             }
             return [];
           }
+          var _ref5 = node,
+            children = _ref5.children,
+            operator = _ref5.operator;
           var res = [];
-          for (var i = 0, len = node.children.length; i < len; i += 1) {
-            var child = node.children[i];
+          for (var i = 0, len = children.length; i < len; i += 1) {
+            var child = children[i];
             var result = evaluate(child, item, idx);
             if (result.length) {
               res.push.apply(res, _toConsumableArray(result));
-            } else if (node.operator === LogicalOperator.AND) {
+            } else if (operator === LogicalOperator.AND) {
               return [];
             }
           }
@@ -2083,9 +2087,9 @@
         var records = this._myIndex.records;
         var resultMap = new Map();
         var results = [];
-        records.forEach(function (_ref4) {
-          var item = _ref4.$,
-            idx = _ref4.i;
+        records.forEach(function (_ref6) {
+          var item = _ref6.$,
+            idx = _ref6.i;
           if (isDefined(item)) {
             var expResults = evaluate(expression, item, idx);
             if (expResults.length) {
@@ -2098,9 +2102,9 @@
                 });
                 results.push(resultMap.get(idx));
               }
-              expResults.forEach(function (_ref5) {
+              expResults.forEach(function (_ref7) {
                 var _matches2;
-                var matches = _ref5.matches;
+                var matches = _ref7.matches;
                 (_matches2 = resultMap.get(idx).matches).push.apply(_matches2, _toConsumableArray(matches));
               });
             }
@@ -2112,9 +2116,9 @@
       key: "_searchObjectList",
       value: function _searchObjectList(query) {
         var _this2 = this;
-        var _ref6 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-          heap = _ref6.heap,
-          ignoreFieldNorm = _ref6.ignoreFieldNorm;
+        var _ref8 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          heap = _ref8.heap,
+          ignoreFieldNorm = _ref8.ignoreFieldNorm;
         var searcher = this._getSearcher(query);
         var _this$_myIndex = this._myIndex,
           keys = _this$_myIndex.keys,
@@ -2122,9 +2126,9 @@
         var results = heap ? null : [];
 
         // List is Array<Object>
-        records.forEach(function (_ref7) {
-          var item = _ref7.$,
-            idx = _ref7.i;
+        records.forEach(function (_ref9) {
+          var item = _ref9.$,
+            idx = _ref9.i;
           if (!isDefined(item)) {
             return;
           }
@@ -2160,19 +2164,19 @@
       }
     }, {
       key: "_findMatches",
-      value: function _findMatches(_ref8) {
-        var key = _ref8.key,
-          value = _ref8.value,
-          searcher = _ref8.searcher;
+      value: function _findMatches(_ref0) {
+        var key = _ref0.key,
+          value = _ref0.value,
+          searcher = _ref0.searcher;
         if (!isDefined(value)) {
           return [];
         }
         var matches = [];
         if (isArray(value)) {
-          value.forEach(function (_ref9) {
-            var text = _ref9.v,
-              idx = _ref9.i,
-              norm = _ref9.n;
+          value.forEach(function (_ref1) {
+            var text = _ref1.v,
+              idx = _ref1.i,
+              norm = _ref1.n;
             if (!isDefined(text)) {
               return;
             }
@@ -2212,7 +2216,7 @@
       }
     }]);
     return Fuse;
-  }(); // Re-export for use by _findMatches type
+  }();
 
   Fuse.version = '7.2.0';
   Fuse.createIndex = createIndex;

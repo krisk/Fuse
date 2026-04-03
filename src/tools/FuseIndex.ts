@@ -4,6 +4,7 @@ import normGenerator from './norm'
 import { createKey } from './KeyStore'
 import type {
   KeyObject,
+  FuseOptionKey,
   NormInterface,
   GetFunction,
   IndexRecord,
@@ -187,7 +188,7 @@ export default class FuseIndex<T = any> {
 }
 
 export function createIndex<T>(
-  keys: any[],
+  keys: FuseOptionKey<T>[],
   docs: ReadonlyArray<T>,
   { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight }: FuseIndexOptions<T> = {}
 ): FuseIndex<T> {

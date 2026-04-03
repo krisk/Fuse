@@ -2,6 +2,7 @@ import { isArray, isObject, isString } from '../helpers/types'
 import { createSearcher } from './register'
 import * as ErrorMsg from './errorMessages'
 import { createKeyId } from '../tools/KeyStore'
+import type { Searcher, Expression } from '../types'
 
 export const LogicalOperator = {
   AND: '$and',
@@ -12,6 +13,19 @@ const KeyType = {
   PATH: '$path',
   PATTERN: '$val'
 } as const
+
+export interface ParsedLeaf {
+  keyId: string | null
+  pattern: string
+  searcher?: Searcher
+}
+
+export interface ParsedOperator {
+  children: ParsedNode[]
+  operator: string
+}
+
+export type ParsedNode = ParsedLeaf | ParsedOperator
 
 const isExpression = (query: any): boolean =>
   !!(query[LogicalOperator.AND] || query[LogicalOperator.OR])
@@ -29,11 +43,11 @@ const convertToExplicit = (query: any): any => ({
 
 // When `auto` is `true`, the parse function will infer and initialize and add
 // the appropriate `Searcher` instance
-export function parse(query: any, options: any, { auto = true } = {}): any {
-  const next = (query: any): any => {
+export function parse(query: Expression, options: any, { auto = true } = {}): ParsedNode {
+  const next = (query: any): ParsedNode => {
     // Keyless string entry: search across all keys
     if (isString(query)) {
-      const obj: any = {
+      const obj: ParsedLeaf = {
         keyId: null,
         pattern: query
       }
@@ -62,7 +76,7 @@ export function parse(query: any, options: any, { auto = true } = {}): any {
         throw new Error(ErrorMsg.LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key))
       }
 
-      const obj: any = {
+      const obj: ParsedLeaf = {
         keyId: createKeyId(key),
         pattern
       }
@@ -74,7 +88,7 @@ export function parse(query: any, options: any, { auto = true } = {}): any {
       return obj
     }
 
-    const node: any = {
+    const node: ParsedOperator = {
       children: [],
       operator: keys[0]
     }

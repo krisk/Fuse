@@ -194,7 +194,7 @@ declare class FuseIndex<T = any> {
         records: IndexRecord[];
     };
 }
-declare function createIndex<T>(keys: any[], docs: ReadonlyArray<T>, { getFn, fieldNormWeight }?: FuseIndexOptions<T>): FuseIndex<T>;
+declare function createIndex<T>(keys: FuseOptionKey<T>[], docs: ReadonlyArray<T>, { getFn, fieldNormWeight }?: FuseIndexOptions<T>): FuseIndex<T>;
 declare function parseIndex<T>(data: {
     keys: ReadonlyArray<KeyObject>;
     records: IndexRecord[];
@@ -203,18 +203,44 @@ declare function parseIndex<T>(data: {
 declare class KeyStore {
     _keys: KeyObject[];
     _keyMap: Record<string, KeyObject>;
-    constructor(keys: any[]);
+    constructor(keys: FuseOptionKey<any>[]);
     get(keyId: string): KeyObject;
     keys(): KeyObject[];
     toJSON(): string;
 }
 
-declare function parse(query: any, options: any, { auto }?: {
+interface ParsedLeaf {
+    keyId: string | null;
+    pattern: string;
+    searcher?: Searcher;
+}
+interface ParsedOperator {
+    children: ParsedNode[];
+    operator: string;
+}
+type ParsedNode = ParsedLeaf | ParsedOperator;
+declare function parse(query: Expression, options: any, { auto }?: {
     auto?: boolean | undefined;
-}): any;
+}): ParsedNode;
 
 declare const Config: Required<IFuseOptions<any>>;
 
+declare class MaxHeap {
+    limit: number;
+    heap: InternalResult[];
+    constructor(limit: number);
+    get size(): number;
+    shouldInsert(score: number): boolean;
+    insert(item: InternalResult): void;
+    extractSorted(sortFn: (a: InternalResult, b: InternalResult) => number): InternalResult[];
+    _bubbleUp(i: number): void;
+    _sinkDown(i: number): void;
+}
+
+interface HeapSearchOptions {
+    heap?: MaxHeap;
+    ignoreFieldNorm?: boolean;
+}
 declare class Fuse<T> {
     options: Required<IFuseOptions<T>>;
     _keyStore: KeyStore;
@@ -236,12 +262,12 @@ declare class Fuse<T> {
     removeAt(idx: number): void;
     getIndex(): FuseIndex<T>;
     search(query: string | Expression, options?: FuseSearchOptions): FuseResult<T>[];
-    _searchStringList(query: string, { heap, ignoreFieldNorm }?: any): InternalResult[] | null;
+    _searchStringList(query: string, { heap, ignoreFieldNorm }?: HeapSearchOptions): InternalResult[] | null;
     _searchLogical(query: Expression): InternalResult[];
-    _searchObjectList(query: string, { heap, ignoreFieldNorm }?: any): InternalResult[] | null;
+    _searchObjectList(query: string, { heap, ignoreFieldNorm }?: HeapSearchOptions): InternalResult[] | null;
     _findMatches({ key, value, searcher }: {
         key: KeyObject | null;
-        value: any;
+        value: SubRecord | SubRecord[] | undefined;
         searcher: Searcher;
     }): MatchScore[];
 }
