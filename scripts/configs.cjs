@@ -23,12 +23,14 @@ const resolve = (_path) => path.resolve(__dirname, '../', _path)
 
 const FeatureFlags = {
   LOGICAL_SEARCH_ENABLED: false,
-  EXTENDED_SEARCH_ENABLED: false
+  EXTENDED_SEARCH_ENABLED: false,
+  TOKEN_SEARCH_ENABLED: false
 }
 
 const fullBuildFeatures = {
   LOGICAL_SEARCH_ENABLED: true,
-  EXTENDED_SEARCH_ENABLED: true
+  EXTENDED_SEARCH_ENABLED: true,
+  TOKEN_SEARCH_ENABLED: true
 }
 
 const builds = {

@@ -8,6 +8,13 @@ import computeScore, { computeScoreSingle } from './computeScore'
 import MaxHeap from '../tools/MaxHeap'
 import format from './format'
 import * as ErrorMsg from './errorMessages'
+import { createAnalyzer } from '../search/token/analyzer'
+import {
+  buildInvertedIndex,
+  addToInvertedIndex,
+  removeFromInvertedIndex
+} from '../search/token/InvertedIndex'
+import type { InvertedIndexData } from '../search/token/InvertedIndex'
 import type {
   Searcher,
   SearchResult,
@@ -31,6 +38,7 @@ export default class Fuse<T> {
   _keyStore: KeyStore
   _docs: T[]
   _myIndex: FuseIndex<T>
+  _invertedIndex: InvertedIndexData | null
   _lastQuery: string | null
   _lastSearcher: Searcher | null
 
@@ -57,10 +65,18 @@ export default class Fuse<T> {
       throw new Error(ErrorMsg.EXTENDED_SEARCH_UNAVAILABLE)
     }
 
+    if (
+      this.options.useTokenSearch &&
+      !process.env.TOKEN_SEARCH_ENABLED
+    ) {
+      throw new Error(ErrorMsg.TOKEN_SEARCH_UNAVAILABLE)
+    }
+
     this._keyStore = new KeyStore(this.options.keys)
 
     this._docs = docs as T[]
     this._myIndex = null as any
+    this._invertedIndex = null
 
     this.setCollection(docs, index)
 
@@ -72,7 +88,10 @@ export default class Fuse<T> {
     if (this._lastQuery === query) {
       return this._lastSearcher!
     }
-    const searcher = createSearcher(query, this.options)
+    const opts = this._invertedIndex
+      ? { ...this.options, _invertedIndex: this._invertedIndex }
+      : this.options
+    const searcher = createSearcher(query, opts)
     this._lastQuery = query
     this._lastSearcher = searcher
     return searcher
@@ -91,6 +110,18 @@ export default class Fuse<T> {
         getFn: this.options.getFn,
         fieldNormWeight: this.options.fieldNormWeight
       })
+
+    if (this.options.useTokenSearch) {
+      const analyzer = createAnalyzer({
+        isCaseSensitive: this.options.isCaseSensitive,
+        ignoreDiacritics: this.options.ignoreDiacritics
+      })
+      this._invertedIndex = buildInvertedIndex(
+        this._myIndex.records,
+        this._myIndex.keys.length,
+        analyzer
+      )
+    }
   }
 
   add(doc: T): void {
@@ -100,6 +131,20 @@ export default class Fuse<T> {
 
     this._docs.push(doc)
     this._myIndex.add(doc)
+
+    if (this._invertedIndex) {
+      const record = this._myIndex.records[this._myIndex.records.length - 1]
+      const analyzer = createAnalyzer({
+        isCaseSensitive: this.options.isCaseSensitive,
+        ignoreDiacritics: this.options.ignoreDiacritics
+      })
+      addToInvertedIndex(
+        this._invertedIndex,
+        record,
+        this._myIndex.keys.length,
+        analyzer
+      )
+    }
   }
 
   remove(predicate: (doc: T, idx: number) => boolean = () => false): T[] {
@@ -114,6 +159,12 @@ export default class Fuse<T> {
     }
 
     if (indicesToRemove.length) {
+      if (this._invertedIndex) {
+        for (const idx of indicesToRemove) {
+          removeFromInvertedIndex(this._invertedIndex, idx)
+        }
+      }
+
       // Remove from docs in reverse to preserve indices
       for (let i = indicesToRemove.length - 1; i >= 0; i -= 1) {
         this._docs.splice(indicesToRemove[i], 1)
@@ -125,6 +176,9 @@ export default class Fuse<T> {
   }
 
   removeAt(idx: number): T {
+    if (this._invertedIndex) {
+      removeFromInvertedIndex(this._invertedIndex, idx)
+    }
     const doc = this._docs.splice(idx, 1)[0]
     this._myIndex.removeAt(idx)
     return doc

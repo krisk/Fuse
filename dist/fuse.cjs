@@ -195,6 +195,7 @@ const FuzzyOptions = {
 };
 const AdvancedOptions = {
   useExtendedSearch: false,
+  useTokenSearch: false,
   getFn: get,
   ignoreLocation: false,
   ignoreFieldNorm: false,
@@ -598,6 +599,22 @@ function createPatternAlphabet(pattern) {
   return mask;
 }
 
+function mergeIndices(indices) {
+  if (indices.length <= 1) return indices;
+  indices.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const merged = [indices[0]];
+  for (let i = 1, len = indices.length; i < len; i += 1) {
+    const last = merged[merged.length - 1];
+    const curr = indices[i];
+    if (curr[0] <= last[1] + 1) {
+      last[1] = Math.max(last[1], curr[1]);
+    } else {
+      merged.push(curr);
+    }
+  }
+  return merged;
+}
+
 // Characters that survive NFD normalization unchanged and need explicit mapping
 const NON_DECOMPOSABLE_MAP = {
   '\u0142': 'l',
@@ -627,21 +644,6 @@ const NON_DECOMPOSABLE_MAP = {
 const NON_DECOMPOSABLE_RE = new RegExp('[' + Object.keys(NON_DECOMPOSABLE_MAP).join('') + ']', 'g');
 const stripDiacritics = String.prototype.normalize ? str => str.normalize('NFD').replace(/[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u07FD\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u08D3-\u08E1\u08E3-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u09FE\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0AFA-\u0AFF\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C00-\u0C04\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C81-\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D00-\u0D03\u0D3B\u0D3C\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B4-\u17D3\u17DD\u180B-\u180D\u1885\u1886\u18A9\u1920-\u192B\u1930-\u193B\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1AB0-\u1ABE\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAD\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2-\u1CF4\u1CF7-\u1CF9\u1DC0-\u1DF9\u1DFB-\u1DFF\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA674-\uA67D\uA69E\uA69F\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C5\uA8E0-\uA8F1\uA8FF\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uA9E5\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAEB-\uAAEF\uAAF5\uAAF6\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE2F]/g, '').replace(NON_DECOMPOSABLE_RE, ch => NON_DECOMPOSABLE_MAP[ch]) : str => str;
 
-function mergeIndices(indices) {
-  if (indices.length <= 1) return indices;
-  indices.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const merged = [indices[0]];
-  for (let i = 1, len = indices.length; i < len; i += 1) {
-    const last = merged[merged.length - 1];
-    const curr = indices[i];
-    if (curr[0] <= last[1] + 1) {
-      last[1] = Math.max(last[1], curr[1]);
-    } else {
-      merged.push(curr);
-    }
-  }
-  return merged;
-}
 class BitapSearch {
   constructor(pattern, {
     location = Config.location,
@@ -1472,6 +1474,155 @@ function format(results, docs, {
   });
 }
 
+const WORD = /\b\w+\b/g;
+function createAnalyzer({
+  isCaseSensitive = false,
+  ignoreDiacritics = false
+} = {}) {
+  return {
+    tokenize(text) {
+      if (!isCaseSensitive) {
+        text = text.toLowerCase();
+      }
+      if (ignoreDiacritics) {
+        text = stripDiacritics(text);
+      }
+      return text.match(WORD) || [];
+    }
+  };
+}
+
+function buildInvertedIndex(records, keyCount, analyzer) {
+  const terms = new Map();
+  const df = new Map();
+  let fieldCount = 0;
+  function addField(text, docIdx, keyIdx, subIdx) {
+    const tokens = analyzer.tokenize(text);
+    if (!tokens.length) return;
+    fieldCount++;
+
+    // Count term frequencies in this field
+    const termFreqs = new Map();
+    for (const token of tokens) {
+      termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
+    }
+
+    // Track which terms we've already counted for df in this field
+    for (const [term, tf] of termFreqs) {
+      const posting = {
+        docIdx,
+        keyIdx,
+        subIdx,
+        tf
+      };
+      let postings = terms.get(term);
+      if (!postings) {
+        postings = [];
+        terms.set(term, postings);
+      }
+      postings.push(posting);
+      df.set(term, (df.get(term) || 0) + 1);
+    }
+  }
+  for (const record of records) {
+    const {
+      i: docIdx,
+      v,
+      $: fields
+    } = record;
+
+    // String list
+    if (v !== undefined) {
+      addField(v, docIdx, -1, -1);
+      continue;
+    }
+
+    // Object list
+    if (fields) {
+      for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
+        const value = fields[keyIdx];
+        if (!value) continue;
+        if (Array.isArray(value)) {
+          for (const sub of value) {
+            addField(sub.v, docIdx, keyIdx, sub.i ?? -1);
+          }
+        } else {
+          addField(value.v, docIdx, keyIdx, -1);
+        }
+      }
+    }
+  }
+  return {
+    terms,
+    fieldCount,
+    df
+  };
+}
+function addToInvertedIndex(index, record, keyCount, analyzer) {
+  const {
+    i: docIdx,
+    v,
+    $: fields
+  } = record;
+  function addField(text, keyIdx, subIdx) {
+    const tokens = analyzer.tokenize(text);
+    if (!tokens.length) return;
+    index.fieldCount++;
+    const termFreqs = new Map();
+    for (const token of tokens) {
+      termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
+    }
+    for (const [term, tf] of termFreqs) {
+      const posting = {
+        docIdx,
+        keyIdx,
+        subIdx,
+        tf
+      };
+      let postings = index.terms.get(term);
+      if (!postings) {
+        postings = [];
+        index.terms.set(term, postings);
+      }
+      postings.push(posting);
+      index.df.set(term, (index.df.get(term) || 0) + 1);
+    }
+  }
+  if (v !== undefined) {
+    addField(v, -1, -1);
+    return;
+  }
+  if (fields) {
+    for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
+      const value = fields[keyIdx];
+      if (!value) continue;
+      if (Array.isArray(value)) {
+        for (const sub of value) {
+          addField(sub.v, keyIdx, sub.i ?? -1);
+        }
+      } else {
+        addField(value.v, keyIdx, -1);
+      }
+    }
+  }
+}
+function removeFromInvertedIndex(index, docIdx) {
+  for (const [term, postings] of index.terms) {
+    const filtered = postings.filter(p => p.docIdx !== docIdx);
+    const removed = postings.length - filtered.length;
+    if (removed > 0) {
+      index.fieldCount -= removed;
+      index.df.set(term, (index.df.get(term) || 0) - removed);
+      if (filtered.length === 0) {
+        index.terms.delete(term);
+        index.df.delete(term);
+      } else {
+        index.terms.set(term, filtered);
+      }
+    }
+  }
+}
+
 class Fuse {
   // Statics are assigned in entry.ts
 
@@ -1481,9 +1632,11 @@ class Fuse {
       ...options
     };
     if (this.options.useExtendedSearch && false) ;
+    if (this.options.useTokenSearch && false) ;
     this._keyStore = new KeyStore(this.options.keys);
     this._docs = docs;
     this._myIndex = null;
+    this._invertedIndex = null;
     this.setCollection(docs, index);
     this._lastQuery = null;
     this._lastSearcher = null;
@@ -1492,7 +1645,11 @@ class Fuse {
     if (this._lastQuery === query) {
       return this._lastSearcher;
     }
-    const searcher = createSearcher(query, this.options);
+    const opts = this._invertedIndex ? {
+      ...this.options,
+      _invertedIndex: this._invertedIndex
+    } : this.options;
+    const searcher = createSearcher(query, opts);
     this._lastQuery = query;
     this._lastSearcher = searcher;
     return searcher;
@@ -1506,6 +1663,13 @@ class Fuse {
       getFn: this.options.getFn,
       fieldNormWeight: this.options.fieldNormWeight
     });
+    if (this.options.useTokenSearch) {
+      const analyzer = createAnalyzer({
+        isCaseSensitive: this.options.isCaseSensitive,
+        ignoreDiacritics: this.options.ignoreDiacritics
+      });
+      this._invertedIndex = buildInvertedIndex(this._myIndex.records, this._myIndex.keys.length, analyzer);
+    }
   }
   add(doc) {
     if (!isDefined(doc)) {
@@ -1513,6 +1677,14 @@ class Fuse {
     }
     this._docs.push(doc);
     this._myIndex.add(doc);
+    if (this._invertedIndex) {
+      const record = this._myIndex.records[this._myIndex.records.length - 1];
+      const analyzer = createAnalyzer({
+        isCaseSensitive: this.options.isCaseSensitive,
+        ignoreDiacritics: this.options.ignoreDiacritics
+      });
+      addToInvertedIndex(this._invertedIndex, record, this._myIndex.keys.length, analyzer);
+    }
   }
   remove(predicate = () => false) {
     const results = [];
@@ -1524,6 +1696,12 @@ class Fuse {
       }
     }
     if (indicesToRemove.length) {
+      if (this._invertedIndex) {
+        for (const idx of indicesToRemove) {
+          removeFromInvertedIndex(this._invertedIndex, idx);
+        }
+      }
+
       // Remove from docs in reverse to preserve indices
       for (let i = indicesToRemove.length - 1; i >= 0; i -= 1) {
         this._docs.splice(indicesToRemove[i], 1);
@@ -1533,6 +1711,9 @@ class Fuse {
     return results;
   }
   removeAt(idx) {
+    if (this._invertedIndex) {
+      removeFromInvertedIndex(this._invertedIndex, idx);
+    }
     const doc = this._docs.splice(idx, 1)[0];
     this._myIndex.removeAt(idx);
     return doc;
@@ -1860,6 +2041,82 @@ class Fuse {
   }
 }
 
+class TokenSearch {
+  static condition(_, options) {
+    return options.useTokenSearch;
+  }
+  constructor(pattern, options) {
+    this.options = options;
+    this.analyzer = createAnalyzer({
+      isCaseSensitive: options.isCaseSensitive,
+      ignoreDiacritics: options.ignoreDiacritics
+    });
+    const queryTerms = this.analyzer.tokenize(pattern);
+    const invertedIndex = options._invertedIndex;
+    const {
+      df,
+      fieldCount
+    } = invertedIndex;
+    this.termSearchers = [];
+    this.idfWeights = [];
+    for (const term of queryTerms) {
+      this.termSearchers.push(new BitapSearch(term, {
+        location: options.location,
+        threshold: options.threshold,
+        distance: options.distance,
+        includeMatches: options.includeMatches,
+        findAllMatches: options.findAllMatches,
+        minMatchCharLength: options.minMatchCharLength,
+        isCaseSensitive: options.isCaseSensitive,
+        ignoreDiacritics: options.ignoreDiacritics,
+        ignoreLocation: true
+      }));
+      const docFreq = df.get(term) || 0;
+      const idf = Math.log(1 + (fieldCount - docFreq + 0.5) / (docFreq + 0.5));
+      this.idfWeights.push(idf);
+    }
+  }
+  searchIn(text) {
+    if (!this.termSearchers.length) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const allIndices = [];
+    let weightedScore = 0;
+    let maxPossibleScore = 0;
+    let matchedCount = 0;
+    for (let i = 0; i < this.termSearchers.length; i++) {
+      const result = this.termSearchers[i].searchIn(text);
+      const idf = this.idfWeights[i];
+      maxPossibleScore += idf;
+      if (result.isMatch) {
+        matchedCount++;
+        weightedScore += idf * (1 - result.score);
+        if (result.indices) {
+          allIndices.push(...result.indices);
+        }
+      }
+    }
+    if (matchedCount === 0) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const normalized = maxPossibleScore > 0 ? 1 - weightedScore / maxPossibleScore : 0;
+    const searchResult = {
+      isMatch: true,
+      score: Math.max(0.001, normalized)
+    };
+    if (this.options.includeMatches && allIndices.length) {
+      searchResult.indices = mergeIndices(allIndices);
+    }
+    return searchResult;
+  }
+}
+
 Fuse.version = '7.2.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
@@ -1876,6 +2133,9 @@ Fuse.match = function (pattern, text, options) {
 }
 {
   register(ExtendedSearch);
+}
+{
+  register(TokenSearch);
 }
 Fuse.use = function (...plugins) {
   plugins.forEach(plugin => register(plugin));

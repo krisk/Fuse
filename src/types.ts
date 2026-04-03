@@ -188,6 +188,8 @@ export interface IFuseOptions<T> {
   threshold?: number
   /** When `true`, it enables the use of unix-like search commands. */
   useExtendedSearch?: boolean
+  /** When `true`, enables token search with TF-IDF scoring. */
+  useTokenSearch?: boolean
 }
 
 export interface FuseIndexOptions<T> {
