@@ -32,35 +32,6 @@ const fullBuildFeatures = {
 }
 
 const builds = {
-  // UMD full build
-  'umd-dev-full': {
-    dest: `dist/${FILENAME}.js`,
-    format: 'umd',
-    env: 'development',
-    features: {
-      ...fullBuildFeatures
-    }
-  },
-  // UMD production build
-  'umd-prod-full': {
-    dest: `dist/${FILENAME}.min.js`,
-    format: 'umd',
-    env: 'production',
-    features: {
-      ...fullBuildFeatures
-    }
-  },
-  // UMD basic build
-  'umd-dev-basic': {
-    dest: `dist/${FILENAME}.basic.js`,
-    format: 'umd',
-    env: 'development'
-  },
-  'umd-prod-basic': {
-    dest: `dist/${FILENAME}.basic.min.js`,
-    format: 'umd',
-    env: 'production'
-  },
   // CommonJS full build
   'commonjs-dev-full': {
     dest: `dist/${FILENAME}.cjs`,
@@ -99,7 +70,7 @@ const builds = {
     features: {
       ...fullBuildFeatures
     },
-    transpile: false
+
   },
   'esm-prod-full': {
     dest: `dist/${FILENAME}.min.mjs`,
@@ -108,19 +79,19 @@ const builds = {
     features: {
       ...fullBuildFeatures
     },
-    transpile: false
+
   },
   'esm-basic': {
     dest: `dist/${FILENAME}.basic.mjs`,
     format: 'es',
     env: 'development',
-    transpile: false
+
   },
   'esm-prod-basic': {
     dest: `dist/${FILENAME}.basic.min.mjs`,
     format: 'es',
     env: 'production',
-    transpile: false
+
   }
 }
 
@@ -146,7 +117,7 @@ function genConfig(options) {
       file: resolve(options.dest),
       format: options.format,
       name: 'Fuse',
-      exports: 'default'
+      exports: options.format === 'cjs' ? 'default' : undefined
     }
   }
 
@@ -164,17 +135,13 @@ function genConfig(options) {
 
   config.plugins.push(replace(vars))
 
-  if (options.transpile !== false) {
-    config.plugins.push(babel({ babelHelpers: 'bundled', extensions: ['.js', '.ts'] }))
-  } else {
-    // ESM builds: only strip TypeScript, no downlevel transpilation
-    config.plugins.push(babel({
-      babelHelpers: 'bundled',
-      extensions: ['.js', '.ts'],
-      configFile: false,
-      presets: ['@babel/preset-typescript']
-    }))
-  }
+  // Strip TypeScript, no downlevel transpilation
+  config.plugins.push(babel({
+    babelHelpers: 'bundled',
+    extensions: ['.js', '.ts'],
+    configFile: false,
+    presets: ['@babel/preset-typescript']
+  }))
 
   return config
 }

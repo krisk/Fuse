@@ -8,8 +8,8 @@
   "type": "module",
   "main": "./dist/fuse.cjs",
   "module": "./dist/fuse.mjs",
-  "unpkg": "./dist/fuse.js",
-  "jsdelivr": "./dist/fuse.js",
+  "unpkg": "./dist/fuse.mjs",
+  "jsdelivr": "./dist/fuse.mjs",
   "types": "./dist/fuse.d.ts",
   "exports": {
     ".": {
@@ -51,9 +51,8 @@
     "bitap"
   ],
   "scripts": {
-    "dev": "rollup -w -c scripts/configs.cjs --environment TARGET:umd-dev-full",
-    "dev:cjs": "rollup -w -c scripts/configs.cjs --environment TARGET:commonjs-full",
-    "dev:esm": "rollup -w -c scripts/configs.cjs --environment TARGET:esm-dev-full",
+    "dev": "rollup -w -c scripts/configs.cjs --environment TARGET:esm-dev-full",
+    "dev:cjs": "rollup -w -c scripts/configs.cjs --environment TARGET:commonjs-dev-full",
     "build": "rm -r dist && mkdir dist && node ./scripts/build.main.cjs",
     "test": "vitest run",
     "typecheck": "tsc -p src/tsconfig.json --noEmit",
@@ -68,7 +67,7 @@
   "standard-version": {
     "scripts": {
       "postbump": "npm run build && npm run lint && npm run test 2>/dev/null",
-      "precommit": "git add dist/*.js dist/*.cjs dist/*.mjs dist/*.d.ts"
+      "precommit": "git add dist/*.cjs dist/*.mjs dist/*.d.ts"
     }
   },
   "commitlint": {
@@ -77,10 +76,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/cli": "^7.20.7",
     "@babel/core": "^7.20.12",
-    "@babel/plugin-syntax-import-assertions": "^7.22.5",
-    "@babel/preset-env": "7.20.2",
     "@babel/preset-typescript": "7.18.6",
     "@commitlint/cli": "^17.4.2",
     "@commitlint/config-conventional": "^17.4.2",
@@ -95,7 +91,6 @@
     "@vuepress/plugin-pwa": "2.0.0-beta.60",
     "@vuepress/plugin-register-components": "2.0.0-beta.60",
     "@vuepress/plugin-search": "2.0.0-beta.60",
-    "babel-loader": "^9.1.2",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^8.0.3",
