@@ -65,7 +65,8 @@ function getGuideSidebar(): SidebarConfigArray {
     '/fuzzy-search',
     '/token-search',
     '/extended-search',
-    '/logical-search'
+    '/logical-search',
+    '/performance'
   ]
 }
 
