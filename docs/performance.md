@@ -7,7 +7,7 @@ description: Understand what affects Fuse.js indexing and search speed, and how 
 
 ## What affects performance
 
-### Indexing
+#### Indexing
 
 When you create a `new Fuse(list, options)`, the library walks every item and builds an internal index. The cost scales with:
 
@@ -22,7 +22,7 @@ const index = Fuse.createIndex(keys, list)
 const fuse = new Fuse(list, options, index)
 ```
 
-### Search
+#### Search
 
 Search speed depends on:
 
@@ -32,7 +32,7 @@ Search speed depends on:
 - **Token search** — `useTokenSearch: true` runs a separate Bitap pass for each query term, so multi-word queries scale with the number of terms.
 - **Extended search** — operators like prefix match (`^term`) and inverse match (`!term`) add per-operator cost.
 
-### Memory
+#### Memory
 
 The index stores processed string values and metadata for each key of each item. For typical use cases (under 100k items), memory overhead is modest — a few MB at most. If memory is a concern, index fewer keys.
 

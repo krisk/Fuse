@@ -66,6 +66,7 @@ function getGuideSidebar(): SidebarConfigArray {
     '/token-search',
     '/extended-search',
     '/logical-search',
+    '/web-workers',
     '/performance'
   ]
 }
@@ -92,6 +93,7 @@ function getPlugins(): PluginConfig {
       components: {
         ...getComponent('Sponsors'),
         ...getComponent('Playground'),
+        ...getComponent('WorkerDemo'),
         ...getComponent('Donate'),
 
 

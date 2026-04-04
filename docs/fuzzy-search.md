@@ -31,7 +31,7 @@ This score is then combined with key weight and field-length norm to produce the
 
 Three options work together to determine what counts as a match:
 
-### `threshold`
+#### `threshold`
 
 - Default: `0.6`
 
@@ -45,13 +45,13 @@ const fuse = new Fuse(list, { keys: ['title'], threshold: 0.2 })
 const fuse = new Fuse(list, { keys: ['title'], threshold: 0.8 })
 ```
 
-### `location`
+#### `location`
 
 - Default: `0`
 
 The expected position of the pattern in the text. The algorithm penalizes matches that are far from this position.
 
-### `distance`
+#### `distance`
 
 - Default: `100`
 
@@ -63,7 +63,7 @@ threshold × distance = maximum offset from location
 
 With defaults (`threshold: 0.6`, `distance: 100`), the pattern must appear within 60 characters of position 0 to match. For example, searching for `"zero"` in `"Fuse.js is a powerful, lightweight fuzzy-search library, with zero dependencies"` would **not** match — `"zero"` appears at index 62, just outside the window.
 
-### `ignoreLocation`
+#### `ignoreLocation`
 
 - Default: `false`
 
@@ -82,25 +82,25 @@ The default options effectively search only the first ~60 characters of each fie
 
 ## Other Options
 
-### `isCaseSensitive`
+#### `isCaseSensitive`
 
 - Default: `false`
 
 When `true`, comparisons are case-sensitive.
 
-### `ignoreDiacritics`
+#### `ignoreDiacritics`
 
 - Default: `false`
 
 When `true`, comparisons ignore diacritics (accents). For example, `é` matches `e`.
 
-### `findAllMatches`
+#### `findAllMatches`
 
 - Default: `false`
 
 When `true`, the algorithm continues searching to the end of the text even after finding a perfect match. Useful when you need all match indices for highlighting.
 
-### `minMatchCharLength`
+#### `minMatchCharLength`
 
 - Default: `1`
 
@@ -116,13 +116,13 @@ The final relevance score for a result combines three factors:
 
 Scores range from `0` (perfect match) to `1` (complete mismatch). Enable with `includeScore: true`.
 
-### `ignoreFieldNorm`
+#### `ignoreFieldNorm`
 
 - Default: `false`
 
 When `true`, field length has no effect on scoring. Useful when you only care whether a term exists, not how prominent it is.
 
-### `fieldNormWeight`
+#### `fieldNormWeight`
 
 - Default: `1`
 

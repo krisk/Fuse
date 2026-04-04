@@ -10,7 +10,8 @@ html.dark {
   --c-text: #2c3e50;
   --c-border: #eaecef;
   --c-tip: #42b983;
-  --c-badge-warning: darken(#ffe564, 35%);
+  --c-badge-warning: #ca8a04;
+  --c-badge-warning-text: #fff;
   --c-badge-danger: #da5961;
   --font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
 }
@@ -50,30 +51,62 @@ h2 {
 }
 
 // Twitter
-nav > div:nth-child(3) > a {
+nav>div:nth-child(3)>a {
   background-image: url(/assets/img/twitter-black.svg);
   background-repeat: no-repeat;
   height: 20px;
   display: flex;
   align-items: center;
-  padding-left: 30px; /* width of the image plus a little extra padding */
+  padding-left: 30px;
+  /* width of the image plus a little extra padding */
 }
 
-.dark nav > div:nth-child(3) > a {
+.dark nav>div:nth-child(3)>a {
   background-image: url(/assets/img/twitter-white.svg);
 }
 
 // GitHub
-nav > div:nth-child(4) > a {
+nav>div:nth-child(4)>a {
   background-image: url(/assets/img/github-black.svg);
   background-repeat: no-repeat;
   height: 20px;
   display: flex;
   fill: #ffffff;
   align-items: center;
-  padding-left: 30px; /* width of the image plus a little extra padding */
+  padding-left: 30px;
+  /* width of the image plus a little extra padding */
 }
 
-.dark nav > div:nth-child(4) > a {
+.dark nav>div:nth-child(4)>a {
   background-image: url(/assets/img/github-white.svg);
+}
+
+// Sidebar "New" badge for Token Search
+a.sidebar-item[href="/token-search.html"]::after,
+a.sidebar-item[href$="/token-search"]::after {
+  content: 'New';
+  font-size: 0.55em;
+  font-weight: 600;
+  color: var(--c-tip);
+  border: 1px solid var(--c-tip);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 4px;
+  position: relative;
+  top: -4px;
+}
+
+// Sidebar "Beta" badge for Web Workers
+a.sidebar-item[href="/web-workers.html"]::after,
+a.sidebar-item[href$="/web-workers"]::after {
+  content: 'Beta';
+  font-size: 0.55em;
+  font-weight: 600;
+  color: #ca8a04;
+  border: 1px solid #ca8a04;
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 4px;
+  position: relative;
+  top: -4px;
 }

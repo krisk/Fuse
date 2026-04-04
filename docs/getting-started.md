@@ -15,7 +15,7 @@ npm install fuse.js
 yarn add fuse.js
 ```
 
-### Importing
+#### Importing
 
 ES Module:
 
@@ -29,7 +29,7 @@ CommonJS:
 const Fuse = require('fuse.js')
 ```
 
-### CDN
+#### CDN
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.3.0"></script>
@@ -45,7 +45,7 @@ ES Module via CDN:
 
 Also available on [unpkg](https://unpkg.com/fuse.js).
 
-### Deno
+#### Deno
 
 ```typescript
 // @deno-types="https://deno.land/x/fuse@v7.3.0/dist/fuse.d.ts"
