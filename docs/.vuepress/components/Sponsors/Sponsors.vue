@@ -23,32 +23,10 @@ import { ref } from 'vue'
 const sponsors = ref([
   {
     id: 1,
-    name: 'Worksome',
-    imgUrl: '/assets/img/sponsors/worksome.svg',
-    url: 'https://www.worksome.com',
-    description:
-      'Hire and manage talent globally with automated contracts and payroll.'
-  },
-  {
-    id: 2,
     name: 'BairesDev',
     imgUrl: '/assets/img/sponsors/bairesdev.png',
     url: 'https://www.bairesdev.com/sponsoring-open-source-projects/',
     description: 'Outsourced Tech Talent. Fast and Flexible.'
-  },
-  {
-    id: 3,
-    name: 'LITSLINK',
-    imgUrl: '/assets/img/sponsors/litslink.svg',
-    url: 'https://litslink.com',
-    description: 'Custom Software Development Company to Empower You with AI'
-  },
-  {
-    id: 4,
-    name: 'Quadratica',
-    imgUrl: '/assets/img/sponsors/quadratica.png',
-    url: 'https://quadrati.ca',
-    description: 'We will take you from an idea to an in-market product you can rely on. All in record time.'
   }
 ])
 </script>

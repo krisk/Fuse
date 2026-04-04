@@ -1,4 +1,3 @@
-import tabsPlugin from '@snippetors/vuepress-plugin-tabs'
 import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { pwaPlugin } from '@vuepress/plugin-pwa'
 import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
@@ -41,8 +40,12 @@ export default defineUserConfig({
     editLink: false,
     navbar: [
       {
-        text: 'Guide',
+        text: 'Docs',
         link: '/'
+      },
+      {
+        text: 'Demo',
+        link: '/demo'
       },
       {
         text: 'Donate',
@@ -58,29 +61,11 @@ export default defineUserConfig({
 
 function getGuideSidebar(): SidebarConfigArray {
   return [
-    {
-      text: 'Getting Started',
-      children: [
-        '/getting-started/installation',
-        '/getting-started/different-builds'
-      ]
-    },
-    '/demo',
-    {
-      text: 'API Reference',
-      children: [
-        '/api/options',
-        '/api/config',
-        '/api/methods',
-        '/api/indexing',
-        '/api/query'
-      ]
-    },
-    '/examples',
-    {
-      text: 'Concepts',
-      children: ['/concepts/scoring-theory']
-    }
+    '/getting-started',
+    '/fuzzy-search',
+    { text: 'Token Search 🆕', link: '/token-search' },
+    '/extended-search',
+    '/logical-search'
   ]
 }
 
@@ -102,15 +87,10 @@ function getPlugins(): PluginConfig {
     googleAnalyticsPlugin({
       id: GA_MEASUREMENT_ID
     }),
-    tabsPlugin({}),
     registerComponentsPlugin({
       components: {
-        ...getComponent('Stories'),
         ...getComponent('Sponsors'),
-        ...getComponent('Demo'),
-        ...getComponent('SuspensefulDemo'),
-        ...getComponent('Team'),
-        ...getComponent('Jobs'),
+        ...getComponent('Playground'),
         ...getComponent('Donate'),
         ...getComponent('TwitterFollow'),
         ...getComponent('Version')
@@ -162,6 +142,20 @@ function getHead(): HeadConfig[] {
     { name, content }
   ])
 
+  const og: [HeadTagEmpty, HeadAttrsConfig][] = [
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:site_name', content: 'Fuse.js' }],
+    ['meta', { property: 'og:title', content: 'Fuse.js — Lightweight Fuzzy-Search Library' }],
+    ['meta', { property: 'og:description', content: 'Powerful, lightweight fuzzy-search library for JavaScript with zero dependencies.' }],
+    ['meta', { property: 'og:url', content: 'https://fusejs.io' }],
+    ['meta', { property: 'og:image', content: 'https://fusejs.io/assets/img/logo.png' }],
+    ['meta', { name: 'twitter:card', content: 'summary' }],
+    ['meta', { name: 'twitter:site', content: '@kirorisk' }],
+    ['meta', { name: 'twitter:title', content: 'Fuse.js — Lightweight Fuzzy-Search Library' }],
+    ['meta', { name: 'twitter:description', content: 'Powerful, lightweight fuzzy-search library for JavaScript with zero dependencies.' }],
+    ['meta', { name: 'twitter:image', content: 'https://fusejs.io/assets/img/logo.png' }]
+  ]
+
   const scripts: [HeadTagNonEmpty, HeadAttrsConfig, string][] = [
     `
       (function(){
@@ -182,6 +176,7 @@ function getHead(): HeadConfig[] {
     ...appleTouchIcons,
     ...sizedIcons,
     ...meta,
+    ...og,
     ['link', { rel: 'manifest', href: '/manifest.webmanifest' }],
     ...scripts
   ]
