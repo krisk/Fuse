@@ -36,7 +36,7 @@ Search speed depends on:
 
 The index stores processed string values and metadata for each key of each item. For typical use cases (under 100k items), memory overhead is modest — a few MB at most. If memory is a concern, index fewer keys.
 
-## Rules of thumb
+## Guidelines
 
 | List size | Indexing | Search | Notes |
 |-----------|----------|--------|-------|
