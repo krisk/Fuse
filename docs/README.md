@@ -53,4 +53,6 @@ See [Getting Started](getting-started.md) for installation options, builds, and 
 
 **[Try the live demo →](demo.md)**
 
+<CommercialCTA />
+
 <Donate />

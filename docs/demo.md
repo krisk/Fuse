@@ -10,3 +10,5 @@ Try Fuse.js live. Type a query, tweak the options, and see results update in rea
 <Playground />
 
 Only the most common options are shown — see [Fuzzy Search](fuzzy-search.md) and [Getting Started](getting-started.md) for the full set.
+
+<CommercialCTA />

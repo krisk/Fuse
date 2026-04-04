@@ -52,8 +52,8 @@ export default defineUserConfig({
         link: '/donate/'
       },
       {
-        text: 'Twitter',
-        link: 'https://twitter.com/intent/user?screen_name=kirorisk'
+        text: 'Team Plans',
+        link: '/team-plans'
       }
     ]
   })
@@ -96,6 +96,7 @@ function getPlugins(): PluginConfig {
         ...getComponent('WorkerDemo'),
         ...getComponent('PerfDemo'),
         ...getComponent('Donate'),
+        ...getComponent('CommercialCTA'),
 
 
       }

@@ -50,23 +50,8 @@ h2 {
   border-bottom: none;
 }
 
-// Twitter
-nav>div:nth-child(3)>a {
-  background-image: url(/assets/img/twitter-black.svg);
-  background-repeat: no-repeat;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  padding-left: 30px;
-  /* width of the image plus a little extra padding */
-}
-
-.dark nav>div:nth-child(3)>a {
-  background-image: url(/assets/img/twitter-white.svg);
-}
-
 // GitHub
-nav>div:nth-child(4)>a {
+nav>div:nth-child(5)>a {
   background-image: url(/assets/img/github-black.svg);
   background-repeat: no-repeat;
   height: 20px;
@@ -77,7 +62,7 @@ nav>div:nth-child(4)>a {
   /* width of the image plus a little extra padding */
 }
 
-.dark nav>div:nth-child(4)>a {
+.dark nav>div:nth-child(5)>a {
   background-image: url(/assets/img/github-white.svg);
 }
 
