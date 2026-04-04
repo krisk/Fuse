@@ -5,6 +5,10 @@
     "email": "kirollos@gmail.com",
     "url": "http://kiro.me"
   },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/krisk"
+  },
   "type": "module",
   "main": "./dist/fuse.cjs",
   "module": "./dist/fuse.mjs",
