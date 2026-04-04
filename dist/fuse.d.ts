@@ -140,6 +140,8 @@ interface IFuseOptions<T> {
     threshold?: number;
     /** When `true`, it enables the use of unix-like search commands. */
     useExtendedSearch?: boolean;
+    /** When `true`, enables token search with TF-IDF scoring. */
+    useTokenSearch?: boolean;
 }
 interface FuseIndexOptions<T> {
     getFn?: FuseGetFunction<T>;
@@ -239,6 +241,18 @@ declare class MaxHeap {
     _sinkDown(i: number): void;
 }
 
+interface Posting {
+    docIdx: number;
+    keyIdx: number;
+    subIdx: number;
+    tf: number;
+}
+interface InvertedIndexData {
+    terms: Map<string, Posting[]>;
+    fieldCount: number;
+    df: Map<string, number>;
+}
+
 interface HeapSearchOptions {
     heap?: MaxHeap;
     ignoreFieldNorm?: boolean;
@@ -248,6 +262,7 @@ declare class Fuse<T> {
     _keyStore: KeyStore;
     _docs: T[];
     _myIndex: FuseIndex<T>;
+    _invertedIndex: InvertedIndexData | null;
     _lastQuery: string | null;
     _lastSearcher: Searcher | null;
     static version: string;

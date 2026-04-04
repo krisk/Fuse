@@ -18,5 +18,12 @@ describe('Initialization errors', () => {
       })
       fuse.search({ title: 'hello' })
     }).toThrowError(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
+
+    expect(() => {
+      new Fuse(Books, {
+        useTokenSearch: true,
+        keys: ['title']
+      })
+    }).toThrowError(ErrorMsg.TOKEN_SEARCH_UNAVAILABLE)
   })
 })
