@@ -174,34 +174,9 @@ For the full API reference, configuration options, scoring theory, and interacti
 
 ## Supporting Fuse.js
 
-Through contributions, donations, and sponsorship, you allow Fuse.js to thrive.
-
 - [Become a backer or sponsor on **GitHub**](https://github.com/sponsors/krisk)
 - [Become a backer or sponsor on **Patreon**](https://patreon.com/fusejs)
 - [One-time donation via **PayPal**](https://www.paypal.me/kirorisk)
-
-<h3 align="center">Sponsors</h3>
-<table>
-<tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://www.worksome.com" target="_blank">
-          <img width="222px" src="https://raw.githubusercontent.com/krisk/Fuse/7a0d77d85ac90063575613b6a738f418b624357f/docs/.vuepress/public/assets/img/sponsors/worksome.svg">
-        </a>
-      </td>
-      <td align="center" valign="middle">
-        <a href="https://www.bairesdev.com/sponsoring-open-source-projects/" target="_blank">
-          <img width="222px" src="https://github.com/krisk/Fuse/blob/gh-pages/assets/img/sponsors/bairesdev.png?raw=true">
-        </a>
-      </td>
-      <td align="center" valign="middle">
-        <a href="https://litslink.com/" target="_blank">
-          <img width="222px" src="https://github.com/krisk/Fuse/blob/gh-pages/assets/img/sponsors/litslink.svg?raw=true">
-        </a>
-      </td>
-    </tr>
-</body>
-</table>
 
 ## Develop
 
