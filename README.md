@@ -148,6 +148,15 @@ const result = fuse.search('javscript')
 // result[0].matches[0].indices → [[0, 9]]
 ```
 
+### Single String Matching
+
+Use `Fuse.match()` to fuzzy-match a pattern against a single string without creating an index. Useful for one-off comparisons or custom filtering.
+
+```js
+const result = Fuse.match('javscript', 'JavaScript: The Good Parts')
+// → { isMatch: true, score: 0.04, indices: [[0, 9]] }
+```
+
 ### Dynamic Collections
 
 Add and remove documents from a live index without rebuilding.
