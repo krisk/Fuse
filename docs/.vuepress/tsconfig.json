@@ -6,5 +6,6 @@
     "incremental": true,
     "lib": ["DOM", "ESNext"]
   },
-  "include": ["."]
+  "include": ["config.ts", "client.ts", "components/**/*.vue"],
+  "exclude": [".temp", ".cache"]
 }
