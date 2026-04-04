@@ -7,6 +7,18 @@ description: Split multi-word queries into terms, fuzzy-match each with the Bita
 
 Token search splits multi-word queries into individual terms, fuzzy-matches each term independently using the Bitap algorithm, and ranks results using BM25-style IDF weighting.
 
+## When to Use It
+
+The default fuzzy search treats the entire query as a single pattern. That works well for short, single-word lookups like `"javscript"` → `"JavaScript"`. But for multi-word queries like `"javascript design patterns"`, a single Bitap search hits the 32-character limit and can't match each word independently.
+
+Token search is designed for these cases:
+
+- **Search bars** — users type natural multi-word queries like `"react state management"`
+- **Document search** — matching across titles, descriptions, or body text where multiple terms matter
+- **Autocomplete** — ranking results by how many query terms they match, with rare terms weighted higher
+
+If your queries are typically one word or a short phrase, the default fuzzy search is simpler and faster.
+
 ```js
 const fuse = new Fuse(docs, {
   useTokenSearch: true,
