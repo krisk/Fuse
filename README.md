@@ -46,6 +46,28 @@ Through contributions, donations, and sponsorship, you allow Fuse.js to thrive. 
 
 Fuse.js is a lightweight fuzzy-search library, written in TypeScript, with zero dependencies.
 
+## Token Search
+
+Fuse.js now supports multi-word fuzzy search with relevance ranking. Enable `useTokenSearch` to split queries into individual terms, fuzzy-match each independently, and rank results using IDF weighting — so rare terms matter more than common ones.
+
+```js
+const fuse = new Fuse(docs, {
+  useTokenSearch: true,
+  keys: ['title', 'author', 'description']
+})
+
+// Typos + multiple words just work
+fuse.search('javascrpt paterns')
+// → [{ item: { title: 'JavaScript Patterns', ... } }]
+```
+
+- **Typo tolerance per word** — each term is fuzzy-matched independently
+- **Relevance ranking** — rare terms are weighted higher using BM25-style IDF
+- **Word order doesn't matter** — "patterns javascript" and "javascript patterns" return identical results
+- **No query length limit** — long multi-word queries work naturally since each term is searched separately
+
+Available in the full build. See [TOKEN_SEARCH.md](TOKEN_SEARCH.md) for details and performance benchmarks.
+
 ## Documentation
 
 To check out a [live demo](https://fusejs.io/demo.html) and docs, visit [fusejs.io](https://fusejs.io).
