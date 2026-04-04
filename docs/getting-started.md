@@ -1,5 +1,5 @@
 ---
-title: Getting Started with Fuse.js
+title: Getting Started
 description: Install Fuse.js via npm, yarn, or CDN. Quick start guide with code examples, build variants, and import paths for ES modules and CommonJS.
 ---
 
