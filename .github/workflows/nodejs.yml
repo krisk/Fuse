@@ -1,15 +1,12 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Node.js CI
 
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -21,22 +18,13 @@ jobs:
 
     strategy:
       matrix:
-        node: [14, 15, 16, 17, 18, 19]
+        node: [18, 20, 22]
 
     steps:
-      - name: Checkout Project
-        uses: actions/checkout@v3
-
-      - name: Use Node.js v${{ matrix.node }}
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Code
-        run: npm run build
-
-      - name: Test Code
-        run: npm run test
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
