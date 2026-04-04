@@ -181,6 +181,7 @@ export default class FuseIndex<T = any> {
     records: IndexRecord[]
   } {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       keys: this.keys.map(({ getFn, ...key }) => key),
       records: this.records
     }
