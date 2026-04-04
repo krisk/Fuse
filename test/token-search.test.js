@@ -238,3 +238,134 @@ describe('Token search (per-term fuzzy + IDF)', () => {
     expect(result[0].item.title).toBe('Programming Pearls')
   })
 })
+
+describe('Token search — edge cases', () => {
+  const options = {
+    useTokenSearch: true,
+    includeScore: true,
+    keys: ['text']
+  }
+
+  test('Single-character query', () => {
+    const fuse = new Fuse(
+      [{ text: 'a short sentence' }, { text: 'another one' }],
+      options
+    )
+    const result = fuse.search('a')
+    // Single char is valid, should not crash
+    expect(result).toBeDefined()
+  })
+
+  test('Query with punctuation', () => {
+    const fuse = new Fuse(
+      [{ text: 'hello, world!' }, { text: 'goodbye world' }],
+      options
+    )
+    // Punctuation should be stripped by tokenizer, matching "hello" and "world"
+    const result = fuse.search('hello, world!')
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].item.text).toBe('hello, world!')
+  })
+
+  test('Repeated terms in document', () => {
+    const fuse = new Fuse(
+      [
+        { text: 'apple apple apple apple apple' },
+        { text: 'apple banana cherry' }
+      ],
+      options
+    )
+    const result = fuse.search('apple')
+    expect(result.length).toBe(2)
+    // Both should match; scores should be valid
+    result.forEach((r) => {
+      expect(r.score).toBeGreaterThanOrEqual(0)
+      expect(r.score).toBeLessThanOrEqual(1)
+    })
+  })
+
+  test('Repeated terms in query', () => {
+    const fuse = new Fuse(
+      [{ text: 'javascript patterns' }, { text: 'python guide' }],
+      options
+    )
+    // Duplicate query terms should not crash or produce invalid scores
+    const result = fuse.search('javascript javascript javascript')
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    result.forEach((r) => {
+      expect(r.score).toBeGreaterThanOrEqual(0)
+      expect(r.score).toBeLessThanOrEqual(1)
+    })
+  })
+
+  test('Very long document', () => {
+    const longText = Array.from({ length: 500 }, (_, i) => `word${i}`).join(' ')
+    const fuse = new Fuse(
+      [{ text: longText }, { text: 'short text' }],
+      options
+    )
+    const result = fuse.search('word250')
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].item.text).toBe(longText)
+  })
+
+  test('Diacritics with multi-term', () => {
+    const fuse = new Fuse(
+      [
+        { text: 'café résumé naïve' },
+        { text: 'plain text here' }
+      ],
+      { ...options, ignoreDiacritics: true }
+    )
+    const result = fuse.search('cafe resume')
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].item.text).toBe('café résumé naïve')
+  })
+
+  test('All whitespace query returns all docs', () => {
+    const fuse = new Fuse(
+      [{ text: 'hello' }, { text: 'world' }],
+      options
+    )
+    const result = fuse.search('   ')
+    expect(result.length).toBe(2)
+  })
+
+  test('Query terms longer than 32 chars are handled per-term', () => {
+    const longWord = 'supercalifragilisticexpialidocious'
+    const fuse = new Fuse(
+      [{ text: `the ${longWord} fox` }, { text: 'quick brown fox' }],
+      options
+    )
+    // Should not throw despite term > MAX_BITS, BitapSearch chunks internally
+    const result = fuse.search(longWord)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].item.text).toContain(longWord)
+  })
+
+  test('Mixed array and scalar field values', () => {
+    const docs = [
+      { title: 'JavaScript Guide', tags: ['programming', 'web', 'frontend'] },
+      { title: 'Python Handbook', tags: ['programming', 'data', 'science'] }
+    ]
+    const fuse = new Fuse(docs, {
+      useTokenSearch: true,
+      includeScore: true,
+      keys: ['title', 'tags']
+    })
+    const result = fuse.search('frontend web')
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].item.title).toBe('JavaScript Guide')
+  })
+
+  test('Single document corpus', () => {
+    const fuse = new Fuse(
+      [{ text: 'the only document' }],
+      options
+    )
+    const result = fuse.search('only')
+    expect(result.length).toBe(1)
+    expect(result[0].score).toBeGreaterThanOrEqual(0)
+    expect(result[0].score).toBeLessThanOrEqual(1)
+  })
+})
