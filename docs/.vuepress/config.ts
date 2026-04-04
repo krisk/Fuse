@@ -92,8 +92,8 @@ function getPlugins(): PluginConfig {
         ...getComponent('Sponsors'),
         ...getComponent('Playground'),
         ...getComponent('Donate'),
-        ...getComponent('TwitterFollow'),
-        ...getComponent('Version')
+
+
       }
     }),
     pwaPlugin()
