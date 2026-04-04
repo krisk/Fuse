@@ -31,7 +31,7 @@ export default function get(obj: any, path: string | string[]): any {
       // add it to the list
       if (
         index === path.length - 1 &&
-        (isString(value) || isNumber(value) || isBoolean(value))
+        (isString(value) || isNumber(value) || isBoolean(value) || typeof value === 'bigint')
       ) {
         list.push(
           arrayIndex !== undefined

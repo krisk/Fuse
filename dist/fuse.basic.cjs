@@ -17,6 +17,9 @@ function baseToString(value) {
   if (typeof value == 'string') {
     return value;
   }
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
   const result = value + '';
   return result == '0' && 1 / value == -Infinity ? '-0' : result;
 }
@@ -155,7 +158,7 @@ function get(obj, path) {
 
       // If we're at the last value in the path, and if it's a string/number/bool,
       // add it to the list
-      if (index === path.length - 1 && (isString(value) || isNumber(value) || isBoolean(value))) {
+      if (index === path.length - 1 && (isString(value) || isNumber(value) || isBoolean(value) || typeof value === 'bigint')) {
         list.push(arrayIndex !== undefined ? {
           v: toString(value),
           i: arrayIndex

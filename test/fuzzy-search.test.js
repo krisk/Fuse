@@ -1277,6 +1277,16 @@ describe('Breaking values', () => {
     expect(result).toHaveLength(1)
   })
 
+  test('BigInts are still processed', () => {
+    const data = [{ id: 9007199254740993n }, { id: 1234567890n }]
+    const options = { keys: ['id'] }
+    const fuse = new Fuse(data, options)
+
+    const result = fuse.search('1234567890')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.id).toBe(1234567890n)
+  })
+
   test('Object values are ignored', () => {
     const data = [{ a: 'hello' }, { a: {} }]
     const options = { keys: ['a'] }
@@ -1421,6 +1431,17 @@ describe('Threshold filtering', () => {
     ]
     const fuse = new Fuse(list, { keys: ['years'] })
     const results = fuse.search('2024')
+    expect(results.length).toBeGreaterThan(0)
+    expect(results[0].item.name).toBe('item2')
+  })
+
+  test('bigint arrays are searchable', () => {
+    const list = [
+      { name: 'item1', ids: [9007199254740993n, 9007199254740994n] },
+      { name: 'item2', ids: [1234567890123456789n] }
+    ]
+    const fuse = new Fuse(list, { keys: ['ids'] })
+    const results = fuse.search('1234567890123456789')
     expect(results.length).toBeGreaterThan(0)
     expect(results[0].item.name).toBe('item2')
   })
