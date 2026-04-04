@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.1](https://github.com/krisk/Fuse/compare/v7.3.0...v7.4.0-beta.1) (2026-04-04)
+
+
+### Features
+
+* add FuseWorker for parallel search via Web Workers ([9ba192c](https://github.com/krisk/Fuse/commit/9ba192c51b1915ae26a35930b9c7a4ed0a264819))
+
 ## [7.3.0](https://github.com/krisk/Fuse/compare/v7.2.0...v7.3.0) (2026-04-04)
 
 
