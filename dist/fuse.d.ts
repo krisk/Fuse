@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v7.2.0
+// Type definitions for Fuse.js v7.3.0
 // TypeScript v6.0.2
 type RangeTuple = [number, number];
 interface SearchResult {

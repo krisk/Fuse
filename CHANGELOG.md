@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.3.0](https://github.com/krisk/Fuse/compare/v7.2.0...v7.3.0) (2026-04-04)
+
+
+### Features
+
+* add BigInt support for indexing and search ([0ae662c](https://github.com/krisk/Fuse/commit/0ae662cb825e1c9db7cdaf8331aab992f293b508)), closes [#814](https://github.com/krisk/Fuse/issues/814)
+* add static Fuse.match() for single string matching ([460eb5b](https://github.com/krisk/Fuse/commit/460eb5be84b56525710602ec44e2af402ca09686))
+* add token search — per-term fuzzy matching with IDF scoring ([68c1dcf](https://github.com/krisk/Fuse/commit/68c1dcf981a60ef46387440dc550fc546254bae9))
+* getFn null return, escaped pipe in extended search, empty query returns all ([d33b735](https://github.com/krisk/Fuse/commit/d33b735f62ae2f149808a49ff0c185a04bee28d7)), closes [#800](https://github.com/krisk/Fuse/issues/800) [#765](https://github.com/krisk/Fuse/issues/765) [#728](https://github.com/krisk/Fuse/issues/728)
+* removeAt() now returns the removed item ([8cec7e2](https://github.com/krisk/Fuse/commit/8cec7e2f99a7063e0aa9a04b8cedf0813e169531)), closes [#675](https://github.com/krisk/Fuse/issues/675)
+* **search:** support keyless string entries in logical queries ([8695556](https://github.com/krisk/Fuse/commit/86955565a106514212639ecfd3ff45d492f4a0a3)), closes [#736](https://github.com/krisk/Fuse/issues/736)
+
+
+### Bug Fixes
+
+* **index:** coerce non-string array values to strings during indexing ([db0e181](https://github.com/krisk/Fuse/commit/db0e181e5db988d5fad8bee1e281fa20f8a69376)), closes [#738](https://github.com/krisk/Fuse/issues/738)
+* **index:** strip getFn from keys in toJSON() for safe serialization ([0f2a69b](https://github.com/krisk/Fuse/commit/0f2a69babf8c76faeb366c471e17430f5f6d8595)), closes [#798](https://github.com/krisk/Fuse/issues/798)
+* **lint:** suppress unused var in toJSON destructure ([d63c0e8](https://github.com/krisk/Fuse/commit/d63c0e8bd82e4c4d4cec5844a800e64d3b056b29))
+* merge overlapping match indices in extended search ([06c5e97](https://github.com/krisk/Fuse/commit/06c5e97c1b79f6e29d482a300eea99a9b6fad82f))
+* **search:** handle non-decomposable diacritics in stripDiacritics ([5a01f29](https://github.com/krisk/Fuse/commit/5a01f2994ffe48f7e0e4191f4cdeeabe6a3967a5)), closes [home-assistant/frontend#30399](https://github.com/home-assistant/frontend/issues/30399) [#816](https://github.com/krisk/Fuse/issues/816)
+* **search:** handle quoted tokens with inner spaces and quotes in extended search ([c226523](https://github.com/krisk/Fuse/commit/c22652342b2d15c12f5dc5870e6b4b0eef1d2247)), closes [#810](https://github.com/krisk/Fuse/issues/810)
+* **search:** inverse patterns now work correctly across multiple keys ([9351882](https://github.com/krisk/Fuse/commit/935188228ed50dc0a555b41eda47447ada59dd6b)), closes [#712](https://github.com/krisk/Fuse/issues/712)
+
 ## [7.2.0](https://github.com/krisk/Fuse/compare/v7.1.0...v7.2.0) (2026-04-02)
 
 
