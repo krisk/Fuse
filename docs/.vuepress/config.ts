@@ -34,7 +34,7 @@ export default defineUserConfig({
     repo: 'krisk/fuse',
     docsDir: 'docs',
     docsBranch: 'main',
-    sidebarDepth: 6,
+    sidebarDepth: 2,
     sidebar: [...getGuideSidebar()],
     contributors: false,
     editLink: false,
@@ -63,7 +63,7 @@ function getGuideSidebar(): SidebarConfigArray {
   return [
     '/getting-started',
     '/fuzzy-search',
-    { text: 'Token Search 🆕', link: '/token-search' },
+    '/token-search',
     '/extended-search',
     '/logical-search'
   ]

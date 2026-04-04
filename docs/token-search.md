@@ -1,5 +1,5 @@
 ---
-title: Token Search — Fuse.js
+title: Token Search
 description: Split multi-word queries into terms, fuzzy-match each with the Bitap algorithm, and rank results using BM25-style IDF weighting. Handles typos per word independently.
 ---
 
