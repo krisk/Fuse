@@ -1,5 +1,5 @@
 ---
-title: Logical Search — Fuse.js
+title: Logical Search
 description: Build structured queries with $and and $or operators. Nest expressions, combine with extended search, and handle dotted keys with $path/$val.
 ---
 

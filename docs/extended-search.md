@@ -1,5 +1,5 @@
 ---
-title: Extended Search — Fuse.js
+title: Extended Search
 description: Use search operators for exact match, prefix, suffix, inverse, and include matching. Combine with AND/OR logic for precise filtering.
 ---
 

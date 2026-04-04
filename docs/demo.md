@@ -1,5 +1,5 @@
 ---
-title: Demo — Fuse.js
+title: Demo
 description: Try Fuse.js live in your browser. Search sample data, adjust options like threshold and scoring, and see fuzzy search results in real time.
 ---
 

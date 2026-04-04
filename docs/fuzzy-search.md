@@ -1,5 +1,5 @@
 ---
-title: Fuzzy Search — Fuse.js
+title: Fuzzy Search
 description: How Fuse.js uses the Bitap algorithm for approximate string matching. Configure threshold, distance, location, and scoring to control fuzzy search behavior.
 ---
 
