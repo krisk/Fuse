@@ -1,85 +1,56 @@
 ---
-shareTitle: Fuse.js - JavaScript fuzzy-search library
+title: Fuse.js — Lightweight Fuzzy-Search Library
+description: Powerful, lightweight fuzzy-search library for JavaScript with zero dependencies. Supports fuzzy matching, token search, extended search operators, and logical queries.
 ---
 
 # Fuse.js
 
-**Powerful, lightweight fuzzy-search library, with zero dependencies**.
+**Lightweight fuzzy-search library, with zero dependencies.**
 
 <Sponsors />
 
-### What is fuzzy searching?
-
-Generally speaking, fuzzy searching (more formally known as _approximate string matching_) is the technique of finding strings that are _approximately_ equal to a given pattern (rather than _exactly_).
-
-### Why should I use it?
-
-- With Fuse.js, you don’t need to setup a dedicated backend just to handle search.
-- Simplicity and performance were the main criteria when developing this library.
-
-::: details As easy as 1, 2, 3
+## Quick Example
 
 ```js
-// 1. List of items to search in
+import Fuse from 'fuse.js'
+
 const books = [
-  {
-    title: "Old Man's War",
-    author: {
-      firstName: 'John',
-      lastName: 'Scalzi'
-    }
-  },
-  {
-    title: 'The Lock Artist',
-    author: {
-      firstName: 'Steve',
-      lastName: 'Hamilton'
-    }
-  }
+  { title: "Old Man's War", author: 'John Scalzi' },
+  { title: 'The Lock Artist', author: 'Steve Hamilton' },
+  { title: 'JavaScript Patterns', author: 'Stoyan Stefanov' }
 ]
 
-// 2. Set up the Fuse instance
 const fuse = new Fuse(books, {
-  keys: ['title', 'author.firstName']
+  keys: ['title', 'author'],
+  includeScore: true
 })
 
-// 3. Now search!
 fuse.search('jon')
+// [{ item: { title: "Old Man's War", author: "John Scalzi" }, refIndex: 0, score: 0.25 }]
 
-// Output:
-// [
-//   {
-//     item: {
-//       title: "Old Man's War",
-//       author: {
-//         firstName: 'John',
-//         lastName: 'Scalzi'
-//       }
-//     },
-//     refIndex: 0
-//   }
-// ]
+fuse.search('patterns')
+// [{ item: { title: "JavaScript Patterns", ... }, refIndex: 2, score: 0.0 }]
 ```
 
-:::
+## Features
 
-### When should I use It?
+- **[Fuzzy search](fuzzy-search.md)** — typo-tolerant matching powered by the Bitap algorithm
+- **[Token search](token-search.md)** — split multi-word queries into terms, fuzzy-match each, rank with IDF
+- **[Extended search](extended-search.md)** — operators for exact, prefix, suffix, inverse, and include matching
+- **[Logical search](logical-search.md)** — `$and` / `$or` expressions for structured queries
+- **Weighted keys** — boost fields like `title` over `description`
+- **Nested search** — dot notation, array notation, or custom `getFn`
+- **Zero dependencies** — works in the browser, Node.js, and Deno
+- **Two builds** — full (~8 kB gzip) or basic (~6.5 kB gzip)
 
-It might not make sense for every situation, but can be ideal depending on your search requirements. For example:
+## Get Started
 
-- When you want client-side fuzzy searching of small to moderately large data sets.
-- When you can't justify setting up a dedicated backend simply to handle search. ElasticSearch or Algolia, although both great services, may be overkill for your particular use cases.
+```sh
+npm install fuse.js
+```
 
-### Can I still use it on the backend?
+See [Getting Started](getting-started.md) for installation options, builds, and imports.
 
-Of course! Fuse.js has no DOM dependencies.
-
-### Who's using Fuse.js these days?
-
-Plenty of people. It's hard to say an exact number, since it's free. But a good indication is the number of [dependents](https://www.npmjs.com/package/fuse.js?activeTab=dependents) on NPM, and the [dependency graph](https://github.com/krisk/Fuse/network/dependents) and [stargazers](https://github.com/krisk/Fuse/stargazers) on GitHub.
-
----
-
-Check out the [live demo](/demo.html) to fiddle with it and to learn how to use it.
+**[Try the live demo →](demo.md)**
 
 <Donate />
