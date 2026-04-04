@@ -161,10 +161,10 @@ fuse.remove((doc) => doc.title === 'Old Book')
 
 Fuse.js ships in two variants:
 
-| Build | Includes | File |
+| Build | Includes | Min + gzip |
 |---|---|---|
-| **Full** | Fuzzy + Extended + Logical + Token search | `fuse.js` / `fuse.mjs` |
-| **Basic** | Fuzzy search only | `fuse.basic.js` / `fuse.basic.mjs` |
+| **Full** | Fuzzy + Extended + Logical + Token search | ~8 kB |
+| **Basic** | Fuzzy search only | ~6.5 kB |
 
 Use the basic build if you only need fuzzy search and want the smallest bundle size.
 
