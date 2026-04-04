@@ -94,6 +94,7 @@ function getPlugins(): PluginConfig {
         ...getComponent('Sponsors'),
         ...getComponent('Playground'),
         ...getComponent('WorkerDemo'),
+        ...getComponent('PerfDemo'),
         ...getComponent('Donate'),
 
 

@@ -47,7 +47,15 @@ The index stores processed string values and metadata for each key of each item.
 
 *Times are rough estimates on a modern machine. Your results will vary based on hardware, key count, and value length. Use the benchmark script below to measure with your own data.*
 
-## Benchmark it yourself
+## Try it on your machine
+
+See how Fuse.js performs on your hardware. The benchmark runs inside a Web Worker so the page stays responsive.
+
+<PerfDemo />
+
+<sub>Documents are randomly generated from a dictionary of common words. See the [benchmark script](#benchmark-script) below for details.</sub>
+
+## Benchmark script
 
 The most reliable way to answer "is Fuse.js fast enough for my use case?" is to measure it. Copy the script below and adjust the dataset to match yours:
 
@@ -56,7 +64,7 @@ import Fuse from 'fuse.js'
 
 // -- Configure to match your use case --
 const LIST_SIZE = 10_000
-const KEYS = ['title', 'description']
+const KEYS = ['title', 'description', 'category', 'tags']
 const QUERY = 'javascript'
 const OPTIONS = { keys: KEYS, threshold: 0.4 }
 const SEARCH_RUNS = 100
@@ -76,7 +84,9 @@ function randomSentence(len) {
 
 const list = Array.from({ length: LIST_SIZE }, () => ({
   title: randomSentence(4),
-  description: randomSentence(12)
+  description: randomSentence(12),
+  category: randomSentence(2),
+  tags: randomSentence(6)
 }))
 
 // -- Benchmark indexing --
