@@ -94,6 +94,39 @@ const builds = {
     format: 'es',
     env: 'production',
 
+  },
+  // FuseWorker class (lightweight proxy, no Fuse bundled)
+  'fuse-worker-esm': {
+    input: 'src/workers/index.ts',
+    dest: `dist/${FILENAME}-worker.mjs`,
+    format: 'es',
+    env: 'production'
+  },
+  'fuse-worker-cjs': {
+    input: 'src/workers/index.ts',
+    dest: `dist/${FILENAME}-worker.cjs`,
+    format: 'cjs',
+    exports: 'named',
+    env: 'production'
+  },
+  // Worker script (self-contained, includes Fuse)
+  'worker-esm': {
+    input: 'src/workers/worker.ts',
+    dest: `dist/${FILENAME}.worker.mjs`,
+    format: 'es',
+    env: 'production',
+    features: {
+      ...fullBuildFeatures
+    }
+  },
+  'worker-esm-min': {
+    input: 'src/workers/worker.ts',
+    dest: `dist/${FILENAME}.worker.min.mjs`,
+    format: 'es',
+    env: 'production',
+    features: {
+      ...fullBuildFeatures
+    }
   }
 }
 
@@ -112,14 +145,14 @@ function genConfig(options) {
   const vars = { ...defaultVars, ...defaultFeatures }
 
   const config = {
-    input: resolve('src/entry.ts'),
+    input: resolve(options.input || 'src/entry.ts'),
     plugins: [nodeResolve({ extensions: ['.ts', '.js'] }), ...(options.plugins || [])],
     output: {
       banner,
       file: resolve(options.dest),
       format: options.format,
       name: 'Fuse',
-      exports: options.format === 'cjs' ? 'default' : undefined
+      exports: options.exports || (options.format === 'cjs' ? 'default' : undefined)
     }
   }
 

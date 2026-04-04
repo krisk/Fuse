@@ -1,0 +1,2162 @@
+/**
+ * Fuse.js v7.2.0 - Lightweight fuzzy-search (http://fusejs.io)
+ *
+ * Copyright (c) 2026 Kiro Risk (http://kiro.me)
+ * All Rights Reserved. Apache Software License 2.0
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+function isArray(value) {
+  return !Array.isArray ? getTag(value) === '[object Array]' : Array.isArray(value);
+}
+function baseToString(value) {
+  // Exit early for strings to avoid a performance hit in some environments.
+  if (typeof value == 'string') {
+    return value;
+  }
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  const result = value + '';
+  return result == '0' && 1 / value == -Infinity ? '-0' : result;
+}
+function toString(value) {
+  return value == null ? '' : baseToString(value);
+}
+function isString(value) {
+  return typeof value === 'string';
+}
+function isNumber(value) {
+  return typeof value === 'number';
+}
+
+// Adapted from: https://github.com/lodash/lodash/blob/master/isBoolean.js
+function isBoolean(value) {
+  return value === true || value === false || isObjectLike(value) && getTag(value) == '[object Boolean]';
+}
+function isObject(value) {
+  return typeof value === 'object';
+}
+
+// Checks if `value` is object-like.
+function isObjectLike(value) {
+  return isObject(value) && value !== null;
+}
+function isDefined(value) {
+  return value !== undefined && value !== null;
+}
+function isBlank(value) {
+  return !value.trim().length;
+}
+
+// Gets the `toStringTag` of `value`.
+// Adapted from: https://github.com/lodash/lodash/blob/master/.internal/getTag.js
+function getTag(value) {
+  return value == null ? value === undefined ? '[object Undefined]' : '[object Null]' : Object.prototype.toString.call(value);
+}
+
+const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
+const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = key => `Invalid value for key ${key}`;
+const PATTERN_LENGTH_TOO_LARGE = max => `Pattern length exceeds max of ${max}.`;
+const MISSING_KEY_PROPERTY = name => `Missing ${name} property in key`;
+const INVALID_KEY_WEIGHT_VALUE = key => `Property 'weight' in key '${key}' must be a positive integer`;
+
+const hasOwn = Object.prototype.hasOwnProperty;
+class KeyStore {
+  constructor(keys) {
+    this._keys = [];
+    this._keyMap = {};
+    let totalWeight = 0;
+    keys.forEach(key => {
+      const obj = createKey(key);
+      this._keys.push(obj);
+      this._keyMap[obj.id] = obj;
+      totalWeight += obj.weight;
+    });
+
+    // Normalize weights so that their sum is equal to 1
+    this._keys.forEach(key => {
+      key.weight /= totalWeight;
+    });
+  }
+  get(keyId) {
+    return this._keyMap[keyId];
+  }
+  keys() {
+    return this._keys;
+  }
+  toJSON() {
+    return JSON.stringify(this._keys);
+  }
+}
+function createKey(key) {
+  let path = null;
+  let id = null;
+  let src = null;
+  let weight = 1;
+  let getFn = null;
+  if (isString(key) || isArray(key)) {
+    src = key;
+    path = createKeyPath(key);
+    id = createKeyId(key);
+  } else {
+    if (!hasOwn.call(key, 'name')) {
+      throw new Error(MISSING_KEY_PROPERTY('name'));
+    }
+    const name = key.name;
+    src = name;
+    if (hasOwn.call(key, 'weight')) {
+      weight = key.weight;
+      if (weight <= 0) {
+        throw new Error(INVALID_KEY_WEIGHT_VALUE(name));
+      }
+    }
+    path = createKeyPath(name);
+    id = createKeyId(name);
+    getFn = key.getFn;
+  }
+  return {
+    path: path,
+    id: id,
+    weight,
+    src: src,
+    getFn
+  };
+}
+function createKeyPath(key) {
+  return isArray(key) ? key : key.split('.');
+}
+function createKeyId(key) {
+  return isArray(key) ? key.join('.') : key;
+}
+
+function get(obj, path) {
+  const list = [];
+  let arr = false;
+  const deepGet = (obj, path, index, arrayIndex) => {
+    if (!isDefined(obj)) {
+      return;
+    }
+    if (!path[index]) {
+      // If there's no path left, we've arrived at the object we care about.
+      list.push(arrayIndex !== undefined ? {
+        v: obj,
+        i: arrayIndex
+      } : obj);
+    } else {
+      const key = path[index];
+      const value = obj[key];
+      if (!isDefined(value)) {
+        return;
+      }
+
+      // If we're at the last value in the path, and if it's a string/number/bool,
+      // add it to the list
+      if (index === path.length - 1 && (isString(value) || isNumber(value) || isBoolean(value) || typeof value === 'bigint')) {
+        list.push(arrayIndex !== undefined ? {
+          v: toString(value),
+          i: arrayIndex
+        } : toString(value));
+      } else if (isArray(value)) {
+        arr = true;
+        // Search each item in the array.
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          deepGet(value[i], path, index + 1, i);
+        }
+      } else if (path.length) {
+        // An object. Recurse further.
+        deepGet(value, path, index + 1, arrayIndex);
+      }
+    }
+  };
+
+  // Backwards compatibility (since path used to be a string)
+  deepGet(obj, isString(path) ? path.split('.') : path, 0);
+  return arr ? list : list[0];
+}
+
+const MatchOptions = {
+  includeMatches: false,
+  findAllMatches: false,
+  minMatchCharLength: 1
+};
+const BasicOptions = {
+  isCaseSensitive: false,
+  ignoreDiacritics: false,
+  includeScore: false,
+  keys: [],
+  shouldSort: true,
+  sortFn: (a, b) => a.score === b.score ? a.idx < b.idx ? -1 : 1 : a.score < b.score ? -1 : 1
+};
+const FuzzyOptions = {
+  location: 0,
+  threshold: 0.6,
+  distance: 100
+};
+const AdvancedOptions = {
+  useExtendedSearch: false,
+  useTokenSearch: false,
+  getFn: get,
+  ignoreLocation: false,
+  ignoreFieldNorm: false,
+  fieldNormWeight: 1
+};
+const Config = Object.freeze({
+  ...BasicOptions,
+  ...MatchOptions,
+  ...FuzzyOptions,
+  ...AdvancedOptions
+});
+
+const SPACE = /[^ ]+/g;
+
+// Field-length norm: the shorter the field, the higher the weight.
+// Set to 3 decimals to reduce index size.
+function norm(weight = 1, mantissa = 3) {
+  const cache = new Map();
+  const m = Math.pow(10, mantissa);
+  return {
+    get(value) {
+      const numTokens = value.match(SPACE).length;
+      if (cache.has(numTokens)) {
+        return cache.get(numTokens);
+      }
+
+      // Default function is 1/sqrt(x), weight makes that variable
+      const norm = 1 / Math.pow(numTokens, 0.5 * weight);
+
+      // In place of `toFixed(mantissa)`, for faster computation
+      const n = parseFloat(Math.round(norm * m) / m);
+      cache.set(numTokens, n);
+      return n;
+    },
+    clear() {
+      cache.clear();
+    }
+  };
+}
+
+class FuseIndex {
+  constructor({
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
+  } = {}) {
+    this.norm = norm(fieldNormWeight, 3);
+    this.getFn = getFn;
+    this.isCreated = false;
+    this.docs = [];
+    this.keys = [];
+    this._keysMap = {};
+    this.setIndexRecords();
+  }
+  setSources(docs = []) {
+    this.docs = docs;
+  }
+  setIndexRecords(records = []) {
+    this.records = records;
+  }
+  setKeys(keys = []) {
+    this.keys = keys;
+    this._keysMap = {};
+    keys.forEach((key, idx) => {
+      this._keysMap[key.id] = idx;
+    });
+  }
+  create() {
+    if (this.isCreated || !this.docs.length) {
+      return;
+    }
+    this.isCreated = true;
+
+    // List is Array<String>
+    if (isString(this.docs[0])) {
+      this.docs.forEach((doc, docIndex) => {
+        this._addString(doc, docIndex);
+      });
+    } else {
+      // List is Array<Object>
+      this.docs.forEach((doc, docIndex) => {
+        this._addObject(doc, docIndex);
+      });
+    }
+    this.norm.clear();
+  }
+  // Adds a doc to the end of the index
+  add(doc) {
+    const idx = this.size();
+    if (isString(doc)) {
+      this._addString(doc, idx);
+    } else {
+      this._addObject(doc, idx);
+    }
+  }
+  // Removes the doc at the specified index of the index
+  removeAt(idx) {
+    this.records.splice(idx, 1);
+
+    // Change ref index of every subsquent doc
+    for (let i = idx, len = this.size(); i < len; i += 1) {
+      this.records[i].i -= 1;
+    }
+  }
+  // Removes docs at the specified indices (must be sorted ascending)
+  removeAll(indices) {
+    // Remove in reverse order to avoid index shifting during splice
+    for (let i = indices.length - 1; i >= 0; i -= 1) {
+      this.records.splice(indices[i], 1);
+    }
+    // Single re-index pass
+    for (let i = 0, len = this.records.length; i < len; i += 1) {
+      this.records[i].i = i;
+    }
+  }
+  getValueForItemAtKeyId(item, keyId) {
+    return item[this._keysMap[keyId]];
+  }
+  size() {
+    return this.records.length;
+  }
+  _addString(doc, docIndex) {
+    if (!isDefined(doc) || isBlank(doc)) {
+      return;
+    }
+    const record = {
+      v: doc,
+      i: docIndex,
+      n: this.norm.get(doc)
+    };
+    this.records.push(record);
+  }
+  _addObject(doc, docIndex) {
+    const record = {
+      i: docIndex,
+      $: {}
+    };
+
+    // Iterate over every key (i.e, path), and fetch the value at that key
+    this.keys.forEach((key, keyIndex) => {
+      const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
+      if (!isDefined(value)) {
+        return;
+      }
+      if (isArray(value)) {
+        const subRecords = [];
+        for (let i = 0, len = value.length; i < len; i += 1) {
+          const item = value[i];
+          if (!isDefined(item)) {
+            continue;
+          }
+          if (isString(item)) {
+            // Custom getFn returning plain string array (backward compat)
+            if (!isBlank(item)) {
+              const subRecord = {
+                v: item,
+                i: i,
+                n: this.norm.get(item)
+              };
+              subRecords.push(subRecord);
+            }
+          } else if (isDefined(item.v)) {
+            // Default get() returns {v, i} objects with original array indices
+            const text = isString(item.v) ? item.v : toString(item.v);
+            if (!isBlank(text)) {
+              const subRecord = {
+                v: text,
+                i: item.i,
+                n: this.norm.get(text)
+              };
+              subRecords.push(subRecord);
+            }
+          }
+        }
+        record.$[keyIndex] = subRecords;
+      } else if (isString(value) && !isBlank(value)) {
+        const subRecord = {
+          v: value,
+          n: this.norm.get(value)
+        };
+        record.$[keyIndex] = subRecord;
+      }
+    });
+    this.records.push(record);
+  }
+  toJSON() {
+    return {
+      keys: this.keys.map(({
+        getFn,
+        ...key
+      }) => key),
+      records: this.records
+    };
+  }
+}
+function createIndex(keys, docs, {
+  getFn = Config.getFn,
+  fieldNormWeight = Config.fieldNormWeight
+} = {}) {
+  const myIndex = new FuseIndex({
+    getFn,
+    fieldNormWeight
+  });
+  myIndex.setKeys(keys.map(createKey));
+  myIndex.setSources(docs);
+  myIndex.create();
+  return myIndex;
+}
+
+function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMatchCharLength) {
+  const indices = [];
+  let start = -1;
+  let end = -1;
+  let i = 0;
+  for (let len = matchmask.length; i < len; i += 1) {
+    const match = matchmask[i];
+    if (match && start === -1) {
+      start = i;
+    } else if (!match && start !== -1) {
+      end = i - 1;
+      if (end - start + 1 >= minMatchCharLength) {
+        indices.push([start, end]);
+      }
+      start = -1;
+    }
+  }
+
+  // (i-1 - start) + 1 => i - start
+  if (matchmask[i - 1] && i - start >= minMatchCharLength) {
+    indices.push([start, i - 1]);
+  }
+  return indices;
+}
+
+// Machine word size
+const MAX_BITS = 32;
+
+function search(text, pattern, patternAlphabet, {
+  location = Config.location,
+  distance = Config.distance,
+  threshold = Config.threshold,
+  findAllMatches = Config.findAllMatches,
+  minMatchCharLength = Config.minMatchCharLength,
+  includeMatches = Config.includeMatches,
+  ignoreLocation = Config.ignoreLocation
+} = {}) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
+  }
+  const patternLen = pattern.length;
+  // Set starting location at beginning text and initialize the alphabet.
+  const textLen = text.length;
+  // Handle the case when location > text.length
+  const expectedLocation = Math.max(0, Math.min(location, textLen));
+  // Highest score beyond which we give up.
+  let currentThreshold = threshold;
+  // Is there a nearby exact match? (speedup)
+  let bestLocation = expectedLocation;
+
+  // Inlined score computation — avoids object allocation per call in hot loops.
+  // See ./computeScore.ts for the documented version of this formula.
+  const calcScore = (errors, currentLocation) => {
+    const accuracy = errors / patternLen;
+    if (ignoreLocation) return accuracy;
+    const proximity = Math.abs(expectedLocation - currentLocation);
+    if (!distance) return proximity ? 1.0 : accuracy;
+    return accuracy + proximity / distance;
+  };
+
+  // Performance: only computer matches when the minMatchCharLength > 1
+  // OR if `includeMatches` is true.
+  const computeMatches = minMatchCharLength > 1 || includeMatches;
+  // A mask of the matches, used for building the indices
+  const matchMask = computeMatches ? Array(textLen) : [];
+  let index;
+
+  // Get all exact matches, here for speed up
+  while ((index = text.indexOf(pattern, bestLocation)) > -1) {
+    const score = calcScore(0, index);
+    currentThreshold = Math.min(score, currentThreshold);
+    bestLocation = index + patternLen;
+    if (computeMatches) {
+      let i = 0;
+      while (i < patternLen) {
+        matchMask[index + i] = 1;
+        i += 1;
+      }
+    }
+  }
+
+  // Reset the best location
+  bestLocation = -1;
+  let lastBitArr = [];
+  let finalScore = 1;
+  let binMax = patternLen + textLen;
+  const mask = 1 << patternLen - 1;
+  for (let i = 0; i < patternLen; i += 1) {
+    // Scan for the best match; each iteration allows for one more error.
+    // Run a binary search to determine how far from the match location we can stray
+    // at this error level.
+    let binMin = 0;
+    let binMid = binMax;
+    while (binMin < binMid) {
+      const score = calcScore(i, expectedLocation + binMid);
+      if (score <= currentThreshold) {
+        binMin = binMid;
+      } else {
+        binMax = binMid;
+      }
+      binMid = Math.floor((binMax - binMin) / 2 + binMin);
+    }
+
+    // Use the result from this iteration as the maximum for the next.
+    binMax = binMid;
+    let start = Math.max(1, expectedLocation - binMid + 1);
+    const finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
+
+    // Initialize the bit array
+    const bitArr = Array(finish + 2);
+    bitArr[finish + 1] = (1 << i) - 1;
+    for (let j = finish; j >= start; j -= 1) {
+      const currentLocation = j - 1;
+      const charMatch = patternAlphabet[text[currentLocation]];
+      if (computeMatches) {
+        // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
+        matchMask[currentLocation] = +!!charMatch;
+      }
+
+      // First pass: exact match
+      bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch;
+
+      // Subsequent passes: fuzzy match
+      if (i) {
+        bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
+      }
+      if (bitArr[j] & mask) {
+        finalScore = calcScore(i, currentLocation);
+
+        // This match will almost certainly be better than any existing match.
+        // But check anyway.
+        if (finalScore <= currentThreshold) {
+          // Indeed it is
+          currentThreshold = finalScore;
+          bestLocation = currentLocation;
+
+          // Already passed `loc`, downhill from here on in.
+          if (bestLocation <= expectedLocation) {
+            break;
+          }
+
+          // When passing `bestLocation`, don't exceed our current distance from `expectedLocation`.
+          start = Math.max(1, 2 * expectedLocation - bestLocation);
+        }
+      }
+    }
+
+    // No hope for a (better) match at greater error levels.
+    const score = calcScore(i + 1, expectedLocation);
+    if (score > currentThreshold) {
+      break;
+    }
+    lastBitArr = bitArr;
+  }
+  const result = {
+    isMatch: bestLocation >= 0,
+    // Count exact matches (those with a score of 0) to be "almost" exact
+    score: Math.max(0.001, finalScore)
+  };
+  if (computeMatches) {
+    const indices = convertMaskToIndices(matchMask, minMatchCharLength);
+    if (!indices.length) {
+      result.isMatch = false;
+    } else if (includeMatches) {
+      result.indices = indices;
+    }
+  }
+  return result;
+}
+
+function createPatternAlphabet(pattern) {
+  const mask = {};
+  for (let i = 0, len = pattern.length; i < len; i += 1) {
+    const char = pattern.charAt(i);
+    mask[char] = (mask[char] || 0) | 1 << len - i - 1;
+  }
+  return mask;
+}
+
+function mergeIndices(indices) {
+  if (indices.length <= 1) return indices;
+  indices.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const merged = [indices[0]];
+  for (let i = 1, len = indices.length; i < len; i += 1) {
+    const last = merged[merged.length - 1];
+    const curr = indices[i];
+    if (curr[0] <= last[1] + 1) {
+      last[1] = Math.max(last[1], curr[1]);
+    } else {
+      merged.push(curr);
+    }
+  }
+  return merged;
+}
+
+// Characters that survive NFD normalization unchanged and need explicit mapping
+const NON_DECOMPOSABLE_MAP = {
+  '\u0142': 'l',
+  // ł
+  '\u0141': 'L',
+  // Ł
+  '\u0111': 'd',
+  // đ
+  '\u0110': 'D',
+  // Đ
+  '\u00F8': 'o',
+  // ø
+  '\u00D8': 'O',
+  // Ø
+  '\u0127': 'h',
+  // ħ
+  '\u0126': 'H',
+  // Ħ
+  '\u0167': 't',
+  // ŧ
+  '\u0166': 'T',
+  // Ŧ
+  '\u0131': 'i',
+  // ı
+  '\u00DF': 'ss' // ß
+};
+const NON_DECOMPOSABLE_RE = new RegExp('[' + Object.keys(NON_DECOMPOSABLE_MAP).join('') + ']', 'g');
+const stripDiacritics = String.prototype.normalize ? str => str.normalize('NFD').replace(/[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u07FD\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u08D3-\u08E1\u08E3-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u09FE\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0AFA-\u0AFF\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C00-\u0C04\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C81-\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D00-\u0D03\u0D3B\u0D3C\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B4-\u17D3\u17DD\u180B-\u180D\u1885\u1886\u18A9\u1920-\u192B\u1930-\u193B\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1AB0-\u1ABE\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAD\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2-\u1CF4\u1CF7-\u1CF9\u1DC0-\u1DF9\u1DFB-\u1DFF\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA674-\uA67D\uA69E\uA69F\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C5\uA8E0-\uA8F1\uA8FF\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uA9E5\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAEB-\uAAEF\uAAF5\uAAF6\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE2F]/g, '').replace(NON_DECOMPOSABLE_RE, ch => NON_DECOMPOSABLE_MAP[ch]) : str => str;
+
+class BitapSearch {
+  constructor(pattern, {
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    ignoreLocation = Config.ignoreLocation
+  } = {}) {
+    this.options = {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive,
+      ignoreDiacritics,
+      ignoreLocation
+    };
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
+    this.chunks = [];
+    if (!this.pattern.length) {
+      return;
+    }
+    const addChunk = (pattern, startIndex) => {
+      this.chunks.push({
+        pattern,
+        alphabet: createPatternAlphabet(pattern),
+        startIndex
+      });
+    };
+    const len = this.pattern.length;
+    if (len > MAX_BITS) {
+      let i = 0;
+      const remainder = len % MAX_BITS;
+      const end = len - remainder;
+      while (i < end) {
+        addChunk(this.pattern.substr(i, MAX_BITS), i);
+        i += MAX_BITS;
+      }
+      if (remainder) {
+        const startIndex = len - MAX_BITS;
+        addChunk(this.pattern.substr(startIndex), startIndex);
+      }
+    } else {
+      addChunk(this.pattern, 0);
+    }
+  }
+  searchIn(text) {
+    const {
+      isCaseSensitive,
+      ignoreDiacritics,
+      includeMatches
+    } = this.options;
+    text = isCaseSensitive ? text : text.toLowerCase();
+    text = ignoreDiacritics ? stripDiacritics(text) : text;
+
+    // Exact match
+    if (this.pattern === text) {
+      const result = {
+        isMatch: true,
+        score: 0
+      };
+      if (includeMatches) {
+        result.indices = [[0, text.length - 1]];
+      }
+      return result;
+    }
+
+    // Otherwise, use Bitap algorithm
+    const {
+      location,
+      distance,
+      threshold,
+      findAllMatches,
+      minMatchCharLength,
+      ignoreLocation
+    } = this.options;
+    const allIndices = [];
+    let totalScore = 0;
+    let hasMatches = false;
+    this.chunks.forEach(({
+      pattern,
+      alphabet,
+      startIndex
+    }) => {
+      const {
+        isMatch,
+        score,
+        indices
+      } = search(text, pattern, alphabet, {
+        location: location + startIndex,
+        distance,
+        threshold,
+        findAllMatches,
+        minMatchCharLength,
+        includeMatches,
+        ignoreLocation
+      });
+      if (isMatch) {
+        hasMatches = true;
+      }
+      totalScore += score;
+      if (isMatch && indices) {
+        allIndices.push(...indices);
+      }
+    });
+    const result = {
+      isMatch: hasMatches,
+      score: hasMatches ? totalScore / this.chunks.length : 1
+    };
+    if (hasMatches && includeMatches) {
+      result.indices = mergeIndices(allIndices);
+    }
+    return result;
+  }
+}
+
+class BaseMatch {
+  constructor(pattern) {
+    this.pattern = pattern;
+  }
+  static isMultiMatch(pattern) {
+    return getMatch(pattern, this.multiRegex);
+  }
+  static isSingleMatch(pattern) {
+    return getMatch(pattern, this.singleRegex);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  search(_text) {
+    return {
+      isMatch: false,
+      score: 1
+    };
+  }
+}
+function getMatch(pattern, exp) {
+  const matches = pattern.match(exp);
+  return matches ? matches[1] : null;
+}
+
+// Token: 'file
+// Match type: exact-match
+// Description: Items that are `file`
+
+class ExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'exact';
+  }
+  static get multiRegex() {
+    return /^="(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^=(.*)$/;
+  }
+  search(text) {
+    const isMatch = text === this.pattern;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
+    };
+  }
+}
+
+// Token: !fire
+// Match type: inverse-exact-match
+// Description: Items that do not include `fire`
+
+class InverseExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'inverse-exact';
+  }
+  static get multiRegex() {
+    return /^!"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^!(.*)$/;
+  }
+  search(text) {
+    const index = text.indexOf(this.pattern);
+    const isMatch = index === -1;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+
+// Token: ^file
+// Match type: prefix-exact-match
+// Description: Items that start with `file`
+class PrefixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'prefix-exact';
+  }
+  static get multiRegex() {
+    return /^\^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^\^(.*)$/;
+  }
+  search(text) {
+    const isMatch = text.startsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
+    };
+  }
+}
+
+// Token: !^fire
+// Match type: inverse-prefix-exact-match
+// Description: Items that do not start with `fire`
+
+class InversePrefixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'inverse-prefix-exact';
+  }
+  static get multiRegex() {
+    return /^!\^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^!\^(.*)$/;
+  }
+  search(text) {
+    const isMatch = !text.startsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+
+// Token: .file$
+// Match type: suffix-exact-match
+// Description: Items that end with `.file`
+class SuffixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'suffix-exact';
+  }
+  static get multiRegex() {
+    return /^"(.*)"\$$/;
+  }
+  static get singleRegex() {
+    return /^(.*)\$$/;
+  }
+  search(text) {
+    const isMatch = text.endsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [text.length - this.pattern.length, text.length - 1]
+    };
+  }
+}
+
+// Token: !.file$
+// Match type: inverse-suffix-exact-match
+// Description: Items that do not end with `.file`
+class InverseSuffixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'inverse-suffix-exact';
+  }
+  static get multiRegex() {
+    return /^!"(.*)"\$$/;
+  }
+  static get singleRegex() {
+    return /^!(.*)\$$/;
+  }
+  search(text) {
+    const isMatch = !text.endsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+
+class FuzzyMatch extends BaseMatch {
+  constructor(pattern, {
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    ignoreLocation = Config.ignoreLocation
+  } = {}) {
+    super(pattern);
+    this._bitapSearch = new BitapSearch(pattern, {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive,
+      ignoreDiacritics,
+      ignoreLocation
+    });
+  }
+  static get type() {
+    return 'fuzzy';
+  }
+  static get multiRegex() {
+    return /^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^(.*)$/;
+  }
+  search(text) {
+    return this._bitapSearch.searchIn(text);
+  }
+}
+
+// Token: 'file
+// Match type: include-match
+// Description: Items that include `file`
+
+class IncludeMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return 'include';
+  }
+  static get multiRegex() {
+    return /^'"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^'(.*)$/;
+  }
+  search(text) {
+    let location = 0;
+    let index;
+    const indices = [];
+    const patternLen = this.pattern.length;
+
+    // Get all exact matches
+    while ((index = text.indexOf(this.pattern, location)) > -1) {
+      location = index + patternLen;
+      indices.push([index, location - 1]);
+    }
+    const isMatch = !!indices.length;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices
+    };
+  }
+}
+
+// ❗Order is important. DO NOT CHANGE.
+const searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
+const searchersLen = searchers.length;
+const ESCAPED_PIPE = '\u0000'; // placeholder for escaped \|
+const OR_TOKEN = '|';
+
+// Tokenize a query string into individual search terms.
+// Respects multi-match quoted tokens like ="said "test"" or ^"hello world"$
+// where inner spaces and quotes are part of the token.
+function tokenize(pattern) {
+  const tokens = [];
+  const len = pattern.length;
+  let i = 0;
+  while (i < len) {
+    // Skip spaces
+    while (i < len && pattern[i] === ' ') i++;
+    if (i >= len) break;
+
+    // Scan past prefix characters (=, !, ^, ') to see if a quote follows
+    let j = i;
+    while (j < len && pattern[j] !== ' ' && pattern[j] !== '"') j++;
+    if (j < len && pattern[j] === '"') {
+      // Multi-match token: prefix + "content" (possibly with inner quotes)
+      // Find the closing " that ends this token:
+      // it must be followed by optional $, then space or end-of-string
+      j++; // skip opening quote
+      while (j < len) {
+        if (pattern[j] === '"') {
+          // Check if this is the closing quote
+          const next = j + 1;
+          if (next >= len || pattern[next] === ' ') {
+            j++; // include closing quote
+            break;
+          }
+          if (pattern[next] === '$' && (next + 1 >= len || pattern[next + 1] === ' ')) {
+            j += 2; // include "$
+            break;
+          }
+        }
+        j++;
+      }
+      tokens.push(pattern.substring(i, j));
+      i = j;
+    } else {
+      // Regular (unquoted) token: read until space or end
+      while (j < len && pattern[j] !== ' ') j++;
+      tokens.push(pattern.substring(i, j));
+      i = j;
+    }
+  }
+  return tokens;
+}
+
+// Return a 2D array representation of the query, for simpler parsing.
+// Example:
+// "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
+function parseQuery(pattern, options = {}) {
+  // Replace escaped \| with placeholder before splitting on |
+  const escaped = pattern.replace(/\\\|/g, ESCAPED_PIPE);
+  return escaped.split(OR_TOKEN).map(item => {
+    // Restore escaped pipes in each OR group
+    const restored = item.replace(/\u0000/g, '|');
+    const query = tokenize(restored.trim()).filter(item => item && !!item.trim());
+    const results = [];
+    for (let i = 0, len = query.length; i < len; i += 1) {
+      const queryItem = query[i];
+
+      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
+      let found = false;
+      let idx = -1;
+      while (!found && ++idx < searchersLen) {
+        const searcher = searchers[idx];
+        const token = searcher.isMultiMatch(queryItem);
+        if (token) {
+          results.push(new searcher(token, options));
+          found = true;
+        }
+      }
+      if (found) {
+        continue;
+      }
+
+      // 2. Handle single query matches (i.e, once that are *not* quoted)
+      idx = -1;
+      while (++idx < searchersLen) {
+        const searcher = searchers[idx];
+        const token = searcher.isSingleMatch(queryItem);
+        if (token) {
+          results.push(new searcher(token, options));
+          break;
+        }
+      }
+    }
+    return results;
+  });
+}
+
+// These extended matchers can return an array of matches, as opposed
+// to a singl match
+const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type]);
+class ExtendedSearch {
+  constructor(pattern, {
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    includeMatches = Config.includeMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    ignoreLocation = Config.ignoreLocation,
+    findAllMatches = Config.findAllMatches,
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance
+  } = {}) {
+    this.query = null;
+    this.options = {
+      isCaseSensitive,
+      ignoreDiacritics,
+      includeMatches,
+      minMatchCharLength,
+      findAllMatches,
+      ignoreLocation,
+      location,
+      threshold,
+      distance
+    };
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
+    this.query = parseQuery(this.pattern, this.options);
+  }
+  static condition(_, options) {
+    return options.useExtendedSearch;
+  }
+
+  // Note: searchIn operates on a single text value and sets hasInverse on the
+  // result when inverse patterns are involved. _searchObjectList uses this to
+  // switch from "ANY key" to "ALL keys" aggregation. See #712.
+  searchIn(text) {
+    const query = this.query;
+    if (!query) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const {
+      includeMatches,
+      isCaseSensitive,
+      ignoreDiacritics
+    } = this.options;
+    text = isCaseSensitive ? text : text.toLowerCase();
+    text = ignoreDiacritics ? stripDiacritics(text) : text;
+    let numMatches = 0;
+    const allIndices = [];
+    let totalScore = 0;
+    let hasInverse = false;
+
+    // ORs
+    for (let i = 0, qLen = query.length; i < qLen; i += 1) {
+      const searchers = query[i];
+
+      // Reset indices
+      allIndices.length = 0;
+      numMatches = 0;
+      hasInverse = false;
+
+      // ANDs
+      for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
+        const searcher = searchers[j];
+        const {
+          isMatch,
+          indices,
+          score
+        } = searcher.search(text);
+        if (isMatch) {
+          numMatches += 1;
+          totalScore += score;
+          const type = searcher.constructor.type;
+          if (type.startsWith('inverse')) {
+            hasInverse = true;
+          }
+          if (includeMatches) {
+            if (MultiMatchSet.has(type)) {
+              allIndices.push(...indices);
+            } else {
+              allIndices.push(indices);
+            }
+          }
+        } else {
+          totalScore = 0;
+          numMatches = 0;
+          allIndices.length = 0;
+          hasInverse = false;
+          break;
+        }
+      }
+
+      // OR condition, so if TRUE, return
+      if (numMatches) {
+        const result = {
+          isMatch: true,
+          score: totalScore / numMatches
+        };
+        if (hasInverse) {
+          result.hasInverse = true;
+        }
+        if (includeMatches) {
+          result.indices = mergeIndices(allIndices);
+        }
+        return result;
+      }
+    }
+
+    // Nothing was matched
+    return {
+      isMatch: false,
+      score: 1
+    };
+  }
+}
+
+const registeredSearchers = [];
+function register(...args) {
+  registeredSearchers.push(...args);
+}
+function createSearcher(pattern, options) {
+  for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
+    const searcherClass = registeredSearchers[i];
+    if (searcherClass.condition(pattern, options)) {
+      return new searcherClass(pattern, options);
+    }
+  }
+  return new BitapSearch(pattern, options);
+}
+
+const LogicalOperator = {
+  AND: '$and',
+  OR: '$or'
+};
+const KeyType = {
+  PATH: '$path',
+  PATTERN: '$val'
+};
+const isExpression = query => !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
+const isPath = query => !!query[KeyType.PATH];
+const isLeaf = query => !isArray(query) && isObject(query) && !isExpression(query);
+const convertToExplicit = query => ({
+  [LogicalOperator.AND]: Object.keys(query).map(key => ({
+    [key]: query[key]
+  }))
+});
+
+// When `auto` is `true`, the parse function will infer and initialize and add
+// the appropriate `Searcher` instance
+function parse(query, options, {
+  auto = true
+} = {}) {
+  const next = query => {
+    // Keyless string entry: search across all keys
+    if (isString(query)) {
+      const obj = {
+        keyId: null,
+        pattern: query
+      };
+      if (auto) {
+        obj.searcher = createSearcher(query, options);
+      }
+      return obj;
+    }
+    const keys = Object.keys(query);
+    const isQueryPath = isPath(query);
+    if (!isQueryPath && keys.length > 1 && !isExpression(query)) {
+      return next(convertToExplicit(query));
+    }
+    if (isLeaf(query)) {
+      const key = isQueryPath ? query[KeyType.PATH] : keys[0];
+      const pattern = isQueryPath ? query[KeyType.PATTERN] : query[key];
+      if (!isString(pattern)) {
+        throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
+      }
+      const obj = {
+        keyId: createKeyId(key),
+        pattern
+      };
+      if (auto) {
+        obj.searcher = createSearcher(pattern, options);
+      }
+      return obj;
+    }
+    const node = {
+      children: [],
+      operator: keys[0]
+    };
+    keys.forEach(key => {
+      const value = query[key];
+      if (isArray(value)) {
+        value.forEach(item => {
+          node.children.push(next(item));
+        });
+      }
+    });
+    return node;
+  };
+  if (!isExpression(query)) {
+    query = convertToExplicit(query);
+  }
+  return next(query);
+}
+
+function computeScoreSingle(matches, {
+  ignoreFieldNorm = Config.ignoreFieldNorm
+}) {
+  let totalScore = 1;
+  matches.forEach(({
+    key,
+    norm,
+    score
+  }) => {
+    const weight = key ? key.weight : null;
+    totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
+  });
+  return totalScore;
+}
+function computeScore(results, {
+  ignoreFieldNorm = Config.ignoreFieldNorm
+}) {
+  results.forEach(result => {
+    result.score = computeScoreSingle(result.matches, {
+      ignoreFieldNorm
+    });
+  });
+}
+
+// Max-heap by score: keeps the worst (highest) score at the top
+// so we can efficiently evict it when a better result arrives.
+class MaxHeap {
+  constructor(limit) {
+    this.limit = limit;
+    this.heap = [];
+  }
+  get size() {
+    return this.heap.length;
+  }
+  shouldInsert(score) {
+    return this.size < this.limit || score < this.heap[0].score;
+  }
+  insert(item) {
+    if (this.size < this.limit) {
+      this.heap.push(item);
+      this._bubbleUp(this.size - 1);
+    } else if (item.score < this.heap[0].score) {
+      this.heap[0] = item;
+      this._sinkDown(0);
+    }
+  }
+  extractSorted(sortFn) {
+    return this.heap.sort(sortFn);
+  }
+  _bubbleUp(i) {
+    const heap = this.heap;
+    while (i > 0) {
+      const parent = i - 1 >> 1;
+      if (heap[i].score <= heap[parent].score) break;
+      const tmp = heap[i];
+      heap[i] = heap[parent];
+      heap[parent] = tmp;
+      i = parent;
+    }
+  }
+  _sinkDown(i) {
+    const heap = this.heap;
+    const len = heap.length;
+    let largest = i;
+    do {
+      i = largest;
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      if (left < len && heap[left].score > heap[largest].score) {
+        largest = left;
+      }
+      if (right < len && heap[right].score > heap[largest].score) {
+        largest = right;
+      }
+      if (largest !== i) {
+        const tmp = heap[i];
+        heap[i] = heap[largest];
+        heap[largest] = tmp;
+      }
+    } while (largest !== i);
+  }
+}
+
+function transformMatches(result, data) {
+  const matches = result.matches;
+  data.matches = [];
+  if (!isDefined(matches)) {
+    return;
+  }
+  matches.forEach(match => {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return;
+    }
+    const {
+      indices,
+      value
+    } = match;
+    const obj = {
+      indices,
+      value
+    };
+    if (match.key) {
+      obj.key = match.key.src;
+    }
+    if (match.idx > -1) {
+      obj.refIndex = match.idx;
+    }
+    data.matches.push(obj);
+  });
+}
+
+function transformScore(result, data) {
+  data.score = result.score;
+}
+
+function format(results, docs, {
+  includeMatches = Config.includeMatches,
+  includeScore = Config.includeScore
+} = {}) {
+  const transformers = [];
+  if (includeMatches) transformers.push(transformMatches);
+  if (includeScore) transformers.push(transformScore);
+  return results.map(result => {
+    const {
+      idx
+    } = result;
+    const data = {
+      item: docs[idx],
+      refIndex: idx
+    };
+    if (transformers.length) {
+      transformers.forEach(transformer => {
+        transformer(result, data);
+      });
+    }
+    return data;
+  });
+}
+
+const WORD = /\b\w+\b/g;
+function createAnalyzer({
+  isCaseSensitive = false,
+  ignoreDiacritics = false
+} = {}) {
+  return {
+    tokenize(text) {
+      if (!isCaseSensitive) {
+        text = text.toLowerCase();
+      }
+      if (ignoreDiacritics) {
+        text = stripDiacritics(text);
+      }
+      return text.match(WORD) || [];
+    }
+  };
+}
+
+function buildInvertedIndex(records, keyCount, analyzer) {
+  const terms = new Map();
+  const df = new Map();
+  let fieldCount = 0;
+  function addField(text, docIdx, keyIdx, subIdx) {
+    const tokens = analyzer.tokenize(text);
+    if (!tokens.length) return;
+    fieldCount++;
+
+    // Count term frequencies in this field
+    const termFreqs = new Map();
+    for (const token of tokens) {
+      termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
+    }
+
+    // Track which terms we've already counted for df in this field
+    for (const [term, tf] of termFreqs) {
+      const posting = {
+        docIdx,
+        keyIdx,
+        subIdx,
+        tf
+      };
+      let postings = terms.get(term);
+      if (!postings) {
+        postings = [];
+        terms.set(term, postings);
+      }
+      postings.push(posting);
+      df.set(term, (df.get(term) || 0) + 1);
+    }
+  }
+  for (const record of records) {
+    const {
+      i: docIdx,
+      v,
+      $: fields
+    } = record;
+
+    // String list
+    if (v !== undefined) {
+      addField(v, docIdx, -1, -1);
+      continue;
+    }
+
+    // Object list
+    if (fields) {
+      for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
+        const value = fields[keyIdx];
+        if (!value) continue;
+        if (Array.isArray(value)) {
+          for (const sub of value) {
+            addField(sub.v, docIdx, keyIdx, sub.i ?? -1);
+          }
+        } else {
+          addField(value.v, docIdx, keyIdx, -1);
+        }
+      }
+    }
+  }
+  return {
+    terms,
+    fieldCount,
+    df
+  };
+}
+function addToInvertedIndex(index, record, keyCount, analyzer) {
+  const {
+    i: docIdx,
+    v,
+    $: fields
+  } = record;
+  function addField(text, keyIdx, subIdx) {
+    const tokens = analyzer.tokenize(text);
+    if (!tokens.length) return;
+    index.fieldCount++;
+    const termFreqs = new Map();
+    for (const token of tokens) {
+      termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
+    }
+    for (const [term, tf] of termFreqs) {
+      const posting = {
+        docIdx,
+        keyIdx,
+        subIdx,
+        tf
+      };
+      let postings = index.terms.get(term);
+      if (!postings) {
+        postings = [];
+        index.terms.set(term, postings);
+      }
+      postings.push(posting);
+      index.df.set(term, (index.df.get(term) || 0) + 1);
+    }
+  }
+  if (v !== undefined) {
+    addField(v, -1, -1);
+    return;
+  }
+  if (fields) {
+    for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
+      const value = fields[keyIdx];
+      if (!value) continue;
+      if (Array.isArray(value)) {
+        for (const sub of value) {
+          addField(sub.v, keyIdx, sub.i ?? -1);
+        }
+      } else {
+        addField(value.v, keyIdx, -1);
+      }
+    }
+  }
+}
+function removeFromInvertedIndex(index, docIdx) {
+  for (const [term, postings] of index.terms) {
+    const filtered = postings.filter(p => p.docIdx !== docIdx);
+    const removed = postings.length - filtered.length;
+    if (removed > 0) {
+      index.fieldCount -= removed;
+      index.df.set(term, (index.df.get(term) || 0) - removed);
+      if (filtered.length === 0) {
+        index.terms.delete(term);
+        index.df.delete(term);
+      } else {
+        index.terms.set(term, filtered);
+      }
+    }
+  }
+}
+
+class Fuse {
+  // Statics are assigned in entry.ts
+
+  constructor(docs, options, index) {
+    this.options = {
+      ...Config,
+      ...options
+    };
+    if (this.options.useExtendedSearch && false) ;
+    if (this.options.useTokenSearch && false) ;
+    this._keyStore = new KeyStore(this.options.keys);
+    this._docs = docs;
+    this._myIndex = null;
+    this._invertedIndex = null;
+    this.setCollection(docs, index);
+    this._lastQuery = null;
+    this._lastSearcher = null;
+  }
+  _getSearcher(query) {
+    if (this._lastQuery === query) {
+      return this._lastSearcher;
+    }
+    const opts = this._invertedIndex ? {
+      ...this.options,
+      _invertedIndex: this._invertedIndex
+    } : this.options;
+    const searcher = createSearcher(query, opts);
+    this._lastQuery = query;
+    this._lastSearcher = searcher;
+    return searcher;
+  }
+  setCollection(docs, index) {
+    this._docs = docs;
+    if (index && !(index instanceof FuseIndex)) {
+      throw new Error(INCORRECT_INDEX_TYPE);
+    }
+    this._myIndex = index || createIndex(this.options.keys, this._docs, {
+      getFn: this.options.getFn,
+      fieldNormWeight: this.options.fieldNormWeight
+    });
+    if (this.options.useTokenSearch) {
+      const analyzer = createAnalyzer({
+        isCaseSensitive: this.options.isCaseSensitive,
+        ignoreDiacritics: this.options.ignoreDiacritics
+      });
+      this._invertedIndex = buildInvertedIndex(this._myIndex.records, this._myIndex.keys.length, analyzer);
+    }
+  }
+  add(doc) {
+    if (!isDefined(doc)) {
+      return;
+    }
+    this._docs.push(doc);
+    this._myIndex.add(doc);
+    if (this._invertedIndex) {
+      const record = this._myIndex.records[this._myIndex.records.length - 1];
+      const analyzer = createAnalyzer({
+        isCaseSensitive: this.options.isCaseSensitive,
+        ignoreDiacritics: this.options.ignoreDiacritics
+      });
+      addToInvertedIndex(this._invertedIndex, record, this._myIndex.keys.length, analyzer);
+    }
+  }
+  remove(predicate = () => false) {
+    const results = [];
+    const indicesToRemove = [];
+    for (let i = 0, len = this._docs.length; i < len; i += 1) {
+      if (predicate(this._docs[i], i)) {
+        results.push(this._docs[i]);
+        indicesToRemove.push(i);
+      }
+    }
+    if (indicesToRemove.length) {
+      if (this._invertedIndex) {
+        for (const idx of indicesToRemove) {
+          removeFromInvertedIndex(this._invertedIndex, idx);
+        }
+      }
+
+      // Remove from docs in reverse to preserve indices
+      for (let i = indicesToRemove.length - 1; i >= 0; i -= 1) {
+        this._docs.splice(indicesToRemove[i], 1);
+      }
+      this._myIndex.removeAll(indicesToRemove);
+    }
+    return results;
+  }
+  removeAt(idx) {
+    if (this._invertedIndex) {
+      removeFromInvertedIndex(this._invertedIndex, idx);
+    }
+    const doc = this._docs.splice(idx, 1)[0];
+    this._myIndex.removeAt(idx);
+    return doc;
+  }
+  getIndex() {
+    return this._myIndex;
+  }
+  search(query, options) {
+    const {
+      limit = -1
+    } = options || {};
+    const {
+      includeMatches,
+      includeScore,
+      shouldSort,
+      sortFn,
+      ignoreFieldNorm
+    } = this.options;
+
+    // Empty string query returns all docs (useful for search UIs)
+    if (isString(query) && !query.trim()) {
+      let docs = this._docs.map((item, idx) => ({
+        item,
+        refIndex: idx
+      }));
+      if (isNumber(limit) && limit > -1) {
+        docs = docs.slice(0, limit);
+      }
+      return docs;
+    }
+    const useHeap = isNumber(limit) && limit > 0 && isString(query);
+    let results;
+    if (useHeap) {
+      const heap = new MaxHeap(limit);
+      if (isString(this._docs[0])) {
+        this._searchStringList(query, {
+          heap,
+          ignoreFieldNorm
+        });
+      } else {
+        this._searchObjectList(query, {
+          heap,
+          ignoreFieldNorm
+        });
+      }
+      results = heap.extractSorted(sortFn);
+    } else {
+      results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
+      computeScore(results, {
+        ignoreFieldNorm
+      });
+      if (shouldSort) {
+        results.sort(sortFn);
+      }
+      if (isNumber(limit) && limit > -1) {
+        results = results.slice(0, limit);
+      }
+    }
+    return format(results, this._docs, {
+      includeMatches,
+      includeScore
+    });
+  }
+  _searchStringList(query, {
+    heap,
+    ignoreFieldNorm
+  } = {}) {
+    const searcher = this._getSearcher(query);
+    const {
+      records
+    } = this._myIndex;
+    const results = heap ? null : [];
+
+    // Iterate over every string in the index
+    records.forEach(({
+      v: text,
+      i: idx,
+      n: norm
+    }) => {
+      if (!isDefined(text)) {
+        return;
+      }
+      const {
+        isMatch,
+        score,
+        indices
+      } = searcher.searchIn(text);
+      if (isMatch) {
+        const result = {
+          item: text,
+          idx,
+          matches: [{
+            score,
+            value: text,
+            norm: norm,
+            indices
+          }]
+        };
+        if (heap) {
+          result.score = computeScoreSingle(result.matches, {
+            ignoreFieldNorm
+          });
+          if (heap.shouldInsert(result.score)) {
+            heap.insert(result);
+          }
+        } else {
+          results.push(result);
+        }
+      }
+    });
+    return results;
+  }
+  _searchLogical(query) {
+    const expression = parse(query, this.options);
+    const evaluate = (node, item, idx) => {
+      if (!('children' in node)) {
+        const {
+          keyId,
+          searcher
+        } = node;
+        let matches;
+        if (keyId === null) {
+          // Keyless entry: search across all keys
+          matches = [];
+          this._myIndex.keys.forEach((key, keyIndex) => {
+            matches.push(...this._findMatches({
+              key,
+              value: item[keyIndex],
+              searcher: searcher
+            }));
+          });
+        } else {
+          matches = this._findMatches({
+            key: this._keyStore.get(keyId),
+            value: this._myIndex.getValueForItemAtKeyId(item, keyId),
+            searcher: searcher
+          });
+        }
+        if (matches && matches.length) {
+          return [{
+            idx,
+            item,
+            matches
+          }];
+        }
+        return [];
+      }
+      const {
+        children,
+        operator
+      } = node;
+      const res = [];
+      for (let i = 0, len = children.length; i < len; i += 1) {
+        const child = children[i];
+        const result = evaluate(child, item, idx);
+        if (result.length) {
+          res.push(...result);
+        } else if (operator === LogicalOperator.AND) {
+          return [];
+        }
+      }
+      return res;
+    };
+    const records = this._myIndex.records;
+    const resultMap = new Map();
+    const results = [];
+    records.forEach(({
+      $: item,
+      i: idx
+    }) => {
+      if (isDefined(item)) {
+        const expResults = evaluate(expression, item, idx);
+        if (expResults.length) {
+          // Dedupe when adding
+          if (!resultMap.has(idx)) {
+            resultMap.set(idx, {
+              idx,
+              item,
+              matches: []
+            });
+            results.push(resultMap.get(idx));
+          }
+          expResults.forEach(({
+            matches
+          }) => {
+            resultMap.get(idx).matches.push(...matches);
+          });
+        }
+      }
+    });
+    return results;
+  }
+
+  // When a search involves inverse patterns (e.g. !Syrup), the aggregation
+  // across keys switches from "ANY key matches" to "ALL keys must match."
+  // This is signaled by hasInverse on the SearchResult from ExtendedSearch.
+  //
+  // For mixed patterns like "^hello !Syrup", a key failure is ambiguous —
+  // it could be the positive or inverse term that failed. In that case we
+  // conservatively exclude the item, which is strictly better than the old
+  // behavior of including it. See: https://github.com/krisk/Fuse/issues/712
+  _searchObjectList(query, {
+    heap,
+    ignoreFieldNorm
+  } = {}) {
+    const searcher = this._getSearcher(query);
+    const {
+      keys,
+      records
+    } = this._myIndex;
+    const results = heap ? null : [];
+
+    // List is Array<Object>
+    records.forEach(({
+      $: item,
+      i: idx
+    }) => {
+      if (!isDefined(item)) {
+        return;
+      }
+      const matches = [];
+      let anyKeyFailed = false;
+      let hasInverse = false;
+
+      // Iterate over every key (i.e, path), and fetch the value at that key
+      keys.forEach((key, keyIndex) => {
+        const keyMatches = this._findMatches({
+          key,
+          value: item[keyIndex],
+          searcher
+        });
+        if (keyMatches.length) {
+          matches.push(...keyMatches);
+          if (keyMatches[0].hasInverse) {
+            hasInverse = true;
+          }
+        } else {
+          anyKeyFailed = true;
+        }
+      });
+
+      // If the search involves inverse patterns, ALL keys must match
+      if (hasInverse && anyKeyFailed) {
+        return;
+      }
+      if (matches.length) {
+        const result = {
+          idx,
+          item,
+          matches
+        };
+        if (heap) {
+          result.score = computeScoreSingle(result.matches, {
+            ignoreFieldNorm
+          });
+          if (heap.shouldInsert(result.score)) {
+            heap.insert(result);
+          }
+        } else {
+          results.push(result);
+        }
+      }
+    });
+    return results;
+  }
+  _findMatches({
+    key,
+    value,
+    searcher
+  }) {
+    if (!isDefined(value)) {
+      return [];
+    }
+    const matches = [];
+    if (isArray(value)) {
+      value.forEach(({
+        v: text,
+        i: idx,
+        n: norm
+      }) => {
+        if (!isDefined(text)) {
+          return;
+        }
+        const {
+          isMatch,
+          score,
+          indices,
+          hasInverse
+        } = searcher.searchIn(text);
+        if (isMatch) {
+          matches.push({
+            score,
+            key,
+            value: text,
+            idx,
+            norm,
+            indices,
+            hasInverse
+          });
+        }
+      });
+    } else {
+      const {
+        v: text,
+        n: norm
+      } = value;
+      const {
+        isMatch,
+        score,
+        indices,
+        hasInverse
+      } = searcher.searchIn(text);
+      if (isMatch) {
+        matches.push({
+          score,
+          key,
+          value: text,
+          norm,
+          indices,
+          hasInverse
+        });
+      }
+    }
+    return matches;
+  }
+}
+
+class TokenSearch {
+  static condition(_, options) {
+    return options.useTokenSearch;
+  }
+  constructor(pattern, options) {
+    this.options = options;
+    this.analyzer = createAnalyzer({
+      isCaseSensitive: options.isCaseSensitive,
+      ignoreDiacritics: options.ignoreDiacritics
+    });
+    const queryTerms = this.analyzer.tokenize(pattern);
+    const invertedIndex = options._invertedIndex;
+    const {
+      df,
+      fieldCount
+    } = invertedIndex;
+    this.termSearchers = [];
+    this.idfWeights = [];
+    for (const term of queryTerms) {
+      this.termSearchers.push(new BitapSearch(term, {
+        location: options.location,
+        threshold: options.threshold,
+        distance: options.distance,
+        includeMatches: options.includeMatches,
+        findAllMatches: options.findAllMatches,
+        minMatchCharLength: options.minMatchCharLength,
+        isCaseSensitive: options.isCaseSensitive,
+        ignoreDiacritics: options.ignoreDiacritics,
+        ignoreLocation: true
+      }));
+      const docFreq = df.get(term) || 0;
+      const idf = Math.log(1 + (fieldCount - docFreq + 0.5) / (docFreq + 0.5));
+      this.idfWeights.push(idf);
+    }
+  }
+  searchIn(text) {
+    if (!this.termSearchers.length) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const allIndices = [];
+    let weightedScore = 0;
+    let maxPossibleScore = 0;
+    let matchedCount = 0;
+    for (let i = 0; i < this.termSearchers.length; i++) {
+      const result = this.termSearchers[i].searchIn(text);
+      const idf = this.idfWeights[i];
+      maxPossibleScore += idf;
+      if (result.isMatch) {
+        matchedCount++;
+        weightedScore += idf * (1 - result.score);
+        if (result.indices) {
+          allIndices.push(...result.indices);
+        }
+      }
+    }
+    if (matchedCount === 0) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const normalized = maxPossibleScore > 0 ? 1 - weightedScore / maxPossibleScore : 0;
+    const searchResult = {
+      isMatch: true,
+      score: Math.max(0.001, normalized)
+    };
+    if (this.options.includeMatches && allIndices.length) {
+      searchResult.indices = mergeIndices(allIndices);
+    }
+    return searchResult;
+  }
+}
+
+/// <reference lib="webworker" />
+
+
+// Register all search plugins so the worker supports full features
+{
+  register(ExtendedSearch);
+}
+{
+  register(TokenSearch);
+}
+Fuse.createIndex = createIndex;
+Fuse.config = Config;
+let fuse = null;
+self.onmessage = e => {
+  const {
+    id,
+    method,
+    args
+  } = e.data;
+  try {
+    let result;
+    switch (method) {
+      case 'init':
+        {
+          const [docs, options] = args;
+          fuse = new Fuse(docs, options);
+          result = true;
+          break;
+        }
+      case 'search':
+        {
+          result = fuse.search(args[0], args[1]);
+          break;
+        }
+      case 'add':
+        {
+          fuse.add(args[0]);
+          result = true;
+          break;
+        }
+      case 'setCollection':
+        {
+          fuse.setCollection(args[0]);
+          result = true;
+          break;
+        }
+    }
+    self.postMessage({
+      id,
+      result
+    });
+  } catch (err) {
+    self.postMessage({
+      id,
+      error: err.message
+    });
+  }
+};

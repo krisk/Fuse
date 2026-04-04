@@ -35,6 +35,13 @@
       "types": "./dist/fuse.d.ts",
       "import": "./dist/fuse.basic.min.mjs",
       "require": "./dist/fuse.basic.min.cjs"
+    },
+    "./worker": {
+      "import": "./dist/fuse-worker.mjs",
+      "require": "./dist/fuse-worker.cjs"
+    },
+    "./worker-script": {
+      "import": "./dist/fuse.worker.mjs"
     }
   },
   "sideEffects": false,

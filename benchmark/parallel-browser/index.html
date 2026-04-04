@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fuse.js FuseWorker Test</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 24px; }
+    .config { background: #f5f5f5; padding: 16px; border-radius: 8px; margin-bottom: 24px; }
+    .config label { display: block; margin-bottom: 8px; }
+    .config select { padding: 4px 8px; margin-left: 8px; }
+    button { padding: 10px 24px; font-size: 16px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 6px; }
+    button:disabled { background: #93c5fd; cursor: not-allowed; }
+    #status { margin-top: 16px; color: #666; min-height: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+    th, td { text-align: right; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+    th:first-child, td:first-child { text-align: left; }
+    .pass { color: #16a34a; }
+    .fail { color: #dc2626; }
+    #jank-demo { margin-top: 24px; padding: 16px; background: #f0f9ff; border-radius: 8px; }
+    #jank-ball { width: 40px; height: 40px; background: #2563eb; border-radius: 50%; transition: none; }
+    .bar-cell { width: 200px; }
+    .bar { height: 20px; background: #2563eb; border-radius: 3px; min-width: 2px; }
+    .bar.baseline { background: #94a3b8; }
+  </style>
+</head>
+<body>
+  <h1>Fuse.js FuseWorker Test</h1>
+  <p class="subtitle">Compares single-thread Fuse vs FuseWorker with parallel Web Workers</p>
+
+  <div class="config">
+    <label>Dataset size:
+      <select id="datasetSize">
+        <option value="10000">10,000</option>
+        <option value="50000">50,000</option>
+        <option value="100000" selected>100,000</option>
+        <option value="200000">200,000</option>
+      </select>
+    </label>
+    <label>Benchmark runs:
+      <select id="benchRuns">
+        <option value="3" selected>3</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+      </select>
+    </label>
+  </div>
+
+  <button id="runBtn">Run Benchmark</button>
+  <div id="status"></div>
+
+  <div id="jank-demo">
+    <p style="margin-bottom: 8px"><strong>UI responsiveness test</strong> — this ball animates during search. If it stutters, the main thread is blocked.</p>
+    <div id="jank-ball"></div>
+  </div>
+
+  <table id="results" style="display:none">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Avg (ms)</th>
+        <th>Min (ms)</th>
+        <th>Max (ms)</th>
+        <th>Speedup</th>
+        <th class="bar-cell">Relative</th>
+      </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+
+  <p id="correctness" style="margin-top: 16px"></p>
+
+  <script type="module">
+    import Fuse from '../../dist/fuse.min.mjs'
+    import { FuseWorker } from '../../dist/fuse-worker.mjs'
+
+    const QUERIES = ['john smith', 'quantum', 'xyz corp', 'engineering', 'banana']
+    const WORKER_COUNTS = [2, 4, 8]
+    const WARMUP_RUNS = 1
+
+    const FUSE_OPTIONS = {
+      keys: ['name', 'email', 'company', 'description'],
+      threshold: 0.4,
+      includeScore: true
+    }
+
+    // -- Dataset generation --
+    const firstNames = ['John','Jane','Alice','Bob','Charlie','Diana','Eve','Frank','Grace','Hank','Ivy','Jack','Karen','Leo','Mona','Nick','Olivia','Paul','Quinn','Rita','Sam','Tina','Uma','Victor']
+    const lastNames = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Anderson','Taylor','Thomas','Moore','Jackson','Martin','Lee','Perez','Thompson','White']
+    const companies = ['Acme Corp','Globex Inc','Initech','Umbrella Co','Stark Industries','Wayne Enterprises','XYZ Corp','Quantum Labs','Nova Systems','Apex Digital']
+    const domains = ['gmail.com','yahoo.com','outlook.com','company.com','work.org']
+    const words = ['engineering','marketing','sales','design','research','quantum','neural','cloud','data','analytics','platform','mobile','security','infrastructure','development','operations','strategy','innovation','optimization','integration','automation','visualization','banana']
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
+
+    function generateDataset(size) {
+      const docs = []
+      for (let i = 0; i < size; i++) {
+        const first = pick(firstNames), last = pick(lastNames)
+        const descLen = 5 + Math.floor(Math.random() * 10)
+        docs.push({
+          id: i,
+          name: `${first} ${last}`,
+          email: `${first.toLowerCase()}.${last.toLowerCase()}@${pick(domains)}`,
+          company: pick(companies),
+          description: Array.from({ length: descLen }, () => pick(words)).join(' ')
+        })
+      }
+      return docs
+    }
+
+    // -- Jank ball animation --
+    let animating = false
+    function animateBall() {
+      const ball = document.getElementById('jank-ball')
+      let x = 0, dir = 1
+      function frame() {
+        if (!animating) return
+        x += dir * 3
+        if (x > 300) dir = -1
+        if (x < 0) dir = 1
+        ball.style.transform = `translateX(${x}px)`
+        requestAnimationFrame(frame)
+      }
+      animating = true
+      frame()
+    }
+
+    // -- Single thread search --
+    function searchSingleThread(docs, queries) {
+      const fuse = new Fuse(docs, FUSE_OPTIONS)
+      const results = {}
+      for (const q of queries) results[q] = fuse.search(q)
+      return results
+    }
+
+    // -- FuseWorker search --
+    async function searchWithFuseWorker(docs, queries, numWorkers) {
+      const fuse = new FuseWorker(docs, FUSE_OPTIONS, {
+        numWorkers,
+        workerUrl: '../../dist/fuse.worker.mjs'
+      })
+
+      const results = {}
+      for (const q of queries) {
+        results[q] = await fuse.search(q)
+      }
+
+      fuse.terminate()
+      return results
+    }
+
+    // -- Benchmark runner --
+    async function bench(label, fn, runs) {
+      for (let i = 0; i < WARMUP_RUNS; i++) await fn()
+
+      const times = []
+      for (let i = 0; i < runs; i++) {
+        const start = performance.now()
+        await fn()
+        times.push(performance.now() - start)
+      }
+
+      const avg = times.reduce((a, b) => a + b, 0) / times.length
+      return { label, avg, min: Math.min(...times), max: Math.max(...times) }
+    }
+
+    // -- Main --
+    async function runBenchmark() {
+      const btn = document.getElementById('runBtn')
+      const status = document.getElementById('status')
+      const resultsTable = document.getElementById('results')
+      const resultsBody = document.getElementById('resultsBody')
+      const correctnessEl = document.getElementById('correctness')
+
+      btn.disabled = true
+      resultsTable.style.display = 'none'
+      resultsBody.innerHTML = ''
+      correctnessEl.textContent = ''
+
+      const datasetSize = parseInt(document.getElementById('datasetSize').value)
+      const benchRuns = parseInt(document.getElementById('benchRuns').value)
+
+      status.textContent = `Generating ${datasetSize.toLocaleString()} documents...`
+      await new Promise(r => setTimeout(r, 50))
+
+      const docs = generateDataset(datasetSize)
+
+      animateBall()
+
+      // Single thread
+      status.textContent = 'Running: single thread (watch the ball stutter)...'
+      await new Promise(r => setTimeout(r, 50))
+      const single = await bench('Fuse (single thread)', () => searchSingleThread(docs, QUERIES), benchRuns)
+
+      // FuseWorker with different worker counts
+      const parallel = []
+      for (const n of WORKER_COUNTS) {
+        status.textContent = `Running: FuseWorker (${n} workers)...`
+        await new Promise(r => setTimeout(r, 50))
+        const result = await bench(
+          `FuseWorker (${n})`,
+          () => searchWithFuseWorker(docs, QUERIES, n),
+          benchRuns
+        )
+        parallel.push(result)
+      }
+
+      animating = false
+
+      // Verify correctness
+      const singleResults = searchSingleThread(docs, QUERIES)
+      const parallelResults = await searchWithFuseWorker(docs, QUERIES, 4)
+      let correct = true
+      for (const q of QUERIES) {
+        if (singleResults[q].length !== parallelResults[q].length) correct = false
+      }
+
+      // Display results
+      const allResults = [single, ...parallel]
+      const maxAvg = single.avg
+
+      resultsTable.style.display = ''
+      for (const r of allResults) {
+        const speedup = single.avg / r.avg
+        const barWidth = Math.round((r.avg / maxAvg) * 200)
+        const row = document.createElement('tr')
+        row.innerHTML = `
+          <td>${r.label}</td>
+          <td>${r.avg.toFixed(1)}</td>
+          <td>${r.min.toFixed(1)}</td>
+          <td>${r.max.toFixed(1)}</td>
+          <td>${speedup.toFixed(2)}x</td>
+          <td class="bar-cell"><div class="bar ${r.label.startsWith('Fuse (') ? 'baseline' : ''}" style="width:${barWidth}px"></div></td>
+        `
+        resultsBody.appendChild(row)
+      }
+
+      correctnessEl.className = correct ? 'pass' : 'fail'
+      correctnessEl.textContent = correct
+        ? 'Correctness: PASS (result counts match)'
+        : 'Correctness: MISMATCH'
+
+      status.textContent = 'Done.'
+      btn.disabled = false
+    }
+
+    document.getElementById('runBtn').addEventListener('click', runBenchmark)
+  </script>
+</body>
+</html>

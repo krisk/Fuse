@@ -1,4 +1,4 @@
-import Fuse from './dist/fuse.mjs'
+import Fuse from '../dist/fuse.mjs'
 
 // Generate test data
 const books = []
