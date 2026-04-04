@@ -235,6 +235,55 @@ describe('ignoreLocation when useExtendedSearch is true', () => {
   })
 })
 
+describe('Extended search match indices are merged', () => {
+  const list = [
+    { title: 'The Grand Design' },
+    { title: 'Old Man\'s War' },
+    { title: 'The Design of Everyday Things' }
+  ]
+
+  const options = {
+    useExtendedSearch: true,
+    includeMatches: true,
+    includeScore: true,
+    keys: ['title']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('multi-term fuzzy query produces non-overlapping indices', () => {
+    const result = fuse.search('the grand design')
+    expect(result.length).toBeGreaterThan(0)
+
+    const firstMatch = result[0]
+    expect(firstMatch.item.title).toBe('The Grand Design')
+
+    const indices = firstMatch.matches[0].indices
+    // Indices must be sorted and non-overlapping after merge
+    for (let i = 1; i < indices.length; i++) {
+      expect(indices[i][0]).toBeGreaterThan(indices[i - 1][1])
+    }
+  })
+
+  test('indices cover the full matched text without duplication', () => {
+    const result = fuse.search('the grand design')
+    const indices = result[0].matches[0].indices
+    const text = result[0].item.title
+
+    // Reconstruct highlighted text — each character should appear at most once
+    const highlighted = new Set()
+    for (const [start, end] of indices) {
+      for (let i = start; i <= end; i++) {
+        expect(highlighted.has(i)).toBe(false)
+        highlighted.add(i)
+      }
+    }
+
+    // All non-space characters should be highlighted
+    const nonSpaceCount = text.replace(/ /g, '').length
+    expect(highlighted.size).toBe(nonSpaceCount)
+  })
+})
+
 describe('Searching using extended search ignoring diactrictics', () => {
   const list = [
     {

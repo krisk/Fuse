@@ -1231,7 +1231,7 @@ class ExtendedSearch {
           result.hasInverse = true;
         }
         if (includeMatches) {
-          result.indices = allIndices;
+          result.indices = mergeIndices(allIndices);
         }
         return result;
       }
