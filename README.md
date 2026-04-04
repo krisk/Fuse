@@ -9,7 +9,7 @@
 
 Fuse.js is a lightweight, zero-dependency fuzzy-search library written in TypeScript. It works in the browser and on the server, and is designed for searching small-to-medium datasets on the client side where you can't rely on a dedicated search backend.
 
-## What's New: Token Search
+## ✨ What's New: Token Search
 
 Multi-word fuzzy search with relevance ranking. Type `"javascrpt paterns"` and find `"JavaScript Patterns"` — typo tolerance, multiple words, and smart ranking all at once.
 
@@ -68,8 +68,8 @@ fuse.search('javscript')
 The core of Fuse.js. Uses the [Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm) for approximate string matching — handles typos, misspellings, and partial matches out of the box.
 
 ```js
-const fuse = new Fuse(list, { keys: ['name'] })
-fuse.search('krisk')  // finds "Kiro Risk"
+fuse.search('javscript')
+// → [{ item: { title: 'JavaScript: The Good Parts', author: 'Douglas Crockford' } }]
 ```
 
 ### Weighted Keys
