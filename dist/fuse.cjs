@@ -1282,24 +1282,25 @@ function computeScoreSingle(matches, {
   ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
   let totalScore = 1;
-  matches.forEach(({
-    key,
-    norm,
-    score
-  }) => {
+  for (let i = 0, len = matches.length; i < len; i++) {
+    const {
+      key,
+      norm,
+      score
+    } = matches[i];
     const weight = key ? key.weight : null;
     totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
-  });
+  }
   return totalScore;
 }
 function computeScore(results, {
   ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
-  results.forEach(result => {
-    result.score = computeScoreSingle(result.matches, {
+  for (let i = 0, len = results.length; i < len; i++) {
+    results[i].score = computeScoreSingle(results[i].matches, {
       ignoreFieldNorm
     });
-  });
+  }
 }
 
 // Max-heap by score: keeps the worst (highest) score at the top
@@ -1759,13 +1760,14 @@ class Fuse {
     const results = heap ? null : [];
 
     // Iterate over every string in the index
-    records.forEach(({
-      v: text,
-      i: idx,
-      n: norm
-    }) => {
+    for (let ri = 0, rlen = records.length; ri < rlen; ri++) {
+      const {
+        v: text,
+        i: idx,
+        n: norm
+      } = records[ri];
       if (!isDefined(text)) {
-        return;
+        continue;
       }
       const {
         isMatch,
@@ -1794,7 +1796,7 @@ class Fuse {
           results.push(result);
         }
       }
-    });
+    }
     return results;
   }
   _searchLogical(query) {
@@ -1851,30 +1853,34 @@ class Fuse {
     const records = this._myIndex.records;
     const resultMap = new Map();
     const results = [];
-    records.forEach(({
-      $: item,
-      i: idx
-    }) => {
-      if (isDefined(item)) {
-        const expResults = evaluate(expression, item, idx);
-        if (expResults.length) {
-          // Dedupe when adding
-          if (!resultMap.has(idx)) {
-            resultMap.set(idx, {
-              idx,
-              item,
-              matches: []
-            });
-            results.push(resultMap.get(idx));
-          }
-          expResults.forEach(({
-            matches
-          }) => {
-            resultMap.get(idx).matches.push(...matches);
+    for (let ri = 0, rlen = records.length; ri < rlen; ri++) {
+      const {
+        $: item,
+        i: idx
+      } = records[ri];
+      if (!isDefined(item)) {
+        continue;
+      }
+      const expResults = evaluate(expression, item, idx);
+      if (expResults.length) {
+        // Dedupe when adding
+        if (!resultMap.has(idx)) {
+          resultMap.set(idx, {
+            idx,
+            item,
+            matches: []
           });
+          results.push(resultMap.get(idx));
+        }
+        const entry = resultMap.get(idx);
+        for (let ei = 0, elen = expResults.length; ei < elen; ei++) {
+          const m = expResults[ei].matches;
+          for (let mi = 0, mlen = m.length; mi < mlen; mi++) {
+            entry.matches.push(m[mi]);
+          }
         }
       }
-    });
+    }
     return results;
   }
 
@@ -1898,37 +1904,40 @@ class Fuse {
     const results = heap ? null : [];
 
     // List is Array<Object>
-    records.forEach(({
-      $: item,
-      i: idx
-    }) => {
+    for (let ri = 0, rlen = records.length; ri < rlen; ri++) {
+      const {
+        $: item,
+        i: idx
+      } = records[ri];
       if (!isDefined(item)) {
-        return;
+        continue;
       }
       const matches = [];
       let anyKeyFailed = false;
       let hasInverse = false;
 
       // Iterate over every key (i.e, path), and fetch the value at that key
-      keys.forEach((key, keyIndex) => {
+      for (let ki = 0, klen = keys.length; ki < klen; ki++) {
         const keyMatches = this._findMatches({
-          key,
-          value: item[keyIndex],
+          key: keys[ki],
+          value: item[ki],
           searcher
         });
         if (keyMatches.length) {
-          matches.push(...keyMatches);
+          for (let mi = 0, mlen = keyMatches.length; mi < mlen; mi++) {
+            matches.push(keyMatches[mi]);
+          }
           if (keyMatches[0].hasInverse) {
             hasInverse = true;
           }
         } else {
           anyKeyFailed = true;
         }
-      });
+      }
 
       // If the search involves inverse patterns, ALL keys must match
       if (hasInverse && anyKeyFailed) {
-        return;
+        continue;
       }
       if (matches.length) {
         const result = {
@@ -1947,7 +1956,7 @@ class Fuse {
           results.push(result);
         }
       }
-    });
+    }
     return results;
   }
   _findMatches({
@@ -1960,13 +1969,14 @@ class Fuse {
     }
     const matches = [];
     if (isArray(value)) {
-      value.forEach(({
-        v: text,
-        i: idx,
-        n: norm
-      }) => {
+      for (let vi = 0, vlen = value.length; vi < vlen; vi++) {
+        const {
+          v: text,
+          i: idx,
+          n: norm
+        } = value[vi];
         if (!isDefined(text)) {
-          return;
+          continue;
         }
         const {
           isMatch,
@@ -1985,7 +1995,7 @@ class Fuse {
             hasInverse
           });
         }
-      });
+      }
     } else {
       const {
         v: text,
