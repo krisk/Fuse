@@ -37,6 +37,12 @@ You can — it's not too complicated. But `FuseWorker` handles the parts that ar
 
 ## Quick Start
 
+Web Workers require the beta release:
+
+```sh
+npm install fuse.js@beta
+```
+
 ```js
 import { FuseWorker } from 'fuse.js/worker'
 
