@@ -20,6 +20,12 @@ describe('fieldNorm', () => {
     expect(n.get('')).toBe(1)
   })
 
+  test('treats consecutive spaces as a single separator', () => {
+    const n = norm(1, 3)
+    // "hello    world" has 2 words regardless of spacing
+    expect(n.get('hello    world')).toBe(n.get('hello world'))
+  })
+
   test('caches results for the same token count', () => {
     const n = norm(1, 3)
     const a = n.get('one two three')

@@ -8,10 +8,18 @@ export default function norm(weight: number = 1, mantissa: number = 3): NormInte
 
   return {
     get(value: string): number {
-      // Count words by counting spaces — avoids allocating a regex match array
+      // Count words by counting space transitions — avoids allocating a regex match array
       let numTokens = 1
+      let inSpace = false
       for (let i = 0; i < value.length; i++) {
-        if (value.charCodeAt(i) === 32) numTokens++
+        if (value.charCodeAt(i) === 32) {
+          if (!inSpace) {
+            numTokens++
+            inSpace = true
+          }
+        } else {
+          inSpace = false
+        }
       }
 
       if (cache.has(numTokens)) {
