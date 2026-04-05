@@ -38,6 +38,10 @@ The index stores processed string values and metadata for each key of each item.
 
 ## Guidelines
 
+::: tip Recent improvements
+Index creation is now **~30% faster** for object collections and **~60% faster** for string lists, thanks to zero-allocation word counting, pre-allocated record arrays, and tighter loops during index construction.
+:::
+
 Measured on a modern machine with 3 searchable keys (`title`, `body`, `tags`):
 
 | List size | Index creation | With token search | Notes |
