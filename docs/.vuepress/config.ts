@@ -67,7 +67,13 @@ function getGuideSidebar(): SidebarConfigArray {
     '/extended-search',
     '/logical-search',
     '/web-workers',
-    '/performance'
+    '/performance',
+    {
+      text: 'Articles',
+      children: [
+        '/articles/vs-semantic-search'
+      ]
+    }
   ]
 }
 
@@ -97,7 +103,8 @@ function getPlugins(): PluginConfig {
         ...getComponent('PerfDemo'),
         ...getComponent('Donate'),
         ...getComponent('CommercialCTA'),
-
+        ...getComponent('ArchitectureDiagram'),
+        ...getComponent('PublishDate'),
 
       }
     }),
