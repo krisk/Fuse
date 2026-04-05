@@ -770,268 +770,187 @@ class BitapSearch {
   }
 }
 
-class BaseMatch {
-  constructor(pattern) {
-    this.pattern = pattern;
-  }
-  static isMultiMatch(pattern) {
-    return getMatch(pattern, this.multiRegex);
-  }
-  static isSingleMatch(pattern) {
-    return getMatch(pattern, this.singleRegex);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  search(_text) {
-    return {
-      isMatch: false,
-      score: 1
-    };
-  }
-}
-function getMatch(pattern, exp) {
-  const matches = pattern.match(exp);
-  return matches ? matches[1] : null;
+// ── Matcher interface ─────────────────────────────────────────────
+//
+// Each matcher is a lightweight object with a type tag and a search
+// function. No class hierarchy needed — the search logic for most
+// matchers is a one-liner.
+
+// ── Matcher definition ────────────────────────────────────────────
+//
+// A definition pairs the detection regexes (used by parseQuery to
+// recognize string-syntax operators like ^, =, !) with a factory
+// that creates a Matcher instance.
+
+// Whether a matcher type can return multiple index ranges
+const MULTI_MATCH_TYPES = new Set(['fuzzy', 'include']);
+
+// Whether a matcher type is an inverse match
+function isInverse(type) {
+  return type.startsWith('inverse');
 }
 
-// Token: 'file
-// Match type: exact-match
-// Description: Items that are `file`
+// ── Matcher definitions ───────────────────────────────────────────
+//
+// Order matters — parseQuery tries each in sequence and uses the
+// first match. FuzzyMatch (catch-all) must be last.
 
-class ExactMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'exact';
-  }
-  static get multiRegex() {
-    return /^="(.*)"$/;
-  }
-  static get singleRegex() {
-    return /^=(.*)$/;
-  }
-  search(text) {
-    const isMatch = text === this.pattern;
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices: [0, this.pattern.length - 1]
-    };
-  }
-}
-
-// Token: !fire
-// Match type: inverse-exact-match
-// Description: Items that do not include `fire`
-
-class InverseExactMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'inverse-exact';
-  }
-  static get multiRegex() {
-    return /^!"(.*)"$/;
-  }
-  static get singleRegex() {
-    return /^!(.*)$/;
-  }
-  search(text) {
-    const index = text.indexOf(this.pattern);
-    const isMatch = index === -1;
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices: [0, text.length - 1]
-    };
-  }
-}
-
-// Token: ^file
-// Match type: prefix-exact-match
-// Description: Items that start with `file`
-class PrefixExactMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'prefix-exact';
-  }
-  static get multiRegex() {
-    return /^\^"(.*)"$/;
-  }
-  static get singleRegex() {
-    return /^\^(.*)$/;
-  }
-  search(text) {
-    const isMatch = text.startsWith(this.pattern);
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices: [0, this.pattern.length - 1]
-    };
-  }
-}
-
-// Token: !^fire
-// Match type: inverse-prefix-exact-match
-// Description: Items that do not start with `fire`
-
-class InversePrefixExactMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'inverse-prefix-exact';
-  }
-  static get multiRegex() {
-    return /^!\^"(.*)"$/;
-  }
-  static get singleRegex() {
-    return /^!\^(.*)$/;
-  }
-  search(text) {
-    const isMatch = !text.startsWith(this.pattern);
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices: [0, text.length - 1]
-    };
-  }
-}
-
-// Token: .file$
-// Match type: suffix-exact-match
-// Description: Items that end with `.file`
-class SuffixExactMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'suffix-exact';
-  }
-  static get multiRegex() {
-    return /^"(.*)"\$$/;
-  }
-  static get singleRegex() {
-    return /^(.*)\$$/;
-  }
-  search(text) {
-    const isMatch = text.endsWith(this.pattern);
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices: [text.length - this.pattern.length, text.length - 1]
-    };
-  }
-}
-
-// Token: !.file$
-// Match type: inverse-suffix-exact-match
-// Description: Items that do not end with `.file`
-class InverseSuffixExactMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'inverse-suffix-exact';
-  }
-  static get multiRegex() {
-    return /^!"(.*)"\$$/;
-  }
-  static get singleRegex() {
-    return /^!(.*)\$$/;
-  }
-  search(text) {
-    const isMatch = !text.endsWith(this.pattern);
-    return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices: [0, text.length - 1]
-    };
-  }
-}
-
-class FuzzyMatch extends BaseMatch {
-  constructor(pattern, {
-    location = Config.location,
-    threshold = Config.threshold,
-    distance = Config.distance,
-    includeMatches = Config.includeMatches,
-    findAllMatches = Config.findAllMatches,
-    minMatchCharLength = Config.minMatchCharLength,
-    isCaseSensitive = Config.isCaseSensitive,
-    ignoreDiacritics = Config.ignoreDiacritics,
-    ignoreLocation = Config.ignoreLocation
-  } = {}) {
-    super(pattern);
-    this._bitapSearch = new BitapSearch(pattern, {
-      location,
-      threshold,
-      distance,
-      includeMatches,
-      findAllMatches,
-      minMatchCharLength,
-      isCaseSensitive,
-      ignoreDiacritics,
-      ignoreLocation
-    });
-  }
-  static get type() {
-    return 'fuzzy';
-  }
-  static get multiRegex() {
-    return /^"(.*)"$/;
-  }
-  static get singleRegex() {
-    return /^(.*)$/;
-  }
-  search(text) {
-    return this._bitapSearch.searchIn(text);
-  }
-}
-
-// Token: 'file
-// Match type: include-match
-// Description: Items that include `file`
-
-class IncludeMatch extends BaseMatch {
-  constructor(pattern) {
-    super(pattern);
-  }
-  static get type() {
-    return 'include';
-  }
-  static get multiRegex() {
-    return /^'"(.*)"$/;
-  }
-  static get singleRegex() {
-    return /^'(.*)$/;
-  }
-  search(text) {
-    let location = 0;
-    let index;
-    const indices = [];
-    const patternLen = this.pattern.length;
-
-    // Get all exact matches
-    while ((index = text.indexOf(this.pattern, location)) > -1) {
-      location = index + patternLen;
-      indices.push([index, location - 1]);
+// prettier-ignore
+const matchers = [
+// =term — exact match
+{
+  type: 'exact',
+  multiRegex: /^="(.*)"$/,
+  singleRegex: /^=(.*)$/,
+  create: pattern => ({
+    type: 'exact',
+    search(text) {
+      const isMatch = text === pattern;
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices: [0, pattern.length - 1]
+      };
     }
-    const isMatch = !!indices.length;
+  })
+},
+// 'term — include (substring) match
+{
+  type: 'include',
+  multiRegex: /^'"(.*)"$/,
+  singleRegex: /^'(.*)$/,
+  create: pattern => ({
+    type: 'include',
+    search(text) {
+      let location = 0;
+      let index;
+      const indices = [];
+      const patternLen = pattern.length;
+      while ((index = text.indexOf(pattern, location)) > -1) {
+        location = index + patternLen;
+        indices.push([index, location - 1]);
+      }
+      const isMatch = !!indices.length;
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices
+      };
+    }
+  })
+},
+// ^term — prefix match
+{
+  type: 'prefix-exact',
+  multiRegex: /^\^"(.*)"$/,
+  singleRegex: /^\^(.*)$/,
+  create: pattern => ({
+    type: 'prefix-exact',
+    search(text) {
+      const isMatch = text.startsWith(pattern);
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices: [0, pattern.length - 1]
+      };
+    }
+  })
+},
+// !^term — inverse prefix match
+{
+  type: 'inverse-prefix-exact',
+  multiRegex: /^!\^"(.*)"$/,
+  singleRegex: /^!\^(.*)$/,
+  create: pattern => ({
+    type: 'inverse-prefix-exact',
+    search(text) {
+      const isMatch = !text.startsWith(pattern);
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices: [0, text.length - 1]
+      };
+    }
+  })
+},
+// !term$ — inverse suffix match
+{
+  type: 'inverse-suffix-exact',
+  multiRegex: /^!"(.*)"\$$/,
+  singleRegex: /^!(.*)\$$/,
+  create: pattern => ({
+    type: 'inverse-suffix-exact',
+    search(text) {
+      const isMatch = !text.endsWith(pattern);
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices: [0, text.length - 1]
+      };
+    }
+  })
+},
+// term$ — suffix match
+{
+  type: 'suffix-exact',
+  multiRegex: /^"(.*)"\$$/,
+  singleRegex: /^(.*)\$$/,
+  create: pattern => ({
+    type: 'suffix-exact',
+    search(text) {
+      const isMatch = text.endsWith(pattern);
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices: [text.length - pattern.length, text.length - 1]
+      };
+    }
+  })
+},
+// !term — inverse exact (does not contain)
+{
+  type: 'inverse-exact',
+  multiRegex: /^!"(.*)"$/,
+  singleRegex: /^!(.*)$/,
+  create: pattern => ({
+    type: 'inverse-exact',
+    search(text) {
+      const isMatch = text.indexOf(pattern) === -1;
+      return {
+        isMatch,
+        score: isMatch ? 0 : 1,
+        indices: [0, text.length - 1]
+      };
+    }
+  })
+},
+// term — fuzzy match (catch-all, must be last)
+{
+  type: 'fuzzy',
+  multiRegex: /^"(.*)"$/,
+  singleRegex: /^(.*)$/,
+  create: (pattern, options = {}) => {
+    const bitap = new BitapSearch(pattern, {
+      location: options.location ?? Config.location,
+      threshold: options.threshold ?? Config.threshold,
+      distance: options.distance ?? Config.distance,
+      includeMatches: options.includeMatches ?? Config.includeMatches,
+      findAllMatches: options.findAllMatches ?? Config.findAllMatches,
+      minMatchCharLength: options.minMatchCharLength ?? Config.minMatchCharLength,
+      isCaseSensitive: options.isCaseSensitive ?? Config.isCaseSensitive,
+      ignoreDiacritics: options.ignoreDiacritics ?? Config.ignoreDiacritics,
+      ignoreLocation: options.ignoreLocation ?? Config.ignoreLocation
+    });
     return {
-      isMatch,
-      score: isMatch ? 0 : 1,
-      indices
+      type: 'fuzzy',
+      search(text) {
+        return bitap.searchIn(text);
+      }
     };
   }
-}
+}];
 
-// ❗Order is important. DO NOT CHANGE.
-const searchers = [ExactMatch, IncludeMatch, PrefixExactMatch, InversePrefixExactMatch, InverseSuffixExactMatch, SuffixExactMatch, InverseExactMatch, FuzzyMatch];
-const searchersLen = searchers.length;
+const matchersLen = matchers.length;
 const ESCAPED_PIPE = '\u0000'; // placeholder for escaped \|
 const OR_TOKEN = '|';
 
@@ -1081,6 +1000,10 @@ function tokenize(pattern) {
   }
   return tokens;
 }
+function getMatch(pattern, exp) {
+  const matches = pattern.match(exp);
+  return matches ? matches[1] : null;
+}
 
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
@@ -1099,11 +1022,11 @@ function parseQuery(pattern, options = {}) {
       // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
       let found = false;
       let idx = -1;
-      while (!found && ++idx < searchersLen) {
-        const searcher = searchers[idx];
-        const token = searcher.isMultiMatch(queryItem);
+      while (!found && ++idx < matchersLen) {
+        const def = matchers[idx];
+        const token = getMatch(queryItem, def.multiRegex);
         if (token) {
-          results.push(new searcher(token, options));
+          results.push(def.create(token, options));
           found = true;
         }
       }
@@ -1113,11 +1036,11 @@ function parseQuery(pattern, options = {}) {
 
       // 2. Handle single query matches (i.e, once that are *not* quoted)
       idx = -1;
-      while (++idx < searchersLen) {
-        const searcher = searchers[idx];
-        const token = searcher.isSingleMatch(queryItem);
+      while (++idx < matchersLen) {
+        const def = matchers[idx];
+        const token = getMatch(queryItem, def.singleRegex);
         if (token) {
-          results.push(new searcher(token, options));
+          results.push(def.create(token, options));
           break;
         }
       }
@@ -1126,9 +1049,6 @@ function parseQuery(pattern, options = {}) {
   });
 }
 
-// These extended matchers can return an array of matches, as opposed
-// to a singl match
-const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type]);
 class ExtendedSearch {
   constructor(pattern, {
     isCaseSensitive = Config.isCaseSensitive,
@@ -1196,21 +1116,20 @@ class ExtendedSearch {
 
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
-        const searcher = searchers[j];
+        const matcher = searchers[j];
         const {
           isMatch,
           indices,
           score
-        } = searcher.search(text);
+        } = matcher.search(text);
         if (isMatch) {
           numMatches += 1;
           totalScore += score;
-          const type = searcher.constructor.type;
-          if (type.startsWith('inverse')) {
+          if (isInverse(matcher.type)) {
             hasInverse = true;
           }
           if (includeMatches) {
-            if (MultiMatchSet.has(type)) {
+            if (MULTI_MATCH_TYPES.has(matcher.type)) {
               allIndices.push(...indices);
             } else {
               allIndices.push(indices);

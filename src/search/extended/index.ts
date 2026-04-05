@@ -1,15 +1,10 @@
 import parseQuery from './parseQuery'
-import FuzzyMatch from './FuzzyMatch'
-import IncludeMatch from './IncludeMatch'
+import { MULTI_MATCH_TYPES, isInverse } from './matchers'
 import Config from '../../core/config'
 import { stripDiacritics } from '../../helpers/diacritics'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import type { SearchResult, RangeTuple } from '../../types'
-import type BaseMatch from './BaseMatch'
-
-// These extended matchers can return an array of matches, as opposed
-// to a singl match
-const MultiMatchSet = new Set([FuzzyMatch.type, IncludeMatch.type])
+import type { Matcher } from './matchers'
 
 interface ExtendedSearchOptions {
   isCaseSensitive: boolean
@@ -24,7 +19,7 @@ interface ExtendedSearchOptions {
 }
 
 export default class ExtendedSearch {
-  query: BaseMatch[][] | null
+  query: Matcher[][] | null
   options: ExtendedSearchOptions
   pattern: string
 
@@ -99,20 +94,19 @@ export default class ExtendedSearch {
 
       // ANDs
       for (let j = 0, pLen = searchers.length; j < pLen; j += 1) {
-        const searcher = searchers[j]
-        const { isMatch, indices, score } = searcher.search(text)
+        const matcher = searchers[j]
+        const { isMatch, indices, score } = matcher.search(text)
 
         if (isMatch) {
           numMatches += 1
           totalScore += score
 
-          const type = (searcher.constructor as any).type as string
-          if (type.startsWith('inverse')) {
+          if (isInverse(matcher.type)) {
             hasInverse = true
           }
 
           if (includeMatches) {
-            if (MultiMatchSet.has(type)) {
+            if (MULTI_MATCH_TYPES.has(matcher.type)) {
               allIndices.push(...(indices as any))
             } else {
               allIndices.push(indices)
