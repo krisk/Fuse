@@ -509,14 +509,10 @@ function search(text, pattern, patternAlphabet, {
 
   // Reset the best location
   bestLocation = -1;
+  let lastBitArr = [];
   let finalScore = 1;
   let binMax = patternLen + textLen;
   const mask = 1 << patternLen - 1;
-
-  // Pre-allocate bit arrays at max possible size and swap between iterations
-  const maxFinish = (findAllMatches ? textLen : textLen + patternLen) + 2;
-  let bitArr = new Array(maxFinish);
-  let lastBitArr = new Array(maxFinish);
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
     // Run a binary search to determine how far from the match location we can stray
@@ -538,7 +534,8 @@ function search(text, pattern, patternAlphabet, {
     let start = Math.max(1, expectedLocation - binMid + 1);
     const finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
 
-    // Initialize the sentinel value for this error level
+    // Initialize the bit array
+    const bitArr = Array(finish + 2);
     bitArr[finish + 1] = (1 << i) - 1;
     for (let j = finish; j >= start; j -= 1) {
       const currentLocation = j - 1;
@@ -581,11 +578,7 @@ function search(text, pattern, patternAlphabet, {
     if (score > currentThreshold) {
       break;
     }
-
-    // Swap buffers: current becomes last, last gets reused as next current
-    const tmp = lastBitArr;
     lastBitArr = bitArr;
-    bitArr = tmp;
   }
   const result = {
     isMatch: bestLocation >= 0,
@@ -1271,27 +1264,24 @@ function computeScoreSingle(matches, {
   ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
   let totalScore = 1;
-  for (let i = 0, len = matches.length; i < len; i++) {
-    const {
-      key,
-      norm,
-      score
-    } = matches[i];
+  matches.forEach(({
+    key,
+    norm,
+    score
+  }) => {
     const weight = key ? key.weight : null;
-    const s = score === 0 && weight ? Number.EPSILON : score;
-    const exponent = (weight || 1) * (ignoreFieldNorm ? 1 : norm);
-    totalScore *= exponent === 1 ? s : Math.pow(s, exponent);
-  }
+    totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
+  });
   return totalScore;
 }
 function computeScore(results, {
   ignoreFieldNorm = Config.ignoreFieldNorm
 }) {
-  for (let i = 0, len = results.length; i < len; i++) {
-    results[i].score = computeScoreSingle(results[i].matches, {
+  results.forEach(result => {
+    result.score = computeScoreSingle(result.matches, {
       ignoreFieldNorm
     });
-  }
+  });
 }
 
 // Max-heap by score: keeps the worst (highest) score at the top
@@ -1750,14 +1740,13 @@ class Fuse {
     const results = heap ? null : [];
 
     // Iterate over every string in the index
-    for (let ri = 0, rlen = records.length; ri < rlen; ri++) {
-      const {
-        v: text,
-        i: idx,
-        n: norm
-      } = records[ri];
+    records.forEach(({
+      v: text,
+      i: idx,
+      n: norm
+    }) => {
       if (!isDefined(text)) {
-        continue;
+        return;
       }
       const {
         isMatch,
@@ -1786,7 +1775,7 @@ class Fuse {
           results.push(result);
         }
       }
-    }
+    });
     return results;
   }
   _searchLogical(query) {
@@ -1843,34 +1832,30 @@ class Fuse {
     const records = this._myIndex.records;
     const resultMap = new Map();
     const results = [];
-    for (let ri = 0, rlen = records.length; ri < rlen; ri++) {
-      const {
-        $: item,
-        i: idx
-      } = records[ri];
-      if (!isDefined(item)) {
-        continue;
-      }
-      const expResults = evaluate(expression, item, idx);
-      if (expResults.length) {
-        // Dedupe when adding
-        if (!resultMap.has(idx)) {
-          resultMap.set(idx, {
-            idx,
-            item,
-            matches: []
-          });
-          results.push(resultMap.get(idx));
-        }
-        const entry = resultMap.get(idx);
-        for (let ei = 0, elen = expResults.length; ei < elen; ei++) {
-          const m = expResults[ei].matches;
-          for (let mi = 0, mlen = m.length; mi < mlen; mi++) {
-            entry.matches.push(m[mi]);
+    records.forEach(({
+      $: item,
+      i: idx
+    }) => {
+      if (isDefined(item)) {
+        const expResults = evaluate(expression, item, idx);
+        if (expResults.length) {
+          // Dedupe when adding
+          if (!resultMap.has(idx)) {
+            resultMap.set(idx, {
+              idx,
+              item,
+              matches: []
+            });
+            results.push(resultMap.get(idx));
           }
+          expResults.forEach(({
+            matches
+          }) => {
+            resultMap.get(idx).matches.push(...matches);
+          });
         }
       }
-    }
+    });
     return results;
   }
 
@@ -1894,40 +1879,37 @@ class Fuse {
     const results = heap ? null : [];
 
     // List is Array<Object>
-    for (let ri = 0, rlen = records.length; ri < rlen; ri++) {
-      const {
-        $: item,
-        i: idx
-      } = records[ri];
+    records.forEach(({
+      $: item,
+      i: idx
+    }) => {
       if (!isDefined(item)) {
-        continue;
+        return;
       }
       const matches = [];
       let anyKeyFailed = false;
       let hasInverse = false;
 
       // Iterate over every key (i.e, path), and fetch the value at that key
-      for (let ki = 0, klen = keys.length; ki < klen; ki++) {
+      keys.forEach((key, keyIndex) => {
         const keyMatches = this._findMatches({
-          key: keys[ki],
-          value: item[ki],
+          key,
+          value: item[keyIndex],
           searcher
         });
         if (keyMatches.length) {
-          for (let mi = 0, mlen = keyMatches.length; mi < mlen; mi++) {
-            matches.push(keyMatches[mi]);
-          }
+          matches.push(...keyMatches);
           if (keyMatches[0].hasInverse) {
             hasInverse = true;
           }
         } else {
           anyKeyFailed = true;
         }
-      }
+      });
 
       // If the search involves inverse patterns, ALL keys must match
       if (hasInverse && anyKeyFailed) {
-        continue;
+        return;
       }
       if (matches.length) {
         const result = {
@@ -1946,7 +1928,7 @@ class Fuse {
           results.push(result);
         }
       }
-    }
+    });
     return results;
   }
   _findMatches({
@@ -1959,14 +1941,13 @@ class Fuse {
     }
     const matches = [];
     if (isArray(value)) {
-      for (let vi = 0, vlen = value.length; vi < vlen; vi++) {
-        const {
-          v: text,
-          i: idx,
-          n: norm
-        } = value[vi];
+      value.forEach(({
+        v: text,
+        i: idx,
+        n: norm
+      }) => {
         if (!isDefined(text)) {
-          continue;
+          return;
         }
         const {
           isMatch,
@@ -1985,7 +1966,7 @@ class Fuse {
             hasInverse
           });
         }
-      }
+      });
     } else {
       const {
         v: text,

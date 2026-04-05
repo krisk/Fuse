@@ -7,15 +7,14 @@ export function computeScoreSingle(
 ): number {
   let totalScore = 1
 
-  for (let i = 0, len = matches.length; i < len; i++) {
-    const { key, norm, score } = matches[i]
+  matches.forEach(({ key, norm, score }) => {
     const weight = key ? key.weight : null
 
-    const s = score === 0 && weight ? Number.EPSILON : score
-    const exponent = (weight || 1) * (ignoreFieldNorm ? 1 : norm)
-
-    totalScore *= exponent === 1 ? s : Math.pow(s, exponent)
-  }
+    totalScore *= Math.pow(
+      score === 0 && weight ? Number.EPSILON : score,
+      (weight || 1) * (ignoreFieldNorm ? 1 : norm)
+    )
+  })
 
   return totalScore
 }
@@ -24,7 +23,7 @@ export default function computeScore(
   results: InternalResult[],
   { ignoreFieldNorm = Config.ignoreFieldNorm }
 ): void {
-  for (let i = 0, len = results.length; i < len; i++) {
-    results[i].score = computeScoreSingle(results[i].matches, { ignoreFieldNorm })
-  }
+  results.forEach((result) => {
+    result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
+  })
 }

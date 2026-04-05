@@ -69,15 +69,11 @@ export default function search(
   // Reset the best location
   bestLocation = -1
 
+  let lastBitArr: number[] = []
   let finalScore = 1
   let binMax = patternLen + textLen
 
   const mask = 1 << (patternLen - 1)
-
-  // Pre-allocate bit arrays at max possible size and swap between iterations
-  const maxFinish = (findAllMatches ? textLen : textLen + patternLen) + 2
-  let bitArr: number[] = new Array(maxFinish)
-  let lastBitArr: number[] = new Array(maxFinish)
 
   for (let i = 0; i < patternLen; i += 1) {
     // Scan for the best match; each iteration allows for one more error.
@@ -106,7 +102,9 @@ export default function search(
       ? textLen
       : Math.min(expectedLocation + binMid, textLen) + patternLen
 
-    // Initialize the sentinel value for this error level
+    // Initialize the bit array
+    const bitArr: number[] = Array(finish + 2)
+
     bitArr[finish + 1] = (1 << i) - 1
 
     for (let j = finish; j >= start; j -= 1) {
@@ -155,10 +153,7 @@ export default function search(
       break
     }
 
-    // Swap buffers: current becomes last, last gets reused as next current
-    const tmp = lastBitArr
     lastBitArr = bitArr
-    bitArr = tmp
   }
 
   const result: SearchResult = {
