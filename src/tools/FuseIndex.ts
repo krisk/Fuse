@@ -54,18 +54,26 @@ export default class FuseIndex<T = any> {
 
     this.isCreated = true
 
+    const len = this.docs.length
+    this.records = new Array(len)
+    let recordCount = 0
+
     // List is Array<String>
     if (isString(this.docs[0])) {
-      this.docs.forEach((doc, docIndex) => {
-        this._addString(doc as string, docIndex)
-      })
+      for (let i = 0; i < len; i++) {
+        const record = this._createStringRecord(this.docs[i] as string, i)
+        if (record) {
+          this.records[recordCount++] = record
+        }
+      }
     } else {
       // List is Array<Object>
-      this.docs.forEach((doc, docIndex) => {
-        this._addObject(doc, docIndex)
-      })
+      for (let i = 0; i < len; i++) {
+        this.records[recordCount++] = this._createObjectRecord(this.docs[i], i)
+      }
     }
 
+    this.records.length = recordCount
     this.norm.clear()
   }
   // Adds a doc to the end of the index
@@ -102,27 +110,35 @@ export default class FuseIndex<T = any> {
     return this.records.length
   }
   _addString(doc: string, docIndex: number): void {
+    const record = this._createStringRecord(doc, docIndex)
+    if (record) {
+      this.records.push(record)
+    }
+  }
+  _addObject(doc: any, docIndex: number): void {
+    this.records.push(this._createObjectRecord(doc, docIndex))
+  }
+  _createStringRecord(doc: string, docIndex: number): IndexRecord | null {
     if (!isDefined(doc) || isBlank(doc)) {
-      return
+      return null
     }
 
-    const record: IndexRecord = {
+    return {
       v: doc,
       i: docIndex,
       n: this.norm.get(doc)
     }
-
-    this.records.push(record)
   }
-  _addObject(doc: any, docIndex: number): void {
+  _createObjectRecord(doc: any, docIndex: number): IndexRecord {
     const record: IndexRecord = { i: docIndex, $: {} }
 
     // Iterate over every key (i.e, path), and fetch the value at that key
-    this.keys.forEach((key, keyIndex) => {
+    for (let keyIndex = 0, keyLen = this.keys.length; keyIndex < keyLen; keyIndex++) {
+      const key = this.keys[keyIndex]
       const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path)
 
       if (!isDefined(value)) {
-        return
+        continue
       }
 
       if (isArray(value)) {
@@ -169,9 +185,9 @@ export default class FuseIndex<T = any> {
 
         record.$![keyIndex] = subRecord
       }
-    })
+    }
 
-    this.records.push(record)
+    return record
   }
   toJSON(): {
     keys: ReadonlyArray<Omit<KeyObject, 'getFn'>>

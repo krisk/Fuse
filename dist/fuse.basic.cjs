@@ -272,18 +272,25 @@ class FuseIndex {
       return;
     }
     this.isCreated = true;
+    const len = this.docs.length;
+    this.records = new Array(len);
+    let recordCount = 0;
 
     // List is Array<String>
     if (isString(this.docs[0])) {
-      this.docs.forEach((doc, docIndex) => {
-        this._addString(doc, docIndex);
-      });
+      for (let i = 0; i < len; i++) {
+        const record = this._createStringRecord(this.docs[i], i);
+        if (record) {
+          this.records[recordCount++] = record;
+        }
+      }
     } else {
       // List is Array<Object>
-      this.docs.forEach((doc, docIndex) => {
-        this._addObject(doc, docIndex);
-      });
+      for (let i = 0; i < len; i++) {
+        this.records[recordCount++] = this._createObjectRecord(this.docs[i], i);
+      }
     }
+    this.records.length = recordCount;
     this.norm.clear();
   }
   // Adds a doc to the end of the index
@@ -319,27 +326,36 @@ class FuseIndex {
     return this.records.length;
   }
   _addString(doc, docIndex) {
-    if (!isDefined(doc) || isBlank(doc)) {
-      return;
+    const record = this._createStringRecord(doc, docIndex);
+    if (record) {
+      this.records.push(record);
     }
-    const record = {
+  }
+  _addObject(doc, docIndex) {
+    this.records.push(this._createObjectRecord(doc, docIndex));
+  }
+  _createStringRecord(doc, docIndex) {
+    if (!isDefined(doc) || isBlank(doc)) {
+      return null;
+    }
+    return {
       v: doc,
       i: docIndex,
       n: this.norm.get(doc)
     };
-    this.records.push(record);
   }
-  _addObject(doc, docIndex) {
+  _createObjectRecord(doc, docIndex) {
     const record = {
       i: docIndex,
       $: {}
     };
 
     // Iterate over every key (i.e, path), and fetch the value at that key
-    this.keys.forEach((key, keyIndex) => {
+    for (let keyIndex = 0, keyLen = this.keys.length; keyIndex < keyLen; keyIndex++) {
+      const key = this.keys[keyIndex];
       const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
       if (!isDefined(value)) {
-        return;
+        continue;
       }
       if (isArray(value)) {
         const subRecords = [];
@@ -379,8 +395,8 @@ class FuseIndex {
         };
         record.$[keyIndex] = subRecord;
       }
-    });
-    this.records.push(record);
+    }
+    return record;
   }
   toJSON() {
     return {

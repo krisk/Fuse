@@ -193,6 +193,8 @@ declare class FuseIndex<T = any> {
     size(): number;
     _addString(doc: string, docIndex: number): void;
     _addObject(doc: any, docIndex: number): void;
+    _createStringRecord(doc: string, docIndex: number): IndexRecord | null;
+    _createObjectRecord(doc: any, docIndex: number): IndexRecord;
     toJSON(): {
         keys: ReadonlyArray<Omit<KeyObject, 'getFn'>>;
         records: IndexRecord[];
