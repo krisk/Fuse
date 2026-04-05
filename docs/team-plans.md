@@ -70,7 +70,7 @@ Yes. Contact me for pricing on 2- and 3-year commitments.
 Ready to get started, or have questions about which plan fits?
 
 <div class="commercial-contact">
-  <a href="https://tally.so/r/818WQk" class="commercial-btn" target="_blank" rel="noopener">Get in Touch</a>
+  <a href="https://tally.so/r/818WQk" class="commercial-btn" target="_blank" rel="noopener" onclick="gtag('event', 'click_get_in_touch', { event_category: 'team_plans' })">Get in Touch</a>
   <p class="commercial-note">Or reach out on <a href="https://github.com/krisk/Fuse/discussions">GitHub Discussions</a>.</p>
 </div>
 
