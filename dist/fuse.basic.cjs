@@ -901,7 +901,9 @@ function computeScoreSingle(matches, {
       score
     } = matches[i];
     const weight = key ? key.weight : null;
-    totalScore *= Math.pow(score === 0 && weight ? Number.EPSILON : score, (weight || 1) * (ignoreFieldNorm ? 1 : norm));
+    const s = score === 0 && weight ? Number.EPSILON : score;
+    const exponent = (weight || 1) * (ignoreFieldNorm ? 1 : norm);
+    totalScore *= exponent === 1 ? s : Math.pow(s, exponent);
   }
   return totalScore;
 }
