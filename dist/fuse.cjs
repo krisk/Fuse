@@ -220,7 +220,7 @@ function norm(weight = 1, mantissa = 3) {
   const m = Math.pow(10, mantissa);
   return {
     get(value) {
-      const numTokens = value.match(SPACE).length;
+      const numTokens = value.match(SPACE)?.length || 1;
       if (cache.has(numTokens)) {
         return cache.get(numTokens);
       }

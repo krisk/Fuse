@@ -10,7 +10,7 @@ export default function norm(weight: number = 1, mantissa: number = 3): NormInte
 
   return {
     get(value: string): number {
-      const numTokens = value.match(SPACE)!.length
+      const numTokens = value.match(SPACE)?.length || 1
 
       if (cache.has(numTokens)) {
         return cache.get(numTokens)!
