@@ -175,4 +175,40 @@ describe('Searching', () => {
     expect(fuse.getIndex().size()).toBe(1)
     expect(fuse._docs.length).toBe(1)
   })
+
+  test('removeAll: batch removal preserves correct indices', () => {
+    const fruits = ['apple', 'orange', 'banana', 'pear', 'grape']
+    const fuse = new Fuse(fruits)
+
+    // Remove indices 1 (orange) and 3 (pear)
+    fuse.remove((doc) => doc === 'orange' || doc === 'pear')
+
+    expect(fuse.getIndex().size()).toBe(3)
+    expect(idxMap(fuse)).toMatchObject([
+      ['apple', 0],
+      ['banana', 1],
+      ['grape', 2]
+    ])
+  })
+
+  test('removeAll: removing all items leaves empty index', () => {
+    const fruits = ['apple', 'orange']
+    const fuse = new Fuse(fruits)
+
+    fuse.remove(() => true)
+
+    expect(fuse.getIndex().size()).toBe(0)
+    expect(fuse._docs.length).toBe(0)
+  })
+
+  test('removeAll: search works correctly after batch removal', () => {
+    const fruits = ['apple', 'orange', 'banana', 'pear', 'grape']
+    const fuse = new Fuse(fruits, { includeScore: true })
+
+    fuse.remove((doc) => doc === 'apple' || doc === 'banana' || doc === 'grape')
+
+    const result = fuse.search('orange')
+    expect(result.length).toBe(1)
+    expect(result[0].item).toBe('orange')
+  })
 })

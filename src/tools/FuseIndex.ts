@@ -87,13 +87,10 @@ export default class FuseIndex<T = any> {
       this.records[i].i -= 1
     }
   }
-  // Removes docs at the specified indices (must be sorted ascending)
+  // Removes docs at the specified indices
   removeAll(indices: number[]): void {
-    // Remove in reverse order to avoid index shifting during splice
-    for (let i = indices.length - 1; i >= 0; i -= 1) {
-      this.records.splice(indices[i], 1)
-    }
-    // Single re-index pass
+    const toRemove = new Set(indices)
+    this.records = this.records.filter((_, i) => !toRemove.has(i))
     for (let i = 0, len = this.records.length; i < len; i += 1) {
       this.records[i].i = i
     }
