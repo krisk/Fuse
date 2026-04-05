@@ -12,6 +12,7 @@ export interface InvertedIndexData {
   terms: Map<string, Posting[]>
   fieldCount: number
   df: Map<string, number>
+  docTerms: Map<number, Set<string>>
 }
 
 export function buildInvertedIndex(
@@ -21,6 +22,7 @@ export function buildInvertedIndex(
 ): InvertedIndexData {
   const terms = new Map<string, Posting[]>()
   const df = new Map<string, number>()
+  const docTerms = new Map<number, Set<string>>()
   let fieldCount = 0
 
   function addField(text: string, docIdx: number, keyIdx: number, subIdx: number): void {
@@ -35,6 +37,13 @@ export function buildInvertedIndex(
       termFreqs.set(token, (termFreqs.get(token) || 0) + 1)
     }
 
+    // Track which terms belong to this doc for fast removal
+    let docTermSet = docTerms.get(docIdx)
+    if (!docTermSet) {
+      docTermSet = new Set()
+      docTerms.set(docIdx, docTermSet)
+    }
+
     // Track which terms we've already counted for df in this field
     for (const [term, tf] of termFreqs) {
       const posting: Posting = { docIdx, keyIdx, subIdx, tf }
@@ -46,6 +55,7 @@ export function buildInvertedIndex(
       }
       postings.push(posting)
 
+      docTermSet.add(term)
       df.set(term, (df.get(term) || 0) + 1)
     }
   }
@@ -76,7 +86,7 @@ export function buildInvertedIndex(
     }
   }
 
-  return { terms, fieldCount, df }
+  return { terms, fieldCount, df, docTerms }
 }
 
 export function addToInvertedIndex(
@@ -86,6 +96,12 @@ export function addToInvertedIndex(
   analyzer: Analyzer
 ): void {
   const { i: docIdx, v, $: fields } = record
+
+  let docTermSet = index.docTerms.get(docIdx)
+  if (!docTermSet) {
+    docTermSet = new Set()
+    index.docTerms.set(docIdx, docTermSet)
+  }
 
   function addField(text: string, keyIdx: number, subIdx: number): void {
     const tokens = analyzer.tokenize(text)
@@ -108,6 +124,7 @@ export function addToInvertedIndex(
       }
       postings.push(posting)
 
+      docTermSet!.add(term)
       index.df.set(term, (index.df.get(term) || 0) + 1)
     }
   }
@@ -137,12 +154,24 @@ export function removeFromInvertedIndex(
   index: InvertedIndexData,
   docIdx: number
 ): void {
-  for (const [term, postings] of index.terms) {
-    const filtered = postings.filter((p) => p.docIdx !== docIdx)
+  const docTermSet = index.docTerms.get(docIdx)
+  if (!docTermSet) return
+
+  // Count distinct fields this doc contributed (for fieldCount adjustment)
+  const docFields = new Set<string>()
+
+  for (const term of docTermSet) {
+    const postings = index.terms.get(term)
+    if (!postings) continue
+
+    const filtered = postings.filter((p) => {
+      if (p.docIdx !== docIdx) return true
+      docFields.add(`${p.keyIdx}:${p.subIdx}`)
+      return false
+    })
     const removed = postings.length - filtered.length
 
     if (removed > 0) {
-      index.fieldCount -= removed
       index.df.set(term, (index.df.get(term) || 0) - removed)
 
       if (filtered.length === 0) {
@@ -153,4 +182,7 @@ export function removeFromInvertedIndex(
       }
     }
   }
+
+  index.fieldCount -= docFields.size
+  index.docTerms.delete(docIdx)
 }

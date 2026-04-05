@@ -1023,6 +1023,7 @@ function createAnalyzer({
 function buildInvertedIndex(records, keyCount, analyzer) {
   const terms = new Map();
   const df = new Map();
+  const docTerms = new Map();
   let fieldCount = 0;
   function addField(text, docIdx, keyIdx, subIdx) {
     const tokens = analyzer.tokenize(text);
@@ -1033,6 +1034,13 @@ function buildInvertedIndex(records, keyCount, analyzer) {
     const termFreqs = new Map();
     for (const token of tokens) {
       termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
+    }
+
+    // Track which terms belong to this doc for fast removal
+    let docTermSet = docTerms.get(docIdx);
+    if (!docTermSet) {
+      docTermSet = new Set();
+      docTerms.set(docIdx, docTermSet);
     }
 
     // Track which terms we've already counted for df in this field
@@ -1049,6 +1057,7 @@ function buildInvertedIndex(records, keyCount, analyzer) {
         terms.set(term, postings);
       }
       postings.push(posting);
+      docTermSet.add(term);
       df.set(term, (df.get(term) || 0) + 1);
     }
   }
@@ -1083,7 +1092,8 @@ function buildInvertedIndex(records, keyCount, analyzer) {
   return {
     terms,
     fieldCount,
-    df
+    df,
+    docTerms
   };
 }
 function addToInvertedIndex(index, record, keyCount, analyzer) {
@@ -1092,6 +1102,11 @@ function addToInvertedIndex(index, record, keyCount, analyzer) {
     v,
     $: fields
   } = record;
+  let docTermSet = index.docTerms.get(docIdx);
+  if (!docTermSet) {
+    docTermSet = new Set();
+    index.docTerms.set(docIdx, docTermSet);
+  }
   function addField(text, keyIdx, subIdx) {
     const tokens = analyzer.tokenize(text);
     if (!tokens.length) return;
@@ -1113,6 +1128,7 @@ function addToInvertedIndex(index, record, keyCount, analyzer) {
         index.terms.set(term, postings);
       }
       postings.push(posting);
+      docTermSet.add(term);
       index.df.set(term, (index.df.get(term) || 0) + 1);
     }
   }
@@ -1135,11 +1151,21 @@ function addToInvertedIndex(index, record, keyCount, analyzer) {
   }
 }
 function removeFromInvertedIndex(index, docIdx) {
-  for (const [term, postings] of index.terms) {
-    const filtered = postings.filter(p => p.docIdx !== docIdx);
+  const docTermSet = index.docTerms.get(docIdx);
+  if (!docTermSet) return;
+
+  // Count distinct fields this doc contributed (for fieldCount adjustment)
+  const docFields = new Set();
+  for (const term of docTermSet) {
+    const postings = index.terms.get(term);
+    if (!postings) continue;
+    const filtered = postings.filter(p => {
+      if (p.docIdx !== docIdx) return true;
+      docFields.add(`${p.keyIdx}:${p.subIdx}`);
+      return false;
+    });
     const removed = postings.length - filtered.length;
     if (removed > 0) {
-      index.fieldCount -= removed;
       index.df.set(term, (index.df.get(term) || 0) - removed);
       if (filtered.length === 0) {
         index.terms.delete(term);
@@ -1149,6 +1175,8 @@ function removeFromInvertedIndex(index, docIdx) {
       }
     }
   }
+  index.fieldCount -= docFields.size;
+  index.docTerms.delete(docIdx);
 }
 
 class Fuse {

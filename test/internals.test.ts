@@ -1,4 +1,11 @@
 import norm from '../src/tools/fieldNorm'
+import {
+  buildInvertedIndex,
+  addToInvertedIndex,
+  removeFromInvertedIndex
+} from '../src/search/token/InvertedIndex'
+import { createAnalyzer } from '../src/search/token/analyzer'
+import type { IndexRecord } from '../src/types'
 
 describe('fieldNorm', () => {
   test('returns a valid norm for a normal string', () => {
@@ -18,5 +25,108 @@ describe('fieldNorm', () => {
     const a = n.get('one two three')
     const b = n.get('foo bar baz')
     expect(a).toBe(b)
+  })
+})
+
+describe('InvertedIndex', () => {
+  const analyzer = createAnalyzer()
+
+  function makeRecords(): IndexRecord[] {
+    return [
+      // doc 0: 2 keys, key 0 has 2 unique terms, key 1 has 3
+      { i: 0, $: { 0: { v: 'hello world', n: 1 }, 1: { v: 'foo bar baz', n: 1 } } },
+      // doc 1: 1 key, 2 unique terms
+      { i: 1, $: { 0: { v: 'hello there', n: 1 } } },
+      // doc 2: 1 key, 3 unique terms
+      { i: 2, $: { 0: { v: 'goodbye cruel world', n: 1 } } }
+    ]
+  }
+
+  test('fieldCount is correct after build', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // doc 0 contributes 2 fields (key 0, key 1)
+    // doc 1 contributes 1 field (key 0)
+    // doc 2 contributes 1 field (key 0)
+    expect(index.fieldCount).toBe(4)
+  })
+
+  test('fieldCount is correct after removal', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+    expect(index.fieldCount).toBe(4)
+
+    // Remove doc 0 (which had 2 fields)
+    removeFromInvertedIndex(index, 0)
+    expect(index.fieldCount).toBe(2)
+
+    // Remove doc 1 (which had 1 field)
+    removeFromInvertedIndex(index, 1)
+    expect(index.fieldCount).toBe(1)
+  })
+
+  test('removing a non-existent doc is a no-op', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+    const before = index.fieldCount
+
+    removeFromInvertedIndex(index, 999)
+    expect(index.fieldCount).toBe(before)
+  })
+
+  test('terms unique to a removed doc are deleted from the index', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // "foo", "bar", "baz" only appear in doc 0
+    expect(index.terms.has('foo')).toBe(true)
+
+    removeFromInvertedIndex(index, 0)
+    expect(index.terms.has('foo')).toBe(false)
+    expect(index.terms.has('bar')).toBe(false)
+    expect(index.terms.has('baz')).toBe(false)
+  })
+
+  test('shared terms survive removal of one doc', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // "hello" is in doc 0 and doc 1
+    expect(index.terms.get('hello')!.length).toBe(2)
+
+    removeFromInvertedIndex(index, 0)
+
+    // "hello" should still exist with 1 posting
+    expect(index.terms.has('hello')).toBe(true)
+    expect(index.terms.get('hello')!.length).toBe(1)
+    expect(index.terms.get('hello')![0].docIdx).toBe(1)
+  })
+
+  test('addToInvertedIndex updates fieldCount and terms', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    const newRecord: IndexRecord = {
+      i: 3,
+      $: { 0: { v: 'unique unicorn', n: 1 } }
+    }
+
+    addToInvertedIndex(index, newRecord, 2, analyzer)
+
+    expect(index.fieldCount).toBe(5)
+    expect(index.terms.has('unicorn')).toBe(true)
+    expect(index.docTerms.has(3)).toBe(true)
+  })
+
+  test('docTerms tracks terms per document', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    expect(index.docTerms.get(0)).toEqual(new Set(['hello', 'world', 'foo', 'bar', 'baz']))
+    expect(index.docTerms.get(1)).toEqual(new Set(['hello', 'there']))
+
+    removeFromInvertedIndex(index, 0)
+    expect(index.docTerms.has(0)).toBe(false)
   })
 })

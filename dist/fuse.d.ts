@@ -251,6 +251,7 @@ interface InvertedIndexData {
     terms: Map<string, Posting[]>;
     fieldCount: number;
     df: Map<string, number>;
+    docTerms: Map<number, Set<string>>;
 }
 
 interface HeapSearchOptions {
