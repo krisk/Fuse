@@ -1,0 +1,1 @@
+const e=JSON.parse('{"key":"v-2b30cdfd","path":"/demo.html","title":"Demo","lang":"en-US","frontmatter":{"title":"Demo","description":"Try Fuse.js live in your browser. Search sample data, adjust options like threshold and scoring, and see fuzzy search results in real time."},"headers":[],"git":{"updatedTime":1775340455000},"filePathRelative":"demo.md"}');export{e as data};
