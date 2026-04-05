@@ -1003,7 +1003,7 @@ function parseQuery(pattern, options = {}) {
     for (let i = 0, len = query.length; i < len; i += 1) {
       const queryItem = query[i];
 
-      // 1. Handle multiple query match (i.e, once that are quoted, like `"hello world"`)
+      // 1. Handle multiple query match (i.e, ones that are quoted, like `"hello world"`)
       let found = false;
       let idx = -1;
       while (!found && ++idx < matchersLen) {
@@ -1018,7 +1018,7 @@ function parseQuery(pattern, options = {}) {
         continue;
       }
 
-      // 2. Handle single query matches (i.e, once that are *not* quoted)
+      // 2. Handle single query matches (i.e, ones that are *not* quoted)
       idx = -1;
       while (++idx < matchersLen) {
         const def = matchers[idx];
