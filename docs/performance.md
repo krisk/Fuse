@@ -38,14 +38,18 @@ The index stores processed string values and metadata for each key of each item.
 
 ## Guidelines
 
-| List size | Indexing | Search | Notes |
-|-----------|----------|--------|-------|
-| 1,000 | < 1ms | < 1ms | No concerns |
-| 10,000 | ~5ms | ~5–10ms | Fine for interactive use |
-| 100,000 | ~50ms | ~50–100ms | Consider pre-built index; debounce search input |
-| 1,000,000 | ~500ms+ | ~500ms+ | Use a Web Worker or server-side |
+Measured on a modern machine with 3 searchable keys (`title`, `body`, `tags`):
 
-*Times are rough estimates on a modern machine. Your results will vary based on hardware, key count, and value length. Use the benchmark script below to measure with your own data.*
+| List size | Index creation | With token search | Notes |
+|-----------|---------------|-------------------|-------|
+| 1,000 | ~3ms | ~17ms | No concerns |
+| 10,000 | ~28ms | ~182ms | Fine for interactive use |
+| 50,000 | ~147ms | ~963ms | Consider pre-built index |
+| 100,000 | ~299ms | ~2,061ms | Use a Web Worker or pre-built index |
+
+String-only lists (no keys) are significantly faster — around 25ms for 100k items.
+
+*Your results will vary based on hardware, key count, and value length. Use the benchmark below to measure with your own data.*
 
 ## Try it on your machine
 
