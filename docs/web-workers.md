@@ -188,5 +188,5 @@ const fuse = new FuseWorker(docs, options, {
 
 Web Workers are supported in all modern browsers (Chrome, Firefox, Safari, Edge). `FuseWorker` will not work in:
 
-- **Server-side rendering (Node.js)** — the `Worker` API doesn't exist. Use `Fuse` on the server.
+- **Node.js** — `FuseWorker` uses the browser's Web Worker API, not Node's `worker_threads`. Use `Fuse` on the server.
 - **Restrictive CSP policies** — some Content Security Policies block `new Worker()`. Check your CSP headers if workers fail to spawn.
