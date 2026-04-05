@@ -1,7 +1,5 @@
 import type { NormInterface } from '../types'
 
-const SPACE = /[^ ]+/g
-
 // Field-length norm: the shorter the field, the higher the weight.
 // Set to 3 decimals to reduce index size.
 export default function norm(weight: number = 1, mantissa: number = 3): NormInterface {
@@ -10,17 +8,18 @@ export default function norm(weight: number = 1, mantissa: number = 3): NormInte
 
   return {
     get(value: string): number {
-      const numTokens = value.match(SPACE)?.length || 1
+      // Count words by counting spaces — avoids allocating a regex match array
+      let numTokens = 1
+      for (let i = 0; i < value.length; i++) {
+        if (value.charCodeAt(i) === 32) numTokens++
+      }
 
       if (cache.has(numTokens)) {
         return cache.get(numTokens)!
       }
 
       // Default function is 1/sqrt(x), weight makes that variable
-      const norm = 1 / Math.pow(numTokens, 0.5 * weight)
-
-      // In place of `toFixed(mantissa)`, for faster computation
-      const n = parseFloat((Math.round(norm * m) / m) as unknown as string)
+      const n = Math.round(m / Math.pow(numTokens, 0.5 * weight)) / m
 
       cache.set(numTokens, n)
 

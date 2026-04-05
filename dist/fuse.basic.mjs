@@ -212,8 +212,6 @@ const Config = Object.freeze({
   ...AdvancedOptions
 });
 
-const SPACE = /[^ ]+/g;
-
 // Field-length norm: the shorter the field, the higher the weight.
 // Set to 3 decimals to reduce index size.
 function norm(weight = 1, mantissa = 3) {
@@ -221,16 +219,17 @@ function norm(weight = 1, mantissa = 3) {
   const m = Math.pow(10, mantissa);
   return {
     get(value) {
-      const numTokens = value.match(SPACE)?.length || 1;
+      // Count words by counting spaces — avoids allocating a regex match array
+      let numTokens = 1;
+      for (let i = 0; i < value.length; i++) {
+        if (value.charCodeAt(i) === 32) numTokens++;
+      }
       if (cache.has(numTokens)) {
         return cache.get(numTokens);
       }
 
       // Default function is 1/sqrt(x), weight makes that variable
-      const norm = 1 / Math.pow(numTokens, 0.5 * weight);
-
-      // In place of `toFixed(mantissa)`, for faster computation
-      const n = parseFloat(Math.round(norm * m) / m);
+      const n = Math.round(m / Math.pow(numTokens, 0.5 * weight)) / m;
       cache.set(numTokens, n);
       return n;
     },
