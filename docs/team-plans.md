@@ -65,6 +65,14 @@ Yes. Contact me for pricing on 2- and 3-year commitments.
 
 ---
 
+## Consulting
+
+Need deeper, hands-on help? I'm available for consulting engagements — search architecture, performance optimization, custom integrations, or migration planning.
+
+[Get in touch](https://tally.so/r/818WQk) to discuss your project and I'll put together a scope and quote.
+
+---
+
 ## Get in Touch
 
 Ready to get started, or have questions about which plan fits?
