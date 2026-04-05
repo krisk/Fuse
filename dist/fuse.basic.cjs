@@ -1292,10 +1292,9 @@ class Fuse {
         }
       }
 
-      // Remove from docs in reverse to preserve indices
-      for (let i = indicesToRemove.length - 1; i >= 0; i -= 1) {
-        this._docs.splice(indicesToRemove[i], 1);
-      }
+      // Filter docs in a single pass instead of reverse-splicing
+      const toRemove = new Set(indicesToRemove);
+      this._docs = this._docs.filter((_, i) => !toRemove.has(i));
       this._myIndex.removeAll(indicesToRemove);
     }
     return results;
