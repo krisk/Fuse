@@ -166,18 +166,22 @@ Workers add overhead from data serialization (`postMessage`) and worker startup.
 
 ## Worker URL
 
-By default, `FuseWorker` resolves the worker script automatically via `import.meta.url`. If your bundler or deployment setup requires a different path, you can specify it:
+`FuseWorker` needs to load a separate script file inside each Web Worker. By default, it finds this file automatically — you don't need to do anything.
+
+Some bundlers (e.g., certain Webpack configurations) can't resolve the worker script path automatically. If you see errors about the worker failing to load, you can provide the path explicitly:
+
+```js
+import workerUrl from 'fuse.js/worker-script'
+
+const fuse = new FuseWorker(docs, options, { workerUrl })
+```
+
+If that doesn't work with your bundler either, copy `dist/fuse.worker.mjs` to your public/static directory and pass the URL directly:
 
 ```js
 const fuse = new FuseWorker(docs, options, {
   workerUrl: '/static/fuse.worker.mjs'
 })
-```
-
-The worker script is available at `fuse.js/worker-script`:
-
-```js
-import workerUrl from 'fuse.js/worker-script'
 ```
 
 ## Browser Support
