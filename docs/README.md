@@ -32,6 +32,10 @@ fuse.search('patterns')
 // [{ item: { title: "JavaScript Patterns", ... }, refIndex: 2, score: 0.0 }]
 ```
 
+::: warning Fuse Cloud — Coming Soon
+Need Fuse.js search without the client-side overhead? **Fuse Cloud** is a hosted search API — upload JSON, get an endpoint. Same fuzzy search, zero infrastructure. [Learn more →](/cloud)
+:::
+
 ## Features
 
 - **[Fuzzy search](fuzzy-search.md)** — typo-tolerant matching powered by the Bitap algorithm

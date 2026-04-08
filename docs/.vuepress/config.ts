@@ -54,6 +54,10 @@ export default defineUserConfig({
       {
         text: 'Team Plans',
         link: '/team-plans'
+      },
+      {
+        text: 'Cloud',
+        link: '/cloud'
       }
     ]
   })
