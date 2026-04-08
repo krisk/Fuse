@@ -1,6 +1,28 @@
 ---
-title: Fuse Cloud
+title: Fuse Cloud - Hosted Fuse.js Search API
 description: Hosted fuzzy search powered by Fuse.js. Upload JSON, get a search API. Same search you know, without managing infrastructure.
+head:
+  - - link
+    - rel: canonical
+      href: https://www.fusejs.io/cloud.html
+  - - script
+    - type: application/ld+json
+    - |
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Fuse Cloud",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "url": "https://www.fusejs.io/cloud.html",
+        "description": "Hosted fuzzy search powered by Fuse.js. Upload JSON, get a search API. Same search you know, without managing infrastructure.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free tier available"
+        }
+      }
 ---
 
 # Fuse Cloud <Badge type="warning" text="Coming Soon" />
@@ -84,7 +106,7 @@ Fuse Cloud is in early development. Get early access and help shape what gets bu
 
 <div class="cloud-signup">
   <a href="https://tally.so/r/Zjz8qo" class="cloud-btn" target="_blank" rel="noopener">Get Early Access</a>
-  <p class="cloud-note">Or share your use case in the <a href="https://github.com/krisk/Fuse/discussions">GitHub Discussion</a>.</p>
+  <p class="cloud-note">Or share your use case in the <a href="https://github.com/krisk/Fuse/discussions/819">GitHub Discussion</a>.</p>
 </div>
 
 <style>
