@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="generator" content="VuePress 2.0.0-beta.60">
+    <style>
+      :root {
+        --c-bg: #fff;
+      }
+      html.dark {
+        --c-bg: #22272e;
+      }
+      html, body {
+        background-color: var(--c-bg);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem('vuepress-color-scheme');
+			const systemDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			if (userMode === 'dark' || (userMode !== 'light' && systemDarkMode)) {
+				document.documentElement.classList.toggle('dark', true);
+			}
+    </script>
+    <link rel="apple-touch-icon" size="57x57" href="/icons/apple-icon-57x57.png"><link rel="apple-touch-icon" size="60x60" href="/icons/apple-icon-60x60.png"><link rel="apple-touch-icon" size="72x72" href="/icons/apple-icon-72x72.png"><link rel="apple-touch-icon" size="76x76" href="/icons/apple-icon-76x76.png"><link rel="apple-touch-icon" size="114x114" href="/icons/apple-icon-114x114.png"><link rel="apple-touch-icon" size="120x120" href="/icons/apple-icon-120x120.png"><link rel="apple-touch-icon" size="144x144" href="/icons/apple-icon-144x144.png"><link rel="apple-touch-icon" size="152x152" href="/icons/apple-icon-152x152.png"><link rel="apple-touch-icon" size="180x180" href="/icons/apple-icon-180x180.png"><link rel="icon" type="image/png" size="192x192" href="/icons/android-icon-192x192.png"><link rel="icon" type="image/png" size="32x32" href="/icons/favicon-32x32.png"><link rel="icon" type="image/png" size="96x96" href="/icons/favicon-96x96.png"><link rel="icon" type="image/png" size="16x16" href="/icons/favicon-16x16.png"><meta name="msapplication-TileColor" content="#ffffff"><meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png"><meta name="theme-color" content="#ffffff"><meta name="google-site-verification" content="4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY"><meta property="og:type" content="website"><meta property="og:site_name" content="Fuse.js"><meta property="og:title" content="Fuse.js — Lightweight Fuzzy-Search Library"><meta property="og:description" content="Powerful, lightweight fuzzy-search library for JavaScript with zero dependencies."><meta property="og:url" content="https://fusejs.io"><meta property="og:image" content="https://fusejs.io/assets/img/logo.png"><meta name="twitter:card" content="summary"><meta name="twitter:site" content="@kirorisk"><meta name="twitter:title" content="Fuse.js — Lightweight Fuzzy-Search Library"><meta name="twitter:description" content="Powerful, lightweight fuzzy-search library for JavaScript with zero dependencies."><meta name="twitter:image" content="https://fusejs.io/assets/img/logo.png"><link rel="manifest" href="/manifest.webmanifest"><script>
+      (function(){
+        var bsa_optimize=document.createElement('script');
+        bsa_optimize.type='text/javascript';
+        bsa_optimize.async=true;
+        bsa_optimize.src='https://cdn4.buysellads.net/pub/fusejs.js?'+(new Date()-new Date()%600000);
+        (document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(bsa_optimize);
+      })();
+      </script><title>Fuse.js</title><meta name="description" content="Lightweight fuzzy-search library, in JavaScript">
+    <link rel="preload" href="/assets/style-14bb97af.css" as="style"><link rel="stylesheet" href="/assets/style-14bb97af.css">
+    <link rel="modulepreload" href="/assets/app-6d223884.js"><link rel="modulepreload" href="/assets/framework-188d6338.js"><link rel="modulepreload" href="/assets/404.html-02343990.js"><link rel="modulepreload" href="/assets/404.html-60b35caa.js"><link rel="prefetch" href="/assets/index.html-04f2e1c8.js" as="script"><link rel="prefetch" href="/assets/cloud.html-64f2498b.js" as="script"><link rel="prefetch" href="/assets/demo.html-d88cd3ea.js" as="script"><link rel="prefetch" href="/assets/donate.html-ce9077d3.js" as="script"><link rel="prefetch" href="/assets/extended-search.html-6a1cfa41.js" as="script"><link rel="prefetch" href="/assets/fuzzy-search.html-73738d9c.js" as="script"><link rel="prefetch" href="/assets/getting-started.html-8944c52c.js" as="script"><link rel="prefetch" href="/assets/logical-search.html-f1f1d20b.js" as="script"><link rel="prefetch" href="/assets/performance.html-6d292a32.js" as="script"><link rel="prefetch" href="/assets/sponsor.html-8bdb36ad.js" as="script"><link rel="prefetch" href="/assets/team-plans.html-2ebe32df.js" as="script"><link rel="prefetch" href="/assets/token-search.html-e1edfb27.js" as="script"><link rel="prefetch" href="/assets/web-workers.html-1a022524.js" as="script"><link rel="prefetch" href="/assets/how-fuzzy-search-works.html-393ce06f.js" as="script"><link rel="prefetch" href="/assets/vs-semantic-search.html-8e4c4576.js" as="script"><link rel="prefetch" href="/assets/index.html-9a2e8dc9.js" as="script"><link rel="prefetch" href="/assets/cloud.html-58dbd0c0.js" as="script"><link rel="prefetch" href="/assets/demo.html-2684321a.js" as="script"><link rel="prefetch" href="/assets/donate.html-4f38bd68.js" as="script"><link rel="prefetch" href="/assets/extended-search.html-73047a1d.js" as="script"><link rel="prefetch" href="/assets/fuzzy-search.html-1771275a.js" as="script"><link rel="prefetch" href="/assets/getting-started.html-9290efb4.js" as="script"><link rel="prefetch" href="/assets/logical-search.html-e6f6eacb.js" as="script"><link rel="prefetch" href="/assets/performance.html-19162b13.js" as="script"><link rel="prefetch" href="/assets/sponsor.html-a3c27700.js" as="script"><link rel="prefetch" href="/assets/team-plans.html-3e81ccc7.js" as="script"><link rel="prefetch" href="/assets/token-search.html-a11236f3.js" as="script"><link rel="prefetch" href="/assets/web-workers.html-1ffffcc9.js" as="script"><link rel="prefetch" href="/assets/how-fuzzy-search-works.html-2bee6b63.js" as="script"><link rel="prefetch" href="/assets/vs-semantic-search.html-501c1da9.js" as="script"><link rel="prefetch" href="/assets/Sponsors-97997543.js" as="script"><link rel="prefetch" href="/assets/Playground-f7871d84.js" as="script"><link rel="prefetch" href="/assets/WorkerDemo-93ac5eb4.js" as="script"><link rel="prefetch" href="/assets/PerfDemo-bb98d05e.js" as="script"><link rel="prefetch" href="/assets/Sponsor-78b38f40.js" as="script"><link rel="prefetch" href="/assets/CommercialCTA-a416fe57.js" as="script"><link rel="prefetch" href="/assets/UsedBy-779f09f6.js" as="script"><link rel="prefetch" href="/assets/FuzzyMatchDemo-8211961a.js" as="script"><link rel="prefetch" href="/assets/ThresholdDemo-1d0568ca.js" as="script"><link rel="prefetch" href="/assets/SearchWindowDemo-f6aa6a79.js" as="script"><link rel="prefetch" href="/assets/BitapDemo-b8404159.js" as="script"><link rel="prefetch" href="/assets/ArchitectureDiagram-a36b1167.js" as="script"><link rel="prefetch" href="/assets/PublishDate-4d7ef7c6.js" as="script"><link rel="prefetch" href="/assets/index-70769223.js" as="script">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="theme-container"><main class="page"><div class="theme-default-content"><h1>404</h1><blockquote>How did we get here?</blockquote><a href="/" class="">Take me home</a></div></main></div><!----><!--]--></div>
+    <script type="module" src="/assets/app-6d223884.js" defer></script>
+  </body>
+</html>
