@@ -75,7 +75,8 @@ function getGuideSidebar(): SidebarConfigArray {
     {
       text: 'Articles',
       children: [
-        '/articles/vs-semantic-search'
+        '/articles/vs-semantic-search',
+        '/articles/how-fuzzy-search-works'
       ]
     }
   ]
@@ -108,6 +109,8 @@ function getPlugins(): PluginConfig {
         ...getComponent('Sponsor'),
         ...getComponent('CommercialCTA'),
         ...getComponent('UsedBy'),
+        ...getComponent('FuzzyMatchDemo'),
+        ...getComponent('BitapDemo'),
         ...getComponent('ArchitectureDiagram'),
         ...getComponent('PublishDate'),
 

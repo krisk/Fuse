@@ -27,6 +27,10 @@ The algorithm produces a **fuzziness score** between 0 and 1:
 
 This score is then combined with key weight and field-length norm to produce the final relevance score.
 
+::: tip
+See [How Fuzzy Search Works](/articles/how-fuzzy-search-works) for an interactive walkthrough of edit distance.
+:::
+
 ## Controlling Fuzziness
 
 Three options work together to determine what counts as a match:
