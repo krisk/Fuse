@@ -84,7 +84,7 @@ const fuse = new Fuse(list, {
 The default options effectively search only the first ~60 characters of each field. If your data has long text fields, either increase `distance`, or set `ignoreLocation: true`.
 :::
 
-Try adjusting `threshold`, `location`, and `distance` below to see how they interact. The sample text is the same one from the example above.
+Try adjusting `threshold`, `location`, and `distance` below to see how they interact.
 
 <SearchWindowDemo />
 
