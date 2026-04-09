@@ -9,6 +9,8 @@ description: Powerful, lightweight fuzzy-search library for JavaScript with zero
 
 <Sponsors />
 
+<UsedBy />
+
 ## Quick Example
 
 ```js
@@ -59,4 +61,4 @@ See [Getting Started](getting-started.md) for installation options, builds, and 
 
 <CommercialCTA />
 
-<Donate />
+<Sponsor />

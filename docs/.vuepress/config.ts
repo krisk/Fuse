@@ -48,8 +48,8 @@ export default defineUserConfig({
         link: '/demo'
       },
       {
-        text: 'Donate',
-        link: '/donate/'
+        text: 'Sponsor',
+        link: '/sponsor/'
       },
       {
         text: 'Team Plans',
@@ -105,8 +105,9 @@ function getPlugins(): PluginConfig {
         ...getComponent('Playground'),
         ...getComponent('WorkerDemo'),
         ...getComponent('PerfDemo'),
-        ...getComponent('Donate'),
+        ...getComponent('Sponsor'),
         ...getComponent('CommercialCTA'),
+        ...getComponent('UsedBy'),
         ...getComponent('ArchitectureDiagram'),
         ...getComponent('PublishDate'),
 

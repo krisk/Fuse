@@ -12,7 +12,7 @@
       >
         <img :src="sponsor.imgUrl" :alt="sponsor.name" />
       </a>
-      <a href="/donate" class="sponsor-item action">Your logo</a>
+      <a href="/sponsor" class="sponsor-item action">Your logo</a>
     </div>
   </div>
 </template>

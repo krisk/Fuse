@@ -1,17 +1,17 @@
 <template>
-  <div class="donate-link-wrapper">
-    <strong>❤️️ Fuse.js? Support its development with a small donation.</strong>
+  <div class="sponsor-link-wrapper">
+    <strong>❤️️ Fuse.js? Support its development by becoming a sponsor.</strong>
     <br />
-    <a href="https://github.com/sponsors/krisk" class="donate-btn">Donate</a>
+    <a href="/sponsor/" class="sponsor-btn">Sponsor</a>
   </div>
 </template>
 
 <style>
-.donate-link-wrapper {
+.sponsor-link-wrapper {
   padding-top: 20px;
 }
 
-.donate-btn {
+.sponsor-btn {
   display: inline-block;
   text-align: center;
   text-decoration: none;
@@ -29,11 +29,11 @@
   margin: 20px 0 0 0;
   padding: 10px 30px;
 }
-.donate-btn:focus {
+.sponsor-btn:focus {
   outline: 0;
   text-decoration: none;
 }
-.donate-btn:hover {
+.sponsor-btn:hover {
   background-color: #a684c6;
   transition: background-color 250ms;
   text-decoration: none !important;
