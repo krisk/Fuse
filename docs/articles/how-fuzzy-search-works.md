@@ -41,7 +41,11 @@ See [Fuzzy Search](/fuzzy-search) for details on configuring threshold, distance
 
 ## Under the Hood: Bitap
 
-Fuse.js doesn't use a traditional dynamic programming table to compute edit distance. Instead, it uses the [Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm), which encodes the pattern as bitmasks and uses bitwise operations to check all character positions in parallel. This makes it fast — especially for short patterns (up to 32 characters).
+Fuse.js doesn't use a traditional dynamic programming table to compute edit distance. Instead, it uses the [Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm), which encodes the pattern as bitmasks and uses bitwise operations to check all character positions in parallel. This makes it fast — especially for short patterns.
+
+::: tip Why 32 characters?
+The algorithm encodes the pattern as a bitmask and uses bitwise operators (`<<`, `|`, `&`) to process all positions in a single CPU operation. JavaScript's bitwise operators work on 32-bit integers — that's the limit. Longer patterns are split into 32-character chunks and searched independently.
+:::
 
 Here's how it works for **exact matching** (zero errors):
 
@@ -86,6 +90,25 @@ Step through it yourself:
 
 <BitapDemo />
 
-Fuse.js extends this to **approximate matching** by maintaining multiple state vectors — one per error level. Errors (substitutions, insertions, deletions) allow `1` bits to propagate across error levels, so a match with 1 error is tracked in `R1`, with 2 errors in `R2`, and so on.
+## Handling Typos: Approximate Matching
+
+The demo above only shows exact matching. But Fuse.js is a *fuzzy* search library — it needs to handle typos, missing characters, and extra characters. It does this by running the Bitap algorithm multiple times, allowing one more error each pass.
+
+Instead of a single state vector `R`, Fuse maintains multiple: `R0` (zero errors), `R1` (one error), `R2` (two errors), and so on. When a partial match dies in one level because the characters don't match, it can continue in the next level — counting that mismatch as an error:
+
+- **Substitution** — a partial match in `R0` hits a wrong character. Instead of dying, it continues in `R1` with one error charged.
+- **Deletion** — a partial match skips a pattern position (a character is missing from the text). It continues in `R1`.
+- **Insertion** — a partial match skips a text character (an extra character in the text). It continues in `R1`.
+
+For example, searching for `test` in `"tset"` (a transposition):
+
+```
+                   t  e  s  t
+R0 (0 errors):     1  0  0  0   ← 't' matches, but 's' ≠ 'e' — exact match dies
+R1 (1 error):      1  1  0  0   ← the mismatch continues here as 1 error
+R2 (2 errors):     1  1  1  1   ← another mismatch, 2 errors — still matches!
+```
+
+The algorithm stops adding error levels when the score exceeds the `threshold`. This is how `threshold` controls fuzziness — a lower threshold means fewer error levels are tried, requiring closer matches.
 
 <PublishDate date="2026-04-09" />
