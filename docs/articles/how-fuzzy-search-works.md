@@ -1,10 +1,36 @@
 ---
 title: How Fuzzy Search Works
-description: An interactive visual explanation of edit distance and approximate string matching — the core concept behind Fuse.js fuzzy search.
+description: An interactive visual explanation of edit distance and the Bitap algorithm — how Fuse.js finds approximate string matches with typo tolerance.
 sidebarDepth: 0
+head:
+  - - link
+    - rel: canonical
+      href: https://www.fusejs.io/articles/how-fuzzy-search-works.html
+  - - script
+    - type: application/ld+json
+    - |
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "How Fuzzy Search Works",
+        "description": "An interactive visual explanation of edit distance and the Bitap algorithm — how Fuse.js finds approximate string matches with typo tolerance.",
+        "url": "https://www.fusejs.io/articles/how-fuzzy-search-works.html",
+        "datePublished": "2026-04-09",
+        "author": {
+          "@type": "Person",
+          "name": "Kiro Risk"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Fuse.js",
+          "url": "https://www.fusejs.io"
+        }
+      }
 ---
 
 # How Fuzzy Search Works
+
+<PublishDate date="2026-04-09" />
 
 When you search for "javscript" and Fuse.js returns "JavaScript", it's using **approximate string matching** — finding strings that are _close_ to your query even when they don't match exactly.
 
@@ -110,5 +136,3 @@ R2 (2 errors):     1  1  1  1   ← another mismatch, 2 errors — still matches
 ```
 
 The algorithm stops adding error levels when the score exceeds the `threshold`. This is how `threshold` controls fuzziness — a lower threshold means fewer error levels are tried, requiring closer matches.
-
-<PublishDate date="2026-04-09" />

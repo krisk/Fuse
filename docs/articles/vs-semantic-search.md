@@ -2,6 +2,30 @@
 title: Fuse.js vs Semantic Search
 description: When to use client-side fuzzy search vs embeddings and semantic search. A practical comparison for developers building AI-powered applications.
 sidebarDepth: 0
+head:
+  - - link
+    - rel: canonical
+      href: https://www.fusejs.io/articles/vs-semantic-search.html
+  - - script
+    - type: application/ld+json
+    - |
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Fuse.js vs Semantic Search",
+        "description": "When to use client-side fuzzy search vs embeddings and semantic search. A practical comparison for developers building AI-powered applications.",
+        "url": "https://www.fusejs.io/articles/vs-semantic-search.html",
+        "datePublished": "2026-04-04",
+        "author": {
+          "@type": "Person",
+          "name": "Kiro Risk"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Fuse.js",
+          "url": "https://www.fusejs.io"
+        }
+      }
 ---
 
 # Fuse.js vs Semantic Search
