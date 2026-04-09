@@ -1,6 +1,7 @@
 ---
 title: How Fuzzy Search Works
 description: An interactive visual explanation of edit distance and approximate string matching — the core concept behind Fuse.js fuzzy search.
+sidebarDepth: 0
 ---
 
 # How Fuzzy Search Works
