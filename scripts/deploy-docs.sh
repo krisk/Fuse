@@ -5,9 +5,12 @@
 # abort on errors
 set -e
 
-read -p "Do you want to publish the website? (y/n) " -n 1 -r
-
-echo
+if [ "$1" = "--yes" ] || [ "$1" = "-y" ]; then
+  REPLY=y
+else
+  read -p "Do you want to publish the website? (y/n) " -n 1 -r
+  echo
+fi
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   # bump
