@@ -110,6 +110,7 @@ function getPlugins(): PluginConfig {
         ...getComponent('CommercialCTA'),
         ...getComponent('UsedBy'),
         ...getComponent('FuzzyMatchDemo'),
+        ...getComponent('ThresholdDemo'),
         ...getComponent('BitapDemo'),
         ...getComponent('ArchitectureDiagram'),
         ...getComponent('PublishDate'),

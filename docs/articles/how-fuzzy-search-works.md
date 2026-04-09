@@ -30,7 +30,13 @@ Fuse.js converts edit distance into a **fuzziness score** between 0 and 1:
 - `0` — perfect match (edit distance of 0)
 - `1` — complete mismatch
 
-This score is then combined with other factors like key weight and field-length normalization to produce the final relevance ranking. See [Fuzzy Search](/fuzzy-search) for details on configuring thresholds and scoring.
+This score is then combined with other factors like key weight and field-length normalization to produce the final relevance ranking.
+
+The `threshold` option (default `0.6`) controls the cutoff — results with a score above the threshold are excluded. Drag the slider to see how it affects which results make the cut:
+
+<ThresholdDemo />
+
+See [Fuzzy Search](/fuzzy-search) for details on configuring threshold, distance, location, and scoring.
 
 ## Under the Hood: Bitap
 
