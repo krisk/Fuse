@@ -111,6 +111,7 @@ function getPlugins(): PluginConfig {
         ...getComponent('UsedBy'),
         ...getComponent('FuzzyMatchDemo'),
         ...getComponent('ThresholdDemo'),
+        ...getComponent('SearchWindowDemo'),
         ...getComponent('BitapDemo'),
         ...getComponent('ArchitectureDiagram'),
         ...getComponent('PublishDate'),
