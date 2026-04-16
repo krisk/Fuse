@@ -52,10 +52,6 @@ export default defineUserConfig({
         link: '/sponsor/'
       },
       {
-        text: 'Team Plans',
-        link: '/team-plans'
-      },
-      {
         text: 'Cloud',
         link: '/cloud'
       }
