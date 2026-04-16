@@ -16,3 +16,4 @@ docs/.vuepress/dist
 .temp
 .cache
 drafts/
+.plans/

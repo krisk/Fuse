@@ -2,7 +2,7 @@
   <div class="used-by">
     <p>
       <span class="label">Trusted by teams at</span>
-      {{ companies.join(', ') }}, and <a href="/sponsor">more</a>.
+      {{ companies.join(', ') }}, and <a href="https://www.npmjs.com/package/fuse.js?activeTab=dependents" target="_blank" rel="noopener">more</a>.
     </p>
   </div>
 </template>
