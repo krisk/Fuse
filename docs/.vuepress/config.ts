@@ -71,6 +71,7 @@ function getGuideSidebar(): SidebarConfigArray {
     {
       text: 'Articles',
       children: [
+        '/articles/using-fuse-with-react',
         '/articles/vs-semantic-search',
         '/articles/how-fuzzy-search-works'
       ]
