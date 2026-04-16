@@ -29,27 +29,12 @@ export default defineClientConfig({
       }
     }
 
-    router.addRoute('/', {
-      path: '/ads.txt',
-      redirect: '',
-      beforeEnter: () => {
-        window.location.replace('https://cdn4.buysellads.net/ads.txt')
-      }
-    })
-
-    router.addRoute('/', {
-      path: '/app-ads.txt',
-      redirect: '',
-      beforeEnter: () => {
-        window.location.replace('https://cdn4.buysellads.net/app-ads.txt')
-      }
-    })
   }
 })
 
 declare global {
   const __VUEPRESS_SSR__: boolean
-  const _bsa: any
+
 
   interface Window {
     MonacoEnvironment?: import('monaco-editor').Environment | undefined

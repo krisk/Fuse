@@ -178,17 +178,7 @@ function getHead(): HeadConfig[] {
     ['meta', { name: 'twitter:image', content: 'https://fusejs.io/assets/img/logo.png' }]
   ]
 
-  const scripts: [HeadTagNonEmpty, HeadAttrsConfig, string][] = [
-    `
-      (function(){
-        var bsa_optimize=document.createElement('script');
-        bsa_optimize.type='text/javascript';
-        bsa_optimize.async=true;
-        bsa_optimize.src='https://cdn4.buysellads.net/pub/fusejs.js?'+(new Date()-new Date()%600000);
-        (document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(bsa_optimize);
-      })();
-      `
-  ].map<[HeadTagNonEmpty, HeadAttrsConfig, string]>((content) => [
+  const scripts: [HeadTagNonEmpty, HeadAttrsConfig, string][] = ([] as string[]).map<[HeadTagNonEmpty, HeadAttrsConfig, string]>((content) => [
     'script',
     {},
     content
