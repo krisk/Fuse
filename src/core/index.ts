@@ -122,6 +122,8 @@ export default class Fuse<T> {
         analyzer
       )
     }
+
+    this._invalidateSearcherCache()
   }
 
   add(doc: T): void {
@@ -145,6 +147,8 @@ export default class Fuse<T> {
         analyzer
       )
     }
+
+    this._invalidateSearcherCache()
   }
 
   remove(predicate: (doc: T, idx: number) => boolean = () => false): T[] {
@@ -167,6 +171,8 @@ export default class Fuse<T> {
       const toRemove = new Set(indicesToRemove)
       this._docs = this._docs.filter((_, i) => !toRemove.has(i))
       this._myIndex.removeAll(indicesToRemove)
+
+      this._invalidateSearcherCache()
     }
 
     return results
@@ -178,7 +184,13 @@ export default class Fuse<T> {
     }
     const doc = this._docs.splice(idx, 1)[0]
     this._myIndex.removeAt(idx)
+    this._invalidateSearcherCache()
     return doc
+  }
+
+  _invalidateSearcherCache(): void {
+    this._lastQuery = null
+    this._lastSearcher = null
   }
 
   getIndex(): FuseIndex<T> {
