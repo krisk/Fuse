@@ -86,6 +86,13 @@
       "@commitlint/config-conventional"
     ]
   },
+  "overrides": {
+    "@vuepress/bundler-vite": {
+      "vite": "^4.5.14"
+    },
+    "serialize-javascript": "^7.0.5",
+    "esbuild": "^0.25.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@babel/preset-typescript": "7.18.6",

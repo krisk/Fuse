@@ -1,5 +1,5 @@
 // Type definitions for Fuse.js v7.4.0-beta.2
-// TypeScript v6.0.2
+// TypeScript v6.0.3
 type RangeTuple = [number, number];
 interface SearchResult {
     isMatch: boolean;
