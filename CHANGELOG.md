@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.2](https://github.com/krisk/Fuse/compare/v7.4.0-beta.1...v7.4.0-beta.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* **core:** invalidate searcher cache on collection mutation ([fcf4228](https://github.com/krisk/Fuse/commit/fcf42285a6012d54d3a2a3f21cadbc27437be9de))
+* correct fieldCount accounting and add reverse lookup in inverted index ([54e702c](https://github.com/krisk/Fuse/commit/54e702cbc59ad94c98866232c01c8bb976aada58))
+* guard against empty-string crash in fieldNorm ([e550ab1](https://github.com/krisk/Fuse/commit/e550ab119302f79b6cd6ff0fa44653dd6ea97354))
+* skip consecutive spaces in fieldNorm word counting ([5929af6](https://github.com/krisk/Fuse/commit/5929af6a1e0a8b0aede23fa7fca9cde292ead728))
+* **token-search:** renumber inverted index after doc removal ([ea9356d](https://github.com/krisk/Fuse/commit/ea9356d12bca8bf0b997c758a1aa001f04d12244))
+* **types:** resolve typecheck errors and align KeyStore types ([dbc115d](https://github.com/krisk/Fuse/commit/dbc115d5cc39ef15382bc7bb7c31974d34f3570a))
+* typo in parseQuery comments ("once" → "ones") ([be2a8dc](https://github.com/krisk/Fuse/commit/be2a8dc4f25699bd460be92b5ed42aa8dfbe7964))
+* use latest stable version in docs CDN links ([763e533](https://github.com/krisk/Fuse/commit/763e533bdc8c97b3bbc1df2c21a0504925e950c1))
+* **workers:** preserve global refIndex across shards ([e4217f9](https://github.com/krisk/Fuse/commit/e4217f9f233f840da0f671b3b62a25aa32f09c99))
+
 ## [7.4.0-beta.1](https://github.com/krisk/Fuse/compare/v7.3.0...v7.4.0-beta.1) (2026-04-04)
 
 

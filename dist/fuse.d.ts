@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v7.4.0-beta.1
+// Type definitions for Fuse.js v7.4.0-beta.2
 // TypeScript v6.0.2
 type RangeTuple = [number, number];
 interface SearchResult {
@@ -281,6 +281,7 @@ declare class Fuse<T> {
     add(doc: T): void;
     remove(predicate?: (doc: T, idx: number) => boolean): T[];
     removeAt(idx: number): T;
+    _invalidateSearcherCache(): void;
     getIndex(): FuseIndex<T>;
     search(query: string | Expression, options?: FuseSearchOptions): FuseResult<T>[];
     _searchStringList(query: string, { heap, ignoreFieldNorm }?: HeapSearchOptions): InternalResult[] | null;
