@@ -44,7 +44,7 @@ export function createKey(key: FuseOptionKey<any>): KeyObject {
   let id: string | null = null
   let src: string | string[] | null = null
   let weight: number = 1
-  let getFn: ((obj: any) => string | string[]) | null = null
+  let getFn: ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null = null
 
   if (isString(key) || isArray(key)) {
     src = key
@@ -58,17 +58,17 @@ export function createKey(key: FuseOptionKey<any>): KeyObject {
     const name = key.name
     src = name
 
-    if (hasOwn.call(key, 'weight')) {
+    if (hasOwn.call(key, 'weight') && key.weight !== undefined) {
       weight = key.weight
 
       if (weight <= 0) {
-        throw new Error(ErrorMsg.INVALID_KEY_WEIGHT_VALUE(name))
+        throw new Error(ErrorMsg.INVALID_KEY_WEIGHT_VALUE(createKeyId(name)))
       }
     }
 
     path = createKeyPath(name)
     id = createKeyId(name)
-    getFn = key.getFn
+    getFn = key.getFn ?? null
   }
 
   return { path: path!, id: id!, weight, src: src!, getFn }

@@ -107,9 +107,9 @@ export default class ExtendedSearch {
 
           if (includeMatches) {
             if (MULTI_MATCH_TYPES.has(matcher.type)) {
-              allIndices.push(...(indices as any))
+              allIndices.push(...(indices as unknown as RangeTuple[]))
             } else {
-              allIndices.push(indices)
+              allIndices.push(indices as unknown as RangeTuple)
             }
           }
         } else {
