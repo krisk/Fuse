@@ -12,7 +12,7 @@ import { createAnalyzer } from '../search/token/analyzer'
 import {
   buildInvertedIndex,
   addToInvertedIndex,
-  removeFromInvertedIndex
+  removeAndShiftInvertedIndex
 } from '../search/token/InvertedIndex'
 import type { InvertedIndexData } from '../search/token/InvertedIndex'
 import type {
@@ -160,9 +160,7 @@ export default class Fuse<T> {
 
     if (indicesToRemove.length) {
       if (this._invertedIndex) {
-        for (const idx of indicesToRemove) {
-          removeFromInvertedIndex(this._invertedIndex, idx)
-        }
+        removeAndShiftInvertedIndex(this._invertedIndex, indicesToRemove)
       }
 
       // Filter docs in a single pass instead of reverse-splicing
@@ -176,7 +174,7 @@ export default class Fuse<T> {
 
   removeAt(idx: number): T {
     if (this._invertedIndex) {
-      removeFromInvertedIndex(this._invertedIndex, idx)
+      removeAndShiftInvertedIndex(this._invertedIndex, [idx])
     }
     const doc = this._docs.splice(idx, 1)[0]
     this._myIndex.removeAt(idx)

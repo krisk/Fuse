@@ -2,7 +2,8 @@ import norm from '../src/tools/fieldNorm'
 import {
   buildInvertedIndex,
   addToInvertedIndex,
-  removeFromInvertedIndex
+  removeFromInvertedIndex,
+  removeAndShiftInvertedIndex
 } from '../src/search/token/InvertedIndex'
 import { createAnalyzer } from '../src/search/token/analyzer'
 import type { IndexRecord } from '../src/types'
@@ -134,5 +135,79 @@ describe('InvertedIndex', () => {
 
     removeFromInvertedIndex(index, 0)
     expect(index.docTerms.has(0)).toBe(false)
+  })
+
+  test('removeAndShiftInvertedIndex renumbers surviving postings', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // Remove doc 0 — docs 1, 2 must shift down to 0, 1
+    removeAndShiftInvertedIndex(index, [0])
+
+    expect(index.docTerms.has(0)).toBe(true)
+    expect(index.docTerms.has(1)).toBe(true)
+    expect(index.docTerms.has(2)).toBe(false)
+    expect(index.docTerms.get(0)).toEqual(new Set(['hello', 'there']))
+    expect(index.docTerms.get(1)).toEqual(new Set(['goodbye', 'cruel', 'world']))
+
+    const helloPostings = index.terms.get('hello')!
+    expect(helloPostings.length).toBe(1)
+    expect(helloPostings[0].docIdx).toBe(0)
+
+    const worldPostings = index.terms.get('world')!
+    expect(worldPostings.length).toBe(1)
+    expect(worldPostings[0].docIdx).toBe(1)
+  })
+
+  test('batch remove + shift handles non-contiguous indices', () => {
+    const records: IndexRecord[] = [
+      { i: 0, $: { 0: { v: 'alpha', n: 1 } } },
+      { i: 1, $: { 0: { v: 'beta', n: 1 } } },
+      { i: 2, $: { 0: { v: 'gamma', n: 1 } } },
+      { i: 3, $: { 0: { v: 'delta', n: 1 } } },
+      { i: 4, $: { 0: { v: 'epsilon', n: 1 } } }
+    ]
+    const index = buildInvertedIndex(records, 1, analyzer)
+
+    // Remove docs 1 and 3 — remaining (0, 2, 4) become (0, 1, 2)
+    removeAndShiftInvertedIndex(index, [1, 3])
+
+    expect(index.docTerms.get(0)).toEqual(new Set(['alpha']))
+    expect(index.docTerms.get(1)).toEqual(new Set(['gamma']))
+    expect(index.docTerms.get(2)).toEqual(new Set(['epsilon']))
+    expect(index.docTerms.has(3)).toBe(false)
+    expect(index.docTerms.has(4)).toBe(false)
+
+    expect(index.terms.get('gamma')![0].docIdx).toBe(1)
+    expect(index.terms.get('epsilon')![0].docIdx).toBe(2)
+  })
+
+  test('removing every doc leaves an empty index', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    removeAndShiftInvertedIndex(index, [0, 1, 2])
+
+    expect(index.fieldCount).toBe(0)
+    expect(index.docTerms.size).toBe(0)
+    expect(index.terms.size).toBe(0)
+    expect(index.df.size).toBe(0)
+  })
+
+  test('subsequent add after shift uses the new contiguous index', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    removeAndShiftInvertedIndex(index, [0])
+
+    // After shift: 2 surviving docs at indices 0, 1. A new add gets index 2.
+    const newRecord: IndexRecord = {
+      i: 2,
+      $: { 0: { v: 'fresh doc', n: 1 } }
+    }
+    addToInvertedIndex(index, newRecord, 2, analyzer)
+
+    expect(index.docTerms.get(2)).toEqual(new Set(['fresh', 'doc']))
+    expect(index.terms.get('fresh')![0].docIdx).toBe(2)
   })
 })

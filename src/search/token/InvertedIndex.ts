@@ -186,3 +186,48 @@ export function removeFromInvertedIndex(
   index.fieldCount -= docFields.size
   index.docTerms.delete(docIdx)
 }
+
+// Removes the given docIdx entries and renumbers remaining postings/docTerms
+// so that they stay in sync with FuseIndex's contiguous renumbering on remove.
+export function removeAndShiftInvertedIndex(
+  index: InvertedIndexData,
+  removedIndices: number[]
+): void {
+  if (removedIndices.length === 0) return
+
+  // De-dup and sort so the shift computation is O(log k) per lookup.
+  const sorted = Array.from(new Set(removedIndices)).sort((a, b) => a - b)
+
+  for (const idx of sorted) {
+    removeFromInvertedIndex(index, idx)
+  }
+
+  // For any surviving oldIdx, its new idx is oldIdx minus the number of
+  // removed indices strictly less than oldIdx.
+  const shift = (oldIdx: number): number => {
+    let lo = 0
+    let hi = sorted.length
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1
+      if (sorted[mid] < oldIdx) lo = mid + 1
+      else hi = mid
+    }
+    return oldIdx - lo
+  }
+
+  const firstRemoved = sorted[0]
+
+  for (const postings of index.terms.values()) {
+    for (const p of postings) {
+      if (p.docIdx > firstRemoved) {
+        p.docIdx = shift(p.docIdx)
+      }
+    }
+  }
+
+  const shiftedDocTerms = new Map<number, Set<string>>()
+  for (const [oldKey, terms] of index.docTerms) {
+    shiftedDocTerms.set(oldKey > firstRemoved ? shift(oldKey) : oldKey, terms)
+  }
+  index.docTerms = shiftedDocTerms
+}
