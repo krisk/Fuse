@@ -19,6 +19,11 @@ interface PendingCall {
   reject: (reason: any) => void
 }
 
+interface Shard {
+  worker: Worker
+  globalIndices: number[]
+}
+
 const DEFAULT_MAX_WORKERS = 8
 
 function getDefaultWorkerCount(): number {
@@ -31,8 +36,9 @@ function getDefaultWorkerCount(): number {
 export default class FuseWorker<T> {
   private _options: IFuseOptions<T>
   private _workerOptions: FuseWorkerOptions
-  private _docs: ReadonlyArray<T>
-  private _workers: Worker[] | null = null
+  private _docs: T[]
+  private _shards: Shard[] | null = null
+  private _addCursor = 0
   private _initPromise: Promise<void> | null = null
   private _pending: Map<number, PendingCall> = new Map()
   private _nextId = 0
@@ -43,7 +49,7 @@ export default class FuseWorker<T> {
     options?: IFuseOptions<T>,
     workerOptions?: FuseWorkerOptions
   ) {
-    this._docs = docs
+    this._docs = docs.slice()
     this._options = options || {} as IFuseOptions<T>
     this._workerOptions = workerOptions || {}
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -63,37 +69,48 @@ export default class FuseWorker<T> {
     return this._initPromise
   }
 
+  private _spawnWorker(): Worker {
+    const worker = new Worker(this._workerUrl, { type: 'module' })
+
+    worker.onmessage = (e: MessageEvent) => {
+      const { id, result, error } = e.data
+      const handler = this._pending.get(id)
+      if (!handler) return
+      this._pending.delete(id)
+      if (error) {
+        handler.reject(new Error(error))
+      } else {
+        handler.resolve(result)
+      }
+    }
+
+    worker.onerror = (e: ErrorEvent) => {
+      for (const [, handler] of this._pending) {
+        handler.reject(new Error(e.message))
+      }
+    }
+
+    return worker
+  }
+
   private async _init(): Promise<void> {
     const numWorkers = this._getNumWorkers()
     const chunkSize = Math.ceil(this._docs.length / numWorkers)
+
+    this._shards = []
+    this._addCursor = 0
+
     const initPromises: Promise<void>[] = []
-
-    this._workers = []
-
     for (let i = 0; i < numWorkers; i++) {
-      const chunk = this._docs.slice(i * chunkSize, (i + 1) * chunkSize)
-      const worker = new Worker(this._workerUrl, { type: 'module' })
+      const start = i * chunkSize
+      const end = Math.min(start + chunkSize, this._docs.length)
+      const chunk = this._docs.slice(start, end)
+      const globalIndices: number[] = []
+      for (let j = start; j < end; j += 1) globalIndices.push(j)
 
-      worker.onmessage = (e: MessageEvent) => {
-        const { id, result, error } = e.data
-        const handler = this._pending.get(id)
-        if (!handler) return
-        this._pending.delete(id)
-        if (error) {
-          handler.reject(new Error(error))
-        } else {
-          handler.resolve(result)
-        }
-      }
-
-      worker.onerror = (e: ErrorEvent) => {
-        for (const [, handler] of this._pending) {
-          handler.reject(new Error(e.message))
-        }
-      }
-
-      this._workers.push(worker)
-      initPromises.push(this._call(worker, 'init', [chunk, this._options]))
+      const shard: Shard = { worker: this._spawnWorker(), globalIndices }
+      this._shards.push(shard)
+      initPromises.push(this._call(shard.worker, 'init', [chunk, this._options]))
     }
 
     await Promise.all(initPromises)
@@ -113,14 +130,18 @@ export default class FuseWorker<T> {
   ): Promise<FuseResult<T>[]> {
     await this._ensureInit()
 
-    const results = await Promise.all(
-      this._workers!.map((worker) => this._call(worker, 'search', [query, options]))
+    const shards = this._shards!
+    const results: FuseResult<T>[][] = await Promise.all(
+      shards.map((s) => this._call(s.worker, 'search', [query, options]))
     )
 
-    // Merge results from all shards
+    // Merge results from all shards, rewriting refIndex from shard-local to global
     const merged: FuseResult<T>[] = []
-    for (const shardResults of results) {
-      merged.push(...shardResults)
+    for (let i = 0, len = results.length; i < len; i += 1) {
+      const { globalIndices } = shards[i]
+      for (const r of results[i]) {
+        merged.push({ ...r, refIndex: globalIndices[r.refIndex] })
+      }
     }
 
     // Sort by score (lower is better)
@@ -141,35 +162,50 @@ export default class FuseWorker<T> {
   async add(doc: T): Promise<void> {
     await this._ensureInit()
 
-    // Round-robin across workers
-    const idx = this._nextId % this._workers!.length
-    await this._call(this._workers![idx], 'add', [doc])
+    const shards = this._shards!
+    const shard = shards[this._addCursor % shards.length]
+    this._addCursor += 1
+
+    const globalIdx = this._docs.length
+    this._docs.push(doc)
+    shard.globalIndices.push(globalIdx)
+
+    await this._call(shard.worker, 'add', [doc])
   }
 
   async setCollection(docs: ReadonlyArray<T>): Promise<void> {
-    this._docs = docs
+    this._docs = docs.slice()
 
-    if (this._workers) {
-      const numWorkers = this._workers.length
-      const chunkSize = Math.ceil(docs.length / numWorkers)
-
-      await Promise.all(
-        this._workers.map((worker, i) => {
-          const chunk = docs.slice(i * chunkSize, (i + 1) * chunkSize)
-          return this._call(worker, 'setCollection', [chunk])
-        })
-      )
-    } else {
+    if (!this._shards) {
       this._initPromise = null
+      return
     }
+
+    const shards = this._shards
+    const chunkSize = Math.ceil(this._docs.length / shards.length)
+    this._addCursor = 0
+
+    const tasks: Promise<void>[] = []
+    for (let i = 0, len = shards.length; i < len; i += 1) {
+      const start = i * chunkSize
+      const end = Math.min(start + chunkSize, this._docs.length)
+      const chunk = this._docs.slice(start, end)
+      const globalIndices: number[] = []
+      for (let j = start; j < end; j += 1) globalIndices.push(j)
+
+      shards[i].globalIndices = globalIndices
+      tasks.push(this._call(shards[i].worker, 'setCollection', [chunk]))
+    }
+
+    await Promise.all(tasks)
   }
 
   terminate(): void {
-    if (this._workers) {
-      for (const worker of this._workers) {
+    if (this._shards) {
+      for (const { worker } of this._shards) {
         worker.terminate()
       }
-      this._workers = null
+      this._shards = null
     }
     this._initPromise = null
 
