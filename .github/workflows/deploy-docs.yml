@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
+      - run: npm install --prefer-offline --no-audit --no-fund
       - run: npm run docs:build
       - uses: peaceiris/actions-gh-pages@v4
         with:
