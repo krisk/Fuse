@@ -189,3 +189,240 @@ describe('FuseWorker sharding', () => {
     fw.terminate()
   })
 })
+
+describe('FuseWorker ordering parity with Fuse', () => {
+  let originalWorker
+
+  beforeAll(() => {
+    originalWorker = globalThis.Worker
+    globalThis.Worker = MockWorker
+  })
+
+  afterAll(() => {
+    globalThis.Worker = originalWorker
+  })
+
+  // refIndex is the only stable identifier — score is stripped when
+  // includeScore: false, so we compare the ordering by refIndex.
+  const refIndices = (results) => results.map((r) => r.refIndex)
+
+  test('default search order matches Fuse when includeScore is false', async () => {
+    MockWorker.instances = []
+    const opts = { keys: ['title', 'author'] }
+    const fw = new FuseWorker(Books, opts, { numWorkers: 3 })
+    const fuse = new Fuse(Books, opts)
+
+    const fwResults = await fw.search('the')
+    const fuseResults = fuse.search('the')
+
+    // None of the worker results carry a score (includeScore default is false)
+    for (const r of fwResults) {
+      expect(r.score).toBeUndefined()
+    }
+    expect(refIndices(fwResults)).toEqual(refIndices(fuseResults))
+
+    fw.terminate()
+  })
+
+  test('equal-score ties fall back to global refIndex, not shard order', async () => {
+    MockWorker.instances = []
+    // Build a collection where multiple docs match identically — exact-match
+    // queries on `useExtendedSearch` produce score 0 for every hit, so any
+    // surviving order has to come from the (score, idx) tie-break.
+    const docs = [
+      { tag: 'apple' },
+      { tag: 'banana' },
+      { tag: 'apple' },
+      { tag: 'cherry' },
+      { tag: 'apple' },
+      { tag: 'date' },
+      { tag: 'apple' },
+      { tag: 'fig' },
+      { tag: 'apple' }
+    ]
+    const opts = { keys: ['tag'], useExtendedSearch: true, includeScore: true }
+    const fw = new FuseWorker(docs, opts, { numWorkers: 4 })
+    const fuse = new Fuse(docs, opts)
+
+    const fwResults = await fw.search('=apple')
+    const fuseResults = fuse.search('=apple')
+
+    // All matches share the same (very small) score — tie-break is the only
+    // thing that determines order.
+    const scores = new Set(fwResults.map((r) => r.score))
+    expect(scores.size).toBe(1)
+    expect(refIndices(fwResults)).toEqual(refIndices(fuseResults))
+    expect(refIndices(fwResults)).toEqual([0, 2, 4, 6, 8])
+
+    fw.terminate()
+  })
+
+  test('post-add() search ordering matches Fuse after the same adds', async () => {
+    MockWorker.instances = []
+    const opts = { keys: ['title', 'author'] }
+    const fw = new FuseWorker(Books.slice(), opts, { numWorkers: 3 })
+    const fuse = new Fuse(Books.slice(), opts)
+
+    const newDocs = [
+      { title: 'Brown Bear', author: 'X' },
+      { title: 'The Brown Sisters', author: 'Y' }
+    ]
+    for (const d of newDocs) {
+      await fw.add(d)
+      fuse.add(d)
+    }
+
+    const fwResults = await fw.search('brown')
+    const fuseResults = fuse.search('brown')
+    expect(refIndices(fwResults)).toEqual(refIndices(fuseResults))
+
+    fw.terminate()
+  })
+
+  test('post-setCollection() search ordering matches Fuse', async () => {
+    MockWorker.instances = []
+    const opts = { keys: ['title', 'author'] }
+    const fw = new FuseWorker(Books, opts, { numWorkers: 3 })
+    const fuse = new Fuse(Books, opts)
+
+    const reset = [
+      { title: 'Brown Sugar', author: 'A' },
+      { title: 'Charlie Brown', author: 'B' },
+      { title: 'Brown Fox', author: 'C' },
+      { title: 'Greenhouse', author: 'D' },
+      { title: 'Browser History', author: 'E' }
+    ]
+
+    await fw.setCollection(reset)
+    fuse.setCollection(reset)
+
+    const fwResults = await fw.search('brown')
+    const fuseResults = fuse.search('brown')
+    expect(refIndices(fwResults)).toEqual(refIndices(fuseResults))
+
+    fw.terminate()
+  })
+
+  test('shouldSort: false returns global collection order before any add()', async () => {
+    MockWorker.instances = []
+    const opts = { keys: ['title', 'author'], shouldSort: false }
+    const fw = new FuseWorker(Books, opts, { numWorkers: 4 })
+
+    const results = await fw.search('the')
+    const ordered = refIndices(results)
+    expect(ordered).toEqual([...ordered].sort((a, b) => a - b))
+    // Sanity: all returned items match the global collection at the indices
+    for (const r of results) {
+      expect(Books[r.refIndex]).toBe(r.item)
+    }
+
+    fw.terminate()
+  })
+
+  test('shouldSort: false returns global collection order after add()', async () => {
+    MockWorker.instances = []
+    const opts = { keys: ['title', 'author'], shouldSort: false }
+    const fw = new FuseWorker(Books.slice(), opts, { numWorkers: 4 })
+    const local = Books.slice()
+
+    // Round-robin add across shards. With the old code, shard order would
+    // surface in the merged results — the new code restores global order.
+    const newDocs = [
+      { title: 'Brown One', author: 'A' },
+      { title: 'Brown Two', author: 'B' },
+      { title: 'Brown Three', author: 'C' },
+      { title: 'Brown Four', author: 'D' },
+      { title: 'Brown Five', author: 'E' }
+    ]
+    for (const d of newDocs) {
+      await fw.add(d)
+      local.push(d)
+    }
+
+    const results = await fw.search('brown')
+    const ordered = refIndices(results)
+    expect(ordered).toEqual([...ordered].sort((a, b) => a - b))
+    for (const r of results) {
+      expect(local[r.refIndex]).toBe(r.item)
+    }
+
+    fw.terminate()
+  })
+
+  test('shouldSort: false returns global collection order after setCollection()', async () => {
+    MockWorker.instances = []
+    const opts = { keys: ['title', 'author'], shouldSort: false }
+    const fw = new FuseWorker(Books, opts, { numWorkers: 4 })
+    await fw.search('xyz') // force init
+
+    const reset = [
+      { title: 'Brown 0', author: 'A' },
+      { title: 'Green 1', author: 'B' },
+      { title: 'Brown 2', author: 'C' },
+      { title: 'Brown 3', author: 'D' },
+      { title: 'Yellow 4', author: 'E' },
+      { title: 'Brown 5', author: 'F' },
+      { title: 'Brown 6', author: 'G' }
+    ]
+    await fw.setCollection(reset)
+
+    const results = await fw.search('brown')
+    const ordered = refIndices(results)
+    expect(ordered).toEqual([...ordered].sort((a, b) => a - b))
+    for (const r of results) {
+      expect(reset[r.refIndex]).toBe(r.item)
+    }
+
+    fw.terminate()
+  })
+})
+
+describe('FuseWorker rejects function-valued options', () => {
+  let originalWorker
+
+  beforeAll(() => {
+    originalWorker = globalThis.Worker
+    globalThis.Worker = MockWorker
+  })
+
+  afterAll(() => {
+    globalThis.Worker = originalWorker
+  })
+
+  test('throws when sortFn is a function', () => {
+    expect(
+      () => new FuseWorker(Books, {
+        keys: ['title'],
+        sortFn: (a, b) => a.score - b.score
+      })
+    ).toThrowError(/sortFn/)
+  })
+
+  test('throws when top-level getFn is a function', () => {
+    expect(
+      () => new FuseWorker(Books, {
+        keys: ['title'],
+        getFn: (obj, path) => obj[path]
+      })
+    ).toThrowError(/getFn/)
+  })
+
+  test('throws when keys[].getFn is a function and names the offending key', () => {
+    expect(
+      () => new FuseWorker(Books, {
+        keys: [
+          'title',
+          { name: 'author', getFn: (obj) => obj.author }
+        ]
+      })
+    ).toThrowError(/keys\[author\]\.getFn/)
+  })
+
+  test('does not throw when key.name is an array path (no getFn)', () => {
+    expect(
+      () => new FuseWorker([{ a: { b: 'x' } }], {
+        keys: [{ name: ['a', 'b'] }]
+      })
+    ).not.toThrow()
+  })
+})

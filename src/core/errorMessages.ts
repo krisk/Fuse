@@ -16,3 +16,13 @@ export const MISSING_KEY_PROPERTY = (name: string): string => `Missing ${name} p
 
 export const INVALID_KEY_WEIGHT_VALUE = (key: string): string =>
   `Property 'weight' in key '${key}' must be a positive integer`
+
+export const FUSE_WORKER_UNSUPPORTED_FN_OPTION = (option: string): string =>
+  `FuseWorker does not support function-valued option '${option}': ` +
+  `functions cannot be transferred to Web Workers via postMessage. ` +
+  `Remove this option or fall back to Fuse.`
+
+export const FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED =
+  `Fuse.match does not support useTokenSearch: token search requires ` +
+  `corpus-level statistics (df, fieldCount) that a one-off string ` +
+  `comparison does not have. Use new Fuse(...).search(...) instead.`

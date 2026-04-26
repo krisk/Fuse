@@ -58,7 +58,7 @@ const results = await fuse.search('javascript')
 fuse.terminate()
 ```
 
-Same options and same results as `Fuse` — the only difference is that `search()` returns a Promise.
+Almost the same API as `Fuse`, with a few caveats covered in [Differences from Fuse](#differences-from-fuse) below — the headline one is that `search()` returns a Promise.
 
 ## How It Works
 
@@ -161,8 +161,22 @@ Workers add overhead from data serialization (`postMessage`) and worker startup.
 | `remove(predicate)` | Supported | Use `setCollection()` instead |
 | `getIndex()` | Supported | Not available |
 | Result object references | Same as input docs | Copies (structured clone) |
-| Custom `sortFn` | Supported | Not available (sorts by score) |
+| Custom `sortFn` | Supported | Throws at construction |
+| Custom `getFn` (top-level) | Supported | Throws at construction |
+| Custom `keys[].getFn` | Supported | Throws at construction |
 | Cleanup required | No | Call `terminate()` |
+
+#### Unsupported options
+
+`FuseWorker` rejects function-valued options at construction time. Functions can't be transferred to a worker via `postMessage` (they aren't structured-cloneable), so `FuseWorker` throws an explicit error instead of failing later with an opaque `DataCloneError`.
+
+The unsupported options are:
+
+- **`sortFn`** — `FuseWorker` always sorts results by Fuse's default `(score, refIndex)` tie-break. If you need a custom sort, run `Fuse` on the main thread or sort the returned array yourself.
+- **`getFn`** (top-level) — Fall back to dotted key paths (`'a.b.c'`) or array paths (`['a', 'b', 'c']`).
+- **`keys[].getFn`** — Same as above. Use a string or array path on the key.
+
+Default ordering is preserved: `FuseWorker` returns the same order as `Fuse` for the same inputs (with or without `includeScore`), and `shouldSort: false` returns results in global collection order.
 
 ## Worker URL
 

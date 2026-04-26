@@ -40,7 +40,7 @@ const results = await fuse.search('query')
 fuse.terminate()
 ```
 
-Same options, same results as `Fuse` — just async. See the [Web Workers docs](https://fusejs.io/web-workers.html) for the interactive demo and full API.
+Same options and results as `Fuse` — just async. Function-valued options (`sortFn`, `getFn`, `keys[].getFn`) aren't supported because functions can't be transferred to a worker; everything else carries over. See the [Web Workers docs](https://fusejs.io/web-workers.html) for the interactive demo and full API.
 
 ## Installation
 

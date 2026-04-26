@@ -1,7 +1,9 @@
 /// <reference lib="dom" />
 
+import * as ErrorMsg from '../core/errorMessages'
 import type {
   IFuseOptions,
+  FuseOptionKey,
   FuseResult,
   FuseSearchOptions,
   Expression
@@ -52,10 +54,37 @@ export default class FuseWorker<T> {
     this._docs = docs.slice()
     this._options = options || {} as IFuseOptions<T>
     this._workerOptions = workerOptions || {}
+    // Reject function-valued options eagerly. Without this check, postMessage
+    // throws DataCloneError on first search() rather than at construction.
+    FuseWorker._assertNoFunctionOptions(this._options)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore -- import.meta.url is resolved by Rollup at build time
     this._workerUrl = this._workerOptions.workerUrl
       || new URL('./fuse.worker.mjs', import.meta.url)
+  }
+
+  private static _assertNoFunctionOptions<U>(options: IFuseOptions<U>): void {
+    if (typeof (options as { sortFn?: unknown }).sortFn === 'function') {
+      throw new Error(ErrorMsg.FUSE_WORKER_UNSUPPORTED_FN_OPTION('sortFn'))
+    }
+    if (typeof (options as { getFn?: unknown }).getFn === 'function') {
+      throw new Error(ErrorMsg.FUSE_WORKER_UNSUPPORTED_FN_OPTION('getFn'))
+    }
+    const keys = options.keys
+    if (Array.isArray(keys)) {
+      for (let i = 0, len = keys.length; i < len; i += 1) {
+        const key = keys[i] as FuseOptionKey<U>
+        if (key && typeof key === 'object' && !Array.isArray(key)) {
+          if (typeof (key as { getFn?: unknown }).getFn === 'function') {
+            const name = (key as { name?: string | string[] }).name
+            const label = Array.isArray(name) ? name.join('.') : (name ?? String(i))
+            throw new Error(
+              ErrorMsg.FUSE_WORKER_UNSUPPORTED_FN_OPTION(`keys[${label}].getFn`)
+            )
+          }
+        }
+      }
+    }
   }
 
   private _getNumWorkers(): number {
@@ -93,6 +122,13 @@ export default class FuseWorker<T> {
     return worker
   }
 
+  private _workerInitOptions(): IFuseOptions<T> {
+    // Force includeScore so the main thread can do a global (score, idx)
+    // tie-break across shards. Score is stripped from the final result if the
+    // caller didn't ask for it.
+    return { ...this._options, includeScore: true }
+  }
+
   private async _init(): Promise<void> {
     const numWorkers = this._getNumWorkers()
     const chunkSize = Math.ceil(this._docs.length / numWorkers)
@@ -100,6 +136,7 @@ export default class FuseWorker<T> {
     this._shards = []
     this._addCursor = 0
 
+    const workerInitOptions = this._workerInitOptions()
     const initPromises: Promise<void>[] = []
     for (let i = 0; i < numWorkers; i++) {
       const start = i * chunkSize
@@ -110,7 +147,7 @@ export default class FuseWorker<T> {
 
       const shard: Shard = { worker: this._spawnWorker(), globalIndices }
       this._shards.push(shard)
-      initPromises.push(this._call(shard.worker, 'init', [chunk, this._options]))
+      initPromises.push(this._call(shard.worker, 'init', [chunk, workerInitOptions]))
     }
 
     await Promise.all(initPromises)
@@ -144,13 +181,38 @@ export default class FuseWorker<T> {
       }
     }
 
-    // Sort by score (lower is better)
     const shouldSort = this._options.shouldSort !== false
     if (shouldSort) {
-      merged.sort((a, b) => (a.score ?? 0) - (b.score ?? 0))
+      // Mirror Fuse's default sortFn: (score, idx) tie-break, but on the
+      // GLOBAL refIndex so equal-score results across shards collapse into a
+      // deterministic order matching single-thread Fuse.
+      merged.sort((a, b) => {
+        const sa = a.score ?? 0
+        const sb = b.score ?? 0
+        if (sa === sb) {
+          return a.refIndex < b.refIndex ? -1 : 1
+        }
+        return sa < sb ? -1 : 1
+      })
+    } else {
+      // Restore global collection order. Round-robin add() and
+      // shard-concatenation order otherwise leak through.
+      merged.sort((a, b) => a.refIndex - b.refIndex)
     }
 
-    // Apply limit
+    // Workers always include score so the merge above can tie-break; strip it
+    // here if the caller didn't ask for it. Rebuild the object instead of
+    // `delete`-ing — `delete` deopts the shape and roughly doubles the
+    // post-sort cost on large result sets.
+    if (!this._options.includeScore) {
+      for (let i = 0, len = merged.length; i < len; i += 1) {
+        const r = merged[i]
+        merged[i] = r.matches !== undefined
+          ? { item: r.item, refIndex: r.refIndex, matches: r.matches }
+          : { item: r.item, refIndex: r.refIndex }
+      }
+    }
+
     const limit = options?.limit
     if (limit && limit > 0) {
       return merged.slice(0, limit)
