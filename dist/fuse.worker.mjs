@@ -1,5 +1,5 @@
 /**
- * Fuse.js v7.4.0-beta.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v7.4.0-beta.3 - Lightweight fuzzy-search (http://fusejs.io)
  *
  * Copyright (c) 2026 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0

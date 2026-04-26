@@ -2,14 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Unreleased
+## [7.4.0-beta.3](https://github.com/krisk/Fuse/compare/v7.4.0-beta.2...v7.4.0-beta.3) (2026-04-26)
+
 
 ### Bug Fixes
 
-* **workers:** `FuseWorker` now matches single-thread `Fuse` ordering for default sorting, regardless of `includeScore`. Equal-score results across shards tie-break on the global `refIndex` (matching `Fuse`'s default `(score, idx)` comparator), and `shouldSort: false` returns results in global collection order (previously shard-concatenation order, visible after `add()` / `setCollection()`).
-* **workers:** Reject function-valued options (`sortFn`, top-level `getFn`, `keys[].getFn`) at `FuseWorker` construction with a clear, named error. Previously these surfaced as an opaque `DataCloneError` on the first `search()` call.
-* **workers:** Reject `useTokenSearch: true` at `FuseWorker` construction. Token search depends on corpus-level statistics that would be computed independently per shard, producing scores that don't match single-thread `Fuse`. Use `Fuse` directly on the main thread for token search.
-* **match:** `Fuse.match()` now throws an explicit error when called with `useTokenSearch: true`. Previously the full build crashed with an opaque `TypeError`, and the basic build silently fell back to plain fuzzy matching. Token search needs corpus-level statistics that a one-off string comparison can't provide.
+* **match:** explicitly reject useTokenSearch in Fuse.match ([3959d91](https://github.com/krisk/Fuse/commit/3959d91758dcbe6b0f10964775c0a7623c854f47))
+* **workers:** match Fuse ordering and reject non-cloneable options ([d571390](https://github.com/krisk/Fuse/commit/d571390aea9dead9927b4c11d3cfb5f94c42800c))
+* **workers:** reject useTokenSearch in FuseWorker ([8c6183d](https://github.com/krisk/Fuse/commit/8c6183d5b1193700f78ded21555ca1dea941cbfb))
 
 ## [7.4.0-beta.2](https://github.com/krisk/Fuse/compare/v7.4.0-beta.1...v7.4.0-beta.2) (2026-04-17)
 
