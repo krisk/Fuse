@@ -57,6 +57,12 @@ export default class FuseWorker<T> {
     // Reject function-valued options eagerly. Without this check, postMessage
     // throws DataCloneError on first search() rather than at construction.
     FuseWorker._assertNoFunctionOptions(this._options)
+    // Token search needs global corpus statistics, but each shard would build
+    // its own — scores would diverge from single-thread Fuse. Refuse upfront
+    // rather than silently returning ordering that doesn't match.
+    if (this._options.useTokenSearch) {
+      throw new Error(ErrorMsg.FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED)
+    }
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore -- import.meta.url is resolved by Rollup at build time
     this._workerUrl = this._workerOptions.workerUrl

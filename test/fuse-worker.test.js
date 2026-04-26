@@ -425,4 +425,12 @@ describe('FuseWorker rejects function-valued options', () => {
       })
     ).not.toThrow()
   })
+
+  test('throws when useTokenSearch is true', () => {
+    // Token search needs global corpus stats; per-shard stats would diverge
+    // from single-thread Fuse, so FuseWorker rejects it upfront.
+    expect(
+      () => new FuseWorker(Books, { keys: ['title'], useTokenSearch: true })
+    ).toThrowError(/useTokenSearch/)
+  })
 })

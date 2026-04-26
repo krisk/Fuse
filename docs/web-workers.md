@@ -175,6 +175,7 @@ The unsupported options are:
 - **`sortFn`** — `FuseWorker` always sorts results by Fuse's default `(score, refIndex)` tie-break. If you need a custom sort, run `Fuse` on the main thread or sort the returned array yourself.
 - **`getFn`** (top-level) — Fall back to dotted key paths (`'a.b.c'`) or array paths (`['a', 'b', 'c']`).
 - **`keys[].getFn`** — Same as above. Use a string or array path on the key.
+- **`useTokenSearch`** — Token search depends on corpus-level statistics (`df`, `fieldCount`) that would be computed independently inside each worker shard, producing scores that don't match single-thread `Fuse`. Use `Fuse` directly on the main thread for token search.
 
 Default ordering is preserved: `FuseWorker` returns the same order as `Fuse` for the same inputs (with or without `includeScore`), and `shouldSort: false` returns results in global collection order.
 

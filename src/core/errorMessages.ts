@@ -22,6 +22,12 @@ export const FUSE_WORKER_UNSUPPORTED_FN_OPTION = (option: string): string =>
   `functions cannot be transferred to Web Workers via postMessage. ` +
   `Remove this option or fall back to Fuse.`
 
+export const FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED =
+  `FuseWorker does not support useTokenSearch: token search depends on ` +
+  `corpus-level statistics (df, fieldCount) that are computed per shard, ` +
+  `so per-shard scores would diverge from single-thread Fuse. Use Fuse on ` +
+  `the main thread for token search.`
+
 export const FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED =
   `Fuse.match does not support useTokenSearch: token search requires ` +
   `corpus-level statistics (df, fieldCount) that a one-off string ` +
