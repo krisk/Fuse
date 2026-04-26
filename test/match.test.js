@@ -1,4 +1,6 @@
 import Fuse from '../dist/fuse.mjs'
+import FuseBasic from '../dist/fuse.basic.mjs'
+import * as ErrorMsg from '../src/core/errorMessages'
 
 describe('Fuse.match', () => {
   test('returns a match for a fuzzy match', () => {
@@ -58,5 +60,26 @@ describe('Fuse.match', () => {
     result.indices.forEach(([start, end]) => {
       expect(end - start + 1).toBeGreaterThanOrEqual(3)
     })
+  })
+
+  // Token search needs corpus-level statistics (df, fieldCount) that a one-off
+  // string comparison can't provide. Both builds must reject it explicitly —
+  // the full build used to crash with an opaque TypeError, the basic build
+  // used to silently fall back to plain fuzzy matching.
+  test('throws when useTokenSearch is true (full build)', () => {
+    expect(() =>
+      Fuse.match('apple', 'apple pie', { useTokenSearch: true })
+    ).toThrowError(ErrorMsg.FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED)
+  })
+
+  test('throws when useTokenSearch is true (basic build)', () => {
+    expect(() =>
+      FuseBasic.match('apple', 'apple pie', { useTokenSearch: true })
+    ).toThrowError(ErrorMsg.FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED)
+  })
+
+  test('still works when useTokenSearch is explicitly false', () => {
+    const result = Fuse.match('apple', 'apple pie', { useTokenSearch: false })
+    expect(result.isMatch).toBe(true)
   })
 })

@@ -174,6 +174,8 @@ const result = Fuse.match('javscript', 'JavaScript: The Good Parts')
 // → { isMatch: true, score: 0.04, indices: [[0, 9]] }
 ```
 
+`Fuse.match()` does **not** support `useTokenSearch` — token search requires corpus-level statistics (`df`, `fieldCount`) that a one-off string comparison can't provide. Passing `useTokenSearch: true` throws an explicit error. Use `new Fuse(docs, { useTokenSearch: true }).search(query)` for token-search behavior.
+
 ### Dynamic Collections
 
 Add and remove documents from a live index without rebuilding.
