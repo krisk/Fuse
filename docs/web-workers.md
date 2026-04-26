@@ -142,7 +142,7 @@ Benchmarked in Chrome on 100,000 documents with 4 searchable keys:
 
 Scaling is near-linear. The sweet spot is typically 4 workers — beyond that, the marginal gains diminish and memory usage increases (each worker holds a copy of its shard).
 
-Want to run more detailed benchmarks? See [`benchmark/parallel-browser`](https://github.com/krisk/Fuse/tree/main/benchmark/parallel-browser) in the repo.
+Want to run more detailed benchmarks? See [`bench/parallel-browser`](https://github.com/krisk/Fuse/tree/main/bench/parallel-browser) in the repo.
 
 #### Overhead
 

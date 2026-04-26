@@ -1,7 +1,7 @@
 /**
  * Benchmark: Single-thread Fuse.js vs Parallel Web Workers
  *
- * Run: node benchmark/parallel-workers.mjs
+ * Run: node bench/parallel-workers.mjs
  *
  * Generates a large dataset and compares search performance across
  * 1 (single-thread), 2, 4, and 8 workers.

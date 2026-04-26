@@ -21,7 +21,12 @@ npm install
 | `npm run lint` | Lint source and tests (eslint) |
 | `npm run dev` | Watch mode for ESM dev build |
 | `npm run dev:cjs` | Watch mode for CJS dev build |
-| `node bench.mjs` | Run benchmarks (10k records) |
+| `npm run bench` | Build, then run the core search + index regression benchmarks |
+| `npm run bench:search` | Search benchmark (object/string fuzzy, scaling, remove) |
+| `npm run bench:index` | Index creation benchmark across dataset sizes |
+| `npm run bench:extended` | Extended search + logical query benchmark |
+| `npm run bench:tokens` | Token search vs Bitap A/B benchmark |
+| `npm run bench:workers` | Single-thread vs parallel workers benchmark |
 
 ## <a name="structure"></a> Project Structure
 
@@ -36,6 +41,7 @@ src/
   types.ts      — Shared type definitions
   entry.ts      — Entry point with static methods and type exports
 test/           — Tests and fixtures
+bench/          — Benchmarks (search, index creation, extended, tokens, workers)
 scripts/        — Rollup build configs
 dist/           — Built output (CJS, ESM, .d.ts)
 ```
