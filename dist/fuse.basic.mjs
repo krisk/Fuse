@@ -64,6 +64,7 @@ const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = key => `Invalid value for key ${key
 const PATTERN_LENGTH_TOO_LARGE = max => `Pattern length exceeds max of ${max}.`;
 const MISSING_KEY_PROPERTY = name => `Missing ${name} property in key`;
 const INVALID_KEY_WEIGHT_VALUE = key => `Property 'weight' in key '${key}' must be a positive integer`;
+const FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED = `Fuse.match does not support useTokenSearch: token search requires ` + `corpus-level statistics (df, fieldCount) that a one-off string ` + `comparison does not have. Use new Fuse(...).search(...) instead.`;
 
 const hasOwn = Object.prototype.hasOwnProperty;
 class KeyStore {
@@ -1591,6 +1592,14 @@ Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
 Fuse.match = function (pattern, text, options) {
+  // Token search needs corpus statistics (df, fieldCount) that a one-off
+  // string comparison can't provide. Reject it here so the contract is the
+  // same in the full and basic builds — without this guard, the full build
+  // crashes with an opaque TypeError and the basic build silently falls back
+  // to fuzzy matching.
+  if (options && options.useTokenSearch) {
+    throw new Error(FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED);
+  }
   const searcher = createSearcher(pattern, {
     ...Config,
     ...options
