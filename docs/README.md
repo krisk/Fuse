@@ -3,8 +3,8 @@ title: Fuse.js — Lightweight Fuzzy-Search Library
 description: Powerful, lightweight fuzzy-search library for JavaScript with zero dependencies. Supports fuzzy matching, token search, extended search operators, and logical queries.
 ---
 
-::: tip Fuse.js 7.4.0-beta.3 is out
-Web Workers, token search, and more. Try it with `npm i fuse.js@beta`. [Release notes →](https://github.com/krisk/Fuse/releases/tag/v7.4.0-beta.3)
+::: tip Fuse.js 7.4.0 beta is out
+Web Workers, token search, and more. Try it with `npm i fuse.js@beta`. [Release notes →](https://github.com/krisk/Fuse/releases)
 :::
 
 # Fuse.js
