@@ -70,7 +70,7 @@ export default defineConfig({
   },
 
   vite: {
-    server: { port: 3000 },
+    server: { port: 3000, strictPort: true },
     optimizeDeps: {
       include: ['monaco-editor']
     }

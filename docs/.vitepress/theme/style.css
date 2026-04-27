@@ -10,6 +10,16 @@
   /* Keep code blocks dark in light mode (matches Vue.js docs convention) */
   --vp-code-block-bg: #161618;
 
+  /* Inline code: muted blue-grey, matches Vue.js docs (#476582) */
+  --vp-code-color: #476582;
+
+  /* Code-group tab bar — dark background, light text (matches Vue.js docs) */
+  --vp-code-tab-bg: #292d3ef0;
+  --vp-code-tab-text-color: rgba(235, 235, 245, 0.6);
+  --vp-code-tab-hover-text-color: rgba(235, 235, 245, 0.86);
+  --vp-code-tab-active-text-color: #fff;
+  --vp-code-tab-divider: transparent;
+
   --vp-font-family-base: 'Inter var experimental', 'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --vp-font-family-mono: ui-monospace, 'SF Mono', 'SFMono-Regular', Menlo, Monaco, 'Cascadia Mono', Consolas, 'Liberation Mono', 'Noto Sans Mono', monospace;
 
@@ -40,6 +50,9 @@
   --c-bg-light: var(--vp-c-bg-soft);
   --c-bg-lighter: var(--vp-c-bg-alt);
   --c-details-bg: var(--vp-c-bg-soft);
+
+  /* Inline code: lighter muted blue-grey for dark mode */
+  --vp-code-color: #c9def1;
 }
 
 .VPNavBar .title {
@@ -94,6 +107,47 @@
 .vp-doc a,
 .vp-doc a:hover {
   text-decoration: none;
+}
+
+/* Inline code inside a link should keep the neutral code color, not inherit
+ * the link's brand color (matches Vue.js docs) */
+.vp-doc a > code,
+.vp-doc a code {
+  color: var(--vp-c-text-1);
+}
+
+/* Code-group tab icons (npm, pnpm, yarn, bun) — same pattern Vue.js docs use */
+.vp-code-group [data-title]::before {
+  background: var(--icon) no-repeat center / contain;
+  width: 1em;
+  height: 1em;
+  margin-bottom: -0.2em;
+  margin-right: 0.5em;
+  display: inline-block;
+}
+
+.vp-code-group [data-title="npm"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23c12127' d='M2 2h28v28H2'/%3E%3Cpath fill='%23fff' d='M7.25 7.25h17.5v17.5h-3.5v-14H16v14H7.25'/%3E%3C/svg%3E");
+}
+
+.vp-code-group [data-title="pnpm"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23f9ad00' d='M30 10.75h-8.749V2H30Zm-9.626 0h-8.75V2h8.75Zm-9.625 0H2V2h8.749ZM30 20.375h-8.749v-8.75H30Z'/%3E%3Cpath fill='%234e4e4e' d='M20.374 20.375h-8.75v-8.75h8.75Zm0 9.625h-8.75v-8.75h8.75ZM30 30h-8.749v-8.75H30Zm-19.251 0H2v-8.75h8.749Z'/%3E%3C/svg%3E");
+}
+
+html.dark .vp-code-group [data-title="pnpm"]::before {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23f9ad00' d='M30 10.75h-8.749V2H30Zm-9.626 0h-8.75V2h8.75Zm-9.625 0H2V2h8.749ZM30 20.375h-8.749v-8.75H30Z'/%3E%3Cpath fill='%23fff' d='M20.374 20.375h-8.75v-8.75h8.75Zm0 9.625h-8.75v-8.75h8.75ZM30 30h-8.749v-8.75H30Zm-19.251 0H2v-8.75h8.749Z'/%3E%3C/svg%3E");
+}
+
+.vp-code-group [data-title="yarn"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%232c8ebb' d='M16 0a16 16 0 1 0 16 16A16 16 0 0 0 16 0zm8 23.45c-1.91.86-3.47 1.26-5 1.26c-1.86 0-3.35-.47-4.66-1.16c-.41.29-.94.57-1.54.72c-1 .26-2.04.11-3.11-.41a.76.76 0 0 1-.06-1.34c.03-.02.67-.4 1.29-1.27c-.35-.32-.7-.73-1.06-1.24a6.4 6.4 0 0 1-1.12-2.56a3.6 3.6 0 0 1-1.67-.64c-1.02-.63-1.73-1.66-2.12-3.06a.77.77 0 0 1 .66-.97c.02 0 .05-.01.07-.01c.02 0 1.87-.04 3.26.78c.08-.25.17-.5.26-.75c.4-.97 1-1.63 1.73-2.03c-.21-.63-.41-1.65.04-2.56C10.13 6 11.39 5.24 13.22 4.76c1.74-.45 2.95-.22 3.55.05c.53-.25 1.28-.45 2.27-.45h.11c1.11.05 2.17.48 2.97 1.26c.6.56 1.02 1.26 1.24 2.03c.6.67 1.06 1.43 1.4 2.24c.53-.09 1.11-.16 1.7-.16c.21 0 .43.01.64.04c.63.06 1.24.28 1.75.64c.76.53 1.25 1.37 1.42 2.37c.24 1.46-.2 2.97-1.25 4.36c-1.11 1.46-2.93 2.4-5.55 2.91c-.15 1.87-.81 3.34-1.86 4.4z'/%3E%3C/svg%3E");
+}
+
+.vp-code-group [data-title="bun"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23fbf0df' d='M29 17c0 5.65-5.82 10.23-13 10.23S3 22.61 3 17c0-3.5 2.24-6.6 5.66-8.44S14.21 4.81 16 4.81s3.32 1.54 7.34 3.71C26.76 10.36 29 13.46 29 17'/%3E%3Cpath fill='none' stroke='%23000' d='M16 27.65c7.32 0 13.46-4.65 13.46-10.65c0-3.72-2.37-7-5.89-8.85c-1.39-.75-2.46-1.41-3.37-2l-1.13-.69A6.14 6.14 0 0 0 16 4.35a6.9 6.9 0 0 0-3.3 1.23c-.42.24-.86.51-1.32.8c-.87.54-1.83 1.13-3 1.73C4.91 10 2.54 13.24 2.54 17c0 6 6.14 10.65 13.46 10.65Z'/%3E%3Cellipse cx='21.65' cy='18.62' fill='%23febbd0' rx='2.17' ry='1.28'/%3E%3Cellipse cx='10.41' cy='18.62' fill='%23febbd0' rx='2.17' ry='1.28'/%3E%3Cpath fill-rule='evenodd' d='M11.43 18.11a2 2 0 1 0-2-2.05a2.05 2.05 0 0 0 2 2.05m9.2 0a2 2 0 1 0-2-2.05a2 2 0 0 0 2 2.05'/%3E%3Cpath fill='%23fff' fill-rule='evenodd' d='M10.79 16.19a.77.77 0 1 0-.76-.77a.76.76 0 0 0 .76.77m9.2 0a.77.77 0 1 0 0-1.53a.77.77 0 0 0 0 1.53'/%3E%3Cpath fill='%23b71422' stroke='%23000' stroke-width='.75' d='M18.62 19.67a3.3 3.3 0 0 1-1.09 1.75a2.48 2.48 0 0 1-1.5.69a2.53 2.53 0 0 1-1.5-.69a3.28 3.28 0 0 1-1.08-1.75a.26.26 0 0 1 .29-.3h4.58a.27.27 0 0 1 .3.3Z'/%3E%3C/svg%3E");
 }
 
 /* Outline label ("On this page") — small uppercase to match Vue.js docs */

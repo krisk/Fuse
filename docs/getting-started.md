@@ -7,41 +7,55 @@ description: Install Fuse.js via npm, yarn, or CDN. Quick start guide with code 
 
 ## Installation
 
-```sh
+::: code-group
+
+```sh [npm]
 npm install fuse.js
 ```
 
-```sh
+```sh [pnpm]
+pnpm add fuse.js
+```
+
+```sh [yarn]
 yarn add fuse.js
 ```
 
+```sh [bun]
+bun add fuse.js
+```
+
+:::
+
 #### Importing
 
-ES Module:
+::: code-group
 
-```js
+```js [ESM]
 import Fuse from 'fuse.js'
 ```
 
-CommonJS:
-
-```js
+```js [CJS]
 const Fuse = require('fuse.js')
 ```
 
+:::
+
 #### CDN
 
-```html
+::: code-group
+
+```html [script tag]
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.3.0"></script>
 ```
 
-ES Module via CDN:
-
-```html
+```html [ES module]
 <script type="module">
   import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.3.0/dist/fuse.mjs'
 </script>
 ```
+
+:::
 
 Also available on [unpkg](https://unpkg.com/fuse.js).
 
