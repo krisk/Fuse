@@ -71,7 +71,7 @@ function dismiss() {
       <span class="sponsor-banner__sep">·</span>
       <span>Help keep Fuse.js maintained</span>
     </span>
-    <a class="sponsor-banner__cta" href="/sponsor.html" @click="dismiss">Sponsor &rarr;</a>
+    <a class="sponsor-banner__cta" href="/sponsor.html?ref=banner" @click="dismiss">Sponsor &rarr;</a>
     <button
       class="sponsor-banner__close"
       type="button"
