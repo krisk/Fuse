@@ -31,23 +31,17 @@ head:
 
 Fuse Cloud turns your Fuse.js setup into a hosted search service. No infrastructure, no new mental model — if you know Fuse.js, you already know how this works.
 
----
-
 ## The Problem
 
 Fuse.js works great until your dataset outgrows the browser — too many records, too slow on mobile, or multiple users need to search the same data. At that point, the options are Algolia, Elasticsearch, or Meilisearch — all powerful, all complex, all a completely different system to learn.
 
 **Fuse Cloud fills the gap:** scale your search without switching your mental model.
 
----
-
 ## How It Works
 
 1. **Upload your data** — Push a JSON array, the same format you already use with Fuse.js.
 2. **Get a search API** — Fuse Cloud indexes your data and gives you a public key.
 3. **Search from the client** — Call the API directly from your frontend. No backend required.
-
----
 
 ## What It Looks Like
 
@@ -65,8 +59,6 @@ const { results } = await client.search("iphone")
 
 Same results format as Fuse.js. Same scoring. Same fuzzy matching.
 
----
-
 ## Why Fuse Cloud
 
 | | Fuse.js (local) | Fuse Cloud | Algolia / Meilisearch |
@@ -77,13 +69,9 @@ Same results format as Fuse.js. Same scoring. Same fuzzy matching.
 | Best for | Small datasets | Medium–large datasets | Large-scale search |
 | Pricing | Free | Free tier + paid plans | Varies |
 
----
-
 ## Pricing
 
 **Free tier included.** Paid plans for higher usage. Pricing details coming soon.
-
----
 
 ## Who This Is For
 
@@ -97,8 +85,6 @@ Same results format as Fuse.js. Same scoring. Same fuzzy matching.
 - **Enterprise search** — if you need faceting, analytics, A/B testing, and dedicated support, look at Algolia or Typesense
 - **Real-time data** — if your data changes every second, you need a different architecture
 - **Sensitive/regulated data** — if compliance requirements (HIPAA, SOC2) are a blocker, this isn't ready for that yet
-
----
 
 ## Interested?
 

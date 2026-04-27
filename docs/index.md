@@ -11,8 +11,6 @@ Web Workers, token search, and more. Try it with `npm i fuse.js@beta`. [Release 
 
 **Lightweight fuzzy-search library, with zero dependencies.**
 
-<Sponsors />
-
 <UsedBy />
 
 ## Quick Example

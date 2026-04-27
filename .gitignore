@@ -3,6 +3,7 @@ node_modules/
 .DS_Store
 
 .claude/
+CLAUDE.md
 .idea/
 .vs/
 .vscode/
@@ -12,7 +13,8 @@ yarn.lock
 dist/*.d.ts
 dist/*.map
 
-docs/.vuepress/dist
+docs/.vitepress/dist
+docs/.vitepress/cache
 .temp
 .cache
 drafts/

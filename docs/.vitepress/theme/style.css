@@ -1,0 +1,234 @@
+@import url('https://use.fontawesome.com/releases/v5.7.1/css/all.css');
+@import url('https://fonts.bunny.net/css?family=dosis:500|inter:400,500,600,700');
+
+:root {
+  --vp-c-brand-1: #9066b8;
+  --vp-c-brand-2: #9066b8;
+  --vp-c-brand-3: #9066b8;
+  --vp-c-brand-soft: rgba(144, 102, 184, 0.14);
+
+  /* Keep code blocks dark in light mode (matches Vue.js docs convention) */
+  --vp-code-block-bg: #161618;
+
+  --vp-font-family-base: 'Inter var experimental', 'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --vp-font-family-mono: ui-monospace, 'SF Mono', 'SFMono-Regular', Menlo, Monaco, 'Cascadia Mono', Consolas, 'Liberation Mono', 'Noto Sans Mono', monospace;
+
+  /* Compatibility aliases — keep legacy --c-* in components working */
+  --c-brand: var(--vp-c-brand-1);
+  --c-brand-rgb: 144, 102, 184;
+  --c-text: var(--vp-c-text-1);
+  --c-text-lighter: var(--vp-c-text-2);
+  --c-text-lightest: var(--vp-c-text-3);
+  --c-border: var(--vp-c-divider);
+  --c-bg: var(--vp-c-bg);
+  --c-bg-light: var(--vp-c-bg-soft);
+  --c-bg-lighter: var(--vp-c-bg-alt);
+  --c-details-bg: var(--vp-c-bg-soft);
+  --c-tip: #42b983;
+  --c-badge-warning: #ca8a04;
+  --c-badge-warning-text: #fff;
+  --c-badge-danger: #da5961;
+}
+
+.dark {
+  --c-brand: var(--vp-c-brand-1);
+  --c-text: var(--vp-c-text-1);
+  --c-text-lighter: var(--vp-c-text-2);
+  --c-text-lightest: var(--vp-c-text-3);
+  --c-border: var(--vp-c-divider);
+  --c-bg: var(--vp-c-bg);
+  --c-bg-light: var(--vp-c-bg-soft);
+  --c-bg-lighter: var(--vp-c-bg-alt);
+  --c-details-bg: var(--vp-c-bg-soft);
+}
+
+.VPNavBar .title {
+  font-family: 'Dosis', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: normal;
+  font-size: 20px;
+}
+
+/* Span the navbar divider full width so it doesn't break under the logo */
+.VPNavBar.has-sidebar .divider {
+  padding-left: 0 !important;
+}
+
+/* Give the whole navbar one background so the logo column doesn't read as
+ * a separate component (VitePress goes transparent when has-sidebar at >=960px) */
+@media (min-width: 960px) {
+  .VPNavBar.has-sidebar:not(.home.top) {
+    background-color: var(--vp-nav-bg-color);
+  }
+
+  /* Drop the title's own bottom border; the navbar divider spans full width now */
+  .VPNavBarTitle.has-sidebar .title {
+    border-bottom-color: transparent !important;
+  }
+}
+
+.VPNavBar .VPImage.logo {
+  margin-right: 0.4rem;
+}
+
+.VPNavBar a:hover .VPImage.logo {
+  animation: fuse-logo-spin 0.5s ease-in-out 1;
+}
+
+@keyframes fuse-logo-spin {
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  to {
+    transform: rotate(180deg) scale(1);
+  }
+}
+
+.vp-doc h2 {
+  border-bottom: none;
+  margin-top: 32px;
+  padding-top: 16px;
+  padding-bottom: 0.5rem;
+}
+
+/* No underlines on doc links, even on hover */
+.vp-doc a,
+.vp-doc a:hover {
+  text-decoration: none;
+}
+
+/* Outline label ("On this page") — small uppercase to match Vue.js docs */
+.VPDocAsideOutline .outline-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+}
+
+/* Drop the full-height left border on the outline; keep only the active marker */
+.VPDoc .VPDocAsideOutline .content {
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+
+/* Tighten the gap between the article and the aside column */
+.VPDoc .aside {
+  padding-left: 0;
+}
+
+/* Inner padding so the marker can overhang left without being clipped by
+ * .aside-container's overflow-x: hidden */
+.VPDoc .VPDocAside {
+  padding-left: 16px;
+}
+
+/* Active-item marker styled to match Vue.js docs */
+.VPDoc .VPDocAsideOutline .outline-marker {
+  width: 4px !important;
+  height: 20px !important;
+  border-radius: 4px !important;
+  left: -12px !important;
+}
+
+/* Bottom-of-page nav (Previous/Next) — strip the card style, match Vue.js docs */
+.VPDocFooter .prev-next .pager-link,
+.VPDocFooter .pager-link {
+  border: none !important;
+  border-radius: 0;
+  padding: 0;
+  background-color: transparent !important;
+}
+
+.VPDocFooter .pager-link:hover {
+  background-color: transparent;
+}
+
+.VPDocFooter .pager-link .desc {
+  font-size: 14px;
+  color: var(--vp-c-text-2);
+}
+
+.VPDocFooter .pager-link.prev .desc::before {
+  content: "‹ ";
+}
+
+.VPDocFooter .pager-link.next .desc::after {
+  content: " ›";
+}
+
+.VPDocFooter .pager-link .title {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+}
+
+.VPDocFooter .pager-link:hover .title {
+  text-decoration: underline;
+}
+
+/* Sponsor nav icon */
+.VPNavBarMenuLink[href$="/sponsor"]::before,
+.VPNavBarMenuLink[href$="/sponsor.html"]::before,
+.VPNavBarMenuLink[href$="/sponsor/"]::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: middle;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23bf3989'%3E%3Cpath d='m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002Z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+  top: -1px;
+}
+
+/* Cloud nav icon */
+.VPNavBarMenuLink[href$="/cloud"]::before,
+.VPNavBarMenuLink[href$="/cloud.html"]::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: middle;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232c3e50'%3E%3Cpath d='M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+  top: -1px;
+}
+
+.dark .VPNavBarMenuLink[href$="/cloud"]::before,
+.dark .VPNavBarMenuLink[href$="/cloud.html"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z'/%3E%3C/svg%3E");
+}
+
+/* Sidebar "New" badge for Token Search */
+.VPSidebarItem a[href$="/token-search"] .text::after,
+.VPSidebarItem a[href$="/token-search.html"] .text::after {
+  content: 'New';
+  font-size: 0.55em;
+  font-weight: 600;
+  color: var(--c-tip);
+  border: 1px solid var(--c-tip);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 4px;
+  position: relative;
+  top: -2px;
+}
+
+/* Sidebar "Beta" badge for Web Workers */
+.VPSidebarItem a[href$="/web-workers"] .text::after,
+.VPSidebarItem a[href$="/web-workers.html"] .text::after {
+  content: 'Beta';
+  font-size: 0.55em;
+  font-weight: 600;
+  color: var(--c-badge-warning);
+  border: 1px solid var(--c-badge-warning);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 4px;
+  position: relative;
+  top: -2px;
+}

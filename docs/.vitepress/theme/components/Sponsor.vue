@@ -2,7 +2,7 @@
   <div class="sponsor-link-wrapper">
     <strong>❤️️ Fuse.js? Support its development by becoming a sponsor.</strong>
     <br />
-    <a href="/sponsor/" class="sponsor-btn">Sponsor</a>
+    <a href="/sponsor.html" class="sponsor-btn">Sponsor</a>
   </div>
 </template>
 

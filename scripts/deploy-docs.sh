@@ -23,7 +23,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
   echo "Publishing"
   # navigate into the build output directory
-  cd docs/.vuepress/dist
+  cd docs/.vitepress/dist
 
   echo 'www.fusejs.io' > CNAME
 

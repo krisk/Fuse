@@ -10,8 +10,6 @@ Fuse.js is built and maintained by a solo developer. Your sponsorship directly f
 
 <UsedBy />
 
----
-
 ## How to Sponsor
 
 <a href="https://github.com/sponsors/krisk" class="gh-sponsor-btn">
@@ -31,11 +29,11 @@ Fuse.js is built and maintained by a solo developer. Your sponsorship directly f
   padding: 5px 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #24292f;
+  color: #24292f !important;
   background-color: #f6f8fa;
   border: 1px solid rgba(31, 35, 40, 0.15);
   border-radius: 6px;
-  text-decoration: none;
+  text-decoration: none !important;
   margin: 8px 12px 16px 0;
 }
 .gh-sponsor-btn:hover {
@@ -54,8 +52,6 @@ If your product depends on Fuse.js, sponsoring is a practical way to ensure the 
 
 If Fuse.js has saved you time or made a project easier, consider a one-time or recurring contribution. It’s like buying me a coffee ☕️ — and it keeps the project going.
 
----
-
 ## What Your Sponsorship Funds
 
 Fuse.js is maintained by a single developer. Your sponsorship goes directly toward:
@@ -63,9 +59,7 @@ Fuse.js is maintained by a single developer. Your sponsorship goes directly towa
 - **Ongoing maintenance** — bug fixes, dependency updates, and keeping the library reliable across environments
 - **Performance work** — profiling, benchmarking, and optimizing search speed and memory usage
 - **New features** — extending the query API, improving scoring, and building new search capabilities
-- **Documentation** — guides, examples, and API reference at [fusejs.io](https://fusejs.io/)
-
----
+- **Documentation** — guides, examples, and API reference at [fusejs.io](https://www.fusejs.io/)
 
 ## Tier Benefits
 
@@ -76,7 +70,7 @@ Fuse.js is maintained by a single developer. Your sponsorship goes directly towa
   Your name or logo in the [README.md](https://github.com/krisk/Fuse) on GitHub.
 
 - **🥈 Silver Sponsor ($100/month):**
-  Your logo on the front page of [fusejs.io](https://fusejs.io/) and in the [README.md](https://github.com/krisk/Fuse).
+  Your logo on the front page of [fusejs.io](https://www.fusejs.io/) and in the [README.md](https://github.com/krisk/Fuse).
 
 - **🥇 Gold Sponsor ($400/month):**
   All of the above with larger logo and most prominent placement.

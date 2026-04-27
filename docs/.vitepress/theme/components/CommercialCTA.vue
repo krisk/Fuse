@@ -2,8 +2,8 @@
   <div class="commercial-cta">
     <div class="commercial-cta-inner">
       <strong>Using Fuse.js in production?</strong>
-      Get priority support, SLA guarantees, and invoice payment with a
-      <a href="/team-plans.html">support plan</a>.
+      Skip managing the index and infrastructure with
+      <a href="/cloud.html">Fuse Cloud</a>.
     </div>
   </div>
 </template>

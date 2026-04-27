@@ -419,4 +419,4 @@ Usage:
 - **For nested keys**, use dot notation: `keys: ['address.city']`.
 - **Weight your keys** to prioritize certain fields: `keys: [{ name: 'title', weight: 2 }, { name: 'description', weight: 1 }]`.
 
-See [Getting Started](getting-started.md) for installation options (CDN, ES modules, CommonJS) and [Fuzzy Search](fuzzy-search.md) to understand how scoring and thresholds work.
+See [Getting Started](../getting-started.md) for installation options (CDN, ES modules, CommonJS) and [Fuzzy Search](../fuzzy-search.md) to understand how scoring and thresholds work.

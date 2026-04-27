@@ -239,6 +239,6 @@ const fuse = new Fuse(yourData, {
 const results = fuse.search('query')
 ```
 
-See [Getting Started](getting-started.md) for installation options (CDN, ES modules, CommonJS) and [Fuzzy Search](fuzzy-search.md) to understand how scoring and thresholds work.
+See [Getting Started](../getting-started.md) for installation options (CDN, ES modules, CommonJS) and [Fuzzy Search](../fuzzy-search.md) to understand how scoring and thresholds work.
 
-For large datasets that benefit from parallel search, see [Web Workers](web-workers.md).
+For large datasets that benefit from parallel search, see [Web Workers](../web-workers.md).
