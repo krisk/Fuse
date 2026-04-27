@@ -41,14 +41,6 @@ Three options work together to determine what counts as a match:
 
 The cutoff for the fuzziness score. A threshold of `0.0` requires a perfect match. A threshold of `1.0` matches anything.
 
-```js
-// Strict matching
-const fuse = new Fuse(list, { keys: ['title'], threshold: 0.2 })
-
-// Permissive matching
-const fuse = new Fuse(list, { keys: ['title'], threshold: 0.8 })
-```
-
 #### `location`
 
 - Default: `0`
@@ -61,24 +53,17 @@ The expected position of the pattern in the text. The algorithm penalizes matche
 
 How far from `location` a match can be before being penalized to the point of exclusion. The effective search window is:
 
-```
-threshold × distance = maximum offset from location
-```
+`threshold` × `distance` = maximum offset from `location`
 
+::: info
 With defaults (`threshold: 0.6`, `distance: 100`), the pattern must appear within 60 characters of position 0 to match. For example, searching for `"zero"` in `"Fuse.js is a powerful, lightweight fuzzy-search library, with zero dependencies"` would **not** match — `"zero"` appears at index 62, just outside the window.
+:::
 
 #### `ignoreLocation`
 
 - Default: `false`
 
 When `true`, disables location-based scoring entirely. The pattern can appear anywhere in the text and still match. This is useful when you don't know or care where the match might be.
-
-```js
-const fuse = new Fuse(list, {
-  keys: ['description'],
-  ignoreLocation: true
-})
-```
 
 ::: tip
 The default options effectively search only the first ~60 characters of each field. If your data has long text fields, either increase `distance`, or set `ignoreLocation: true`.

@@ -66,7 +66,7 @@ export default defineConfig({
   },
 
   markdown: {
-    theme: { light: 'github-dark', dark: 'github-dark' }
+    theme: { light: 'material-theme-palenight', dark: 'material-theme-palenight' }
   },
 
   vite: {
