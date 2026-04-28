@@ -50,6 +50,9 @@ class FuseWorker {
     if (typeof options.getFn === 'function') {
       throw new Error(FUSE_WORKER_UNSUPPORTED_FN_OPTION('getFn'));
     }
+    if (typeof options.tokenize === 'function') {
+      throw new Error(FUSE_WORKER_UNSUPPORTED_FN_OPTION('tokenize'));
+    }
     const keys = options.keys;
     if (Array.isArray(keys)) {
       for (let i = 0, len = keys.length; i < len; i += 1) {

@@ -47,6 +47,16 @@ export type FuseGetFunction<T> = (
 
 export type GetFunction = (obj: any, path: string | string[]) => any
 
+// ── Tokenize function (token search) ───────────────────────────────
+
+/**
+ * Custom tokenizer for `useTokenSearch`. Receives the field/query text after
+ * case-folding and diacritic-stripping (per `isCaseSensitive` /
+ * `ignoreDiacritics`) and must return the term list. Functions must be
+ * deterministic — non-deterministic output silently breaks `df` accounting.
+ */
+export type FuseTokenizeFunction = (text: string) => string[]
+
 // ── Norm ───────────────────────────────────────────────────────────
 
 export interface NormInterface {
@@ -190,6 +200,15 @@ export interface IFuseOptions<T> {
   useExtendedSearch?: boolean
   /** When `true`, enables token search with TF-IDF scoring. */
   useTokenSearch?: boolean
+  /**
+   * Tokenizer used by `useTokenSearch`, applied identically at index-build
+   * and query time. Accepts either a global `RegExp` or a function returning
+   * `string[]`. Defaults to `/[\p{L}\p{M}\p{N}_]+/gu`, which handles CJK,
+   * Cyrillic, Greek, Arabic, Hebrew, Devanagari, etc. out of the box. Use a
+   * function form (e.g. wrapping `Intl.Segmenter`) for word-segmentation in
+   * scripts without whitespace boundaries.
+   */
+  tokenize?: RegExp | FuseTokenizeFunction
 }
 
 export interface FuseIndexOptions<T> {

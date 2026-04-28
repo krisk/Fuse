@@ -26,6 +26,7 @@ export const FuzzyOptions = {
 export const AdvancedOptions = {
   useExtendedSearch: false,
   useTokenSearch: false,
+  tokenize: undefined as IFuseOptions<any>['tokenize'],
   getFn: get as any,
   ignoreLocation: false,
   ignoreFieldNorm: false,

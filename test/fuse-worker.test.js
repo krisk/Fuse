@@ -426,6 +426,27 @@ describe('FuseWorker rejects function-valued options', () => {
     ).not.toThrow()
   })
 
+  test('throws on function-form tokenize even with useTokenSearch off (cloneability check)', () => {
+    // The rejection is about structured-cloneability across postMessage,
+    // not whether token search is on — so it fires regardless of the flag.
+    expect(
+      () => new FuseWorker(Books, {
+        keys: ['title'],
+        useTokenSearch: false,
+        tokenize: (text) => text.split(/\s+/)
+      })
+    ).toThrowError(/tokenize/)
+  })
+
+  test('does not throw when tokenize is a regex (structured-cloneable)', () => {
+    expect(
+      () => new FuseWorker(Books, {
+        keys: ['title'],
+        tokenize: /[\w.+-]+/g
+      })
+    ).not.toThrow()
+  })
+
   test('throws when useTokenSearch is true', () => {
     // Token search needs global corpus stats; per-shard stats would diverge
     // from single-thread Fuse, so FuseWorker rejects it upfront.

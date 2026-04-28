@@ -197,6 +197,7 @@ const FuzzyOptions = {
 const AdvancedOptions = {
   useExtendedSearch: false,
   useTokenSearch: false,
+  tokenize: undefined,
   getFn: get,
   ignoreLocation: false,
   ignoreFieldNorm: false,
@@ -1399,11 +1400,29 @@ function format(results, docs, {
   });
 }
 
-const WORD = /\b\w+\b/g;
+// Includes \p{M} (Mark) so combining marks stay attached to their base
+// letter — without it, scripts like Devanagari and NFD-normalized Latin
+// shatter (e.g. 'हिन्दी' → ['ह','न','द'], 'café'.normalize('NFD') → ['cafe']).
+const DEFAULT_TOKEN = /[\p{L}\p{M}\p{N}_]+/gu;
+function resolveTokenize(tokenize) {
+  if (typeof tokenize === 'function') {
+    return text => {
+      const result = tokenize(text);
+      return result;
+    };
+  }
+  if (tokenize instanceof RegExp) {
+    if (!tokenize.global) ;
+    return text => text.match(tokenize) || [];
+  }
+  return text => text.match(DEFAULT_TOKEN) || [];
+}
 function createAnalyzer({
   isCaseSensitive = false,
-  ignoreDiacritics = false
+  ignoreDiacritics = false,
+  tokenize
 } = {}) {
+  const tokenizeFn = resolveTokenize(tokenize);
   return {
     tokenize(text) {
       if (!isCaseSensitive) {
@@ -1412,7 +1431,7 @@ function createAnalyzer({
       if (ignoreDiacritics) {
         text = stripDiacritics(text);
       }
-      return text.match(WORD) || [];
+      return tokenizeFn(text);
     }
   };
 }
@@ -1583,7 +1602,8 @@ class Fuse {
     if (this.options.useTokenSearch) {
       const analyzer = createAnalyzer({
         isCaseSensitive: this.options.isCaseSensitive,
-        ignoreDiacritics: this.options.ignoreDiacritics
+        ignoreDiacritics: this.options.ignoreDiacritics,
+        tokenize: this.options.tokenize
       });
       this._invertedIndex = buildInvertedIndex(this._myIndex.records, this._myIndex.keys.length, analyzer);
     }
@@ -1599,7 +1619,8 @@ class Fuse {
       const record = this._myIndex.records[this._myIndex.records.length - 1];
       const analyzer = createAnalyzer({
         isCaseSensitive: this.options.isCaseSensitive,
-        ignoreDiacritics: this.options.ignoreDiacritics
+        ignoreDiacritics: this.options.ignoreDiacritics,
+        tokenize: this.options.tokenize
       });
       addToInvertedIndex(this._invertedIndex, record, this._myIndex.keys.length, analyzer);
     }
@@ -1971,7 +1992,8 @@ class TokenSearch {
     this.options = options;
     this.analyzer = createAnalyzer({
       isCaseSensitive: options.isCaseSensitive,
-      ignoreDiacritics: options.ignoreDiacritics
+      ignoreDiacritics: options.ignoreDiacritics,
+      tokenize: options.tokenize
     });
     const queryTerms = this.analyzer.tokenize(pattern);
     const invertedIndex = options._invertedIndex;

@@ -19,7 +19,8 @@ export default class TokenSearch {
     this.options = options
     this.analyzer = createAnalyzer({
       isCaseSensitive: options.isCaseSensitive,
-      ignoreDiacritics: options.ignoreDiacritics
+      ignoreDiacritics: options.ignoreDiacritics,
+      tokenize: options.tokenize
     })
 
     const queryTerms = this.analyzer.tokenize(pattern)

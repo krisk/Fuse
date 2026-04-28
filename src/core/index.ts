@@ -114,7 +114,8 @@ export default class Fuse<T> {
     if (this.options.useTokenSearch) {
       const analyzer = createAnalyzer({
         isCaseSensitive: this.options.isCaseSensitive,
-        ignoreDiacritics: this.options.ignoreDiacritics
+        ignoreDiacritics: this.options.ignoreDiacritics,
+        tokenize: this.options.tokenize
       })
       this._invertedIndex = buildInvertedIndex(
         this._myIndex.records,
@@ -138,7 +139,8 @@ export default class Fuse<T> {
       const record = this._myIndex.records[this._myIndex.records.length - 1]
       const analyzer = createAnalyzer({
         isCaseSensitive: this.options.isCaseSensitive,
-        ignoreDiacritics: this.options.ignoreDiacritics
+        ignoreDiacritics: this.options.ignoreDiacritics,
+        tokenize: this.options.tokenize
       })
       addToInvertedIndex(
         this._invertedIndex,

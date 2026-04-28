@@ -25,6 +25,13 @@ interface KeyObject {
 }
 type FuseGetFunction<T> = (obj: T, path: string | string[]) => ReadonlyArray<string> | string;
 type GetFunction = (obj: any, path: string | string[]) => any;
+/**
+ * Custom tokenizer for `useTokenSearch`. Receives the field/query text after
+ * case-folding and diacritic-stripping (per `isCaseSensitive` /
+ * `ignoreDiacritics`) and must return the term list. Functions must be
+ * deterministic — non-deterministic output silently breaks `df` accounting.
+ */
+type FuseTokenizeFunction = (text: string) => string[];
 interface NormInterface {
     get(value: string): number;
     clear(): void;
@@ -142,6 +149,15 @@ interface IFuseOptions<T> {
     useExtendedSearch?: boolean;
     /** When `true`, enables token search with TF-IDF scoring. */
     useTokenSearch?: boolean;
+    /**
+     * Tokenizer used by `useTokenSearch`, applied identically at index-build
+     * and query time. Accepts either a global `RegExp` or a function returning
+     * `string[]`. Defaults to `/[\p{L}\p{M}\p{N}_]+/gu`, which handles CJK,
+     * Cyrillic, Greek, Arabic, Hebrew, Devanagari, etc. out of the box. Use a
+     * function form (e.g. wrapping `Intl.Segmenter`) for word-segmentation in
+     * scripts without whitespace boundaries.
+     */
+    tokenize?: RegExp | FuseTokenizeFunction;
 }
 interface FuseIndexOptions<T> {
     getFn?: FuseGetFunction<T>;
@@ -289,4 +305,4 @@ declare class Fuse<T> {
 }
 
 export { FuseIndex, Fuse as default };
-export type { Expression, FuseGetFunction, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject, SearchResult };
+export type { Expression, FuseGetFunction, FuseIndexObjectRecord, FuseIndexOptions, FuseIndexRecords, FuseIndexStringRecord, FuseOptionKey, FuseOptionKeyObject, FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction, FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch, FuseSortFunctionMatchList, FuseTokenizeFunction, IFuseOptions, RangeTuple, RecordEntry, RecordEntryArrayItem, RecordEntryObject, SearchResult };

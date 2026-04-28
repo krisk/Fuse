@@ -33,7 +33,7 @@ All standard options work as before: `includeScore`, `includeMatches`, `keys` wi
 
 ## How It Works
 
-1. **Tokenization** — The query is split into individual words using word boundary matching (`\b\w+\b`). Each word becomes a separate fuzzy search.
+1. **Tokenization** — The query is split into individual words using a unicode-aware regex (`/[\p{L}\p{M}\p{N}_]+/gu`) by default. Each word becomes a separate fuzzy search. The default handles CJK, Cyrillic, Greek, Arabic, Hebrew, Devanagari, etc. out of the box. You can override it with the [`tokenize`](#custom-tokenizer) option.
 
 2. **Per-term fuzzy matching** — Each term is matched against each field using the Bitap algorithm with `ignoreLocation: true`, so terms can appear anywhere in the field. This means multi-word queries are no longer limited by the 32-character Bitap pattern cap.
 
@@ -53,6 +53,46 @@ All standard options work as before: `includeScore`, `includeMatches`, `keys` wi
 - **Word order independence** — `"patterns javascript"` and `"javascript patterns"` produce identical results.
 - **Typo tolerance per term** — Each term is fuzzy-matched independently, so typos in any word are tolerated.
 - **Long queries work** — A 6-word query runs 6 independent Bitap searches, each within the 32-char limit.
+
+## Custom Tokenizer
+
+The default tokenizer (`/[\p{L}\p{M}\p{N}_]+/gu`) treats any unicode letter, mark, or number as part of a word. That works well for most natural-language text, but two cases need an override:
+
+- **Tokens with internal punctuation** like `node.js`, `c++`, `U.S.A`, file paths, or hashtags. Pass a custom regex that includes the punctuation you want to keep.
+- **Word-segmenting CJK or Thai** — the default keeps each script run as one token; pass a function that uses [`Intl.Segmenter`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) to split into actual words.
+
+### Regex form
+
+```js
+const fuse = new Fuse(docs, {
+  useTokenSearch: true,
+  keys: ['text'],
+  // keep dots, plusses, and dashes inside tokens
+  tokenize: /[\w.+-]+/g
+})
+
+fuse.search('node.js') // matches docs containing the literal "node.js"
+```
+
+The regex must have the global (`g`) flag, otherwise only the first token of each text is returned. In development builds, a missing `g` flag emits a one-time `console.warn`.
+
+### Function form
+
+For CJK and other scripts that don't separate words with whitespace, the function form lets you plug in [`Intl.Segmenter`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) — a built-in API in modern browsers and Node that does locale-aware word segmentation. Filter by `isWordLike` so punctuation and whitespace segments are dropped:
+
+```js
+const segmenter = new Intl.Segmenter('zh', { granularity: 'word' })
+
+const fuse = new Fuse(docs, {
+  useTokenSearch: true,
+  keys: ['text'],
+  tokenize: (text) =>
+    Array.from(segmenter.segment(text), (s) => s.isWordLike ? s.segment : null)
+      .filter(Boolean)
+})
+```
+
+The function receives the field/query text **after** case-folding and diacritic-stripping (per `isCaseSensitive` / `ignoreDiacritics`) and must return `string[]`. It must be deterministic — non-deterministic tokenizers silently break document-frequency accounting. Function tokenizers are not supported by `FuseWorker` because they cannot be transferred to a Web Worker via `postMessage`.
 
 ## Tips
 

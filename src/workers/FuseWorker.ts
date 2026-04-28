@@ -76,6 +76,9 @@ export default class FuseWorker<T> {
     if (typeof (options as { getFn?: unknown }).getFn === 'function') {
       throw new Error(ErrorMsg.FUSE_WORKER_UNSUPPORTED_FN_OPTION('getFn'))
     }
+    if (typeof (options as { tokenize?: unknown }).tokenize === 'function') {
+      throw new Error(ErrorMsg.FUSE_WORKER_UNSUPPORTED_FN_OPTION('tokenize'))
+    }
     const keys = options.keys
     if (Array.isArray(keys)) {
       for (let i = 0, len = keys.length; i < len; i += 1) {
