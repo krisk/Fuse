@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.4](https://github.com/krisk/Fuse/compare/v7.4.0-beta.3...v7.4.0-beta.4) (2026-04-28)
+
 ## [7.4.0-beta.3](https://github.com/krisk/Fuse/compare/v7.4.0-beta.2...v7.4.0-beta.3) (2026-04-26)
 
 
