@@ -243,17 +243,11 @@ declare class MaxHeap {
     _sinkDown(i: number): void;
 }
 
-interface Posting {
-    docIdx: number;
-    keyIdx: number;
-    subIdx: number;
-    tf: number;
-}
 interface InvertedIndexData {
-    terms: Map<string, Posting[]>;
     fieldCount: number;
     df: Map<string, number>;
-    docTerms: Map<number, Set<string>>;
+    docFieldCount: Map<number, number>;
+    docTermFieldHits: Map<number, Map<string, number>>;
 }
 
 interface HeapSearchOptions {

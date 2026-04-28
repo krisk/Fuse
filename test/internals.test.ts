@@ -57,6 +57,21 @@ describe('InvertedIndex', () => {
     // doc 1 contributes 1 field (key 0)
     // doc 2 contributes 1 field (key 0)
     expect(index.fieldCount).toBe(4)
+    expect(index.docFieldCount.get(0)).toBe(2)
+    expect(index.docFieldCount.get(1)).toBe(1)
+    expect(index.docFieldCount.get(2)).toBe(1)
+  })
+
+  test('df is incremented once per (doc, term, field)', () => {
+    const records = makeRecords()
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // "hello" appears in doc 0 key 0 and doc 1 key 0 → df 2
+    expect(index.df.get('hello')).toBe(2)
+    // "world" appears in doc 0 key 0 and doc 2 key 0 → df 2
+    expect(index.df.get('world')).toBe(2)
+    // "foo" only in doc 0 key 1 → df 1
+    expect(index.df.get('foo')).toBe(1)
   })
 
   test('fieldCount is correct after removal', () => {
@@ -82,35 +97,33 @@ describe('InvertedIndex', () => {
     expect(index.fieldCount).toBe(before)
   })
 
-  test('terms unique to a removed doc are deleted from the index', () => {
+  test('terms unique to a removed doc are deleted from df', () => {
     const records = makeRecords()
     const index = buildInvertedIndex(records, 2, analyzer)
 
     // "foo", "bar", "baz" only appear in doc 0
-    expect(index.terms.has('foo')).toBe(true)
+    expect(index.df.has('foo')).toBe(true)
 
     removeFromInvertedIndex(index, 0)
-    expect(index.terms.has('foo')).toBe(false)
-    expect(index.terms.has('bar')).toBe(false)
-    expect(index.terms.has('baz')).toBe(false)
+    expect(index.df.has('foo')).toBe(false)
+    expect(index.df.has('bar')).toBe(false)
+    expect(index.df.has('baz')).toBe(false)
   })
 
-  test('shared terms survive removal of one doc', () => {
+  test('shared terms survive removal of one doc with correct df', () => {
     const records = makeRecords()
     const index = buildInvertedIndex(records, 2, analyzer)
 
-    // "hello" is in doc 0 and doc 1
-    expect(index.terms.get('hello')!.length).toBe(2)
+    // "hello" is in doc 0 and doc 1 → df 2
+    expect(index.df.get('hello')).toBe(2)
 
     removeFromInvertedIndex(index, 0)
 
-    // "hello" should still exist with 1 posting
-    expect(index.terms.has('hello')).toBe(true)
-    expect(index.terms.get('hello')!.length).toBe(1)
-    expect(index.terms.get('hello')![0].docIdx).toBe(1)
+    // "hello" should still exist with df 1 (only doc 1 left)
+    expect(index.df.get('hello')).toBe(1)
   })
 
-  test('addToInvertedIndex updates fieldCount and terms', () => {
+  test('addToInvertedIndex updates fieldCount, df, and per-doc maps', () => {
     const records = makeRecords()
     const index = buildInvertedIndex(records, 2, analyzer)
 
@@ -122,41 +135,134 @@ describe('InvertedIndex', () => {
     addToInvertedIndex(index, newRecord, 2, analyzer)
 
     expect(index.fieldCount).toBe(5)
-    expect(index.terms.has('unicorn')).toBe(true)
-    expect(index.docTerms.has(3)).toBe(true)
+    expect(index.df.get('unicorn')).toBe(1)
+    expect(index.docFieldCount.get(3)).toBe(1)
+    expect(index.docTermFieldHits.get(3)?.get('unicorn')).toBe(1)
   })
 
-  test('docTerms tracks terms per document', () => {
+  test('docTermFieldHits tracks per-doc, per-term field counts', () => {
     const records = makeRecords()
     const index = buildInvertedIndex(records, 2, analyzer)
 
-    expect(index.docTerms.get(0)).toEqual(new Set(['hello', 'world', 'foo', 'bar', 'baz']))
-    expect(index.docTerms.get(1)).toEqual(new Set(['hello', 'there']))
+    expect(index.docTermFieldHits.get(0)).toEqual(
+      new Map([
+        ['hello', 1],
+        ['world', 1],
+        ['foo', 1],
+        ['bar', 1],
+        ['baz', 1]
+      ])
+    )
+    expect(index.docTermFieldHits.get(1)).toEqual(
+      new Map([
+        ['hello', 1],
+        ['there', 1]
+      ])
+    )
 
     removeFromInvertedIndex(index, 0)
-    expect(index.docTerms.has(0)).toBe(false)
+    expect(index.docTermFieldHits.has(0)).toBe(false)
   })
 
-  test('removeAndShiftInvertedIndex renumbers surviving postings', () => {
+  test('repeated term across multiple keys: df counts each (doc, field)', () => {
+    // Same term "rust" in two distinct fields of one doc
+    const records: IndexRecord[] = [
+      {
+        i: 0,
+        $: {
+          0: { v: 'rust', n: 1 },
+          1: { v: 'rust systems', n: 1 }
+        }
+      }
+    ]
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // df["rust"] = 2: appeared in 2 fields of doc 0
+    expect(index.df.get('rust')).toBe(2)
+    expect(index.docTermFieldHits.get(0)?.get('rust')).toBe(2)
+    expect(index.docFieldCount.get(0)).toBe(2)
+
+    removeFromInvertedIndex(index, 0)
+
+    // df should be fully cleared, not stuck at 1
+    expect(index.df.has('rust')).toBe(false)
+    expect(index.fieldCount).toBe(0)
+    expect(index.docFieldCount.has(0)).toBe(false)
+    expect(index.docTermFieldHits.has(0)).toBe(false)
+  })
+
+  test('repeated term within same field counts once for df', () => {
+    // "rust rust rust" in one field is still one (doc, term, field) increment
+    const records: IndexRecord[] = [
+      { i: 0, $: { 0: { v: 'rust rust rust', n: 1 } } }
+    ]
+    const index = buildInvertedIndex(records, 1, analyzer)
+
+    expect(index.df.get('rust')).toBe(1)
+    expect(index.docTermFieldHits.get(0)?.get('rust')).toBe(1)
+    expect(index.fieldCount).toBe(1)
+
+    removeFromInvertedIndex(index, 0)
+    expect(index.df.has('rust')).toBe(false)
+    expect(index.fieldCount).toBe(0)
+  })
+
+  test('array sub-records: each sub counts as its own field', () => {
+    // Array key — each element is its own field/sub-record.
+    const records: IndexRecord[] = [
+      {
+        i: 0,
+        $: {
+          0: [
+            { v: 'rust', i: 0, n: 1 },
+            { v: 'rust', i: 1, n: 1 },
+            { v: 'systems', i: 2, n: 1 }
+          ]
+        }
+      }
+    ]
+    const index = buildInvertedIndex(records, 1, analyzer)
+
+    // 3 sub-records → 3 field contributions
+    expect(index.fieldCount).toBe(3)
+    expect(index.docFieldCount.get(0)).toBe(3)
+    // "rust" in 2 sub-records → df 2
+    expect(index.df.get('rust')).toBe(2)
+    // "systems" in 1 sub-record → df 1
+    expect(index.df.get('systems')).toBe(1)
+
+    removeFromInvertedIndex(index, 0)
+    expect(index.fieldCount).toBe(0)
+    expect(index.df.size).toBe(0)
+    expect(index.docFieldCount.size).toBe(0)
+  })
+
+  test('removeAndShiftInvertedIndex renumbers per-doc maps', () => {
     const records = makeRecords()
     const index = buildInvertedIndex(records, 2, analyzer)
 
     // Remove doc 0 — docs 1, 2 must shift down to 0, 1
     removeAndShiftInvertedIndex(index, [0])
 
-    expect(index.docTerms.has(0)).toBe(true)
-    expect(index.docTerms.has(1)).toBe(true)
-    expect(index.docTerms.has(2)).toBe(false)
-    expect(index.docTerms.get(0)).toEqual(new Set(['hello', 'there']))
-    expect(index.docTerms.get(1)).toEqual(new Set(['goodbye', 'cruel', 'world']))
+    expect(index.docFieldCount.has(0)).toBe(true)
+    expect(index.docFieldCount.has(1)).toBe(true)
+    expect(index.docFieldCount.has(2)).toBe(false)
+    expect(index.docTermFieldHits.get(0)).toEqual(
+      new Map([
+        ['hello', 1],
+        ['there', 1]
+      ])
+    )
+    expect(index.docTermFieldHits.get(1)).toEqual(
+      new Map([
+        ['goodbye', 1],
+        ['cruel', 1],
+        ['world', 1]
+      ])
+    )
 
-    const helloPostings = index.terms.get('hello')!
-    expect(helloPostings.length).toBe(1)
-    expect(helloPostings[0].docIdx).toBe(0)
-
-    const worldPostings = index.terms.get('world')!
-    expect(worldPostings.length).toBe(1)
-    expect(worldPostings[0].docIdx).toBe(1)
+    expect(index.df.get('hello')).toBe(1)
+    expect(index.df.get('world')).toBe(1)
   })
 
   test('batch remove + shift handles non-contiguous indices', () => {
@@ -172,14 +278,50 @@ describe('InvertedIndex', () => {
     // Remove docs 1 and 3 — remaining (0, 2, 4) become (0, 1, 2)
     removeAndShiftInvertedIndex(index, [1, 3])
 
-    expect(index.docTerms.get(0)).toEqual(new Set(['alpha']))
-    expect(index.docTerms.get(1)).toEqual(new Set(['gamma']))
-    expect(index.docTerms.get(2)).toEqual(new Set(['epsilon']))
-    expect(index.docTerms.has(3)).toBe(false)
-    expect(index.docTerms.has(4)).toBe(false)
+    expect(index.docTermFieldHits.get(0)).toEqual(new Map([['alpha', 1]]))
+    expect(index.docTermFieldHits.get(1)).toEqual(new Map([['gamma', 1]]))
+    expect(index.docTermFieldHits.get(2)).toEqual(new Map([['epsilon', 1]]))
+    expect(index.docTermFieldHits.has(3)).toBe(false)
+    expect(index.docTermFieldHits.has(4)).toBe(false)
 
-    expect(index.terms.get('gamma')![0].docIdx).toBe(1)
-    expect(index.terms.get('epsilon')![0].docIdx).toBe(2)
+    expect(index.docFieldCount.get(0)).toBe(1)
+    expect(index.docFieldCount.get(1)).toBe(1)
+    expect(index.docFieldCount.get(2)).toBe(1)
+  })
+
+  test('batch remove + shift with array sub-records and repeated terms', () => {
+    // Doc 1 has "rust" in 2 fields (its own array sub-records) — verifies that
+    // df decrements correctly when shifting away docs with multi-field terms.
+    const records: IndexRecord[] = [
+      { i: 0, $: { 0: { v: 'alpha', n: 1 } } },
+      {
+        i: 1,
+        $: {
+          0: { v: 'rust', n: 1 },
+          1: [
+            { v: 'rust', i: 0, n: 1 },
+            { v: 'systems', i: 1, n: 1 }
+          ]
+        }
+      },
+      { i: 2, $: { 0: { v: 'gamma', n: 1 } } }
+    ]
+    const index = buildInvertedIndex(records, 2, analyzer)
+
+    // df["rust"] = 2 (two fields of doc 1)
+    expect(index.df.get('rust')).toBe(2)
+    expect(index.fieldCount).toBe(1 + 3 + 1)
+
+    removeAndShiftInvertedIndex(index, [1])
+
+    // After removing doc 1, "rust" and "systems" should be gone entirely
+    expect(index.df.has('rust')).toBe(false)
+    expect(index.df.has('systems')).toBe(false)
+    expect(index.fieldCount).toBe(2)
+
+    // Doc 2 should now be at index 1
+    expect(index.docTermFieldHits.get(1)).toEqual(new Map([['gamma', 1]]))
+    expect(index.docTermFieldHits.has(2)).toBe(false)
   })
 
   test('removing every doc leaves an empty index', () => {
@@ -189,8 +331,8 @@ describe('InvertedIndex', () => {
     removeAndShiftInvertedIndex(index, [0, 1, 2])
 
     expect(index.fieldCount).toBe(0)
-    expect(index.docTerms.size).toBe(0)
-    expect(index.terms.size).toBe(0)
+    expect(index.docFieldCount.size).toBe(0)
+    expect(index.docTermFieldHits.size).toBe(0)
     expect(index.df.size).toBe(0)
   })
 
@@ -207,7 +349,12 @@ describe('InvertedIndex', () => {
     }
     addToInvertedIndex(index, newRecord, 2, analyzer)
 
-    expect(index.docTerms.get(2)).toEqual(new Set(['fresh', 'doc']))
-    expect(index.terms.get('fresh')![0].docIdx).toBe(2)
+    expect(index.docTermFieldHits.get(2)).toEqual(
+      new Map([
+        ['fresh', 1],
+        ['doc', 1]
+      ])
+    )
+    expect(index.df.get('fresh')).toBe(1)
   })
 })

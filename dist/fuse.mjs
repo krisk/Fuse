@@ -1434,167 +1434,96 @@ function createAnalyzer({
   };
 }
 
-function buildInvertedIndex(records, keyCount, analyzer) {
-  const terms = new Map();
-  const df = new Map();
-  const docTerms = new Map();
-  let fieldCount = 0;
-  function addField(text, docIdx, keyIdx, subIdx) {
-    const tokens = analyzer.tokenize(text);
-    if (!tokens.length) return;
-    fieldCount++;
+// Stats-only inverted index for token search (per Plan 008 Direction B).
+//
+// The query path consumes only `df` and `fieldCount` (IDF weighting). The
+// per-doc maps exist solely to keep `df` and `fieldCount` correct under
+// `add` / `remove` / `removeAt`:
+//
+//   docFieldCount[doc]    = # distinct fields the doc contributed; subtracted
+//                           from `fieldCount` on remove.
+//   docTermFieldHits[doc] = Map<term, # fields in which `term` appears for
+//                           that doc>; each entry decrements `df[term]` by
+//                           that count on remove.
+//
+// `df` is incremented once per (doc, term, field) at index time. Removing a
+// doc decrements `df` by the same count, mirroring the increment exactly.
 
-    // Count term frequencies in this field
-    const termFreqs = new Map();
-    for (const token of tokens) {
-      termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
-    }
+function addField(index, text, docIdx, analyzer) {
+  const tokens = analyzer.tokenize(text);
+  if (!tokens.length) return;
+  index.fieldCount++;
+  index.docFieldCount.set(docIdx, (index.docFieldCount.get(docIdx) || 0) + 1);
 
-    // Track which terms belong to this doc for fast removal
-    let docTermSet = docTerms.get(docIdx);
-    if (!docTermSet) {
-      docTermSet = new Set();
-      docTerms.set(docIdx, docTermSet);
-    }
-
-    // Track which terms we've already counted for df in this field
-    for (const [term, tf] of termFreqs) {
-      const posting = {
-        docIdx,
-        keyIdx,
-        subIdx,
-        tf
-      };
-      let postings = terms.get(term);
-      if (!postings) {
-        postings = [];
-        terms.set(term, postings);
-      }
-      postings.push(posting);
-      docTermSet.add(term);
-      df.set(term, (df.get(term) || 0) + 1);
-    }
+  // We count each (doc, term, field) once — repeated occurrences within the
+  // same field don't multiply df.
+  const distinctTerms = new Set(tokens);
+  let perDocTerms = index.docTermFieldHits.get(docIdx);
+  if (!perDocTerms) {
+    perDocTerms = new Map();
+    index.docTermFieldHits.set(docIdx, perDocTerms);
   }
-  for (const record of records) {
-    const {
-      i: docIdx,
-      v,
-      $: fields
-    } = record;
-
-    // String list
-    if (v !== undefined) {
-      addField(v, docIdx, -1, -1);
-      continue;
-    }
-
-    // Object list
-    if (fields) {
-      for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
-        const value = fields[keyIdx];
-        if (!value) continue;
-        if (Array.isArray(value)) {
-          for (const sub of value) {
-            addField(sub.v, docIdx, keyIdx, sub.i ?? -1);
-          }
-        } else {
-          addField(value.v, docIdx, keyIdx, -1);
-        }
-      }
-    }
+  for (const term of distinctTerms) {
+    perDocTerms.set(term, (perDocTerms.get(term) || 0) + 1);
+    index.df.set(term, (index.df.get(term) || 0) + 1);
   }
-  return {
-    terms,
-    fieldCount,
-    df,
-    docTerms
-  };
 }
-function addToInvertedIndex(index, record, keyCount, analyzer) {
+function ingestRecord(index, record, keyCount, analyzer) {
   const {
     i: docIdx,
     v,
     $: fields
   } = record;
-  let docTermSet = index.docTerms.get(docIdx);
-  if (!docTermSet) {
-    docTermSet = new Set();
-    index.docTerms.set(docIdx, docTermSet);
-  }
-  function addField(text, keyIdx, subIdx) {
-    const tokens = analyzer.tokenize(text);
-    if (!tokens.length) return;
-    index.fieldCount++;
-    const termFreqs = new Map();
-    for (const token of tokens) {
-      termFreqs.set(token, (termFreqs.get(token) || 0) + 1);
-    }
-    for (const [term, tf] of termFreqs) {
-      const posting = {
-        docIdx,
-        keyIdx,
-        subIdx,
-        tf
-      };
-      let postings = index.terms.get(term);
-      if (!postings) {
-        postings = [];
-        index.terms.set(term, postings);
-      }
-      postings.push(posting);
-      docTermSet.add(term);
-      index.df.set(term, (index.df.get(term) || 0) + 1);
-    }
-  }
   if (v !== undefined) {
-    addField(v, -1, -1);
+    addField(index, v, docIdx, analyzer);
     return;
   }
-  if (fields) {
-    for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
-      const value = fields[keyIdx];
-      if (!value) continue;
-      if (Array.isArray(value)) {
-        for (const sub of value) {
-          addField(sub.v, keyIdx, sub.i ?? -1);
-        }
-      } else {
-        addField(value.v, keyIdx, -1);
-      }
+  if (!fields) return;
+  for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
+    const value = fields[keyIdx];
+    if (!value) continue;
+    if (Array.isArray(value)) {
+      for (const sub of value) addField(index, sub.v, docIdx, analyzer);
+    } else {
+      addField(index, value.v, docIdx, analyzer);
     }
   }
+}
+function buildInvertedIndex(records, keyCount, analyzer) {
+  const index = {
+    fieldCount: 0,
+    df: new Map(),
+    docFieldCount: new Map(),
+    docTermFieldHits: new Map()
+  };
+  for (const record of records) {
+    ingestRecord(index, record, keyCount, analyzer);
+  }
+  return index;
+}
+function addToInvertedIndex(index, record, keyCount, analyzer) {
+  ingestRecord(index, record, keyCount, analyzer);
 }
 function removeFromInvertedIndex(index, docIdx) {
-  const docTermSet = index.docTerms.get(docIdx);
-  if (!docTermSet) return;
-
-  // Count distinct fields this doc contributed (for fieldCount adjustment)
-  const docFields = new Set();
-  for (const term of docTermSet) {
-    const postings = index.terms.get(term);
-    if (!postings) continue;
-    const filtered = postings.filter(p => {
-      if (p.docIdx !== docIdx) return true;
-      docFields.add(`${p.keyIdx}:${p.subIdx}`);
-      return false;
-    });
-    const removed = postings.length - filtered.length;
-    if (removed > 0) {
-      index.df.set(term, (index.df.get(term) || 0) - removed);
-      if (filtered.length === 0) {
-        index.terms.delete(term);
-        index.df.delete(term);
-      } else {
-        index.terms.set(term, filtered);
-      }
+  const fieldCount = index.docFieldCount.get(docIdx);
+  if (fieldCount === undefined) return;
+  index.fieldCount -= fieldCount;
+  index.docFieldCount.delete(docIdx);
+  const perDocTerms = index.docTermFieldHits.get(docIdx);
+  if (!perDocTerms) return;
+  for (const [term, hits] of perDocTerms) {
+    const next = (index.df.get(term) || 0) - hits;
+    if (next <= 0) {
+      index.df.delete(term);
+    } else {
+      index.df.set(term, next);
     }
   }
-  index.fieldCount -= docFields.size;
-  index.docTerms.delete(docIdx);
+  index.docTermFieldHits.delete(docIdx);
 }
 
-// Removes the given docIdx entries and renumbers remaining postings/docTerms
-// so that they stay in sync with FuseIndex's contiguous renumbering on remove.
+// Removes the given docIdx entries and renumbers the remaining per-doc maps
+// so they stay in sync with FuseIndex's contiguous renumbering on remove.
 function removeAndShiftInvertedIndex(index, removedIndices) {
   if (removedIndices.length === 0) return;
 
@@ -1616,18 +1545,16 @@ function removeAndShiftInvertedIndex(index, removedIndices) {
     return oldIdx - lo;
   };
   const firstRemoved = sorted[0];
-  for (const postings of index.terms.values()) {
-    for (const p of postings) {
-      if (p.docIdx > firstRemoved) {
-        p.docIdx = shift(p.docIdx);
-      }
-    }
+  const shiftedDocFieldCount = new Map();
+  for (const [oldKey, count] of index.docFieldCount) {
+    shiftedDocFieldCount.set(oldKey > firstRemoved ? shift(oldKey) : oldKey, count);
   }
-  const shiftedDocTerms = new Map();
-  for (const [oldKey, terms] of index.docTerms) {
-    shiftedDocTerms.set(oldKey > firstRemoved ? shift(oldKey) : oldKey, terms);
+  index.docFieldCount = shiftedDocFieldCount;
+  const shiftedDocTermFieldHits = new Map();
+  for (const [oldKey, terms] of index.docTermFieldHits) {
+    shiftedDocTermFieldHits.set(oldKey > firstRemoved ? shift(oldKey) : oldKey, terms);
   }
-  index.docTerms = shiftedDocTerms;
+  index.docTermFieldHits = shiftedDocTermFieldHits;
 }
 
 class Fuse {
