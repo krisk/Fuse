@@ -133,10 +133,12 @@ export default class Fuse<T> {
     }
 
     this._docs.push(doc)
-    this._myIndex.add(doc)
+    const record = this._myIndex.add(doc, this._docs.length - 1)
 
-    if (this._invertedIndex) {
-      const record = this._myIndex.records[this._myIndex.records.length - 1]
+    // Skip inverted-index bookkeeping when no record was appended (blank
+    // strings produce null). The previous code read `records[records.length-1]`
+    // unconditionally, which would re-ingest the previous doc on `add("")`.
+    if (this._invertedIndex && record) {
       const analyzer = createAnalyzer({
         isCaseSensitive: this.options.isCaseSensitive,
         ignoreDiacritics: this.options.ignoreDiacritics,
@@ -181,6 +183,13 @@ export default class Fuse<T> {
   }
 
   removeAt(idx: number): T {
+    // Validate before any mutation. The previous code spliced `_docs` first
+    // and let FuseIndex.removeAt throw afterward — partial-state on invalid
+    // input. Atomic now.
+    if (!Number.isInteger(idx) || idx < 0 || idx >= this._docs.length) {
+      throw new Error(ErrorMsg.INVALID_DOC_INDEX)
+    }
+
     if (this._invertedIndex) {
       removeAndShiftInvertedIndex(this._invertedIndex, [idx])
     }

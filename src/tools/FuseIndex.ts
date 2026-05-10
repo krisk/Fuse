@@ -1,5 +1,6 @@
 import { isArray, isDefined, isString, isBlank, toString } from '../helpers/typeGuards'
 import Config from '../core/config'
+import * as ErrorMsg from '../core/errorMessages'
 import normGenerator from './fieldNorm'
 import { createKey } from './KeyStore'
 import type {
@@ -76,31 +77,86 @@ export default class FuseIndex<T = any> {
     this.records.length = recordCount
     this.norm.clear()
   }
-  // Adds a doc to the end of the index
-  add(doc: T): void {
-    const idx = this.size()
+  // Appends a record for `doc` at `docIndex` (the doc's position in the source
+  // array). Returns the appended record, or null when `doc` is a blank string
+  // (those are skipped at record creation; see `_createStringRecord`). Callers
+  // use the return value to gate downstream bookkeeping like the inverted
+  // index, which must not be touched when no record was produced.
+  add(doc: T, docIndex: number): IndexRecord | null {
+    if (!Number.isInteger(docIndex) || docIndex < 0) {
+      throw new Error(ErrorMsg.INVALID_DOC_INDEX)
+    }
 
     if (isString(doc)) {
-      this._addString(doc, idx)
-    } else {
-      this._addObject(doc, idx)
+      const record = this._createStringRecord(doc as unknown as string, docIndex)
+      if (record) {
+        this.records.push(record)
+      }
+      return record
     }
-  }
-  // Removes the doc at the specified index of the index
-  removeAt(idx: number): void {
-    this.records.splice(idx, 1)
 
-    // Change ref index of every subsquent doc
-    for (let i = idx, len = this.size(); i < len; i += 1) {
-      this.records[i].i -= 1
+    const record = this._createObjectRecord(doc, docIndex)
+    this.records.push(record)
+    return record
+  }
+  // Removes the record for the doc at the specified source-array (docs) index.
+  // Blank string docs have no record; callers may pass such an index and the
+  // splice is a no-op, but subsequent records still need their .i decremented
+  // to track the docs array that the caller is splicing in parallel.
+  removeAt(idx: number): void {
+    if (!Number.isInteger(idx) || idx < 0) {
+      throw new Error(ErrorMsg.INVALID_DOC_INDEX)
+    }
+
+    // Find and remove the record at this doc-index, if one exists. Records are
+    // typically sorted by .i but the algorithm doesn't depend on it — parsed
+    // indexes via setIndexRecords may arrive in arbitrary order.
+    for (let i = 0, len = this.records.length; i < len; i += 1) {
+      if (this.records[i].i === idx) {
+        this.records.splice(i, 1)
+        break
+      }
+    }
+
+    // Decrement every record whose source-array index is now stale.
+    for (let i = 0, len = this.records.length; i < len; i += 1) {
+      if (this.records[i].i > idx) {
+        this.records[i].i -= 1
+      }
     }
   }
-  // Removes docs at the specified indices
+  // Removes records for the docs at the specified source-array indices, then
+  // shifts every surviving record's .i down by the count of removed indices
+  // strictly less than it (mirrors removeAndShiftInvertedIndex's shift math).
+  // Invalid entries (non-integer, negative) in `indices` are dropped silently
+  // — removeAll's natural use case is "caller passed a list of matched doc
+  // indices"; asymmetric throw-vs-no-op would be more surprising than a clean
+  // filter.
   removeAll(indices: number[]): void {
-    const toRemove = new Set(indices)
-    this.records = this.records.filter((_, i) => !toRemove.has(i))
-    for (let i = 0, len = this.records.length; i < len; i += 1) {
-      this.records[i].i = i
+    const toRemove = new Set<number>()
+    for (const v of indices) {
+      if (Number.isInteger(v) && v >= 0) {
+        toRemove.add(v)
+      }
+    }
+
+    if (toRemove.size === 0) {
+      return
+    }
+
+    this.records = this.records.filter((r) => !toRemove.has(r.i))
+
+    const sorted = Array.from(toRemove).sort((a, b) => a - b)
+    for (const record of this.records) {
+      // shift = count of removed indices strictly less than record.i
+      let lo = 0
+      let hi = sorted.length
+      while (lo < hi) {
+        const mid = (lo + hi) >>> 1
+        if (sorted[mid] < record.i) lo = mid + 1
+        else hi = mid
+      }
+      record.i -= lo
     }
   }
   getValueForItemAtKeyId(item: any, keyId: string): any {
@@ -108,15 +164,6 @@ export default class FuseIndex<T = any> {
   }
   size(): number {
     return this.records.length
-  }
-  _addString(doc: string, docIndex: number): void {
-    const record = this._createStringRecord(doc, docIndex)
-    if (record) {
-      this.records.push(record)
-    }
-  }
-  _addObject(doc: any, docIndex: number): void {
-    this.records.push(this._createObjectRecord(doc, docIndex))
   }
   _createStringRecord(doc: string, docIndex: number): IndexRecord | null {
     if (!isDefined(doc) || isBlank(doc)) {

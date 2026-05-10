@@ -117,3 +117,47 @@ console.log('\n=== remove() — 10k docs, remove 1k ===')
     })
   }, 2, 5)
 }
+
+// --- String mutation paths (Plan 013) ---
+// These exercise blank-heavy string collections through the fixed mutation
+// paths — add() per the new docIndex-parameter signature, removeAt with the
+// order-independent algorithm, and removeAll with the binary-search shift
+// (vs the pre-fix O(N) sequential-rewrite). Roughly 1/3 of docs are blank to
+// stress the records-shorter-than-docs case.
+console.log('\n=== String mutations (blank-heavy) — 10k docs ===')
+{
+  const buildDocs = (n) => {
+    const out = new Array(n)
+    for (let i = 0; i < n; i++) {
+      out[i] = i % 3 === 0 ? '' : randomWords(1, 4)
+    }
+    return out
+  }
+
+  bench('build Fuse from 10k (1/3 blank)', () => {
+    new Fuse(buildDocs(10_000))
+  }, 2, 5)
+
+  bench('add 100 strings to 10k (1/3 blank)', () => {
+    const fuse = new Fuse(buildDocs(10_000))
+    for (let i = 0; i < 100; i++) {
+      fuse.add(i % 4 === 0 ? '' : 'extra ' + i)
+    }
+  }, 2, 5)
+
+  bench('removeAt(0) ×100 on 10k (1/3 blank)', () => {
+    const fuse = new Fuse(buildDocs(10_000))
+    for (let i = 0; i < 100; i++) {
+      fuse.removeAt(0)
+    }
+  }, 2, 5)
+
+  bench('remove 1k from 10k (1/3 blank)', () => {
+    const fuse = new Fuse(buildDocs(10_000))
+    let removed = 0
+    fuse.remove(() => {
+      if (removed < 1000) { removed++; return true }
+      return false
+    })
+  }, 2, 5)
+}

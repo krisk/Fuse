@@ -202,13 +202,11 @@ declare class FuseIndex<T = any> {
     setIndexRecords(records?: IndexRecord[]): void;
     setKeys(keys?: KeyObject[]): void;
     create(): void;
-    add(doc: T): void;
+    add(doc: T, docIndex: number): IndexRecord | null;
     removeAt(idx: number): void;
     removeAll(indices: number[]): void;
     getValueForItemAtKeyId(item: any, keyId: string): any;
     size(): number;
-    _addString(doc: string, docIndex: number): void;
-    _addObject(doc: any, docIndex: number): void;
     _createStringRecord(doc: string, docIndex: number): IndexRecord | null;
     _createObjectRecord(doc: any, docIndex: number): IndexRecord;
     toJSON(): {
