@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.5](https://github.com/krisk/Fuse/compare/v7.4.0-beta.4...v7.4.0-beta.5) (2026-05-10)
+
+
+### Features
+
+* **token-search:** add customizable tokenizer with unicode-aware default ([8e55cae](https://github.com/krisk/Fuse/commit/8e55cae563f8e9f6a04b7ef0bb08883a74f26fa8)), closes [#821](https://github.com/krisk/Fuse/issues/821)
+
+
+### Bug Fixes
+
+* **index:** correct doc-index alignment for Fuse<string> with blank docs ([0b8e3ca](https://github.com/krisk/Fuse/commit/0b8e3ca2d29e1666f38da557d93ae1790086f9ea))
+
 ## [7.4.0-beta.4](https://github.com/krisk/Fuse/compare/v7.4.0-beta.3...v7.4.0-beta.4) (2026-04-28)
 
 ## [7.4.0-beta.3](https://github.com/krisk/Fuse/compare/v7.4.0-beta.2...v7.4.0-beta.3) (2026-04-26)
