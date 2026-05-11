@@ -11,6 +11,7 @@
 const companies = [
   'Google',
   'Microsoft',
+  'Anthropic',
   'Atlassian',
   'Spotify',
   'MongoDB',
