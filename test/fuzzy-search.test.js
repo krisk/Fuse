@@ -775,8 +775,10 @@ describe('Search location', () => {
     })
 
     test('We get a list whose indices are found', () => {
-      expect(matches[0].indices[0]).toEqual([4, 4])
-      expect(matches[0].indices[1]).toEqual([6, 8])
+      // Highlights are restricted to the bitap-matched window (#792 fix).
+      // The match window is "wor" in "World" at positions 6-8; pre-fix
+      // there was also a stray [4,4] from the 'o' in "Hello".
+      expect(matches[0].indices).toEqual([[6, 8]])
     })
 
     test('with original text values', () => {
@@ -795,13 +797,11 @@ describe('Searching with default options', () => {
     let result
     beforeEach(() => (result = fuse.search('test')))
 
-    test('We get a match containing 4 indices', () => {
-      expect(result[0].matches[0].indices).toHaveLength(4)
-    })
-
-    test('and the first index is a single character', () => {
-      expect(result[0].matches[0].indices[0][0]).toBe(0)
-      expect(result[0].matches[0].indices[0][1]).toBe(0)
+    // Pre-#792-fix this returned 4 indices covering every "t", "te", and
+    // "tes" partial in the text. After the fix, highlights are restricted
+    // to the actual matched window: the single "test" at 9-12.
+    test('We get a single match covering the actual "test" window', () => {
+      expect(result[0].matches[0].indices).toEqual([[9, 12]])
     })
   })
 })
@@ -822,13 +822,13 @@ describe('Searching with findAllMatches', () => {
     let result
     beforeEach(() => (result = fuse.search('test')))
 
-    test('We get a match containing 7 indices', () => {
-      expect(result[0].matches[0].indices).toHaveLength(7)
-    })
-
-    test('and the first index is a single character', () => {
-      expect(result[0].matches[0].indices[0][0]).toBe(0)
-      expect(result[0].matches[0].indices[0][1]).toBe(0)
+    // Pre-#792-fix findAllMatches produced 7 indices because the scan
+    // extended to the end of text and the buggy mask marked every
+    // pattern-alphabet char. The flag still extends the bitap scan range,
+    // but bitap tracks only one bestLocation, so highlights are now the
+    // same single window as the default-options case.
+    test('We get a single match covering the actual "test" window', () => {
+      expect(result[0].matches[0].indices).toEqual([[9, 12]])
     })
   })
 })
@@ -865,13 +865,11 @@ describe('Searching with minCharLength', () => {
     let result
     beforeEach(() => (result = fuse.search('test')))
 
-    test('We get a match containing 3 indices', () => {
-      expect(result[0].matches[0].indices).toHaveLength(3)
-    })
-
-    test('and the first index is a single character', () => {
-      expect(result[0].matches[0].indices[0][0]).toBe(2)
-      expect(result[0].matches[0].indices[0][1]).toBe(3)
+    // Pre-#792-fix this returned 3 indices ("te", "tes", "test"). After
+    // the fix, highlights are restricted to the actual matched window;
+    // minMatchCharLength: 2 is still applied, but only one run survives.
+    test('We get a single match covering the actual "test" window', () => {
+      expect(result[0].matches[0].indices).toEqual([[9, 12]])
     })
   })
 
@@ -1456,5 +1454,83 @@ describe('Threshold filtering', () => {
     results.forEach((r) => {
       expect(r.score).toBeLessThanOrEqual(0.001)
     })
+  })
+})
+
+// Highlight indices used to bleed across the whole scan range because the
+// bitap fuzzy loop wrote matchMask for every pattern-alphabet char it
+// visited. After the #792 fix, indices are restricted to the actual matched
+// window: [bestLocation, bestLocation + patternLen - 1 + bestErrors].
+describe('Match indices restricted to bitap-matched window (#792)', () => {
+  test('#792 repro: strong fuzzy match, no multi-char cross-word bleed', () => {
+    const fuse = new Fuse(['olympic medical office'], { includeMatches: true })
+    const result = fuse.search('olympics')
+    // [0,6] is the real "olympic" match. [8,8] is a 1-char residual from
+    // the bestErrors=1 right-edge extension ('m' in "medical"). Pre-fix
+    // there were also bleed entries at [11,12], [14,14], [16,16], [19,20].
+    expect(result[0].matches[0].indices).toEqual([
+      [0, 6],
+      [8, 8]
+    ])
+  })
+
+  test('#611 repro: partial pattern does not highlight stray pattern-alphabet runs', () => {
+    const fuse = new Fuse(['AA BB AAA BBB'], {
+      includeMatches: true,
+      ignoreLocation: true,
+      ignoreFieldNorm: true,
+      threshold: 0.001
+    })
+    const result = fuse.search('AAA')
+    // Pre-fix: [[0,1],[6,8]]. The [0,1] "AA" partial was bleed.
+    expect(result[0].matches[0].indices).toEqual([[6, 8]])
+  })
+
+  test('findAllMatches:true produces the same indices as default options', () => {
+    // The flag still extends the bitap scan range, but bitap tracks only
+    // one bestLocation, so highlights are determined by bestLocation +
+    // bestErrors regardless of how far the scan went.
+    const fuse = new Fuse(['olympic medical office'], {
+      includeMatches: true,
+      findAllMatches: true
+    })
+    const result = fuse.search('olympics')
+    expect(result[0].matches[0].indices).toEqual([
+      [0, 6],
+      [8, 8]
+    ])
+  })
+
+  test('multiple non-overlapping exact matches are all highlighted', () => {
+    // The top-of-function exact-match loop marks every occurrence's window;
+    // the post-loop fill is additive, not replacing.
+    const fuse = new Fuse(['ab XX ab YY ab'], { includeMatches: true })
+    const result = fuse.search('ab')
+    expect(result[0].matches[0].indices).toEqual([
+      [0, 1],
+      [6, 7],
+      [12, 13]
+    ])
+  })
+
+  test('match window is clamped when the match starts near end of text', () => {
+    const fuse = new Fuse(['xx olymp'], { includeMatches: true })
+    const result = fuse.search('olympics')
+    const idx = result[0].matches[0].indices
+    for (const [, end] of idx) {
+      expect(end).toBeLessThan(8) // textLen
+    }
+  })
+
+  test('insertion case: matched chars past pattern-length window are preserved', () => {
+    // Pattern "abc" matches "abxc" with one insertion (the 'x'). The 'c'
+    // sits at position 3, which is patternLen positions past bestLocation.
+    // The bestErrors extension is what keeps that 'c' inside the highlight
+    // window — without it, the match would silently drop a real char.
+    const result = Fuse.match('abc', 'abxc', { includeMatches: true })
+    expect(result.indices).toEqual([
+      [0, 1],
+      [3, 3]
+    ])
   })
 })

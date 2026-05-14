@@ -68,7 +68,10 @@ describe('Search results with indices', () => {
     const matches = results[0].matches
 
     expect(matches?.length).toBe(1)
-    expect(matches?.[0].indices.length).toBe(9)
+    // The #792 fix restricts highlights to the bitap-matched window plus
+    // the bestErrors right-edge tail. Pre-fix this returned 9 indices
+    // covering every pattern-alphabet char in the text.
+    expect(matches?.[0].indices.length).toBe(3)
     expect(matches?.[0].indices[0]).toMatchObject([0, 4])
   })
 })

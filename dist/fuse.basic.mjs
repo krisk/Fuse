@@ -574,6 +574,7 @@ function search(text, pattern, patternAlphabet, {
   bestLocation = -1;
   let lastBitArr = [];
   let finalScore = 1;
+  let bestErrors = 0;
   let binMax = patternLen + textLen;
   const mask = 1 << patternLen - 1;
   for (let i = 0; i < patternLen; i += 1) {
@@ -603,10 +604,6 @@ function search(text, pattern, patternAlphabet, {
     for (let j = finish; j >= start; j -= 1) {
       const currentLocation = j - 1;
       const charMatch = patternAlphabet[text[currentLocation]];
-      if (computeMatches) {
-        // Speed up: quick bool to int conversion (i.e, `charMatch ? 1 : 0`)
-        matchMask[currentLocation] = +!!charMatch;
-      }
 
       // First pass: exact match
       bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch;
@@ -624,6 +621,7 @@ function search(text, pattern, patternAlphabet, {
           // Indeed it is
           currentThreshold = finalScore;
           bestLocation = currentLocation;
+          bestErrors = i;
 
           // Already passed `loc`, downhill from here on in.
           if (bestLocation <= expectedLocation) {
@@ -642,6 +640,21 @@ function search(text, pattern, patternAlphabet, {
       break;
     }
     lastBitArr = bitArr;
+  }
+
+  // Fill matchMask across the matched window only. Bitap anchors a match at
+  // bestLocation (the start), spanning patternLen characters plus up to
+  // bestErrors extra characters when errors are text-side insertions. Marking
+  // alphabet positions in that window keeps the highlight indices honest about
+  // what actually matched, instead of every pattern-alphabet character the
+  // scan happened to visit.
+  if (computeMatches && bestLocation >= 0) {
+    const matchEnd = Math.min(textLen - 1, bestLocation + patternLen - 1 + bestErrors);
+    for (let k = bestLocation; k <= matchEnd; k += 1) {
+      if (patternAlphabet[text[k]]) {
+        matchMask[k] = 1;
+      }
+    }
   }
   const result = {
     isMatch: bestLocation >= 0,
