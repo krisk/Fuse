@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.6](https://github.com/krisk/Fuse/compare/v7.4.0-beta.5...v7.4.0-beta.6) (2026-05-14)
+
+
+### Bug Fixes
+
+* **bitap:** restrict highlight indices to matched window ([622f105](https://github.com/krisk/Fuse/commit/622f105a61d1c1c1cf1bec87024b490f85c92903)), closes [#792](https://github.com/krisk/Fuse/issues/792) [#505](https://github.com/krisk/Fuse/issues/505) [#611](https://github.com/krisk/Fuse/issues/611) [#691](https://github.com/krisk/Fuse/issues/691) [#793](https://github.com/krisk/Fuse/issues/793)
+
 ## [7.4.0-beta.5](https://github.com/krisk/Fuse/compare/v7.4.0-beta.4...v7.4.0-beta.5) (2026-05-10)
 
 
