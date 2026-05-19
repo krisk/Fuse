@@ -92,8 +92,8 @@ Fuse.js ships two builds:
 
 | Build | Includes | Gzip |
 |-------|----------|------|
-| **Full** | Fuzzy search + extended search + token search | ~8 kB |
-| **Basic** | Fuzzy search only | ~6.5 kB |
+| **Full** | Fuzzy + extended + logical + token search | ~8.6 kB |
+| **Basic** | Fuzzy search only | ~6.8 kB |
 
 Import paths:
 

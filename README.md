@@ -191,14 +191,18 @@ Fuse.js ships in two variants:
 
 | Build | Includes | Min + gzip |
 |---|---|---|
-| **Full** | Fuzzy + Extended + Logical + Token search | ~8 kB |
-| **Basic** | Fuzzy search only | ~6.5 kB |
+| **Full** | Fuzzy + Extended + Logical + Token search | ~8.6 kB |
+| **Basic** | Fuzzy search only | ~6.8 kB |
 
 Use the basic build if you only need fuzzy search and want the smallest bundle size.
 
 ## Documentation
 
 For the full API reference, configuration options, scoring theory, and interactive demos, visit **[fusejs.io](https://fusejs.io)**.
+
+## Official ports
+
+- **[fuse-swift](https://github.com/krisk/fuse-swift)**: Swift port for iOS, macOS, tvOS, watchOS, visionOS, and Linux. Byte-equivalent results, idiomatic Swift API, syncs with each upstream release. Currently in 2.0.0-rc.1.
 
 ## Supporting Fuse.js
 

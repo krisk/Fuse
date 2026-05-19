@@ -49,7 +49,7 @@ Need Fuse.js search without the client-side overhead? **Fuse Cloud** is a hosted
 - **Weighted keys** — boost fields like `title` over `description`
 - **Nested search** — dot notation, array notation, or custom `getFn`
 - **Zero dependencies** — works in the browser, Node.js, and Deno
-- **Two builds** — full (~8 kB gzip) or basic (~6.5 kB gzip)
+- **Two builds** — full (~8.6 kB gzip) or basic (~6.8 kB gzip)
 
 ## Get Started
 
@@ -60,6 +60,10 @@ npm install fuse.js
 See [Getting Started](getting-started.md) for installation options, builds, and imports.
 
 **[Try the live demo →](demo.md)**
+
+::: tip Building for Apple platforms?
+**[fuse-swift](https://github.com/krisk/fuse-swift)** is the official Swift port for iOS, macOS, tvOS, watchOS, visionOS, and Linux. Byte-equivalent results, idiomatic Swift API. Currently in release candidate.
+:::
 
 <!-- <CommercialCTA /> -->
 
