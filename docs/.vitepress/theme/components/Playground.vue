@@ -56,7 +56,9 @@
       <div class="playground-data">
         <div class="panel-header">
           <span class="panel-title">Data</span>
-          <span class="panel-meta">{{ bookCount }} items</span>
+          <span class="panel-meta" :class="{ 'panel-meta-error': dataError }">
+            {{ dataError ? 'Invalid JSON' : `${bookCount} items` }}
+          </span>
         </div>
         <textarea
           class="data-editor"
@@ -141,7 +143,8 @@ const searchPattern = ref('')
 const jsonData = ref(JSON.stringify(books, null, 2))
 const results = ref<any[]>([])
 const searchTime = ref<string | null>(null)
-let parsedData = [...books]
+const parsedData = ref<any[]>([...books])
+const dataError = ref(false)
 
 const options = reactive({
   threshold: 0.6,
@@ -152,7 +155,7 @@ const options = reactive({
   useTokenSearch: false
 })
 
-const bookCount = computed(() => parsedData.length)
+const bookCount = computed(() => parsedData.value.length)
 
 const generatedCode = computed(() => {
   const opts: string[] = []
@@ -169,10 +172,13 @@ const generatedCode = computed(() => {
 
 function onDataChange() {
   try {
-    parsedData = JSON.parse(jsonData.value)
+    parsedData.value = JSON.parse(jsonData.value)
+    dataError.value = false
     doSearch()
   } catch {
-    // invalid JSON, skip
+    // Keep the last valid data, but flag that the editor holds invalid JSON
+    // so deletions mid-edit (e.g. a trailing comma) don't fail silently.
+    dataError.value = true
   }
 }
 
@@ -189,7 +195,7 @@ function doSearch() {
       keys: ['title', 'author.firstName', 'author.lastName']
     }
 
-    const fuse = new Fuse(parsedData, fuseOptions)
+    const fuse = new Fuse(parsedData.value, fuseOptions)
     const start = performance.now()
     results.value = fuse.search(searchPattern.value)
     searchTime.value = (performance.now() - start).toFixed(1)
@@ -324,6 +330,10 @@ function escapeHtml(str: string): string {
   font-size: 0.8rem;
   color: var(--c-text-lightest);
   font-family: var(--font-family-code);
+}
+
+.panel-meta-error {
+  color: var(--c-danger, #e53e3e);
 }
 
 .data-editor {
