@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.7](https://github.com/krisk/Fuse/compare/v7.4.0-beta.6...v7.4.0-beta.7) (2026-05-22)
+
+
+### Features
+
+* **token-search:** add tokenMatch 'all' | 'any' for AND/OR ([#827](https://github.com/krisk/Fuse/issues/827)) ([9f979d0](https://github.com/krisk/Fuse/commit/9f979d093f519728f3e75b2a5ab569dcb8c5ce6b))
+
+
+### Bug Fixes
+
+* **docs:** reflect data edits in playground demo ([#825](https://github.com/krisk/Fuse/issues/825)) ([6eff909](https://github.com/krisk/Fuse/commit/6eff909b5b6acf9ecb3ab20429bc5d08636a5d5c))
+
 ## [7.4.0-beta.6](https://github.com/krisk/Fuse/compare/v7.4.0-beta.5...v7.4.0-beta.6) (2026-05-14)
 
 
