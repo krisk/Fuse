@@ -200,6 +200,7 @@ const AdvancedOptions = {
   useExtendedSearch: false,
   useTokenSearch: false,
   tokenize: undefined,
+  tokenMatch: 'any',
   getFn: get,
   ignoreLocation: false,
   ignoreFieldNorm: false,
@@ -1522,6 +1523,117 @@ function createAnalyzer({
   };
 }
 
+// `tokenMatch: 'all'` packs per-term coverage into a bitmask. JS bitwise ops
+// are 32-bit *signed*, so bit 31 is the sign bit — only bits 0..30 are safe.
+// Queries with more than this many terms fall back to a Set (no bit limit).
+const MAX_MASK_TERMS = 31;
+class TokenSearch {
+  // `tokenMatch: 'all'` (AND) coverage. When true, searchIn reports which
+  // query terms matched each text so the core loop can require record-level
+  // coverage of every term. Bitmask is the ≤31-term fast path; Set is the
+  // ≥32-term fallback (JS bitwise ops are 32-bit signed).
+
+  static condition(_, options) {
+    return options.useTokenSearch;
+  }
+  constructor(pattern, options) {
+    this.options = options;
+    this.analyzer = createAnalyzer({
+      isCaseSensitive: options.isCaseSensitive,
+      ignoreDiacritics: options.ignoreDiacritics,
+      tokenize: options.tokenize
+    });
+    const queryTerms = this.analyzer.tokenize(pattern);
+    const invertedIndex = options._invertedIndex;
+    const {
+      df,
+      fieldCount
+    } = invertedIndex;
+    this.termSearchers = [];
+    this.idfWeights = [];
+    for (const term of queryTerms) {
+      this.termSearchers.push(new BitapSearch(term, {
+        location: options.location,
+        threshold: options.threshold,
+        distance: options.distance,
+        includeMatches: options.includeMatches,
+        findAllMatches: options.findAllMatches,
+        minMatchCharLength: options.minMatchCharLength,
+        isCaseSensitive: options.isCaseSensitive,
+        ignoreDiacritics: options.ignoreDiacritics,
+        ignoreLocation: true
+      }));
+      const docFreq = df.get(term) || 0;
+      const idf = Math.log(1 + (fieldCount - docFreq + 0.5) / (docFreq + 0.5));
+      this.idfWeights.push(idf);
+    }
+    this.combineAll = options.tokenMatch === 'all';
+    this.numTerms = this.termSearchers.length;
+    this.useMask = this.numTerms <= MAX_MASK_TERMS;
+  }
+  searchIn(text) {
+    if (!this.termSearchers.length) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const allIndices = [];
+    let weightedScore = 0;
+    let maxPossibleScore = 0;
+    let matchedCount = 0;
+
+    // `tokenMatch: 'all'` coverage for this text (untouched in the default
+    // 'any' path, so it allocates nothing there).
+    let matchedMask = 0;
+    const matchedTerms = this.combineAll && !this.useMask ? new Set() : null;
+    for (let i = 0; i < this.termSearchers.length; i++) {
+      const result = this.termSearchers[i].searchIn(text);
+      const idf = this.idfWeights[i];
+      maxPossibleScore += idf;
+      if (result.isMatch) {
+        matchedCount++;
+        weightedScore += idf * (1 - result.score);
+        if (result.indices) {
+          allIndices.push(...result.indices);
+        }
+        if (this.combineAll) {
+          if (this.useMask) {
+            matchedMask |= 1 << i;
+          } else {
+            matchedTerms.add(i);
+          }
+        }
+      }
+    }
+    if (matchedCount === 0) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const normalized = maxPossibleScore > 0 ? 1 - weightedScore / maxPossibleScore : 0;
+    const searchResult = {
+      isMatch: true,
+      score: Math.max(0.001, normalized)
+    };
+    if (this.options.includeMatches && allIndices.length) {
+      searchResult.indices = mergeIndices(allIndices);
+    }
+
+    // Report term coverage so the core loop can enforce record-level AND.
+    if (this.combineAll) {
+      if (this.useMask) {
+        searchResult.matchedMask = matchedMask;
+      } else {
+        searchResult.matchedTerms = matchedTerms;
+      }
+      searchResult.termCount = this.numTerms;
+    }
+    return searchResult;
+  }
+}
+
 // Stats-only inverted index for token search (per Plan 008 Direction B).
 //
 // The query path consumes only `df` and `fieldCount` (IDF weighting). The
@@ -1820,6 +1932,7 @@ class Fuse {
     ignoreFieldNorm
   } = {}) {
     const searcher = this._getSearcher(query);
+    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all';
     const {
       records
     } = this._myIndex;
@@ -1834,31 +1947,39 @@ class Fuse {
       if (!isDefined(text)) {
         return;
       }
-      const {
-        isMatch,
-        score,
-        indices
-      } = searcher.searchIn(text);
-      if (isMatch) {
-        const result = {
-          item: text,
-          idx,
-          matches: [{
-            score,
-            value: text,
-            norm: norm,
-            indices
-          }]
+      const searchResult = searcher.searchIn(text);
+      if (searchResult.isMatch) {
+        const match = {
+          score: searchResult.score,
+          value: text,
+          norm: norm,
+          indices: searchResult.indices
         };
-        if (heap) {
-          result.score = computeScoreSingle(result.matches, {
-            ignoreFieldNorm
-          });
-          if (heap.shouldInsert(result.score)) {
-            heap.insert(result);
+        if (requireAllTokens) {
+          match.matchedMask = searchResult.matchedMask;
+          match.matchedTerms = searchResult.matchedTerms;
+          match.termCount = searchResult.termCount;
+        }
+        const matches = [match];
+
+        // Record-level AND gate (token search `tokenMatch: 'all'`), applied
+        // before heap insertion so `limit` returns the same top-N as unlimited.
+        if (!requireAllTokens || this._coversAllTokens(matches)) {
+          const result = {
+            item: text,
+            idx,
+            matches
+          };
+          if (heap) {
+            result.score = computeScoreSingle(result.matches, {
+              ignoreFieldNorm
+            });
+            if (heap.shouldInsert(result.score)) {
+              heap.insert(result);
+            }
+          } else {
+            results.push(result);
           }
-        } else {
-          results.push(result);
         }
       }
     });
@@ -1958,6 +2079,7 @@ class Fuse {
     ignoreFieldNorm
   } = {}) {
     const searcher = this._getSearcher(query);
+    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all';
     const {
       keys,
       records
@@ -1997,7 +2119,11 @@ class Fuse {
       if (hasInverse && anyKeyFailed) {
         return;
       }
-      if (matches.length) {
+
+      // Record-level AND gate (token search `tokenMatch: 'all'`): every query
+      // term must be covered across the record's field/array-element matches.
+      // Applied before heap insertion so `limit` returns the same top-N.
+      if (matches.length && (!requireAllTokens || this._coversAllTokens(matches))) {
         const result = {
           idx,
           item,
@@ -2035,22 +2161,25 @@ class Fuse {
         if (!isDefined(text)) {
           return;
         }
-        const {
-          isMatch,
-          score,
-          indices,
-          hasInverse
-        } = searcher.searchIn(text);
-        if (isMatch) {
-          matches.push({
-            score,
+        const searchResult = searcher.searchIn(text);
+        if (searchResult.isMatch) {
+          const match = {
+            score: searchResult.score,
             key,
             value: text,
             idx,
             norm,
-            indices,
-            hasInverse
-          });
+            indices: searchResult.indices,
+            hasInverse: searchResult.hasInverse
+          };
+          // Carry token-search AND coverage only when present, so the default
+          // (non-token / 'any') MatchScore keeps its original object shape.
+          if (searchResult.termCount !== undefined) {
+            match.matchedMask = searchResult.matchedMask;
+            match.matchedTerms = searchResult.matchedTerms;
+            match.termCount = searchResult.termCount;
+          }
+          matches.push(match);
         }
       });
     } else {
@@ -2058,101 +2187,53 @@ class Fuse {
         v: text,
         n: norm
       } = value;
-      const {
-        isMatch,
-        score,
-        indices,
-        hasInverse
-      } = searcher.searchIn(text);
-      if (isMatch) {
-        matches.push({
-          score,
+      const searchResult = searcher.searchIn(text);
+      if (searchResult.isMatch) {
+        const match = {
+          score: searchResult.score,
           key,
           value: text,
           norm,
-          indices,
-          hasInverse
-        });
+          indices: searchResult.indices,
+          hasInverse: searchResult.hasInverse
+        };
+        if (searchResult.termCount !== undefined) {
+          match.matchedMask = searchResult.matchedMask;
+          match.matchedTerms = searchResult.matchedTerms;
+          match.termCount = searchResult.termCount;
+        }
+        matches.push(match);
       }
     }
     return matches;
   }
-}
 
-class TokenSearch {
-  static condition(_, options) {
-    return options.useTokenSearch;
-  }
-  constructor(pattern, options) {
-    this.options = options;
-    this.analyzer = createAnalyzer({
-      isCaseSensitive: options.isCaseSensitive,
-      ignoreDiacritics: options.ignoreDiacritics,
-      tokenize: options.tokenize
-    });
-    const queryTerms = this.analyzer.tokenize(pattern);
-    const invertedIndex = options._invertedIndex;
-    const {
-      df,
-      fieldCount
-    } = invertedIndex;
-    this.termSearchers = [];
-    this.idfWeights = [];
-    for (const term of queryTerms) {
-      this.termSearchers.push(new BitapSearch(term, {
-        location: options.location,
-        threshold: options.threshold,
-        distance: options.distance,
-        includeMatches: options.includeMatches,
-        findAllMatches: options.findAllMatches,
-        minMatchCharLength: options.minMatchCharLength,
-        isCaseSensitive: options.isCaseSensitive,
-        ignoreDiacritics: options.ignoreDiacritics,
-        ignoreLocation: true
-      }));
-      const docFreq = df.get(term) || 0;
-      const idf = Math.log(1 + (fieldCount - docFreq + 0.5) / (docFreq + 0.5));
-      this.idfWeights.push(idf);
+  // Record-level AND gate for token search (`tokenMatch: 'all'`). Returns true
+  // unless the matched terms across ALL of a record's field/array-element
+  // matches fail to cover every query term. `termCount` is only set by
+  // TokenSearch in 'all' mode, so non-token / 'any' searches always pass.
+  _coversAllTokens(matches) {
+    const termCount = matches.length ? matches[0].termCount : undefined;
+    if (termCount === undefined) {
+      return true;
     }
-  }
-  searchIn(text) {
-    if (!this.termSearchers.length) {
-      return {
-        isMatch: false,
-        score: 1
-      };
+    if (termCount <= MAX_MASK_TERMS) {
+      let coverage = 0;
+      for (let i = 0; i < matches.length; i++) {
+        coverage |= matches[i].matchedMask || 0;
+      }
+      return coverage === 2 ** termCount - 1;
     }
-    const allIndices = [];
-    let weightedScore = 0;
-    let maxPossibleScore = 0;
-    let matchedCount = 0;
-    for (let i = 0; i < this.termSearchers.length; i++) {
-      const result = this.termSearchers[i].searchIn(text);
-      const idf = this.idfWeights[i];
-      maxPossibleScore += idf;
-      if (result.isMatch) {
-        matchedCount++;
-        weightedScore += idf * (1 - result.score);
-        if (result.indices) {
-          allIndices.push(...result.indices);
+    const coverage = new Set();
+    for (let i = 0; i < matches.length; i++) {
+      const terms = matches[i].matchedTerms;
+      if (terms) {
+        for (const t of terms) {
+          coverage.add(t);
         }
       }
     }
-    if (matchedCount === 0) {
-      return {
-        isMatch: false,
-        score: 1
-      };
-    }
-    const normalized = maxPossibleScore > 0 ? 1 - weightedScore / maxPossibleScore : 0;
-    const searchResult = {
-      isMatch: true,
-      score: Math.max(0.001, normalized)
-    };
-    if (this.options.includeMatches && allIndices.length) {
-      searchResult.indices = mergeIndices(allIndices);
-    }
-    return searchResult;
+    return coverage.size === termCount;
   }
 }
 

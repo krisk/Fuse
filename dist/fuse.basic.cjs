@@ -205,6 +205,7 @@ const AdvancedOptions = {
   useExtendedSearch: false,
   useTokenSearch: false,
   tokenize: undefined,
+  tokenMatch: 'any',
   getFn: get,
   ignoreLocation: false,
   ignoreFieldNorm: false,
@@ -1129,6 +1130,11 @@ function createAnalyzer({
   };
 }
 
+// `tokenMatch: 'all'` packs per-term coverage into a bitmask. JS bitwise ops
+// are 32-bit *signed*, so bit 31 is the sign bit — only bits 0..30 are safe.
+// Queries with more than this many terms fall back to a Set (no bit limit).
+const MAX_MASK_TERMS = 31;
+
 // Stats-only inverted index for token search (per Plan 008 Direction B).
 //
 // The query path consumes only `df` and `fieldCount` (IDF weighting). The
@@ -1431,6 +1437,7 @@ class Fuse {
     ignoreFieldNorm
   } = {}) {
     const searcher = this._getSearcher(query);
+    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all';
     const {
       records
     } = this._myIndex;
@@ -1445,31 +1452,39 @@ class Fuse {
       if (!isDefined(text)) {
         return;
       }
-      const {
-        isMatch,
-        score,
-        indices
-      } = searcher.searchIn(text);
-      if (isMatch) {
-        const result = {
-          item: text,
-          idx,
-          matches: [{
-            score,
-            value: text,
-            norm: norm,
-            indices
-          }]
+      const searchResult = searcher.searchIn(text);
+      if (searchResult.isMatch) {
+        const match = {
+          score: searchResult.score,
+          value: text,
+          norm: norm,
+          indices: searchResult.indices
         };
-        if (heap) {
-          result.score = computeScoreSingle(result.matches, {
-            ignoreFieldNorm
-          });
-          if (heap.shouldInsert(result.score)) {
-            heap.insert(result);
+        if (requireAllTokens) {
+          match.matchedMask = searchResult.matchedMask;
+          match.matchedTerms = searchResult.matchedTerms;
+          match.termCount = searchResult.termCount;
+        }
+        const matches = [match];
+
+        // Record-level AND gate (token search `tokenMatch: 'all'`), applied
+        // before heap insertion so `limit` returns the same top-N as unlimited.
+        if (!requireAllTokens || this._coversAllTokens(matches)) {
+          const result = {
+            item: text,
+            idx,
+            matches
+          };
+          if (heap) {
+            result.score = computeScoreSingle(result.matches, {
+              ignoreFieldNorm
+            });
+            if (heap.shouldInsert(result.score)) {
+              heap.insert(result);
+            }
+          } else {
+            results.push(result);
           }
-        } else {
-          results.push(result);
         }
       }
     });
@@ -1494,6 +1509,7 @@ class Fuse {
     ignoreFieldNorm
   } = {}) {
     const searcher = this._getSearcher(query);
+    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all';
     const {
       keys,
       records
@@ -1533,7 +1549,11 @@ class Fuse {
       if (hasInverse && anyKeyFailed) {
         return;
       }
-      if (matches.length) {
+
+      // Record-level AND gate (token search `tokenMatch: 'all'`): every query
+      // term must be covered across the record's field/array-element matches.
+      // Applied before heap insertion so `limit` returns the same top-N.
+      if (matches.length && (!requireAllTokens || this._coversAllTokens(matches))) {
         const result = {
           idx,
           item,
@@ -1571,22 +1591,25 @@ class Fuse {
         if (!isDefined(text)) {
           return;
         }
-        const {
-          isMatch,
-          score,
-          indices,
-          hasInverse
-        } = searcher.searchIn(text);
-        if (isMatch) {
-          matches.push({
-            score,
+        const searchResult = searcher.searchIn(text);
+        if (searchResult.isMatch) {
+          const match = {
+            score: searchResult.score,
             key,
             value: text,
             idx,
             norm,
-            indices,
-            hasInverse
-          });
+            indices: searchResult.indices,
+            hasInverse: searchResult.hasInverse
+          };
+          // Carry token-search AND coverage only when present, so the default
+          // (non-token / 'any') MatchScore keeps its original object shape.
+          if (searchResult.termCount !== undefined) {
+            match.matchedMask = searchResult.matchedMask;
+            match.matchedTerms = searchResult.matchedTerms;
+            match.termCount = searchResult.termCount;
+          }
+          matches.push(match);
         }
       });
     } else {
@@ -1594,24 +1617,53 @@ class Fuse {
         v: text,
         n: norm
       } = value;
-      const {
-        isMatch,
-        score,
-        indices,
-        hasInverse
-      } = searcher.searchIn(text);
-      if (isMatch) {
-        matches.push({
-          score,
+      const searchResult = searcher.searchIn(text);
+      if (searchResult.isMatch) {
+        const match = {
+          score: searchResult.score,
           key,
           value: text,
           norm,
-          indices,
-          hasInverse
-        });
+          indices: searchResult.indices,
+          hasInverse: searchResult.hasInverse
+        };
+        if (searchResult.termCount !== undefined) {
+          match.matchedMask = searchResult.matchedMask;
+          match.matchedTerms = searchResult.matchedTerms;
+          match.termCount = searchResult.termCount;
+        }
+        matches.push(match);
       }
     }
     return matches;
+  }
+
+  // Record-level AND gate for token search (`tokenMatch: 'all'`). Returns true
+  // unless the matched terms across ALL of a record's field/array-element
+  // matches fail to cover every query term. `termCount` is only set by
+  // TokenSearch in 'all' mode, so non-token / 'any' searches always pass.
+  _coversAllTokens(matches) {
+    const termCount = matches.length ? matches[0].termCount : undefined;
+    if (termCount === undefined) {
+      return true;
+    }
+    if (termCount <= MAX_MASK_TERMS) {
+      let coverage = 0;
+      for (let i = 0; i < matches.length; i++) {
+        coverage |= matches[i].matchedMask || 0;
+      }
+      return coverage === 2 ** termCount - 1;
+    }
+    const coverage = new Set();
+    for (let i = 0; i < matches.length; i++) {
+      const terms = matches[i].matchedTerms;
+      if (terms) {
+        for (const t of terms) {
+          coverage.add(t);
+        }
+      }
+    }
+    return coverage.size === termCount;
   }
 }
 

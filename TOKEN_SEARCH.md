@@ -33,6 +33,19 @@ All existing options work as before: `includeScore`, `includeMatches`, `keys` wi
 - **Typo tolerance per term** — Each term is fuzzy-matched independently, so typos in any word are tolerated.
 - **Long queries work** — A 6-word query runs 6 independent Bitap searches, each well within the 32-char limit.
 
+## AND vs OR (`tokenMatch`)
+
+By default, query words combine with **OR** (`tokenMatch: 'any'`) — a record matches if it contains *any* word. For filtering, where adding a word should narrow the list, set `tokenMatch: 'all'` so a record matches only when **every** word matches somewhere in it (across all fields and array elements, not per field):
+
+```js
+const list = ['red shirt', 'red hat', 'blue shirt']
+const fuse = new Fuse(list, { useTokenSearch: true, tokenMatch: 'all' })
+fuse.search('red shirt').map((r) => r.item)
+// → ['red shirt']   (only the record with both words)
+```
+
+`tokenMatch: 'all'` changes only which records are returned, not how they're ranked, and has no effect unless `useTokenSearch` is `true`.
+
 ## Tips
 
 - Use `threshold` to control fuzziness. The default `0.6` is permissive — for tighter matching, try `0.3` or `0.4`.

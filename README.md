@@ -135,6 +135,7 @@ fuse.search('express midleware rout')
 - **Relevance ranking** — rare terms are weighted higher than common ones
 - **Word order independent** — `"patterns javascript"` and `"javascript patterns"` return identical results
 - **No query length limit** — long multi-word queries work naturally since each term is searched separately
+- **AND or OR** — `tokenMatch: 'all'` returns only records matching *every* word (filtering); the default `'any'` matches any word
 
 Available in the full build. See [TOKEN_SEARCH.md](TOKEN_SEARCH.md) for details and performance benchmarks.
 

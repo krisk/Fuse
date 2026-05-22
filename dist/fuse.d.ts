@@ -5,7 +5,18 @@ interface SearchResult {
     isMatch: boolean;
     score: number;
     indices?: ReadonlyArray<RangeTuple>;
+    /** @internal Aggregation flag for extended-search inverse terms. */
     hasInverse?: boolean;
+    /**
+     * @internal Token-search `tokenMatch: 'all'` coverage for this text.
+     * `matchedMask` bit `i` ⇒ query term `i` matched here (≤31-term fast path);
+     * `matchedTerms` is the equivalent set for the ≥32-term fallback.
+     */
+    matchedMask?: number;
+    /** @internal */
+    matchedTerms?: Set<number>;
+    /** @internal Query token count; descriptor for the record-level AND gate. */
+    termCount?: number;
 }
 interface Searcher {
     searchIn(text: string): SearchResult;
@@ -105,6 +116,12 @@ interface MatchScore {
     hasInverse?: boolean;
     norm: number;
     indices?: ReadonlyArray<RangeTuple>;
+    /** @internal Token-search `tokenMatch: 'all'` coverage carried up for record-level gating. */
+    matchedMask?: number;
+    /** @internal */
+    matchedTerms?: Set<number>;
+    /** @internal */
+    termCount?: number;
 }
 interface InternalResult {
     idx: number;
@@ -158,6 +175,15 @@ interface IFuseOptions<T> {
      * scripts without whitespace boundaries.
      */
     tokenize?: RegExp | FuseTokenizeFunction;
+    /**
+     * How the words of a multi-word query combine, for `useTokenSearch` only.
+     * `'any'` (default) returns a record if it matches any query word (OR);
+     * `'all'` returns it only when every query word matches somewhere in the
+     * record — any field or array element (AND). Use `'all'` for filtering,
+     * where adding a word should narrow the results. Has no effect unless
+     * `useTokenSearch` is `true`.
+     */
+    tokenMatch?: 'all' | 'any';
 }
 interface FuseIndexOptions<T> {
     getFn?: FuseGetFunction<T>;
@@ -300,6 +326,7 @@ declare class Fuse<T> {
         value: SubRecord | SubRecord[] | undefined;
         searcher: Searcher;
     }): MatchScore[];
+    _coversAllTokens(matches: MatchScore[]): boolean;
 }
 
 export { FuseIndex, Fuse as default };

@@ -8,7 +8,18 @@ export interface SearchResult {
   isMatch: boolean
   score: number
   indices?: ReadonlyArray<RangeTuple>
+  /** @internal Aggregation flag for extended-search inverse terms. */
   hasInverse?: boolean
+  /**
+   * @internal Token-search `tokenMatch: 'all'` coverage for this text.
+   * `matchedMask` bit `i` ⇒ query term `i` matched here (≤31-term fast path);
+   * `matchedTerms` is the equivalent set for the ≥32-term fallback.
+   */
+  matchedMask?: number
+  /** @internal */
+  matchedTerms?: Set<number>
+  /** @internal Query token count; descriptor for the record-level AND gate. */
+  termCount?: number
 }
 
 export interface Searcher {
@@ -152,6 +163,12 @@ export interface MatchScore {
   hasInverse?: boolean
   norm: number
   indices?: ReadonlyArray<RangeTuple>
+  /** @internal Token-search `tokenMatch: 'all'` coverage carried up for record-level gating. */
+  matchedMask?: number
+  /** @internal */
+  matchedTerms?: Set<number>
+  /** @internal */
+  termCount?: number
 }
 
 export interface InternalResult {
@@ -209,6 +226,15 @@ export interface IFuseOptions<T> {
    * scripts without whitespace boundaries.
    */
   tokenize?: RegExp | FuseTokenizeFunction
+  /**
+   * How the words of a multi-word query combine, for `useTokenSearch` only.
+   * `'any'` (default) returns a record if it matches any query word (OR);
+   * `'all'` returns it only when every query word matches somewhere in the
+   * record — any field or array element (AND). Use `'all'` for filtering,
+   * where adding a word should narrow the results. Has no effect unless
+   * `useTokenSearch` is `true`.
+   */
+  tokenMatch?: 'all' | 'any'
 }
 
 export interface FuseIndexOptions<T> {

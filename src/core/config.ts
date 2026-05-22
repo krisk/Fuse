@@ -27,6 +27,7 @@ export const AdvancedOptions = {
   useExtendedSearch: false,
   useTokenSearch: false,
   tokenize: undefined as IFuseOptions<any>['tokenize'],
+  tokenMatch: 'any' as 'all' | 'any',
   getFn: get as any,
   ignoreLocation: false,
   ignoreFieldNorm: false,

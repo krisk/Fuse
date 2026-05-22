@@ -54,6 +54,50 @@ All standard options work as before: `includeScore`, `includeMatches`, `keys` wi
 - **Typo tolerance per term** — Each term is fuzzy-matched independently, so typos in any word are tolerated.
 - **Long queries work** — A 6-word query runs 6 independent Bitap searches, each within the 32-char limit.
 
+## Matching Mode: `tokenMatch`
+
+By default token search combines query words with **OR** (`tokenMatch: 'any'`): a record is returned if it matches *any* one word. That's right for ranked search, where you want the best matches first and partial matches still surface.
+
+For **filtering**, where adding a word should *narrow* the list, set `tokenMatch: 'all'` (AND). A record is then returned only when **every** query word matches somewhere in it.
+
+```js
+const list = ['red shirt', 'red hat', 'blue shirt']
+
+new Fuse(list, { useTokenSearch: true })
+  .search('red shirt')
+  .map((r) => r.item)
+// 'any' (default): ['red shirt', 'red hat', 'blue shirt']  ← matches either word
+
+new Fuse(list, { useTokenSearch: true, tokenMatch: 'all' })
+  .search('red shirt')
+  .map((r) => r.item)
+// 'all': ['red shirt']                                     ← matches both words
+```
+
+`'all'` is evaluated **per record, across all fields and array elements** — not per field. So each word only has to appear *somewhere* in the record:
+
+```js
+const products = [
+  { title: 'Red', description: 'cotton shirt' }, // "red" + "shirt" in different fields
+  { title: 'Red dress', description: 'silk' }
+]
+
+new Fuse(products, {
+  useTokenSearch: true,
+  tokenMatch: 'all',
+  keys: ['title', 'description']
+})
+  .search('red shirt')
+  .map((r) => r.item)
+// → [{ title: 'Red', description: 'cotton shirt' }]   (the second has no "shirt" anywhere)
+```
+
+Notes:
+
+- `'all'` changes only *which records are returned*, not how survivors are ranked — the IDF scoring above is unchanged.
+- `tokenMatch` only affects token search. It has no effect unless `useTokenSearch` is `true`, and it's separate from the logical [`$and` / `$or`](/logical-search) operators, which combine *keyed clauses* rather than the words of one query.
+- Words are still fuzzy-matched per term, so a typo'd word still counts toward the AND.
+
 ## Custom Tokenizer
 
 The default tokenizer (`/[\p{L}\p{M}\p{N}_]+/gu`) treats any unicode letter, mark, or number as part of a word. That works well for most natural-language text, but two cases need an override:

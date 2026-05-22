@@ -9,6 +9,7 @@ import MaxHeap from '../tools/MaxHeap'
 import format from './format'
 import * as ErrorMsg from './errorMessages'
 import { createAnalyzer } from '../search/token/analyzer'
+import { MAX_MASK_TERMS } from '../search/token'
 import {
   buildInvertedIndex,
   addToInvertedIndex,
@@ -271,6 +272,7 @@ export default class Fuse<T> {
 
   _searchStringList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
     const searcher = this._getSearcher(query)
+    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all'
     const { records } = this._myIndex
     const results: InternalResult[] | null = heap ? null : []
 
@@ -280,22 +282,35 @@ export default class Fuse<T> {
         return
       }
 
-      const { isMatch, score, indices } = searcher.searchIn(text)
+      const searchResult = searcher.searchIn(text)
 
-      if (isMatch) {
-        const result: InternalResult = {
-          item: text,
-          idx,
-          matches: [{ score, value: text, norm: norm!, indices } as MatchScore]
+      if (searchResult.isMatch) {
+        const match: MatchScore = {
+          score: searchResult.score,
+          value: text,
+          norm: norm!,
+          indices: searchResult.indices
         }
+        if (requireAllTokens) {
+          match.matchedMask = searchResult.matchedMask
+          match.matchedTerms = searchResult.matchedTerms
+          match.termCount = searchResult.termCount
+        }
+        const matches = [match]
 
-        if (heap) {
-          result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
-          if (heap.shouldInsert(result.score)) {
-            heap.insert(result)
+        // Record-level AND gate (token search `tokenMatch: 'all'`), applied
+        // before heap insertion so `limit` returns the same top-N as unlimited.
+        if (!requireAllTokens || this._coversAllTokens(matches)) {
+          const result: InternalResult = { item: text, idx, matches }
+
+          if (heap) {
+            result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
+            if (heap.shouldInsert(result.score)) {
+              heap.insert(result)
+            }
+          } else {
+            results!.push(result)
           }
-        } else {
-          results!.push(result)
         }
       }
     })
@@ -397,6 +412,7 @@ export default class Fuse<T> {
   // behavior of including it. See: https://github.com/krisk/Fuse/issues/712
   _searchObjectList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
     const searcher = this._getSearcher(query)
+    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all'
     const { keys, records } = this._myIndex
     const results: InternalResult[] | null = heap ? null : []
 
@@ -433,7 +449,10 @@ export default class Fuse<T> {
         return
       }
 
-      if (matches.length) {
+      // Record-level AND gate (token search `tokenMatch: 'all'`): every query
+      // term must be covered across the record's field/array-element matches.
+      // Applied before heap insertion so `limit` returns the same top-N.
+      if (matches.length && (!requireAllTokens || this._coversAllTokens(matches))) {
         const result: InternalResult = { idx, item, matches }
 
         if (heap) {
@@ -462,30 +481,81 @@ export default class Fuse<T> {
           return
         }
 
-        const { isMatch, score, indices, hasInverse } = searcher.searchIn(text)
+        const searchResult = searcher.searchIn(text)
 
-        if (isMatch) {
-          matches.push({
-            score,
+        if (searchResult.isMatch) {
+          const match: MatchScore = {
+            score: searchResult.score,
             key,
             value: text,
             idx,
             norm,
-            indices,
-            hasInverse
-          })
+            indices: searchResult.indices,
+            hasInverse: searchResult.hasInverse
+          }
+          // Carry token-search AND coverage only when present, so the default
+          // (non-token / 'any') MatchScore keeps its original object shape.
+          if (searchResult.termCount !== undefined) {
+            match.matchedMask = searchResult.matchedMask
+            match.matchedTerms = searchResult.matchedTerms
+            match.termCount = searchResult.termCount
+          }
+          matches.push(match)
         }
       })
     } else {
       const { v: text, n: norm } = value
 
-      const { isMatch, score, indices, hasInverse } = searcher.searchIn(text)
+      const searchResult = searcher.searchIn(text)
 
-      if (isMatch) {
-        matches.push({ score, key, value: text, norm, indices, hasInverse })
+      if (searchResult.isMatch) {
+        const match: MatchScore = {
+          score: searchResult.score,
+          key,
+          value: text,
+          norm,
+          indices: searchResult.indices,
+          hasInverse: searchResult.hasInverse
+        }
+        if (searchResult.termCount !== undefined) {
+          match.matchedMask = searchResult.matchedMask
+          match.matchedTerms = searchResult.matchedTerms
+          match.termCount = searchResult.termCount
+        }
+        matches.push(match)
       }
     }
 
     return matches
+  }
+
+  // Record-level AND gate for token search (`tokenMatch: 'all'`). Returns true
+  // unless the matched terms across ALL of a record's field/array-element
+  // matches fail to cover every query term. `termCount` is only set by
+  // TokenSearch in 'all' mode, so non-token / 'any' searches always pass.
+  _coversAllTokens(matches: MatchScore[]): boolean {
+    const termCount = matches.length ? matches[0].termCount : undefined
+    if (termCount === undefined) {
+      return true
+    }
+
+    if (termCount <= MAX_MASK_TERMS) {
+      let coverage = 0
+      for (let i = 0; i < matches.length; i++) {
+        coverage |= matches[i].matchedMask || 0
+      }
+      return coverage === 2 ** termCount - 1
+    }
+
+    const coverage = new Set<number>()
+    for (let i = 0; i < matches.length; i++) {
+      const terms = matches[i].matchedTerms
+      if (terms) {
+        for (const t of terms) {
+          coverage.add(t)
+        }
+      }
+    }
+    return coverage.size === termCount
   }
 }

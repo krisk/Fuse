@@ -5,11 +5,23 @@ import type { Analyzer } from './analyzer'
 import type { InvertedIndexData } from './InvertedIndex'
 import type { SearchResult, RangeTuple } from '../../types'
 
+// `tokenMatch: 'all'` packs per-term coverage into a bitmask. JS bitwise ops
+// are 32-bit *signed*, so bit 31 is the sign bit — only bits 0..30 are safe.
+// Queries with more than this many terms fall back to a Set (no bit limit).
+export const MAX_MASK_TERMS = 31
+
 export default class TokenSearch {
   private termSearchers: BitapSearch[]
   private idfWeights: number[]
   private options: any
   private analyzer: Analyzer
+  // `tokenMatch: 'all'` (AND) coverage. When true, searchIn reports which
+  // query terms matched each text so the core loop can require record-level
+  // coverage of every term. Bitmask is the ≤31-term fast path; Set is the
+  // ≥32-term fallback (JS bitwise ops are 32-bit signed).
+  private combineAll: boolean
+  private numTerms: number
+  private useMask: boolean
 
   static condition(_: string, options: any): boolean {
     return options.useTokenSearch
@@ -49,6 +61,10 @@ export default class TokenSearch {
       const idf = Math.log(1 + (fieldCount - docFreq + 0.5) / (docFreq + 0.5))
       this.idfWeights.push(idf)
     }
+
+    this.combineAll = options.tokenMatch === 'all'
+    this.numTerms = this.termSearchers.length
+    this.useMask = this.numTerms <= MAX_MASK_TERMS
   }
 
   searchIn(text: string): SearchResult {
@@ -60,6 +76,12 @@ export default class TokenSearch {
     let weightedScore = 0
     let maxPossibleScore = 0
     let matchedCount = 0
+
+    // `tokenMatch: 'all'` coverage for this text (untouched in the default
+    // 'any' path, so it allocates nothing there).
+    let matchedMask = 0
+    const matchedTerms: Set<number> | null =
+      this.combineAll && !this.useMask ? new Set() : null
 
     for (let i = 0; i < this.termSearchers.length; i++) {
       const result = this.termSearchers[i].searchIn(text)
@@ -73,6 +95,14 @@ export default class TokenSearch {
 
         if (result.indices) {
           allIndices.push(...(result.indices as RangeTuple[]))
+        }
+
+        if (this.combineAll) {
+          if (this.useMask) {
+            matchedMask |= 1 << i
+          } else {
+            matchedTerms!.add(i)
+          }
         }
       }
     }
@@ -91,6 +121,16 @@ export default class TokenSearch {
 
     if (this.options.includeMatches && allIndices.length) {
       searchResult.indices = mergeIndices(allIndices)
+    }
+
+    // Report term coverage so the core loop can enforce record-level AND.
+    if (this.combineAll) {
+      if (this.useMask) {
+        searchResult.matchedMask = matchedMask
+      } else {
+        searchResult.matchedTerms = matchedTerms!
+      }
+      searchResult.termCount = this.numTerms
     }
 
     return searchResult
