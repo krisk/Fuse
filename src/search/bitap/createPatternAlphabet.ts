@@ -1,4 +1,6 @@
-export default function createPatternAlphabet(pattern: string): Record<string, number> {
+export default function createPatternAlphabet(
+  pattern: string
+): Record<string, number> {
   const mask: Record<string, number> = {}
 
   for (let i = 0, len = pattern.length; i < len; i += 1) {

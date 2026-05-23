@@ -1,7 +1,10 @@
 import { isDefined } from '../helpers/typeGuards'
 import type { InternalResult } from '../types'
 
-export default function transformMatches(result: InternalResult, data: any): void {
+export default function transformMatches(
+  result: InternalResult,
+  data: any
+): void {
   const matches = result.matches
   data.matches = []
 

@@ -2,11 +2,26 @@ import Fuse from '../dist/fuse.mjs'
 
 describe('Token search (per-term fuzzy + IDF)', () => {
   const docs = [
-    { title: 'JavaScript: The Good Parts', body: 'A deep dive into the good parts of JavaScript' },
-    { title: 'JavaScript Patterns', body: 'Exploring common patterns in JavaScript programming' },
-    { title: 'Learning Python', body: 'A comprehensive guide to Python programming language' },
-    { title: 'The Art of Computer Science', body: 'Fundamental concepts in computer science and algorithms' },
-    { title: 'Programming Pearls', body: 'Classic programming problems and elegant solutions' }
+    {
+      title: 'JavaScript: The Good Parts',
+      body: 'A deep dive into the good parts of JavaScript'
+    },
+    {
+      title: 'JavaScript Patterns',
+      body: 'Exploring common patterns in JavaScript programming'
+    },
+    {
+      title: 'Learning Python',
+      body: 'A comprehensive guide to Python programming language'
+    },
+    {
+      title: 'The Art of Computer Science',
+      body: 'Fundamental concepts in computer science and algorithms'
+    },
+    {
+      title: 'Programming Pearls',
+      body: 'Classic programming problems and elegant solutions'
+    }
   ]
 
   const options = {
@@ -196,7 +211,10 @@ describe('Token search (per-term fuzzy + IDF)', () => {
     let result = fuse.search('Ruby')
     const beforeCount = result.length
 
-    fuse.add({ title: 'Programming Ruby', body: 'The definitive guide to Ruby programming' })
+    fuse.add({
+      title: 'Programming Ruby',
+      body: 'The definitive guide to Ruby programming'
+    })
 
     result = fuse.search('Ruby')
     expect(result.length).toBeGreaterThan(beforeCount)
@@ -300,10 +318,7 @@ describe('Token search — edge cases', () => {
 
   test('Very long document', () => {
     const longText = Array.from({ length: 500 }, (_, i) => `word${i}`).join(' ')
-    const fuse = new Fuse(
-      [{ text: longText }, { text: 'short text' }],
-      options
-    )
+    const fuse = new Fuse([{ text: longText }, { text: 'short text' }], options)
     const result = fuse.search('word250')
     expect(result.length).toBeGreaterThanOrEqual(1)
     expect(result[0].item.text).toBe(longText)
@@ -311,10 +326,7 @@ describe('Token search — edge cases', () => {
 
   test('Diacritics with multi-term', () => {
     const fuse = new Fuse(
-      [
-        { text: 'café résumé naïve' },
-        { text: 'plain text here' }
-      ],
+      [{ text: 'café résumé naïve' }, { text: 'plain text here' }],
       { ...options, ignoreDiacritics: true }
     )
     const result = fuse.search('cafe resume')
@@ -323,10 +335,7 @@ describe('Token search — edge cases', () => {
   })
 
   test('All whitespace query returns all docs', () => {
-    const fuse = new Fuse(
-      [{ text: 'hello' }, { text: 'world' }],
-      options
-    )
+    const fuse = new Fuse([{ text: 'hello' }, { text: 'world' }], options)
     const result = fuse.search('   ')
     expect(result.length).toBe(2)
   })
@@ -359,10 +368,7 @@ describe('Token search — edge cases', () => {
   })
 
   test('Single document corpus', () => {
-    const fuse = new Fuse(
-      [{ text: 'the only document' }],
-      options
-    )
+    const fuse = new Fuse([{ text: 'the only document' }], options)
     const result = fuse.search('only')
     expect(result.length).toBe(1)
     expect(result[0].score).toBeGreaterThanOrEqual(0)

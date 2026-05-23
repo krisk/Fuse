@@ -238,7 +238,7 @@ describe('ignoreLocation when useExtendedSearch is true', () => {
 describe('Extended search match indices are merged', () => {
   const list = [
     { title: 'The Grand Design' },
-    { title: 'Old Man\'s War' },
+    { title: "Old Man's War" },
     { title: 'The Design of Everyday Things' }
   ]
 

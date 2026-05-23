@@ -116,7 +116,9 @@ describe('Token search — function tokenizer', () => {
     expect(result[0].item.text).toBe('我喜欢北京')
   })
 
-  test.skipIf(typeof Intl === 'undefined' || typeof Intl.Segmenter === 'undefined')(
+  test.skipIf(
+    typeof Intl === 'undefined' || typeof Intl.Segmenter === 'undefined'
+  )(
     'Intl.Segmenter recipe with isWordLike filter segments Chinese into words',
     () => {
       const docs = [
@@ -130,9 +132,9 @@ describe('Token search — function tokenizer', () => {
         keys: ['text'],
         tokenize: (text) => {
           const seg = new Intl.Segmenter('zh', { granularity: 'word' })
-          return Array.from(seg.segment(text), (s) => (s.isWordLike ? s.segment : null)).filter(
-            Boolean
-          )
+          return Array.from(seg.segment(text), (s) =>
+            s.isWordLike ? s.segment : null
+          ).filter(Boolean)
         }
       })
 
@@ -169,15 +171,12 @@ describe('Token search — index/query tokenizer parity', () => {
 
 describe('Token search — add() respects custom tokenizer', () => {
   test('docs added post-construction are retrievable via the same tokenizer', () => {
-    const fuse = new Fuse(
-      [{ text: 'initial doc' }],
-      {
-        useTokenSearch: true,
-        includeScore: true,
-        keys: ['text'],
-        tokenize: /[\w.+-]+/g
-      }
-    )
+    const fuse = new Fuse([{ text: 'initial doc' }], {
+      useTokenSearch: true,
+      includeScore: true,
+      keys: ['text'],
+      tokenize: /[\w.+-]+/g
+    })
     fuse.add({ text: 'now uses node.js' })
     const result = fuse.search('node.js')
     expect(result.length).toBeGreaterThanOrEqual(1)
@@ -224,7 +223,8 @@ describe('Token search — dev-mode validation', () => {
       // Re-import a fresh module copy so the warned-set is fresh and the
       // dev-mode env is read at module-eval time. We import the source
       // entry rather than dist because dist hardcodes NODE_ENV at build.
-      const { createAnalyzer } = await import('../src/search/token/analyzer.ts?dev-warn-once')
+      const { createAnalyzer } =
+        await import('../src/search/token/analyzer.ts?dev-warn-once')
       const a = createAnalyzer({ tokenize: /[a-z]+/ }) // missing /g
       a.tokenize('hello world')
       a.tokenize('hello world') // same regex — should not double-warn
@@ -238,7 +238,8 @@ describe('Token search — dev-mode validation', () => {
 
   test('dev-mode throws when function tokenizer returns non-array', async () => {
     process.env.NODE_ENV = 'development'
-    const { createAnalyzer } = await import('../src/search/token/analyzer.ts?dev-throw-nonarray')
+    const { createAnalyzer } =
+      await import('../src/search/token/analyzer.ts?dev-throw-nonarray')
     const a = createAnalyzer({
       tokenize: () => 'not-an-array'
     })
@@ -247,7 +248,8 @@ describe('Token search — dev-mode validation', () => {
 
   test('dev-mode throws when function tokenizer returns array containing non-strings', async () => {
     process.env.NODE_ENV = 'development'
-    const { createAnalyzer } = await import('../src/search/token/analyzer.ts?dev-throw-nonstring')
+    const { createAnalyzer } =
+      await import('../src/search/token/analyzer.ts?dev-throw-nonstring')
     const a = createAnalyzer({
       tokenize: () => ['ok', 42, 'also-ok']
     })

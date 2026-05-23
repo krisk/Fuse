@@ -1,4 +1,10 @@
-import { isArray, isDefined, isString, isBlank, toString } from '../helpers/typeGuards'
+import {
+  isArray,
+  isDefined,
+  isString,
+  isBlank,
+  toString
+} from '../helpers/typeGuards'
 import Config from '../core/config'
 import * as ErrorMsg from '../core/errorMessages'
 import normGenerator from './fieldNorm'
@@ -88,7 +94,10 @@ export default class FuseIndex<T = any> {
     }
 
     if (isString(doc)) {
-      const record = this._createStringRecord(doc as unknown as string, docIndex)
+      const record = this._createStringRecord(
+        doc as unknown as string,
+        docIndex
+      )
       if (record) {
         this.records.push(record)
       }
@@ -180,7 +189,11 @@ export default class FuseIndex<T = any> {
     const record: IndexRecord = { i: docIndex, $: {} }
 
     // Iterate over every key (i.e, path), and fetch the value at that key
-    for (let keyIndex = 0, keyLen = this.keys.length; keyIndex < keyLen; keyIndex++) {
+    for (
+      let keyIndex = 0, keyLen = this.keys.length;
+      keyIndex < keyLen;
+      keyIndex++
+    ) {
       const key = this.keys[keyIndex]
       const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path)
 
@@ -251,7 +264,10 @@ export default class FuseIndex<T = any> {
 export function createIndex<T>(
   keys: FuseOptionKey<T>[],
   docs: ReadonlyArray<T>,
-  { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight }: FuseIndexOptions<T> = {}
+  {
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
+  }: FuseIndexOptions<T> = {}
 ): FuseIndex<T> {
   const myIndex = new FuseIndex<T>({ getFn, fieldNormWeight })
   myIndex.setKeys(keys.map(createKey))
@@ -265,7 +281,10 @@ export function parseIndex<T>(
     keys: ReadonlyArray<KeyObject>
     records: IndexRecord[]
   },
-  { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight }: FuseIndexOptions<T> = {}
+  {
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
+  }: FuseIndexOptions<T> = {}
 ): FuseIndex<T> {
   const { keys, records } = data
   const myIndex = new FuseIndex<T>({ getFn, fieldNormWeight })

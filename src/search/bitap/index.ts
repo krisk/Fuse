@@ -56,8 +56,8 @@ export default class BitapSearch {
     }
 
     pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
-    this.pattern = pattern;
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern
+    this.pattern = pattern
 
     this.chunks = []
 

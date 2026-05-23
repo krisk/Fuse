@@ -13,7 +13,16 @@ const books = [
   { title: 'Fahrenheit 451', author: 'Ray Bradbury' }
 ]
 
-const fruits = ['apple', 'orange', 'banana', 'pear', 'grape', 'kiwi', 'mango', 'plum']
+const fruits = [
+  'apple',
+  'orange',
+  'banana',
+  'pear',
+  'grape',
+  'kiwi',
+  'mango',
+  'plum'
+]
 
 // ----------------------------
 // MaxHeap / limit tests
@@ -126,7 +135,10 @@ describe('Batch remove', () => {
   })
 
   test('batch remove from object list', () => {
-    const fuse = new Fuse([...books], { keys: ['title', 'author'], threshold: 0.2 })
+    const fuse = new Fuse([...books], {
+      keys: ['title', 'author'],
+      threshold: 0.2
+    })
     const before = fuse.search('Orwell')
     expect(before.length).toBeGreaterThan(0)
 

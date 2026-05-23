@@ -25,7 +25,9 @@ export default class MaxHeap {
       this._sinkDown(0)
     }
   }
-  extractSorted(sortFn: (a: InternalResult, b: InternalResult) => number): InternalResult[] {
+  extractSorted(
+    sortFn: (a: InternalResult, b: InternalResult) => number
+  ): InternalResult[] {
     return this.heap.sort(sortFn)
   }
   _bubbleUp(i: number): void {

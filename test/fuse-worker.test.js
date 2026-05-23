@@ -56,7 +56,7 @@ class MockWorker {
 MockWorker.instances = []
 
 const Books = [
-  { title: 'Old Man\'s War', author: 'Scalzi' },
+  { title: "Old Man's War", author: 'Scalzi' },
   { title: 'The Lock Artist', author: 'Hamilton' },
   { title: 'HTML5', author: 'Sharp' },
   { title: 'A Brief History of Time', author: 'Hawking' },
@@ -81,12 +81,16 @@ describe('FuseWorker sharding', () => {
 
   test('search results carry global refIndex, not shard-local', async () => {
     MockWorker.instances = []
-    const fw = new FuseWorker(Books, { keys: ['title', 'author'], includeScore: true }, { numWorkers: 3 })
+    const fw = new FuseWorker(
+      Books,
+      { keys: ['title', 'author'], includeScore: true },
+      { numWorkers: 3 }
+    )
 
     const results = await fw.search('brown')
 
     // Both "Brown" author entries should be found
-    const titles = results.map(r => r.item.title).sort()
+    const titles = results.map((r) => r.item.title).sort()
     expect(titles).toEqual(['Angels & Demons', 'The DaVinci Code'])
 
     // refIndex must point back to Books (global)
@@ -99,7 +103,11 @@ describe('FuseWorker sharding', () => {
 
   test('add() appends globally and subsequent search returns correct refIndex', async () => {
     MockWorker.instances = []
-    const fw = new FuseWorker(Books.slice(), { keys: ['title', 'author'] }, { numWorkers: 3 })
+    const fw = new FuseWorker(
+      Books.slice(),
+      { keys: ['title', 'author'] },
+      { numWorkers: 3 }
+    )
 
     // Prime workers
     await fw.search('xyz')
@@ -108,7 +116,7 @@ describe('FuseWorker sharding', () => {
     await fw.add(newDoc)
 
     const results = await fw.search('brown')
-    const added = results.find(r => r.item.title === 'Brown Bear')
+    const added = results.find((r) => r.item.title === 'Brown Bear')
     expect(added).toBeDefined()
     // Added doc's refIndex should equal its global append position
     expect(added.refIndex).toBe(Books.length)
@@ -119,7 +127,11 @@ describe('FuseWorker sharding', () => {
   test('interleaved search/add/setCollection keeps refIndex consistent', async () => {
     MockWorker.instances = []
     const initial = Books.slice(0, 4)
-    const fw = new FuseWorker(initial, { keys: ['title', 'author'] }, { numWorkers: 2 })
+    const fw = new FuseWorker(
+      initial,
+      { keys: ['title', 'author'] },
+      { numWorkers: 2 }
+    )
 
     const globalDocs = initial.slice()
 
@@ -142,8 +154,8 @@ describe('FuseWorker sharding', () => {
       expect(globalDocs[r.refIndex]).toBe(r.item)
     }
     // Specifically, the added docs must map to their append positions
-    const a1 = results.find(r => r.item === added1)
-    const a2 = results.find(r => r.item === added2)
+    const a1 = results.find((r) => r.item === added1)
+    const a2 = results.find((r) => r.item === added2)
     expect(a1?.refIndex).toBe(initial.length)
     expect(a2?.refIndex).toBe(initial.length + 1)
 
@@ -160,7 +172,7 @@ describe('FuseWorker sharding', () => {
     for (const r of results) {
       expect(globalDocs2[r.refIndex]).toBe(r.item)
     }
-    const a3 = results.find(r => r.item === added3)
+    const a3 = results.find((r) => r.item === added3)
     expect(a3?.refIndex).toBe(reset.length)
 
     fw.terminate()
@@ -168,7 +180,11 @@ describe('FuseWorker sharding', () => {
 
   test('setCollection rebuilds mapping so refIndex matches new collection', async () => {
     MockWorker.instances = []
-    const fw = new FuseWorker(Books, { keys: ['title', 'author'] }, { numWorkers: 2 })
+    const fw = new FuseWorker(
+      Books,
+      { keys: ['title', 'author'] },
+      { numWorkers: 2 }
+    )
     await fw.search('xyz') // force init
 
     const newDocs = [
@@ -391,38 +407,39 @@ describe('FuseWorker rejects function-valued options', () => {
 
   test('throws when sortFn is a function', () => {
     expect(
-      () => new FuseWorker(Books, {
-        keys: ['title'],
-        sortFn: (a, b) => a.score - b.score
-      })
+      () =>
+        new FuseWorker(Books, {
+          keys: ['title'],
+          sortFn: (a, b) => a.score - b.score
+        })
     ).toThrowError(/sortFn/)
   })
 
   test('throws when top-level getFn is a function', () => {
     expect(
-      () => new FuseWorker(Books, {
-        keys: ['title'],
-        getFn: (obj, path) => obj[path]
-      })
+      () =>
+        new FuseWorker(Books, {
+          keys: ['title'],
+          getFn: (obj, path) => obj[path]
+        })
     ).toThrowError(/getFn/)
   })
 
   test('throws when keys[].getFn is a function and names the offending key', () => {
     expect(
-      () => new FuseWorker(Books, {
-        keys: [
-          'title',
-          { name: 'author', getFn: (obj) => obj.author }
-        ]
-      })
+      () =>
+        new FuseWorker(Books, {
+          keys: ['title', { name: 'author', getFn: (obj) => obj.author }]
+        })
     ).toThrowError(/keys\[author\]\.getFn/)
   })
 
   test('does not throw when key.name is an array path (no getFn)', () => {
     expect(
-      () => new FuseWorker([{ a: { b: 'x' } }], {
-        keys: [{ name: ['a', 'b'] }]
-      })
+      () =>
+        new FuseWorker([{ a: { b: 'x' } }], {
+          keys: [{ name: ['a', 'b'] }]
+        })
     ).not.toThrow()
   })
 
@@ -430,20 +447,22 @@ describe('FuseWorker rejects function-valued options', () => {
     // The rejection is about structured-cloneability across postMessage,
     // not whether token search is on — so it fires regardless of the flag.
     expect(
-      () => new FuseWorker(Books, {
-        keys: ['title'],
-        useTokenSearch: false,
-        tokenize: (text) => text.split(/\s+/)
-      })
+      () =>
+        new FuseWorker(Books, {
+          keys: ['title'],
+          useTokenSearch: false,
+          tokenize: (text) => text.split(/\s+/)
+        })
     ).toThrowError(/tokenize/)
   })
 
   test('does not throw when tokenize is a regex (structured-cloneable)', () => {
     expect(
-      () => new FuseWorker(Books, {
-        keys: ['title'],
-        tokenize: /[\w.+-]+/g
-      })
+      () =>
+        new FuseWorker(Books, {
+          keys: ['title'],
+          tokenize: /[\w.+-]+/g
+        })
     ).not.toThrow()
   })
 

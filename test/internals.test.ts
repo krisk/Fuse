@@ -41,7 +41,10 @@ describe('InvertedIndex', () => {
   function makeRecords(): IndexRecord[] {
     return [
       // doc 0: 2 keys, key 0 has 2 unique terms, key 1 has 3
-      { i: 0, $: { 0: { v: 'hello world', n: 1 }, 1: { v: 'foo bar baz', n: 1 } } },
+      {
+        i: 0,
+        $: { 0: { v: 'hello world', n: 1 }, 1: { v: 'foo bar baz', n: 1 } }
+      },
       // doc 1: 1 key, 2 unique terms
       { i: 1, $: { 0: { v: 'hello there', n: 1 } } },
       // doc 2: 1 key, 3 unique terms

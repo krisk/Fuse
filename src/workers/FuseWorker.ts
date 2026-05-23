@@ -29,9 +29,8 @@ interface Shard {
 const DEFAULT_MAX_WORKERS = 8
 
 function getDefaultWorkerCount(): number {
-  const hw = typeof navigator !== 'undefined'
-    ? navigator.hardwareConcurrency || 4
-    : 4
+  const hw =
+    typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4
   return Math.min(hw, DEFAULT_MAX_WORKERS)
 }
 
@@ -52,7 +51,7 @@ export default class FuseWorker<T> {
     workerOptions?: FuseWorkerOptions
   ) {
     this._docs = docs.slice()
-    this._options = options || {} as IFuseOptions<T>
+    this._options = options || ({} as IFuseOptions<T>)
     this._workerOptions = workerOptions || {}
     // Reject function-valued options eagerly. Without this check, postMessage
     // throws DataCloneError on first search() rather than at construction.
@@ -65,8 +64,9 @@ export default class FuseWorker<T> {
     }
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore -- import.meta.url is resolved by Rollup at build time
-    this._workerUrl = this._workerOptions.workerUrl
-      || new URL('./fuse.worker.mjs', import.meta.url)
+    this._workerUrl =
+      this._workerOptions.workerUrl ||
+      new URL('./fuse.worker.mjs', import.meta.url)
   }
 
   private static _assertNoFunctionOptions<U>(options: IFuseOptions<U>): void {
@@ -86,7 +86,9 @@ export default class FuseWorker<T> {
         if (key && typeof key === 'object' && !Array.isArray(key)) {
           if (typeof (key as { getFn?: unknown }).getFn === 'function') {
             const name = (key as { name?: string | string[] }).name
-            const label = Array.isArray(name) ? name.join('.') : (name ?? String(i))
+            const label = Array.isArray(name)
+              ? name.join('.')
+              : (name ?? String(i))
             throw new Error(
               ErrorMsg.FUSE_WORKER_UNSUPPORTED_FN_OPTION(`keys[${label}].getFn`)
             )
@@ -156,7 +158,9 @@ export default class FuseWorker<T> {
 
       const shard: Shard = { worker: this._spawnWorker(), globalIndices }
       this._shards.push(shard)
-      initPromises.push(this._call(shard.worker, 'init', [chunk, workerInitOptions]))
+      initPromises.push(
+        this._call(shard.worker, 'init', [chunk, workerInitOptions])
+      )
     }
 
     await Promise.all(initPromises)
@@ -216,9 +220,10 @@ export default class FuseWorker<T> {
     if (!this._options.includeScore) {
       for (let i = 0, len = merged.length; i < len; i += 1) {
         const r = merged[i]
-        merged[i] = r.matches !== undefined
-          ? { item: r.item, refIndex: r.refIndex, matches: r.matches }
-          : { item: r.item, refIndex: r.refIndex }
+        merged[i] =
+          r.matches !== undefined
+            ? { item: r.item, refIndex: r.refIndex, matches: r.matches }
+            : { item: r.item, refIndex: r.refIndex }
       }
     }
 

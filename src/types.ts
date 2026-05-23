@@ -46,7 +46,9 @@ export interface KeyObject {
   id: string
   weight: number
   src: string | string[]
-  getFn?: ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null
+  getFn?:
+    | ((obj: any) => ReadonlyArray<string> | string | null | undefined)
+    | null
 }
 
 // ── Get function ───────────────────────────────────────────────────

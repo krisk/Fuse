@@ -4,18 +4,39 @@ import path from 'node:path'
 import Fuse from '../dist/fuse.mjs'
 
 const Books = [
-  { title: 'Old Man\'s War', author: { firstName: 'John', lastName: 'Scalzi' } },
-  { title: 'The Lock Artist', author: { firstName: 'Steve', lastName: 'Hamilton' } },
+  { title: "Old Man's War", author: { firstName: 'John', lastName: 'Scalzi' } },
+  {
+    title: 'The Lock Artist',
+    author: { firstName: 'Steve', lastName: 'Hamilton' }
+  },
   { title: 'HTML5', author: { firstName: 'Remy', lastName: 'Sharp' } },
-  { title: 'A Brief History of Time', author: { firstName: 'Stephen', lastName: 'Hawking' } },
-  { title: 'The Shock of the Fall', author: { firstName: 'Nathan', lastName: 'Filer' } },
-  { title: 'The Great Gatsby', author: { firstName: 'F. Scott', lastName: 'Fitzgerald' } },
-  { title: 'The DaVinci Code', author: { firstName: 'Dan', lastName: 'Brown' } },
+  {
+    title: 'A Brief History of Time',
+    author: { firstName: 'Stephen', lastName: 'Hawking' }
+  },
+  {
+    title: 'The Shock of the Fall',
+    author: { firstName: 'Nathan', lastName: 'Filer' }
+  },
+  {
+    title: 'The Great Gatsby',
+    author: { firstName: 'F. Scott', lastName: 'Fitzgerald' }
+  },
+  {
+    title: 'The DaVinci Code',
+    author: { firstName: 'Dan', lastName: 'Brown' }
+  },
   { title: 'Angels & Demons', author: { firstName: 'Dan', lastName: 'Brown' } },
-  { title: 'The Rosie Project', author: { firstName: 'Graeme', lastName: 'Simsion' } },
+  {
+    title: 'The Rosie Project',
+    author: { firstName: 'Graeme', lastName: 'Simsion' }
+  },
   { title: 'Gone Girl', author: { firstName: 'Gillian', lastName: 'Flynn' } },
   { title: 'Sapiens', author: { firstName: 'Yuval Noah', lastName: 'Harari' } },
-  { title: 'Surely You\'re Joking, Mr. Feynman!', author: { firstName: 'Richard', lastName: 'Feynman' } }
+  {
+    title: "Surely You're Joking, Mr. Feynman!",
+    author: { firstName: 'Richard', lastName: 'Feynman' }
+  }
 ]
 
 const options = {

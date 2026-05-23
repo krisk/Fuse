@@ -1,7 +1,13 @@
 import { isArray, isDefined, isString, isNumber } from '../helpers/typeGuards'
 import KeyStore from '../tools/KeyStore'
 import FuseIndex, { createIndex } from '../tools/FuseIndex'
-import { LogicalOperator, parse, type ParsedNode, type ParsedLeaf, type ParsedOperator } from './queryParser'
+import {
+  LogicalOperator,
+  parse,
+  type ParsedNode,
+  type ParsedLeaf,
+  type ParsedOperator
+} from './queryParser'
 import { createSearcher } from './register'
 import Config from './config'
 import computeScore, { computeScoreSingle } from './computeScore'
@@ -50,7 +56,11 @@ export default class Fuse<T> {
   static config: typeof Config
   static parseQuery: typeof parse
   static use: (...plugins: any[]) => void
-  static match: (pattern: string, text: string, options?: IFuseOptions<any>) => SearchResult
+  static match: (
+    pattern: string,
+    text: string,
+    options?: IFuseOptions<any>
+  ) => SearchResult
 
   constructor(
     docs: ReadonlyArray<T>,
@@ -66,10 +76,7 @@ export default class Fuse<T> {
       throw new Error(ErrorMsg.EXTENDED_SEARCH_UNAVAILABLE)
     }
 
-    if (
-      this.options.useTokenSearch &&
-      !process.env.TOKEN_SEARCH_ENABLED
-    ) {
+    if (this.options.useTokenSearch && !process.env.TOKEN_SEARCH_ENABLED) {
       throw new Error(ErrorMsg.TOKEN_SEARCH_UNAVAILABLE)
     }
 
@@ -270,9 +277,13 @@ export default class Fuse<T> {
     })
   }
 
-  _searchStringList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
+  _searchStringList(
+    query: string,
+    { heap, ignoreFieldNorm }: HeapSearchOptions = {}
+  ): InternalResult[] | null {
     const searcher = this._getSearcher(query)
-    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all'
+    const requireAllTokens =
+      this.options.useTokenSearch && this.options.tokenMatch === 'all'
     const { records } = this._myIndex
     const results: InternalResult[] | null = heap ? null : []
 
@@ -304,7 +315,9 @@ export default class Fuse<T> {
           const result: InternalResult = { item: text, idx, matches }
 
           if (heap) {
-            result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
+            result.score = computeScoreSingle(result.matches, {
+              ignoreFieldNorm
+            })
             if (heap.shouldInsert(result.score)) {
               heap.insert(result)
             }
@@ -325,7 +338,11 @@ export default class Fuse<T> {
 
     const expression = parse(query, this.options)
 
-    const evaluate = (node: ParsedNode, item: any, idx: number): InternalResult[] => {
+    const evaluate = (
+      node: ParsedNode,
+      item: any,
+      idx: number
+    ): InternalResult[] => {
       if (!('children' in node)) {
         const { keyId, searcher } = node as ParsedLeaf
 
@@ -410,9 +427,13 @@ export default class Fuse<T> {
   // it could be the positive or inverse term that failed. In that case we
   // conservatively exclude the item, which is strictly better than the old
   // behavior of including it. See: https://github.com/krisk/Fuse/issues/712
-  _searchObjectList(query: string, { heap, ignoreFieldNorm }: HeapSearchOptions = {}): InternalResult[] | null {
+  _searchObjectList(
+    query: string,
+    { heap, ignoreFieldNorm }: HeapSearchOptions = {}
+  ): InternalResult[] | null {
     const searcher = this._getSearcher(query)
-    const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === 'all'
+    const requireAllTokens =
+      this.options.useTokenSearch && this.options.tokenMatch === 'all'
     const { keys, records } = this._myIndex
     const results: InternalResult[] | null = heap ? null : []
 
@@ -452,7 +473,10 @@ export default class Fuse<T> {
       // Record-level AND gate (token search `tokenMatch: 'all'`): every query
       // term must be covered across the record's field/array-element matches.
       // Applied before heap insertion so `limit` returns the same top-N.
-      if (matches.length && (!requireAllTokens || this._coversAllTokens(matches))) {
+      if (
+        matches.length &&
+        (!requireAllTokens || this._coversAllTokens(matches))
+      ) {
         const result: InternalResult = { idx, item, matches }
 
         if (heap) {
@@ -468,7 +492,15 @@ export default class Fuse<T> {
 
     return results
   }
-  _findMatches({ key, value, searcher }: { key: KeyObject | null; value: SubRecord | SubRecord[] | undefined; searcher: Searcher }): MatchScore[] {
+  _findMatches({
+    key,
+    value,
+    searcher
+  }: {
+    key: KeyObject | null
+    value: SubRecord | SubRecord[] | undefined
+    searcher: Searcher
+  }): MatchScore[] {
     if (!isDefined(value)) {
       return []
     }

@@ -15,7 +15,9 @@ describe('Token search tokenMatch: all (AND)', () => {
 
   test('default (any) returns OR matches; all narrows the same query', () => {
     const list = ['red shirt', 'red hat', 'blue shirt']
-    const orItems = new Fuse(list, strict).search('red shirt').map((r) => r.item)
+    const orItems = new Fuse(list, strict)
+      .search('red shirt')
+      .map((r) => r.item)
     const andItems = new Fuse(list, { ...strict, tokenMatch: 'all' })
       .search('red shirt')
       .map((r) => r.item)
@@ -48,14 +50,19 @@ describe('Token search tokenMatch: all (AND)', () => {
       tokenMatch: 'all',
       keys: ['title', 'tags']
     })
-    expect(fuse.search('frontend web').map((r) => r.item.title)).toEqual(['JS Guide'])
+    expect(fuse.search('frontend web').map((r) => r.item.title)).toEqual([
+      'JS Guide'
+    ])
     // No record has both "frontend" and "python" → excluded
     expect(fuse.search('frontend python')).toEqual([])
   })
 
   test('single-token query: AND result set equals OR result set', () => {
     const list = ['red shirt', 'red hat', 'blue shirt', 'green pants']
-    const or = new Fuse(list, strict).search('red').map((r) => r.item).sort()
+    const or = new Fuse(list, strict)
+      .search('red')
+      .map((r) => r.item)
+      .sort()
     const and = new Fuse(list, { ...strict, tokenMatch: 'all' })
       .search('red')
       .map((r) => r.item)
@@ -65,7 +72,11 @@ describe('Token search tokenMatch: all (AND)', () => {
 
   test('fuzzy term still counts toward coverage', () => {
     const list = ['javascript patterns', 'python guide', 'java basics']
-    const fuse = new Fuse(list, { useTokenSearch: true, threshold: 0.3, tokenMatch: 'all' })
+    const fuse = new Fuse(list, {
+      useTokenSearch: true,
+      threshold: 0.3,
+      tokenMatch: 'all'
+    })
     // "javascrpt" (typo) + "patterns" → only the doc with both
     const items = fuse.search('javascrpt patterns').map((r) => r.item)
     expect(items).toEqual(['javascript patterns'])
@@ -74,7 +85,10 @@ describe('Token search tokenMatch: all (AND)', () => {
   test('duplicate query terms are satisfied without crashing', () => {
     const list = ['red shirt', 'red hat', 'blue shirt']
     const fuse = new Fuse(list, { ...strict, tokenMatch: 'all' })
-    const items = fuse.search('red red').map((r) => r.item).sort()
+    const items = fuse
+      .search('red red')
+      .map((r) => r.item)
+      .sort()
     expect(items).toEqual(['red hat', 'red shirt'])
   })
 
@@ -97,7 +111,9 @@ describe('Token search tokenMatch: all (AND)', () => {
       { title: 'red cap' }
     ]
     const opts = { ...strict, tokenMatch: 'all', keys: ['title'] }
-    const full = new Fuse(docs, opts).search('red shirt').map((r) => r.item.title)
+    const full = new Fuse(docs, opts)
+      .search('red shirt')
+      .map((r) => r.item.title)
     const limited = new Fuse(docs, opts)
       .search('red shirt', { limit: 1 })
       .map((r) => r.item.title)
@@ -109,7 +125,11 @@ describe('Token search tokenMatch: all (AND)', () => {
     const terms = Array.from({ length: 31 }, (_, i) => `w${i}`)
     const all = terms.join(' ')
     const list = [all, terms.slice(0, 30).join(' ')] // second missing w30
-    const fuse = new Fuse(list, { useTokenSearch: true, threshold: 0, tokenMatch: 'all' })
+    const fuse = new Fuse(list, {
+      useTokenSearch: true,
+      threshold: 0,
+      tokenMatch: 'all'
+    })
     const items = fuse.search(all).map((r) => r.item)
     expect(items).toEqual([all])
   })
@@ -118,7 +138,11 @@ describe('Token search tokenMatch: all (AND)', () => {
     const terms = Array.from({ length: 32 }, (_, i) => `w${i}`)
     const all = terms.join(' ')
     const list = [all, terms.slice(0, 31).join(' ')] // second missing w31
-    const fuse = new Fuse(list, { useTokenSearch: true, threshold: 0, tokenMatch: 'all' })
+    const fuse = new Fuse(list, {
+      useTokenSearch: true,
+      threshold: 0,
+      tokenMatch: 'all'
+    })
     const items = fuse.search(all).map((r) => r.item)
     expect(items).toEqual([all])
   })

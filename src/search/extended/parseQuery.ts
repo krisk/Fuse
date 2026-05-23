@@ -3,7 +3,7 @@ import type { Matcher } from './matchers'
 
 const matchersLen = matchers.length
 
-const ESCAPED_PIPE = '\u0000'  // placeholder for escaped \|
+const ESCAPED_PIPE = '\u0000' // placeholder for escaped \|
 const OR_TOKEN = '|'
 
 // Tokenize a query string into individual search terms.
@@ -36,7 +36,10 @@ function tokenize(pattern: string): string[] {
             j++ // include closing quote
             break
           }
-          if (pattern[next] === '$' && (next + 1 >= len || pattern[next + 1] === ' ')) {
+          if (
+            pattern[next] === '$' &&
+            (next + 1 >= len || pattern[next + 1] === ' ')
+          ) {
             j += 2 // include "$
             break
           }
@@ -64,14 +67,19 @@ function getMatch(pattern: string, exp: RegExp): string | null {
 // Return a 2D array representation of the query, for simpler parsing.
 // Example:
 // "^core go$ | rb$ | py$ xy$" => [["^core", "go$"], ["rb$"], ["py$", "xy$"]]
-export default function parseQuery(pattern: string, options: any = {}): Matcher[][] {
+export default function parseQuery(
+  pattern: string,
+  options: any = {}
+): Matcher[][] {
   // Replace escaped \| with placeholder before splitting on |
   const escaped = pattern.replace(/\\\|/g, ESCAPED_PIPE)
 
   return escaped.split(OR_TOKEN).map((item) => {
     // Restore escaped pipes in each OR group
     const restored = item.replace(/\u0000/g, '|')
-    const query = tokenize(restored.trim()).filter((item) => item && !!item.trim())
+    const query = tokenize(restored.trim()).filter(
+      (item) => item && !!item.trim()
+    )
 
     const results: Matcher[] = []
     for (let i = 0, len = query.length; i < len; i += 1) {

@@ -44,7 +44,9 @@ export function createKey(key: FuseOptionKey<any>): KeyObject {
   let id: string | null = null
   let src: string | string[] | null = null
   let weight: number = 1
-  let getFn: ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null = null
+  let getFn:
+    | ((obj: any) => ReadonlyArray<string> | string | null | undefined)
+    | null = null
 
   if (isString(key) || isArray(key)) {
     src = key

@@ -43,7 +43,11 @@ const convertToExplicit = (query: any): any => ({
 
 // When `auto` is `true`, the parse function will infer and initialize and add
 // the appropriate `Searcher` instance
-export function parse(query: Expression, options: any, { auto = true } = {}): ParsedNode {
+export function parse(
+  query: Expression,
+  options: any,
+  { auto = true } = {}
+): ParsedNode {
   const next = (query: any): ParsedNode => {
     // Keyless string entry: search across all keys
     if (isString(query)) {

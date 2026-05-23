@@ -24,7 +24,7 @@ function warnNonGlobal(regex: RegExp): void {
     warned.add(regex)
     console.warn(
       `[Fuse] tokenize regex ${regex} lacks the global flag; only the ` +
-      `first match per text will be returned. Add the 'g' flag.`
+        `first match per text will be returned. Add the 'g' flag.`
     )
   }
 }
@@ -38,10 +38,15 @@ function resolveTokenize(
       const result = tokenize(text)
       if (process.env.NODE_ENV === 'development' && !validated) {
         validated = true
-        if (!Array.isArray(result) || result.some(t => typeof t !== 'string')) {
+        if (
+          !Array.isArray(result) ||
+          result.some((t) => typeof t !== 'string')
+        ) {
           throw new Error(
             `[Fuse] tokenize function must return string[]; received ${
-              Array.isArray(result) ? 'array containing non-strings' : typeof result
+              Array.isArray(result)
+                ? 'array containing non-strings'
+                : typeof result
             }.`
           )
         }

@@ -444,13 +444,15 @@ describe('Recurse into arrays with empty/undefined elements', () => {
   })
 
   test('refIndex is correct when nested content array is empty', () => {
-    const list = [{
-      blocks: [
-        { content: [{ text: 'first' }] },
-        { content: [] },
-        { content: [{ text: 'third' }] },
-      ]
-    }]
+    const list = [
+      {
+        blocks: [
+          { content: [{ text: 'first' }] },
+          { content: [] },
+          { content: [{ text: 'third' }] }
+        ]
+      }
+    ]
     const fuse = new Fuse(list, {
       keys: ['blocks.content.text'],
       threshold: 0,
@@ -1339,11 +1341,11 @@ describe('Searching ignoring diactrictics', () => {
 
 describe('Searching ignoring non-decomposable diacritics', () => {
   const list = [
-    { text: 'łódź' },     // Polish city
-    { text: 'straße' },   // German street
-    { text: 'ørsted' },   // Danish name
-    { text: 'đorđe' },    // Serbian name
-    { text: 'ħobż' },     // Maltese bread
+    { text: 'łódź' }, // Polish city
+    { text: 'straße' }, // German street
+    { text: 'ørsted' }, // Danish name
+    { text: 'đorđe' }, // Serbian name
+    { text: 'ħobż' } // Maltese bread
   ]
 
   const options = {

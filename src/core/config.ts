@@ -13,7 +13,10 @@ export const BasicOptions = {
   includeScore: false,
   keys: [] as any[],
   shouldSort: true,
-  sortFn: (a: { score: number; idx: number }, b: { score: number; idx: number }): number =>
+  sortFn: (
+    a: { score: number; idx: number },
+    b: { score: number; idx: number }
+  ): number =>
     a.score === b.score ? (a.idx < b.idx ? -1 : 1) : a.score < b.score ? -1 : 1
 }
 

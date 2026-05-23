@@ -2,7 +2,10 @@ import type { NormInterface } from '../types'
 
 // Field-length norm: the shorter the field, the higher the weight.
 // Set to 3 decimals to reduce index size.
-export default function norm(weight: number = 1, mantissa: number = 3): NormInterface {
+export default function norm(
+  weight: number = 1,
+  mantissa: number = 3
+): NormInterface {
   const cache = new Map<number, number>()
   const m = Math.pow(10, mantissa)
 

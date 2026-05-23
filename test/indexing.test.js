@@ -320,7 +320,9 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
     // Asserts the bookkeeping shift, not BitapSearch's fuzzy result (Bitap with
     // default threshold can still fuzzy-match across token boundaries; that's
     // pre-existing token-search behavior and orthogonal to this fix).
-    const fuse = new Fuse(['', 'apple pie', 'banana bread'], { useTokenSearch: true })
+    const fuse = new Fuse(['', 'apple pie', 'banana bread'], {
+      useTokenSearch: true
+    })
     fuse.removeAt(1)
 
     expect(fuse._docs).toEqual(['', 'banana bread'])
@@ -400,7 +402,9 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
   })
 
   test('Fuse.removeAt invalid index does not corrupt the inverted index either', () => {
-    const fuse = new Fuse(['apple pie', 'banana bread'], { useTokenSearch: true })
+    const fuse = new Fuse(['apple pie', 'banana bread'], {
+      useTokenSearch: true
+    })
 
     const fieldCountBefore = fuse._invertedIndex.fieldCount
     const dfBefore = new Map(fuse._invertedIndex.df)

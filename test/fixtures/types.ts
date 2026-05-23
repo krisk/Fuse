@@ -44,4 +44,3 @@ export type PokedexType = {
   eggGroups?: string[]
   otherFormes?: string[]
 }
-
