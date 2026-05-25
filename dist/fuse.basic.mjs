@@ -1022,45 +1022,33 @@ class MaxHeap {
   }
 }
 
-function transformMatches(result, data) {
-  const matches = result.matches;
-  data.matches = [];
-  if (!isDefined(matches)) {
-    return;
-  }
-  matches.forEach(match => {
+function formatMatches(result) {
+  const matches = [];
+  result.matches.forEach(match => {
     if (!isDefined(match.indices) || !match.indices.length) {
       return;
     }
-    const {
-      indices,
-      value
-    } = match;
     const obj = {
-      indices,
-      value
+      indices: match.indices,
+      value: match.value
     };
     if (match.key) {
-      obj.key = match.key.src;
+      // `key.id` is the canonical dotted-string identity (array paths joined
+      // with '.'); `key.src` is the raw user input and can be a string[].
+      obj.key = match.key.id;
     }
     if (match.idx > -1) {
       obj.refIndex = match.idx;
     }
-    data.matches.push(obj);
+    matches.push(obj);
   });
-}
-
-function transformScore(result, data) {
-  data.score = result.score;
+  return matches;
 }
 
 function format(results, docs, {
   includeMatches = Config.includeMatches,
   includeScore = Config.includeScore
 } = {}) {
-  const transformers = [];
-  if (includeMatches) transformers.push(transformMatches);
-  if (includeScore) transformers.push(transformScore);
   return results.map(result => {
     const {
       idx
@@ -1069,11 +1057,8 @@ function format(results, docs, {
       item: docs[idx],
       refIndex: idx
     };
-    if (transformers.length) {
-      transformers.forEach(transformer => {
-        transformer(result, data);
-      });
-    }
+    if (includeMatches) data.matches = formatMatches(result);
+    if (includeScore) data.score = result.score;
     return data;
   });
 }

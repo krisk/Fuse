@@ -467,6 +467,21 @@ describe('Recurse into arrays with empty/undefined elements', () => {
       refIndex: 0
     })
   })
+
+  test('array-path key is reported as a dotted string in matches', () => {
+    const list = [{ author: { firstName: 'Karl' } }]
+    const fuse = new Fuse(list, {
+      keys: [['author', 'firstName']],
+      threshold: 0,
+      includeMatches: true
+    })
+    const result = fuse.search('Karl')
+    expect(result).toHaveLength(1)
+    expect(result[0].matches[0]).toMatchObject({
+      value: 'Karl',
+      key: 'author.firstName'
+    })
+  })
 })
 
 describe('Recurse into objects in arrays', () => {

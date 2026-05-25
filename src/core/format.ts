@@ -1,6 +1,5 @@
 import Config from './config'
-import transformMatches from './transformMatches'
-import transformScore from './transformScore'
+import formatMatches from './formatMatches'
 import type { InternalResult, FuseResult } from '../types'
 
 export default function format<T>(
@@ -11,24 +10,16 @@ export default function format<T>(
     includeScore = Config.includeScore
   } = {}
 ): FuseResult<T>[] {
-  const transformers: Array<(result: InternalResult, data: any) => void> = []
-
-  if (includeMatches) transformers.push(transformMatches)
-  if (includeScore) transformers.push(transformScore)
-
   return results.map((result) => {
     const { idx } = result
 
-    const data: any = {
+    const data: FuseResult<T> = {
       item: docs[idx],
       refIndex: idx
     }
 
-    if (transformers.length) {
-      transformers.forEach((transformer) => {
-        transformer(result, data)
-      })
-    }
+    if (includeMatches) data.matches = formatMatches(result)
+    if (includeScore) data.score = result.score
 
     return data
   })
