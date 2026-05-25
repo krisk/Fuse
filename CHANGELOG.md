@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.4.0-beta.8](https://github.com/krisk/Fuse/compare/v7.4.0-beta.7...v7.4.0-beta.8) (2026-05-25)
+
+
+### Bug Fixes
+
+* **matches:** report array-path keys as dotted strings ([acd54e8](https://github.com/krisk/Fuse/commit/acd54e88b667002c602ff624f7d7f2cbc62f23ec))
+
 ## [7.4.0-beta.7](https://github.com/krisk/Fuse/compare/v7.4.0-beta.6...v7.4.0-beta.7) (2026-05-22)
 
 
