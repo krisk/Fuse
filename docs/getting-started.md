@@ -46,12 +46,12 @@ const Fuse = require('fuse.js')
 ::: code-group
 
 ```html [script tag]
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.3.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.4.0"></script>
 ```
 
 ```html [ES module]
 <script type="module">
-  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.3.0/dist/fuse.mjs'
+  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.4.0/dist/fuse.mjs'
 </script>
 ```
 
@@ -62,8 +62,8 @@ Also available on [unpkg](https://unpkg.com/fuse.js).
 #### Deno
 
 ```typescript
-// @deno-types="https://deno.land/x/fuse@v7.3.0/dist/fuse.d.ts"
-import Fuse from 'https://deno.land/x/fuse@v7.3.0/dist/fuse.min.mjs'
+// @deno-types="https://deno.land/x/fuse@v7.4.0/dist/fuse.d.ts"
+import Fuse from 'https://deno.land/x/fuse@v7.4.0/dist/fuse.min.mjs'
 ```
 
 ## Quick Start
