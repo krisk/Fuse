@@ -3,6 +3,7 @@ node_modules/
 .DS_Store
 
 .claude/
+.antigravitycli/
 CLAUDE.md
 .idea/
 .vs/
