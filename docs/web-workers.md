@@ -3,13 +3,9 @@ title: Web Workers
 description: Run Fuse.js search across multiple Web Workers for parallel speedup and zero UI jank on large datasets.
 ---
 
-# Web Workers <Badge type="warning" text="Beta" />
+# Web Workers
 
 `FuseWorker` distributes search across multiple Web Workers, searching dataset shards in parallel. The UI stays completely responsive — no jank, no frozen frames — even on 100K+ item datasets.
-
-::: warning Beta
-This feature is new and the API may change based on feedback. If you run into issues or have thoughts on the API surface, please open an issue on [GitHub](https://github.com/krisk/Fuse/issues).
-:::
 
 ## Try It
 
@@ -36,12 +32,6 @@ If your dataset is small enough that `Fuse` feels instant, stick with `Fuse`. Si
 You can — it's not too complicated. But `FuseWorker` handles the parts that are tedious to get right: splitting the dataset into shards, spawning and managing worker lifecycle, dispatching queries to all workers in parallel, and merging results back in sorted order. It's boilerplate you'd write every time, bundled into a [drop-in class](https://github.com/krisk/Fuse/blob/main/src/workers/FuseWorker.ts) with the same API you already know.
 
 ## Quick Start
-
-Web Workers require the beta release:
-
-```sh
-npm install fuse.js@beta
-```
 
 ```js
 import { FuseWorker } from 'fuse.js/worker'

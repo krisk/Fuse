@@ -25,7 +25,7 @@ fuse.search('javascrpt paterns')
 
 See [Token Search](#token-search) below for details.
 
-## 🧪 Beta: Web Workers
+## Web Workers
 
 Search large datasets without freezing the UI. `FuseWorker` splits your data across multiple Web Workers and searches in parallel — ~5x faster on 100K documents.
 

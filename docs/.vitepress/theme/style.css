@@ -272,17 +272,3 @@ html.dark .vp-code-group [data-title="pnpm"]::before {
   top: -2px;
 }
 
-/* Sidebar "Beta" badge for Web Workers */
-.VPSidebarItem a[href$="/web-workers"] .text::after,
-.VPSidebarItem a[href$="/web-workers.html"] .text::after {
-  content: 'Beta';
-  font-size: 0.55em;
-  font-weight: 600;
-  color: var(--c-badge-warning);
-  border: 1px solid var(--c-badge-warning);
-  border-radius: 3px;
-  padding: 0 4px;
-  margin-left: 4px;
-  position: relative;
-  top: -2px;
-}
