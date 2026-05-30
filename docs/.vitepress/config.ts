@@ -25,7 +25,11 @@ export default defineConfig({
       { text: 'Docs', link: '/' },
       { text: 'Demo', link: '/demo' },
       { text: 'Sponsor', link: '/sponsor' },
-      { text: 'Cloud', link: '/cloud' }
+      { text: 'Cloud', link: '/cloud' },
+      {
+        text: `v${version} (latest)`,
+        link: `https://github.com/krisk/Fuse/releases/tag/v${version}`
+      }
     ],
 
     sidebar: [
