@@ -136,8 +136,9 @@ fuse.search('express midleware rout')
 - **Word order independent** — `"patterns javascript"` and `"javascript patterns"` return identical results
 - **No query length limit** — long multi-word queries work naturally since each term is searched separately
 - **AND or OR** — `tokenMatch: 'all'` returns only records matching *every* word (filtering); the default `'any'` matches any word
+- **Custom tokenizer** — pass a regex or function via `tokenize` for tokens with internal punctuation (`node.js`, `c++`), or use `Intl.Segmenter` for CJK / Thai word segmentation. Unicode-aware by default
 
-Available in the full build. See [TOKEN_SEARCH.md](TOKEN_SEARCH.md) for details and performance benchmarks.
+Available in the full build. See [the Token Search docs](https://fusejs.io/token-search) for details and performance benchmarks.
 
 ### Logical Search
 
