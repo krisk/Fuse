@@ -44,15 +44,17 @@ async function buildEntry(config) {
 }
 
 async function buildTypes() {
-  const output = configTypes.output
-  const { file } = output
+  for (const config of configTypes) {
+    const { output } = config
+    const { file } = output
 
-  const bundle = await rollup.rollup(configTypes)
-  const {
-    output: [{ code }]
-  } = await bundle.generate(output)
+    const bundle = await rollup.rollup(config)
+    const {
+      output: [{ code }]
+    } = await bundle.generate(output)
 
-  return write(file, code)
+    await write(file, code)
+  }
 }
 
 async function minify(banner, code) {

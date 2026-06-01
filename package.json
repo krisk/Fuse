@@ -37,6 +37,7 @@
       "require": "./dist/fuse.basic.min.cjs"
     },
     "./worker": {
+      "types": "./dist/fuse-worker.d.ts",
       "import": "./dist/fuse-worker.mjs",
       "require": "./dist/fuse-worker.cjs"
     },
