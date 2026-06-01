@@ -12,13 +12,6 @@ const FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED = `FuseWorker does not support useTok
 
 /// <reference lib="dom" />
 
-
-// A string or any stringifiable URL-like object (e.g. a `URL`). Kept
-// structural rather than `string | URL` so the generated .d.ts doesn't
-// reference the global `URL` type. Referencing it would force a DOM or
-// WebWorker lib on consumers, and either choice breaks projects compiled
-// with the other lib (dom vs webworker duplicate-identifier conflict).
-
 const DEFAULT_MAX_WORKERS = 8;
 function getDefaultWorkerCount() {
   const hw = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;

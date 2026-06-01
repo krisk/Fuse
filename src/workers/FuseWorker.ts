@@ -9,18 +9,11 @@ import type {
   Expression
 } from '../types'
 
-// A string or any stringifiable URL-like object (e.g. a `URL`). Kept
-// structural rather than `string | URL` so the generated .d.ts doesn't
-// reference the global `URL` type. Referencing it would force a DOM or
-// WebWorker lib on consumers, and either choice breaks projects compiled
-// with the other lib (dom vs webworker duplicate-identifier conflict).
-type WorkerUrlLike = string | { toString(): string }
-
 export interface FuseWorkerOptions {
   /** Number of parallel workers. Defaults to navigator.hardwareConcurrency (max 8). */
   numWorkers?: number
   /** Custom URL to the worker script. If not provided, resolves automatically via import.meta.url. */
-  workerUrl?: WorkerUrlLike
+  workerUrl?: string | URL
 }
 
 interface PendingCall {
@@ -50,7 +43,7 @@ export default class FuseWorker<T> {
   private _initPromise: Promise<void> | null = null
   private _pending: Map<number, PendingCall> = new Map()
   private _nextId = 0
-  private _workerUrl: WorkerUrlLike
+  private _workerUrl: string | URL
 
   constructor(
     docs: ReadonlyArray<T>,
@@ -117,9 +110,7 @@ export default class FuseWorker<T> {
   }
 
   private _spawnWorker(): Worker {
-    const worker = new Worker(this._workerUrl as string | URL, {
-      type: 'module'
-    })
+    const worker = new Worker(this._workerUrl, { type: 'module' })
 
     worker.onmessage = (e: MessageEvent) => {
       const { id, result, error } = e.data

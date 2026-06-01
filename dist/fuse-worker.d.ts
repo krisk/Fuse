@@ -128,14 +128,11 @@ type Expression = string | {
     $or?: Expression[];
 };
 
-type WorkerUrlLike = string | {
-    toString(): string;
-};
 interface FuseWorkerOptions {
     /** Number of parallel workers. Defaults to navigator.hardwareConcurrency (max 8). */
     numWorkers?: number;
     /** Custom URL to the worker script. If not provided, resolves automatically via import.meta.url. */
-    workerUrl?: WorkerUrlLike;
+    workerUrl?: string | URL;
 }
 declare class FuseWorker<T> {
     private _options;
