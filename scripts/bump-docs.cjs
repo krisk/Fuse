@@ -1,7 +1,10 @@
 //Load the library and specify options
-const { execSync } = require('child_process')
 const replace = require('replace-in-file')
-const VERSION = process.env.VERSION || execSync('npm view fuse.js version').toString().trim()
+// Use the version in package.json (the one being released) rather than the
+// latest published version from `npm view` -- otherwise running this before
+// `npm publish` (as the release flow does) bumps the docs to the previous
+// version and lags one release behind.
+const VERSION = process.env.VERSION || require('../package.json').version
 
 const options = {
   files: './docs/getting-started.md',
