@@ -50,7 +50,7 @@
   "files": [
     "dist"
   ],
-  "version": "7.4.0",
+  "version": "7.4.1",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {

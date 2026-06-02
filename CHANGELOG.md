@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.4.1](https://github.com/krisk/Fuse/compare/v7.4.0...v7.4.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* **types:** add TypeScript declarations for fuse.js/worker-script ([6ef6c33](https://github.com/krisk/Fuse/commit/6ef6c33101f8f4387d8a1dc7a227e483a179231f)), closes [#828](https://github.com/krisk/Fuse/issues/828)
+* **types:** ship TypeScript declarations for fuse.js/worker ([572ad1e](https://github.com/krisk/Fuse/commit/572ad1e6fca0bce226afae88b33a6f2d3672f80f)), closes [#828](https://github.com/krisk/Fuse/issues/828)
+
 ## [7.4.0](https://github.com/krisk/Fuse/compare/v7.4.0-beta.8...v7.4.0) (2026-05-30)
 
 ## [7.4.0-beta.8](https://github.com/krisk/Fuse/compare/v7.4.0-beta.7...v7.4.0-beta.8) (2026-05-25)
