@@ -106,6 +106,10 @@ function getSize(code) {
 }
 
 function logError(e) {
+  // Fail the process so a partial or failed build can't pass CI or be
+  // published by the release flow. We still log and keep going so every
+  // error in the run is reported, but the exit code ends up non-zero.
+  process.exitCode = 1
   console.error(e)
 }
 
