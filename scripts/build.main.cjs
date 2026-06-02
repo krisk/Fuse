@@ -4,7 +4,7 @@ const zlib = require('zlib')
 const terser = require('terser')
 const rollup = require('rollup')
 const configs = require('./configs.cjs')
-const configTypes = require('./config-types.cjs')
+const { rollupConfigs, literalTypes } = require('./config-types.cjs')
 
 if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist')
@@ -44,7 +44,7 @@ async function buildEntry(config) {
 }
 
 async function buildTypes() {
-  for (const config of configTypes) {
+  for (const config of rollupConfigs) {
     const { output } = config
     const { file } = output
 
@@ -53,6 +53,11 @@ async function buildTypes() {
       output: [{ code }]
     } = await bundle.generate(output)
 
+    await write(file, code)
+  }
+
+  // Hand-written declarations that rollup-plugin-dts can't synthesize.
+  for (const { file, code } of literalTypes) {
     await write(file, code)
   }
 }

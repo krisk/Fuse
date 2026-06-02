@@ -42,6 +42,7 @@
       "require": "./dist/fuse-worker.cjs"
     },
     "./worker-script": {
+      "types": "./dist/fuse.worker.d.ts",
       "import": "./dist/fuse.worker.mjs"
     }
   },
