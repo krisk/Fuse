@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.4.2](https://github.com/krisk/Fuse/compare/v7.4.1...v7.4.2) (2026-06-05)
+
+
+### Bug Fixes
+
+* **types:** emit CommonJS declarations (.d.cts) for node16/nodenext ([#780](https://github.com/krisk/Fuse/issues/780)) ([33f5d29](https://github.com/krisk/Fuse/commit/33f5d290df034e50b0646125264ee4a6229def98))
+
 ### [7.4.1](https://github.com/krisk/Fuse/compare/v7.4.0...v7.4.1) (2026-06-02)
 
 

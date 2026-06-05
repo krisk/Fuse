@@ -1,4 +1,4 @@
-// Type definitions for Fuse.js v7.4.1
+// Type definitions for Fuse.js v7.4.2
 // TypeScript v6.0.3
 // `fuse.js/worker-script` resolves to the worker script URL, surfaced
 // by your bundler as a string.
