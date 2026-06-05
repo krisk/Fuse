@@ -34,6 +34,52 @@ function getDefaultWorkerCount(): number {
   return Math.min(hw, DEFAULT_MAX_WORKERS)
 }
 
+// Capture the executing script's URL at MODULE-EVALUATION time. In browsers
+// `document.currentScript` is only non-null while the script is synchronously
+// running, so reading it later (inside the constructor, e.g. from an event
+// handler) would miss it and resolve relative to the page instead. This mirrors
+// the timing of the dual shim the old Rollup build emitted into the CJS output.
+// Unused in ESM (the catch below is never reached there) and undefined in Node.
+const browserWorkerBase: string | undefined =
+  typeof document !== 'undefined'
+    ? (document.currentScript as HTMLScriptElement | null)?.src ||
+      new URL('fuse-worker.cjs', document.baseURI).href
+    : undefined
+
+// Resolve the bundled worker script's URL without depending on a specific
+// bundler's `import.meta.url` codegen. The `new URL('./fuse.worker.mjs',
+// import.meta.url)` literal is preserved verbatim so bundlers (Vite/webpack)
+// statically detect and rewrite the worker asset for the ESM build; it is
+// correct for node-ESM, browser-ESM, and node-CJS. Only browser-CJS — where the
+// CJS rewrite's `require('url')`/`__filename` is unavailable and the expression
+// throws — falls back to the module-eval-captured browser base.
+function resolveDefaultWorkerUrl(): URL {
+  // In the CJS build, a browser bundle must resolve relative to the executing
+  // script, NOT via import.meta.url: its CJS rewrite (require('url')/__filename)
+  // can be polyfilled by browser bundlers (webpack/browserify) to a virtual path,
+  // which would silently win over the real script location. So when this is the
+  // CJS output and a document is present (browser-CJS), prefer the captured base.
+  // This matches the old Rollup CJS shim, which always preferred document in the
+  // browser. The ESM build keeps the import.meta.url literal below so bundlers
+  // detect + rewrite the worker asset (browser-ESM) and Node resolves it natively.
+  if (__WORKER_IS_CJS__ && browserWorkerBase !== undefined) {
+    return new URL('./fuse.worker.mjs', browserWorkerBase)
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore -- import.meta.url is provided by the bundler per output format
+    return new URL('./fuse.worker.mjs', import.meta.url)
+  } catch {
+    if (browserWorkerBase !== undefined) {
+      return new URL('./fuse.worker.mjs', browserWorkerBase)
+    }
+    throw new Error(
+      'FuseWorker: unable to resolve the worker script URL automatically; ' +
+        'pass workerOptions.workerUrl explicitly.'
+    )
+  }
+}
+
 export default class FuseWorker<T> {
   private _options: IFuseOptions<T>
   private _workerOptions: FuseWorkerOptions
@@ -62,11 +108,7 @@ export default class FuseWorker<T> {
     if (this._options.useTokenSearch) {
       throw new Error(ErrorMsg.FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED)
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore -- import.meta.url is resolved by Rollup at build time
-    this._workerUrl =
-      this._workerOptions.workerUrl ||
-      new URL('./fuse.worker.mjs', import.meta.url)
+    this._workerUrl = this._workerOptions.workerUrl || resolveDefaultWorkerUrl()
   }
 
   private static _assertNoFunctionOptions<U>(options: IFuseOptions<U>): void {

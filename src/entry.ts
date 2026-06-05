@@ -7,7 +7,7 @@ import TokenSearch from './search/token'
 import register, { createSearcher } from './core/register'
 import * as ErrorMsg from './core/errorMessages'
 
-Fuse.version = '__VERSION__'
+Fuse.version = __VERSION__
 Fuse.createIndex = createIndex
 Fuse.parseIndex = parseIndex
 Fuse.config = Config

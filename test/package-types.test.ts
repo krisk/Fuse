@@ -10,7 +10,14 @@
 // committed dist is used, so rebuild if you changed source.
 import { describe, test, expect, beforeAll, afterAll } from 'vitest'
 import ts from 'typescript'
-import { mkdtempSync, mkdirSync, symlinkSync, writeFileSync, rmSync, existsSync } from 'node:fs'
+import {
+  mkdtempSync,
+  mkdirSync,
+  symlinkSync,
+  writeFileSync,
+  rmSync,
+  existsSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,9 +32,18 @@ const CASES = [
     spec: 'fuse.js',
     code: `import Fuse from 'fuse.js'\nconst f = new Fuse<{ t: string }>([], { keys: ['t'] })\nvoid f.search('x')\n`
   },
-  { spec: 'fuse.js/min', code: `import Fuse from 'fuse.js/min'\nvoid new Fuse([])\n` },
-  { spec: 'fuse.js/basic', code: `import Fuse from 'fuse.js/basic'\nvoid new Fuse([])\n` },
-  { spec: 'fuse.js/min-basic', code: `import Fuse from 'fuse.js/min-basic'\nvoid new Fuse([])\n` },
+  {
+    spec: 'fuse.js/min',
+    code: `import Fuse from 'fuse.js/min'\nvoid new Fuse([])\n`
+  },
+  {
+    spec: 'fuse.js/basic',
+    code: `import Fuse from 'fuse.js/basic'\nvoid new Fuse([])\n`
+  },
+  {
+    spec: 'fuse.js/min-basic',
+    code: `import Fuse from 'fuse.js/min-basic'\nvoid new Fuse([])\n`
+  },
   {
     // Exercise FuseWorkerOptions too (numWorkers + the `string | URL`
     // workerUrl branch), so a regression in those option types is caught.
@@ -48,6 +64,31 @@ const CASES = [
       `const notAny: IsAny<typeof workerUrl> extends true ? never : true = true\n` +
       `const s: string = workerUrl\n` +
       `void s\nvoid notAny\n`
+  },
+  {
+    // Swapping the dts generator (rollup-plugin-dts -> tsdown's) could silently
+    // drop or rename a re-exported type. The cases above only exercise the
+    // default `Fuse`/`FuseWorker` values, so a missing *type* export would slip
+    // through. Import every public type from `fuse.js`; a dropped/renamed one
+    // surfaces as TS2305 on this consumer file.
+    spec: 'fuse.js (public type surface)',
+    code:
+      `import type {\n` +
+      `  IFuseOptions, FuseGetFunction, FuseOptionKey, FuseOptionKeyObject,\n` +
+      `  FuseResult, FuseResultMatch, FuseSearchOptions, FuseSortFunction,\n` +
+      `  FuseSortFunctionArg, FuseSortFunctionItem, FuseSortFunctionMatch,\n` +
+      `  FuseSortFunctionMatchList, FuseTokenizeFunction, FuseIndexOptions,\n` +
+      `  FuseIndexRecords, FuseIndexObjectRecord, FuseIndexStringRecord,\n` +
+      `  RecordEntry, RecordEntryObject, RecordEntryArrayItem, RangeTuple,\n` +
+      `  Expression, SearchResult, FuseIndex\n` +
+      `} from 'fuse.js'\n` +
+      `export {}\n`
+  },
+  {
+    spec: 'fuse.js/worker (type surface)',
+    code:
+      `import type { FuseWorker, FuseWorkerOptions } from 'fuse.js/worker'\n` +
+      `export type { FuseWorker, FuseWorkerOptions }\n`
   }
 ]
 
@@ -95,7 +136,9 @@ describe('published type declarations resolve for every export', () => {
   beforeAll(() => {
     for (const f of ['fuse.d.ts', 'fuse-worker.d.ts', 'fuse.worker.d.ts']) {
       if (!existsSync(join(repoRoot, 'dist', f))) {
-        throw new Error(`dist/${f} missing - run \`npm run build\` before this test`)
+        throw new Error(
+          `dist/${f} missing - run \`npm run build\` before this test`
+        )
       }
     }
     tmp = mkdtempSync(join(tmpdir(), 'fusejs-types-'))
@@ -124,11 +167,13 @@ describe('published type declarations resolve for every export', () => {
 
       for (const d of ts.getPreEmitDiagnostics(program)) {
         const fileName = d.file && d.file.fileName
-        if (fileName && fileName.includes('/node_modules/typescript/lib/')) continue
+        if (fileName && fileName.includes('/node_modules/typescript/lib/'))
+          continue
         const msg = ts.flattenDiagnosticMessageText(d.messageText, ' ')
         const key = fileName && fileToKey.get(fileName)
         if (key) errorsBySpec.get(key)!.push(msg)
-        else otherErrors.push(`[${mode.name}] ${fileName ?? '(no file)'}: ${msg}`)
+        else
+          otherErrors.push(`[${mode.name}] ${fileName ?? '(no file)'}: ${msg}`)
       }
     }
   })

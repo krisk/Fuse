@@ -26,5 +26,9 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm install --prefer-offline --no-audit --no-fund
+      # The build tool (tsdown) requires Node >= 22.18. The published library and
+      # its tests still run on Node 20: that leg tests the committed dist rather
+      # than rebuilding. Node 22/24 rebuild from source before testing.
       - run: npm run build
+        if: matrix.node != '20'
       - run: npm run test

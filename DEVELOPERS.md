@@ -7,6 +7,8 @@
 
 ## <a name="setup"></a> Setup
 
+Building and releasing require **Node >= 22.18** (the bundler, [tsdown](https://tsdown.dev), needs it); `nvm use` picks up the pinned `.nvmrc`. The published library runs on far older Node, and the CI test matrix still includes Node 20.
+
 ```shell
 npm install
 ```
@@ -19,8 +21,7 @@ npm install
 | `npm test` | Run the test suite (vitest) |
 | `npm run typecheck` | Type-check the source without emitting |
 | `npm run lint` | Lint source and tests (eslint) |
-| `npm run dev` | Watch mode for ESM dev build |
-| `npm run dev:cjs` | Watch mode for CJS dev build |
+| `npm run dev` | Watch mode (rebuilds all dist targets via tsdown) |
 | `npm run bench` | Build, then run the core search + index regression benchmarks |
 | `npm run bench:search` | Search benchmark (object/string fuzzy, scaling, remove) |
 | `npm run bench:index` | Index creation benchmark across dataset sizes |
@@ -30,7 +31,7 @@ npm install
 
 ## <a name="structure"></a> Project Structure
 
-Source is TypeScript. Types are emitted from source via `rollup-plugin-dts`.
+Source is TypeScript. The build, including `.d.ts` emit, runs through [tsdown](https://tsdown.dev) (rolldown engine); see `tsdown.config.ts`.
 
 ```
 src/
@@ -42,7 +43,8 @@ src/
   entry.ts      — Entry point with static methods and type exports
 test/           — Tests and fixtures
 bench/          — Benchmarks (search, index creation, extended, tokens, workers)
-scripts/        — Rollup build configs
+tsdown.config.ts — Build config (all dist targets + types)
+scripts/        — Release + docs helpers (bump-docs, deploy-docs, release)
 dist/           — Built output (CJS, ESM, .d.ts)
 ```
 
