@@ -14,32 +14,57 @@
   "module": "./dist/fuse.mjs",
   "unpkg": "./dist/fuse.mjs",
   "jsdelivr": "./dist/fuse.mjs",
-  "types": "./dist/fuse.d.ts",
+  "types": "./dist/fuse.d.cts",
   "exports": {
     ".": {
-      "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.mjs",
-      "require": "./dist/fuse.cjs"
+      "import": {
+        "types": "./dist/fuse.d.ts",
+        "default": "./dist/fuse.mjs"
+      },
+      "require": {
+        "types": "./dist/fuse.d.cts",
+        "default": "./dist/fuse.cjs"
+      }
     },
     "./min": {
-      "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.min.mjs",
-      "require": "./dist/fuse.min.cjs"
+      "import": {
+        "types": "./dist/fuse.d.ts",
+        "default": "./dist/fuse.min.mjs"
+      },
+      "require": {
+        "types": "./dist/fuse.d.cts",
+        "default": "./dist/fuse.min.cjs"
+      }
     },
     "./basic": {
-      "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.basic.mjs",
-      "require": "./dist/fuse.basic.cjs"
+      "import": {
+        "types": "./dist/fuse.d.ts",
+        "default": "./dist/fuse.basic.mjs"
+      },
+      "require": {
+        "types": "./dist/fuse.d.cts",
+        "default": "./dist/fuse.basic.cjs"
+      }
     },
     "./min-basic": {
-      "types": "./dist/fuse.d.ts",
-      "import": "./dist/fuse.basic.min.mjs",
-      "require": "./dist/fuse.basic.min.cjs"
+      "import": {
+        "types": "./dist/fuse.d.ts",
+        "default": "./dist/fuse.basic.min.mjs"
+      },
+      "require": {
+        "types": "./dist/fuse.d.cts",
+        "default": "./dist/fuse.basic.min.cjs"
+      }
     },
     "./worker": {
-      "types": "./dist/fuse-worker.d.ts",
-      "import": "./dist/fuse-worker.mjs",
-      "require": "./dist/fuse-worker.cjs"
+      "import": {
+        "types": "./dist/fuse-worker.d.ts",
+        "default": "./dist/fuse-worker.mjs"
+      },
+      "require": {
+        "types": "./dist/fuse-worker.d.cts",
+        "default": "./dist/fuse-worker.cjs"
+      }
     },
     "./worker-script": {
       "types": "./dist/fuse.worker.d.ts",
@@ -88,7 +113,7 @@
   "standard-version": {
     "scripts": {
       "postbump": "npm run build && npm run lint && npm run test 2>/dev/null",
-      "precommit": "git add dist/*.cjs dist/*.mjs dist/*.d.ts"
+      "precommit": "git add dist/*.cjs dist/*.mjs dist/*.d.ts dist/*.d.cts"
     }
   },
   "commitlint": {

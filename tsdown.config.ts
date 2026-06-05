@@ -1,9 +1,10 @@
 import { defineConfig } from 'tsdown'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createRequire } from 'node:module'
 
-// Build matrix (12 runtime files + 3 declaration files), grouped by
+// Build matrix (12 runtime files + 5 declaration files: 3 `.d.ts` + 2 `.d.cts`),
+// grouped by
 // feature-set x NODE_ENV x minify so each group can carry its own `define`.
 // Replaces the old Rollup/Babel/Terser orchestrator (scripts/configs.cjs +
 // config-types.cjs + build.main.cjs). See .plans/active/017-tsup-build-migration.md.
@@ -72,15 +73,69 @@ function writeWorkerScriptDts() {
   writeFileSync(resolve('dist/fuse.worker.d.ts'), code)
 }
 
+// Derive a CommonJS declaration (`.d.cts`) from a just-emitted `.d.ts`.
+// CJS consumers under moduleResolution node16/nodenext reach types through the
+// `require` exports condition; without a `.d.cts` they resolve the `.d.ts`,
+// which TS reads as ESM (the package is `"type": "module"`) — so a `require`
+// import masquerades as ESM and errors with TS1479. See #780 / Plan 018.
+//
+// rolldown-dts always ends a declaration with one barrel `export { … }`. The
+// declarations above it are format-agnostic and copied verbatim; only the
+// barrel is rewritten:
+//   - default-exporting entry (lib builds; runtime `module.exports = Fuse`):
+//     the runtime-accurate CJS type is `export =`, so re-export the named types
+//     through a merged namespace and `export = <default>`.
+//   - named-only entry (worker; runtime `exports.FuseWorker = …`): CJS and ESM
+//     declarations are identical, so copy the file verbatim.
+// The published-types test (`test/package-types.test.ts`, cjs mode) is the
+// regression guard if rolldown-dts's barrel format ever drifts.
+function emitCjsDts(dtsRelPath: string) {
+  const src = readFileSync(resolve(dtsRelPath), 'utf8')
+  const ctsPath = dtsRelPath.replace(/\.d\.ts$/, '.d.cts')
+  const barrel = src.match(/export\s*\{([^{}]*)\}\s*;?\s*$/)
+  if (!barrel) {
+    throw new Error(
+      `emitCjsDts: expected a trailing \`export { … }\` barrel in ${dtsRelPath}`
+    )
+  }
+  const specifiers = barrel[1]
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  const defaultSpec = specifiers.find((s) => /\bas\s+default$/.test(s))
+  if (!defaultSpec) {
+    // Named-only: identical in CJS and ESM.
+    writeFileSync(resolve(ctsPath), src)
+    return
+  }
+  const defaultName = defaultSpec.replace(/\s+as\s+default$/, '').trim()
+  // Keep each specifier's `type` modifier verbatim. The named exports are
+  // type-only; stripping `type` would re-export them as value members of the
+  // namespace, so `Fuse.FuseIndex` would type-check as a runtime value that
+  // doesn't exist (`module.exports = Fuse` only carries the static methods).
+  const named = specifiers.filter((s) => s !== defaultSpec)
+  const head = src.slice(0, barrel.index)
+  const namespace = named.length
+    ? `declare namespace ${defaultName} {\n  export { ${named.join(', ')} };\n}\n`
+    : ''
+  writeFileSync(
+    resolve(ctsPath),
+    `${head}${namespace}export = ${defaultName};\n`
+  )
+}
+
 export default defineConfig([
   // full build (dev, non-min) — default package export; owns fuse.d.ts
+  // (and derives fuse.d.cts for the `require` condition — shared by all four
+  // full/basic subpaths, same as fuse.d.ts is today).
   {
     ...shared,
     entry: { fuse: 'src/entry.ts' },
     format: ['cjs', 'esm'],
     minify: false,
     define: define(FULL, 'development'),
-    dts: true
+    dts: true,
+    onSuccess: () => emitCjsDts('dist/fuse.d.ts')
   },
   // full build (prod, min) — ./min
   {
@@ -124,7 +179,8 @@ export default defineConfig([
     format: ['esm'],
     minify: false,
     define: { ...define(FULL, 'production'), __WORKER_IS_CJS__: 'false' },
-    dts: true
+    dts: true,
+    onSuccess: () => emitCjsDts('dist/fuse-worker.d.ts')
   },
   // self-contained worker script (ESM, side-effect) — ./worker-script; writes literal dts
   {

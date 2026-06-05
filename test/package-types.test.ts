@@ -26,8 +26,14 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 // One representative consumer import per public subpath. The point is that the
 // specifier resolves to declarations (no TS2307/TS7016 under strict), and that
-// the surfaced type is usable.
-const CASES = [
+// the surfaced type is usable. `modes` restricts a case to a subset of MODES
+// (default: all) — e.g. CJS-only `require`/`export =` cases, or ESM-only cases
+// that can't compile as CommonJS (`import.meta`, or the import-only
+// worker-script subpath).
+type TypeCase = { spec: string; code: string; modes?: readonly string[] }
+const ESM_ONLY = ['nodenext', 'bundler'] as const
+const CJS_ONLY = ['cjs'] as const
+const CASES: TypeCase[] = [
   {
     spec: 'fuse.js',
     code: `import Fuse from 'fuse.js'\nconst f = new Fuse<{ t: string }>([], { keys: ['t'] })\nvoid f.search('x')\n`
@@ -47,7 +53,9 @@ const CASES = [
   {
     // Exercise FuseWorkerOptions too (numWorkers + the `string | URL`
     // workerUrl branch), so a regression in those option types is caught.
+    // ESM-only: the `import.meta.url` here can't compile into CommonJS output.
     spec: 'fuse.js/worker',
+    modes: ESM_ONLY,
     code:
       `import { FuseWorker } from 'fuse.js/worker'\n` +
       `const w = new FuseWorker<{ t: string }>([], { keys: ['t'] }, ` +
@@ -55,7 +63,10 @@ const CASES = [
       `void w.search('x')\n`
   },
   {
+    // ESM-only subpath: `./worker-script` has only an `import` condition (no
+    // `require`), so it isn't a CJS target.
     spec: 'fuse.js/worker-script',
+    modes: ESM_ONLY,
     code:
       `import workerUrl from 'fuse.js/worker-script'\n` +
       // Guard that the default export is exactly `string`, not a silent `any`
@@ -89,12 +100,72 @@ const CASES = [
     code:
       `import type { FuseWorker, FuseWorkerOptions } from 'fuse.js/worker'\n` +
       `export type { FuseWorker, FuseWorkerOptions }\n`
+  },
+  // --- CJS-only cases (#780) ---------------------------------------------
+  // These run under the `cjs` mode (`.cts` / module: NodeNext), reaching the
+  // `require` exports condition -> `fuse.d.cts` / `fuse-worker.d.cts`. They
+  // assert the runtime-accurate CJS shapes the `.d.cts` files encode: the lib
+  // entry is `export = Fuse` (a bare constructor, `module.exports = Fuse`), the
+  // worker is a named `FuseWorker`. The public-type-surface case above already
+  // runs here too, exercising the full named-type set through the `export =`
+  // namespace merge — the riskiest part of the transform.
+  {
+    // `export =` is constructable and its named types are reachable as
+    // namespace members (`Fuse.IFuseOptions`), matching `module.exports = Fuse`.
+    spec: 'fuse.js (cjs require + namespace types)',
+    modes: CJS_ONLY,
+    code:
+      `import Fuse = require('fuse.js')\n` +
+      `const f = new Fuse<{ t: string }>([], { keys: ['t'] })\n` +
+      `void f.search('x')\n` +
+      `const o: Fuse.IFuseOptions<{ t: string }> = { keys: ['t'] }\n` +
+      `const r: Fuse.RangeTuple = [0, 1]\n` +
+      `void o\nvoid r\n`
+  },
+  {
+    // The common ergonomic form: default + named in one statement (relies on
+    // esModuleInterop, which module: NodeNext implies).
+    spec: 'fuse.js (cjs default + named import)',
+    modes: CJS_ONLY,
+    code:
+      `import Fuse, { type IFuseOptions, type RangeTuple } from 'fuse.js'\n` +
+      `const o: IFuseOptions<{ t: string }> = { keys: ['t'] }\n` +
+      `const f = new Fuse<{ t: string }>([], o)\n` +
+      `const r: RangeTuple = [0, 1]\n` +
+      `void f.search('x')\nvoid r\n`
+  },
+  {
+    // The worker's named export resolves as a *value* through `require`.
+    spec: 'fuse.js/worker (cjs require, named)',
+    modes: CJS_ONLY,
+    code:
+      `import worker = require('fuse.js/worker')\n` +
+      `const W = worker.FuseWorker\n` +
+      `void W\n`
+  },
+  {
+    // The namespace-merge must re-export named types with their `type` modifier,
+    // so they stay type-only. Stripping it would make `Fuse.RangeTuple` a value
+    // member that doesn't exist at runtime (`module.exports = Fuse` only carries
+    // the static methods). `@ts-expect-error` flips to a TS2578 failure if value
+    // access ever stops erroring (the regression).
+    spec: 'fuse.js (cjs type-only members are not values)',
+    modes: CJS_ONLY,
+    code:
+      `import Fuse = require('fuse.js')\n` +
+      `type _Rt = Fuse.RangeTuple\n` +
+      `const _ok: _Rt = [0, 1]\n` +
+      `// @ts-expect-error RangeTuple is type-only; no runtime value member\n` +
+      `const _v = Fuse.RangeTuple\n` +
+      `void _ok\nvoid _v\n`
   }
 ]
 
-// The supported resolution modes for these ESM/browser entry points. node16
-// shares NodeNext's behavior here; CJS resolution is intentionally not a
-// target (the worker subpaths are import-only).
+// The supported resolution modes. node16 shares NodeNext's behavior here. The
+// `cjs` mode resolves the `require` exports condition: a `.cts` file under
+// module: NodeNext is CommonJS, so it reaches `*.d.cts` and would surface a
+// "masquerading as ESM" regression (TS1479) if those were missing or wrong
+// (#780). `module: NodeNext` implies esModuleInterop, so default imports work.
 const MODES = [
   {
     name: 'nodenext',
@@ -107,8 +178,18 @@ const MODES = [
     ext: 'ts',
     moduleResolution: ts.ModuleResolutionKind.Bundler,
     module: ts.ModuleKind.ESNext
+  },
+  {
+    name: 'cjs',
+    ext: 'cts',
+    moduleResolution: ts.ModuleResolutionKind.NodeNext,
+    module: ts.ModuleKind.NodeNext
   }
 ]
+
+// A case runs in a mode when it declares no `modes` filter or lists that mode.
+const casesFor = (modeName: string) =>
+  CASES.filter((c) => !c.modes || c.modes.includes(modeName))
 
 const SHARED: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2022,
@@ -134,7 +215,13 @@ let tmp: string
 
 describe('published type declarations resolve for every export', () => {
   beforeAll(() => {
-    for (const f of ['fuse.d.ts', 'fuse-worker.d.ts', 'fuse.worker.d.ts']) {
+    for (const f of [
+      'fuse.d.ts',
+      'fuse.d.cts',
+      'fuse-worker.d.ts',
+      'fuse-worker.d.cts',
+      'fuse.worker.d.ts'
+    ]) {
       if (!existsSync(join(repoRoot, 'dist', f))) {
         throw new Error(
           `dist/${f} missing - run \`npm run build\` before this test`
@@ -149,7 +236,7 @@ describe('published type declarations resolve for every export', () => {
     for (const mode of MODES) {
       const fileToKey = new Map<string, string>()
       const rootNames: string[] = []
-      for (const { spec, code } of CASES) {
+      for (const { spec, code } of casesFor(mode.name)) {
         const safe = spec.replace(/[^a-z0-9]/gi, '_')
         const file = join(tmp, `${safe}_${mode.name}.${mode.ext}`)
         writeFileSync(file, code)
@@ -183,7 +270,7 @@ describe('published type declarations resolve for every export', () => {
   })
 
   for (const mode of MODES) {
-    for (const { spec } of CASES) {
+    for (const { spec } of casesFor(mode.name)) {
       test(`${spec} (${mode.name})`, () => {
         expect(errorsBySpec.get(keyFor(mode.name, spec))).toEqual([])
       })
