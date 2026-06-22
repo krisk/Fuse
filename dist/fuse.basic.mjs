@@ -194,14 +194,15 @@ function norm(weight = 1, mantissa = 3) {
 	const m = Math.pow(10, mantissa);
 	return {
 		get(value) {
-			let numTokens = 1;
-			let inSpace = false;
-			for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) === 32) {
-				if (!inSpace) {
+			let numTokens = 0;
+			let inWord = false;
+			for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) !== 32) {
+				if (!inWord) {
 					numTokens++;
-					inSpace = true;
+					inWord = true;
 				}
-			} else inSpace = false;
+			} else inWord = false;
+			if (numTokens === 0) numTokens = 1;
 			if (cache.has(numTokens)) return cache.get(numTokens);
 			const n = Math.round(m / Math.pow(numTokens, .5 * weight)) / m;
 			cache.set(numTokens, n);
