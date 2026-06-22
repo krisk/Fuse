@@ -33,6 +33,18 @@ describe('fieldNorm', () => {
     const b = n.get('foo bar baz')
     expect(a).toBe(b)
   })
+
+  test('does not count leading or trailing spaces as word boundaries', () => {
+    const n = norm(1, 3)
+    // Leading space must not inflate the word count
+    expect(n.get(' hello')).toBe(n.get('hello'))
+    // Trailing space must not inflate the word count
+    expect(n.get('hello ')).toBe(n.get('hello'))
+    // Both sides
+    expect(n.get(' hello world ')).toBe(n.get('hello world'))
+    // A string of only spaces should fall back to 1 token, same as empty
+    expect(n.get(' ')).toBe(n.get(''))
+  })
 })
 
 describe('InvertedIndex', () => {

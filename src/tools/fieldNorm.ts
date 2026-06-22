@@ -11,19 +11,26 @@ export default function norm(
 
   return {
     get(value: string): number {
-      // Count words by counting space transitions — avoids allocating a regex match array
-      let numTokens = 1
-      let inSpace = false
+      // Count words by tallying word-starts (transitions from space/start to
+      // non-space). This avoids allocating a regex match array and correctly
+      // handles leading and trailing spaces, which the old transition-counter
+      // (starting at 1 and incrementing on every space boundary) would
+      // over-count by 1 for each stray boundary.
+      let numTokens = 0
+      let inWord = false
       for (let i = 0; i < value.length; i++) {
-        if (value.charCodeAt(i) === 32) {
-          if (!inSpace) {
+        if (value.charCodeAt(i) !== 32) {
+          if (!inWord) {
             numTokens++
-            inSpace = true
+            inWord = true
           }
         } else {
-          inSpace = false
+          inWord = false
         }
       }
+      // Empty strings and all-whitespace strings have no real words; treat
+      // them as a single token so the formula never divides by zero.
+      if (numTokens === 0) numTokens = 1
 
       if (cache.has(numTokens)) {
         return cache.get(numTokens)!
