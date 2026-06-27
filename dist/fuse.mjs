@@ -571,10 +571,6 @@ var BitapSearch = class {
 		text = isCaseSensitive ? text : text.toLowerCase();
 		text = ignoreDiacritics ? stripDiacritics(text) : text;
 		if (this.pattern === text) {
-			if (text.length < this.options.minMatchCharLength) return {
-				isMatch: false,
-				score: 1
-			};
 			const result = {
 				isMatch: true,
 				score: 0
