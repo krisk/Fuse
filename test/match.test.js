@@ -82,4 +82,26 @@ describe('Fuse.match', () => {
     const result = Fuse.match('apple', 'apple pie', { useTokenSearch: false })
     expect(result.isMatch).toBe(true)
   })
+
+  test('exact match returns isMatch: false when pattern is shorter than minMatchCharLength', () => {
+    // The exact-match shortcut (pattern === text) used to bypass the
+    // minMatchCharLength constraint, returning isMatch: true even though the
+    // matched region was shorter than the required minimum.
+    const result = Fuse.match('abc', 'abc', { minMatchCharLength: 5 })
+    expect(result.isMatch).toBe(false)
+  })
+
+  test('exact match still succeeds when pattern length meets minMatchCharLength', () => {
+    const result = Fuse.match('hello', 'hello', { minMatchCharLength: 5 })
+    expect(result.isMatch).toBe(true)
+    expect(result.score).toBe(0)
+  })
+
+  test('corpus search: exact-match item excluded when shorter than minMatchCharLength', () => {
+    const fuse = new Fuse(['abc', 'abcde', 'abcdefgh'], { minMatchCharLength: 5 })
+    const results = fuse.search('abc')
+    // 'abc' (3 chars) must not appear; bitap non-exact matches inside longer
+    // strings are correctly filtered by convertMaskToIndices already.
+    expect(results.map((r) => r.item)).not.toContain('abc')
+  })
 })
