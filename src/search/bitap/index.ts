@@ -102,6 +102,13 @@ export default class BitapSearch {
 
     // Exact match
     if (this.pattern === text) {
+      // Respect minMatchCharLength: the whole string is the matched region, so
+      // its length must meet the minimum. The non-exact bitap path enforces
+      // this via convertMaskToIndices; the shortcut must do the same.
+      if (text.length < this.options.minMatchCharLength) {
+        return { isMatch: false, score: 1 }
+      }
+
       const result: SearchResult = {
         isMatch: true,
         score: 0
