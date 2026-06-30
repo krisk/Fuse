@@ -434,7 +434,15 @@ export default class Fuse<T> {
     const searcher = this._getSearcher(query)
     const requireAllTokens =
       this.options.useTokenSearch && this.options.tokenMatch === 'all'
-    const { keys, records } = this._myIndex
+    const { records } = this._myIndex
+    // Use KeyStore's normalised keys so that key.weight reflects the
+    // weight normalisation performed by KeyStore (weights sum to 1).
+    // Previously this used this._myIndex.keys whose weights are the raw
+    // user-supplied values; with extreme weights (e.g. 100) the exponent
+    // Math.pow(Number.EPSILON, weight * norm) underflows to 0, and scores
+    // become inconsistent with _searchLogical which already reads from
+    // this._keyStore.get(keyId).
+    const keys = this._keyStore.keys()
     const results: InternalResult[] | null = heap ? null : []
 
     // List is Array<Object>
