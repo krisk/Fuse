@@ -190,6 +190,9 @@ const Config = Object.freeze({
 
 //#endregion
 //#region src/tools/fieldNorm.ts
+function isWordSeparator(code) {
+	return code >= 9 && code <= 13 || code === 32 || code === 160;
+}
 function norm(weight = 1, mantissa = 3) {
 	const cache = /* @__PURE__ */ new Map();
 	const m = Math.pow(10, mantissa);
@@ -197,7 +200,7 @@ function norm(weight = 1, mantissa = 3) {
 		get(value) {
 			let numTokens = 0;
 			let inWord = false;
-			for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) !== 32) {
+			for (let i = 0; i < value.length; i++) if (!isWordSeparator(value.charCodeAt(i))) {
 				if (!inWord) {
 					numTokens++;
 					inWord = true;
