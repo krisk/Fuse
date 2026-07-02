@@ -287,12 +287,14 @@ declare function parse(query: Expression, options: any, {
 declare const Config: Required<IFuseOptions<any>>;
 //#endregion
 //#region src/tools/MaxHeap.d.ts
+type Comparator = (a: InternalResult, b: InternalResult) => number;
 declare class MaxHeap {
   limit: number;
   heap: InternalResult[];
-  constructor(limit: number);
+  cmp: Comparator;
+  constructor(limit: number, cmp: Comparator);
   get size(): number;
-  shouldInsert(score: number): boolean;
+  shouldInsert(item: InternalResult): boolean;
   insert(item: InternalResult): void;
   extractSorted(sortFn: (a: InternalResult, b: InternalResult) => number): InternalResult[];
   _bubbleUp(i: number): void;
