@@ -246,7 +246,7 @@ export default class Fuse<T> {
     let results: InternalResult[]
 
     if (useHeap) {
-      const heap = new MaxHeap(limit)
+      const heap = new MaxHeap(limit, sortFn as any)
       if (isString(this._docs[0])) {
         this._searchStringList(query as string, { heap, ignoreFieldNorm })
       } else {
@@ -318,7 +318,7 @@ export default class Fuse<T> {
             result.score = computeScoreSingle(result.matches, {
               ignoreFieldNorm
             })
-            if (heap.shouldInsert(result.score)) {
+            if (heap.shouldInsert(result)) {
               heap.insert(result)
             }
           } else {
@@ -481,7 +481,7 @@ export default class Fuse<T> {
 
         if (heap) {
           result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
-          if (heap.shouldInsert(result.score)) {
+          if (heap.shouldInsert(result)) {
             heap.insert(result)
           }
         } else {
