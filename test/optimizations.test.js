@@ -56,6 +56,18 @@ describe('Search with limit', () => {
       expect(limited[i].refIndex).toBe(all[i].refIndex)
     }
   })
+
+  test('limit keeps the tie-break winner when scores tie', () => {
+    const tied = new Fuse(['matchX', 'matchY', 'matchZ', 'match'], {
+      threshold: 0.6
+    })
+    const all = tied.search('match')
+    const limited = tied.search('match', { limit: 2 })
+    expect(limited).toHaveLength(2)
+    for (let i = 0; i < limited.length; i++) {
+      expect(limited[i].refIndex).toBe(all[i].refIndex)
+    }
+  })
 })
 
 describe('Search with limit on object list', () => {
