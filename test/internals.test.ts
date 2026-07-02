@@ -45,6 +45,17 @@ describe('fieldNorm', () => {
     // A string of only spaces should fall back to 1 token, same as empty
     expect(n.get(' ')).toBe(n.get(''))
   })
+
+  test('treats tabs and newlines as word separators, like plain spaces', () => {
+    const n = norm(1, 3)
+    // The word counter only checked charCode 32 (plain space), so a field
+    // using tabs or newlines between words was scored as a single word,
+    // giving it an artificially better (lower) norm than it should have.
+    expect(n.get('hello\tworld')).toBe(n.get('hello world'))
+    expect(n.get('hello\nworld')).toBe(n.get('hello world'))
+    expect(n.get('one\ttwo\tthree')).toBe(n.get('one two three'))
+    expect(n.get('one\ntwo\nthree')).toBe(n.get('one two three'))
+  })
 })
 
 describe('InvertedIndex', () => {

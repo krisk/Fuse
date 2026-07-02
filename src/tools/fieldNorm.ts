@@ -1,5 +1,12 @@
 import type { NormInterface } from '../types'
 
+// Whitespace charCodes treated as word separators by the counter below:
+// tab (9), newline (10), vertical tab (11), form feed (12), CR (13),
+// space (32), non-breaking space (160).
+function isWordSeparator(code: number): boolean {
+  return (code >= 9 && code <= 13) || code === 32 || code === 160
+}
+
 // Field-length norm: the shorter the field, the higher the weight.
 // Set to 3 decimals to reduce index size.
 export default function norm(
@@ -11,15 +18,20 @@ export default function norm(
 
   return {
     get(value: string): number {
-      // Count words by tallying word-starts (transitions from space/start to
-      // non-space). This avoids allocating a regex match array and correctly
-      // handles leading and trailing spaces, which the old transition-counter
-      // (starting at 1 and incrementing on every space boundary) would
-      // over-count by 1 for each stray boundary.
+      // Count words by tallying word-starts (transitions from separator/start
+      // to non-separator). This avoids allocating a regex match array and
+      // correctly handles leading and trailing separators, which the old
+      // transition-counter (starting at 1 and incrementing on every boundary)
+      // would over-count by 1 for each stray boundary.
+      //
+      // A separator is any whitespace character (space, tab, newline, CR,
+      // vertical tab, form feed, or non-breaking space) — not just plain
+      // ASCII space. Checking charCode 32 alone missed tabs and newlines, so
+      // e.g. a tab- or newline-joined field was scored as a single word.
       let numTokens = 0
       let inWord = false
       for (let i = 0; i < value.length; i++) {
-        if (value.charCodeAt(i) !== 32) {
+        if (!isWordSeparator(value.charCodeAt(i))) {
           if (!inWord) {
             numTokens++
             inWord = true
