@@ -992,6 +992,9 @@ var Fuse = class {
 	getIndex() {
 		return this._myIndex;
 	}
+	_normalizedKeys() {
+		return this._myIndex.keys.map((key) => this._keyStore.get(key.id) || key);
+	}
 	search(query, options) {
 		const { limit = -1 } = options || {};
 		const { includeMatches, includeScore, shouldSort, sortFn, ignoreFieldNorm } = this.options;
@@ -1069,7 +1072,8 @@ var Fuse = class {
 	_searchObjectList(query, { heap, ignoreFieldNorm } = {}) {
 		const searcher = this._getSearcher(query);
 		const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === "all";
-		const { keys, records } = this._myIndex;
+		const { records } = this._myIndex;
+		const keys = this._normalizedKeys();
 		const results = heap ? null : [];
 		records.forEach(({ $: item, i: idx }) => {
 			if (!isDefined(item)) return;

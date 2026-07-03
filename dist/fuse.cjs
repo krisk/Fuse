@@ -1374,6 +1374,9 @@ var Fuse = class {
 	getIndex() {
 		return this._myIndex;
 	}
+	_normalizedKeys() {
+		return this._myIndex.keys.map((key) => this._keyStore.get(key.id) || key);
+	}
 	search(query, options) {
 		const { limit = -1 } = options || {};
 		const { includeMatches, includeScore, shouldSort, sortFn, ignoreFieldNorm } = this.options;
@@ -1447,13 +1450,14 @@ var Fuse = class {
 	}
 	_searchLogical(query) {
 		const expression = parse(query, this.options);
+		const keys = this._normalizedKeys();
 		const evaluate = (node, item, idx) => {
 			if (!("children" in node)) {
 				const { keyId, searcher } = node;
 				let matches;
 				if (keyId === null) {
 					matches = [];
-					this._myIndex.keys.forEach((key, keyIndex) => {
+					keys.forEach((key, keyIndex) => {
 						matches.push(...this._findMatches({
 							key,
 							value: item[keyIndex],
@@ -1508,7 +1512,8 @@ var Fuse = class {
 	_searchObjectList(query, { heap, ignoreFieldNorm } = {}) {
 		const searcher = this._getSearcher(query);
 		const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === "all";
-		const { keys, records } = this._myIndex;
+		const { records } = this._myIndex;
+		const keys = this._normalizedKeys();
 		const results = heap ? null : [];
 		records.forEach(({ $: item, i: idx }) => {
 			if (!isDefined(item)) return;

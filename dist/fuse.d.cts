@@ -335,6 +335,7 @@ declare class Fuse<T> {
   removeAt(idx: number): T;
   _invalidateSearcherCache(): void;
   getIndex(): FuseIndex<T>;
+  _normalizedKeys(): KeyObject[];
   search(query: string | Expression, options?: FuseSearchOptions): FuseResult<T>[];
   _searchStringList(query: string, {
     heap,

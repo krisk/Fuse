@@ -216,6 +216,14 @@ export default class Fuse<T> {
     return this._myIndex
   }
 
+  // FuseIndex.keys carries raw user weights; only KeyStore normalises them to
+  // sum to 1. Scoring off the raw weights underflows for large values and
+  // diverges from the keyed logical path. Resolve each key to its normalised
+  // counterpart by id (kept aligned to item[keyIndex]), once per search.
+  _normalizedKeys(): KeyObject[] {
+    return this._myIndex.keys.map((key) => this._keyStore.get(key.id) || key)
+  }
+
   search(
     query: string | Expression,
     options?: FuseSearchOptions
@@ -338,6 +346,10 @@ export default class Fuse<T> {
 
     const expression = parse(query, this.options)
 
+    // Keyless leaves fan out across all keys; normalised weights keep their
+    // scores consistent with string and keyed queries.
+    const keys = this._normalizedKeys()
+
     const evaluate = (
       node: ParsedNode,
       item: any,
@@ -351,7 +363,7 @@ export default class Fuse<T> {
         if (keyId === null) {
           // Keyless entry: search across all keys
           matches = []
-          this._myIndex.keys.forEach((key, keyIndex) => {
+          keys.forEach((key, keyIndex) => {
             matches.push(
               ...this._findMatches({
                 key,
@@ -434,7 +446,8 @@ export default class Fuse<T> {
     const searcher = this._getSearcher(query)
     const requireAllTokens =
       this.options.useTokenSearch && this.options.tokenMatch === 'all'
-    const { keys, records } = this._myIndex
+    const { records } = this._myIndex
+    const keys = this._normalizedKeys()
     const results: InternalResult[] | null = heap ? null : []
 
     // List is Array<Object>
