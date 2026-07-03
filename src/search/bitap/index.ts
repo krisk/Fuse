@@ -102,6 +102,12 @@ export default class BitapSearch {
 
     // Exact match
     if (this.pattern === text) {
+      // The whole string is the match, so enforce minMatchCharLength here too,
+      // mirroring convertMaskToIndices on the fuzzy path.
+      if (text.length < this.options.minMatchCharLength) {
+        return { isMatch: false, score: 1 }
+      }
+
       const result: SearchResult = {
         isMatch: true,
         score: 0

@@ -82,4 +82,24 @@ describe('Fuse.match', () => {
     const result = Fuse.match('apple', 'apple pie', { useTokenSearch: false })
     expect(result.isMatch).toBe(true)
   })
+
+  // The exact-match shortcut (pattern === text) used to return isMatch: true
+  // unconditionally, bypassing the minMatchCharLength floor that the fuzzy
+  // path enforces via convertMaskToIndices.
+  test('rejects an exact match shorter than minMatchCharLength', () => {
+    const result = Fuse.match('abc', 'abc', { minMatchCharLength: 5 })
+    expect(result.isMatch).toBe(false)
+  })
+
+  test('keeps an exact match that meets minMatchCharLength', () => {
+    const result = Fuse.match('hello', 'hello', { minMatchCharLength: 5 })
+    expect(result.isMatch).toBe(true)
+    expect(result.score).toBe(0)
+  })
+
+  // Default minMatchCharLength is 1, so a zero-length exact match no longer
+  // slips through the shortcut.
+  test('rejects an empty exact match under the length guard', () => {
+    expect(Fuse.match('', '').isMatch).toBe(false)
+  })
 })

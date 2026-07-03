@@ -899,6 +899,31 @@ describe('Searching with minCharLength', () => {
     })
   })
 
+  // An item whose whole value equals the query hits the exact-match shortcut,
+  // a different code path than the substring case above. It must respect
+  // minMatchCharLength just the same.
+  describe('When an item exactly equals a query shorter than minMatchCharLength', () => {
+    const list = ['abc', 'abcde', 'abcdefgh']
+
+    test('the too-short exact match is excluded', () => {
+      const fuse = new Fuse(list, { minMatchCharLength: 5 })
+      expect(fuse.search('abc').map((r) => r.item)).not.toContain('abc')
+    })
+
+    test('an exact match that meets the minimum is kept', () => {
+      const fuse = new Fuse(list, { minMatchCharLength: 5 })
+      expect(fuse.search('abcde').map((r) => r.item)).toContain('abcde')
+    })
+
+    test('the token-search path enforces it too', () => {
+      const fuse = new Fuse(list, {
+        useTokenSearch: true,
+        minMatchCharLength: 5
+      })
+      expect(fuse.search('abc').map((r) => r.item)).not.toContain('abc')
+    })
+  })
+
   describe('Main functionality', () => {
     const list = [
       {
