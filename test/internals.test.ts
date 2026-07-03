@@ -56,6 +56,16 @@ describe('fieldNorm', () => {
     expect(n.get('one\ttwo\tthree')).toBe(n.get('one two three'))
     expect(n.get('one\ntwo\nthree')).toBe(n.get('one two three'))
   })
+
+  test('covers the rest of the separator set: CR, VT, FF, and NBSP', () => {
+    const n = norm(1, 3)
+    // Lock in the full set isWordSeparator claims: carriage return, vertical
+    // tab, form feed, and non-breaking space all count as word boundaries.
+    expect(n.get('hello\rworld')).toBe(n.get('hello world'))
+    expect(n.get('hello\vworld')).toBe(n.get('hello world'))
+    expect(n.get('hello\fworld')).toBe(n.get('hello world'))
+    expect(n.get('hello world')).toBe(n.get('hello world'))
+  })
 })
 
 describe('InvertedIndex', () => {
