@@ -992,33 +992,31 @@ function computeScore(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
 //#endregion
 //#region src/tools/MaxHeap.ts
 var MaxHeap = class {
-	constructor(limit) {
+	constructor(limit, comparator) {
 		this.limit = limit;
 		this.heap = [];
+		this.comparator = comparator;
 	}
 	get size() {
 		return this.heap.length;
-	}
-	shouldInsert(score) {
-		return this.size < this.limit || score < this.heap[0].score;
 	}
 	insert(item) {
 		if (this.size < this.limit) {
 			this.heap.push(item);
 			this._bubbleUp(this.size - 1);
-		} else if (item.score < this.heap[0].score) {
+		} else if (this.comparator(item, this.heap[0]) < 0) {
 			this.heap[0] = item;
 			this._sinkDown(0);
 		}
 	}
-	extractSorted(sortFn) {
-		return this.heap.sort(sortFn);
+	extractSorted() {
+		return this.heap.sort(this.comparator);
 	}
 	_bubbleUp(i) {
 		const heap = this.heap;
 		while (i > 0) {
 			const parent = i - 1 >> 1;
-			if (heap[i].score <= heap[parent].score) break;
+			if (this.comparator(heap[i], heap[parent]) <= 0) break;
 			const tmp = heap[i];
 			heap[i] = heap[parent];
 			heap[parent] = tmp;
@@ -1033,8 +1031,8 @@ var MaxHeap = class {
 			i = largest;
 			const left = 2 * i + 1;
 			const right = 2 * i + 2;
-			if (left < len && heap[left].score > heap[largest].score) largest = left;
-			if (right < len && heap[right].score > heap[largest].score) largest = right;
+			if (left < len && this.comparator(heap[left], heap[largest]) > 0) largest = left;
+			if (right < len && this.comparator(heap[right], heap[largest]) > 0) largest = right;
 			if (largest !== i) {
 				const tmp = heap[i];
 				heap[i] = heap[largest];
@@ -1364,10 +1362,12 @@ var Fuse = class {
 			if (isNumber(limit) && limit > -1) docs = docs.slice(0, limit);
 			return docs;
 		}
-		const useHeap = isNumber(limit) && limit > 0 && isString(query);
+		const useHeap = shouldSort && isNumber(limit) && limit > 0 && isString(query);
+		const comparator = sortFn;
+		const stable = (a, b) => comparator(a, b) || a.idx - b.idx;
 		let results;
 		if (useHeap) {
-			const heap = new MaxHeap(limit);
+			const heap = new MaxHeap(limit, stable);
 			if (isString(this._docs[0])) this._searchStringList(query, {
 				heap,
 				ignoreFieldNorm
@@ -1376,11 +1376,11 @@ var Fuse = class {
 				heap,
 				ignoreFieldNorm
 			});
-			results = heap.extractSorted(sortFn);
+			results = heap.extractSorted();
 		} else {
 			results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
 			computeScore(results, { ignoreFieldNorm });
-			if (shouldSort) results.sort(sortFn);
+			if (shouldSort) results.sort(isString(query) ? stable : comparator);
 			if (isNumber(limit) && limit > -1) results = results.slice(0, limit);
 		}
 		return format(results, this._docs, {
@@ -1417,7 +1417,7 @@ var Fuse = class {
 					};
 					if (heap) {
 						result.score = computeScoreSingle(result.matches, { ignoreFieldNorm });
-						if (heap.shouldInsert(result.score)) heap.insert(result);
+						heap.insert(result);
 					} else results.push(result);
 				}
 			}
@@ -1516,7 +1516,7 @@ var Fuse = class {
 				};
 				if (heap) {
 					result.score = computeScoreSingle(result.matches, { ignoreFieldNorm });
-					if (heap.shouldInsert(result.score)) heap.insert(result);
+					heap.insert(result);
 				} else results.push(result);
 			}
 		});

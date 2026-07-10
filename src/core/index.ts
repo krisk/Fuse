@@ -11,7 +11,7 @@ import {
 import { createSearcher } from './register'
 import Config from './config'
 import computeScore, { computeScoreSingle } from './computeScore'
-import MaxHeap from '../tools/MaxHeap'
+import MaxHeap, { type Comparator } from '../tools/MaxHeap'
 import format from './format'
 import * as ErrorMsg from './errorMessages'
 import { createAnalyzer } from '../search/token/analyzer'
@@ -249,18 +249,37 @@ export default class Fuse<T> {
       return docs
     }
 
-    const useHeap = isNumber(limit) && limit > 0 && isString(query)
+    // The heap selects a sorted top-N, so it only applies when sorting is on.
+    // With `shouldSort: false` we must keep the collection-order-then-slice path
+    // so `search(query, { limit })` still equals `search(query).slice(0, limit)`.
+    const useHeap =
+      shouldSort && isNumber(limit) && limit > 0 && isString(query)
+
+    // sortFn is typed for the public FuseSortFunctionArg shape, but at sort and
+    // heap time we operate on InternalResult; one assertion bridges the two.
+    const comparator = sortFn as unknown as Comparator
+
+    // Canonical tie-break for string/object search: break comparator ties by
+    // item index so heap selection and the full sort agree. Both then equal a
+    // full sort under this idx tie-break, sliced to the limit. This only bites
+    // when a custom sortFn returns 0 for distinct results (the default sortFn
+    // and any total-order comparator decide every pair). Applying it to the
+    // unlimited sort too keeps the contract even when an index's records are not
+    // in idx order (e.g. via Fuse.parseIndex), where a raw stable sort would
+    // instead preserve scan order. Logical search has no heap path, so it keeps
+    // the raw comparator.
+    const stable: Comparator = (a, b) => comparator(a, b) || a.idx - b.idx
 
     let results: InternalResult[]
 
     if (useHeap) {
-      const heap = new MaxHeap(limit)
+      const heap = new MaxHeap(limit, stable)
       if (isString(this._docs[0])) {
         this._searchStringList(query as string, { heap, ignoreFieldNorm })
       } else {
         this._searchObjectList(query as string, { heap, ignoreFieldNorm })
       }
-      results = heap.extractSorted(sortFn as any)
+      results = heap.extractSorted()
     } else {
       results = isString(query)
         ? isString(this._docs[0])
@@ -271,7 +290,7 @@ export default class Fuse<T> {
       computeScore(results, { ignoreFieldNorm })
 
       if (shouldSort) {
-        results.sort(sortFn as any)
+        results.sort(isString(query) ? stable : comparator)
       }
 
       if (isNumber(limit) && limit > -1) {
@@ -326,9 +345,7 @@ export default class Fuse<T> {
             result.score = computeScoreSingle(result.matches, {
               ignoreFieldNorm
             })
-            if (heap.shouldInsert(result.score)) {
-              heap.insert(result)
-            }
+            heap.insert(result)
           } else {
             results!.push(result)
           }
@@ -494,9 +511,7 @@ export default class Fuse<T> {
 
         if (heap) {
           result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
-          if (heap.shouldInsert(result.score)) {
-            heap.insert(result)
-          }
+          heap.insert(result)
         } else {
           results!.push(result)
         }

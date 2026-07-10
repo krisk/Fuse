@@ -1,40 +1,44 @@
 import type { InternalResult } from '../types'
 
-// Max-heap by score: keeps the worst (highest) score at the top
-// so we can efficiently evict it when a better result arrives.
+export type Comparator = (a: InternalResult, b: InternalResult) => number
+
+// Max-heap by the sort comparator: keeps the worst result (the one that sorts
+// last) at the root so we can evict it when a better result arrives. Ordering by
+// the comparator instead of the raw score keeps the retained top-N identical to
+// a full sort followed by a slice, including the tie-break and a custom sortFn.
 export default class MaxHeap {
   limit: number
   heap: InternalResult[]
+  comparator: Comparator
 
-  constructor(limit: number) {
+  constructor(limit: number, comparator: Comparator) {
     this.limit = limit
     this.heap = []
+    this.comparator = comparator
   }
   get size(): number {
     return this.heap.length
   }
-  shouldInsert(score: number): boolean {
-    return this.size < this.limit || score < this.heap[0].score!
-  }
+  // Insert while keeping at most `limit` items: fill until full, then replace
+  // the root only when the incoming item sorts ahead of it. The guard makes a
+  // separate shouldInsert() check redundant.
   insert(item: InternalResult): void {
     if (this.size < this.limit) {
       this.heap.push(item)
       this._bubbleUp(this.size - 1)
-    } else if (item.score! < this.heap[0].score!) {
+    } else if (this.comparator(item, this.heap[0]) < 0) {
       this.heap[0] = item
       this._sinkDown(0)
     }
   }
-  extractSorted(
-    sortFn: (a: InternalResult, b: InternalResult) => number
-  ): InternalResult[] {
-    return this.heap.sort(sortFn)
+  extractSorted(): InternalResult[] {
+    return this.heap.sort(this.comparator)
   }
   _bubbleUp(i: number): void {
     const heap = this.heap
     while (i > 0) {
       const parent = (i - 1) >> 1
-      if (heap[i].score! <= heap[parent].score!) break
+      if (this.comparator(heap[i], heap[parent]) <= 0) break
       const tmp = heap[i]
       heap[i] = heap[parent]
       heap[parent] = tmp
@@ -49,10 +53,10 @@ export default class MaxHeap {
       i = largest
       const left = 2 * i + 1
       const right = 2 * i + 2
-      if (left < len && heap[left].score! > heap[largest].score!) {
+      if (left < len && this.comparator(heap[left], heap[largest]) > 0) {
         largest = left
       }
-      if (right < len && heap[right].score! > heap[largest].score!) {
+      if (right < len && this.comparator(heap[right], heap[largest]) > 0) {
         largest = right
       }
       if (largest !== i) {

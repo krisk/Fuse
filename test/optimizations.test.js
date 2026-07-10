@@ -56,6 +56,94 @@ describe('Search with limit', () => {
       expect(limited[i].refIndex).toBe(all[i].refIndex)
     }
   })
+
+  test('limit keeps the tie-break winner when scores tie', () => {
+    const tied = new Fuse(['matchX', 'matchY', 'matchZ', 'match'], {
+      threshold: 0.6
+    })
+    const all = tied.search('match')
+    const limited = tied.search('match', { limit: 2 })
+    expect(limited).toHaveLength(2)
+    for (let i = 0; i < limited.length; i++) {
+      expect(limited[i].refIndex).toBe(all[i].refIndex)
+    }
+  })
+
+  test('limit honors a custom sortFn at a score tie', () => {
+    // Reverse the default tie-break: on equal scores, prefer the higher idx.
+    // The heap must evict by this comparator, not raw score, so the surviving
+    // top-N still matches an unlimited search sliced to N.
+    const sortFn = (a, b) =>
+      a.score === b.score
+        ? a.idx > b.idx
+          ? -1
+          : 1
+        : a.score < b.score
+          ? -1
+          : 1
+    const tied = new Fuse(['matchX', 'matchY', 'matchZ', 'match'], {
+      threshold: 0.6,
+      sortFn
+    })
+    const all = tied.search('match')
+    const limited = tied.search('match', { limit: 2 })
+    expect(limited).toHaveLength(2)
+    for (let i = 0; i < limited.length; i++) {
+      expect(limited[i].refIndex).toBe(all[i].refIndex)
+    }
+  })
+
+  test('limit matches a stable sort when a custom sortFn ties distinct items', () => {
+    // A score-only comparator returns 0 for equal-score-but-distinct results.
+    // A full sort is stable and keeps encounter (idx) order among them, so the
+    // heap must break those ties by idx too, or it drops the wrong item.
+    const scoreOnly = (a, b) => a.score - b.score
+    const tied = new Fuse(['matchX', 'matchY', 'matchZ', 'match'], {
+      threshold: 0.6,
+      sortFn: scoreOnly
+    })
+    const all = tied.search('match')
+    const limited = tied.search('match', { limit: 2 })
+    expect(limited).toHaveLength(2)
+    for (let i = 0; i < limited.length; i++) {
+      expect(limited[i].refIndex).toBe(all[i].refIndex)
+    }
+  })
+
+  test('limit preserves collection order when shouldSort is false', () => {
+    // With shouldSort:false the unlimited search keeps collection order, so a
+    // limited search must return the first N in that order, not the top N by
+    // score selected through the heap.
+    const unsorted = new Fuse(['matchX', 'matchY', 'matchZ', 'match'], {
+      threshold: 0.6,
+      shouldSort: false
+    })
+    const all = unsorted.search('match')
+    const limited = unsorted.search('match', { limit: 2 })
+    expect(limited.map((r) => r.refIndex)).toEqual(
+      all.slice(0, 2).map((r) => r.refIndex)
+    )
+  })
+
+  test('limit matches unlimited slice on a reordered index with a tying sortFn', () => {
+    // Records supplied via parseIndex need not be in idx order. Both the heap
+    // and the full sort break comparator ties by idx, so limited and unlimited
+    // stay consistent regardless of scan order.
+    const list = ['matchX', 'matchY', 'matchZ', 'match']
+    const json = Fuse.createIndex([], list).toJSON()
+    json.records.reverse()
+    const scoreOnly = (a, b) => a.score - b.score
+    const reordered = new Fuse(
+      list,
+      { threshold: 0.6, sortFn: scoreOnly },
+      Fuse.parseIndex(json)
+    )
+    const all = reordered.search('match')
+    const limited = reordered.search('match', { limit: 2 })
+    expect(limited.map((r) => r.refIndex)).toEqual(
+      all.slice(0, 2).map((r) => r.refIndex)
+    )
+  })
 })
 
 describe('Search with limit on object list', () => {
