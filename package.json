@@ -75,7 +75,7 @@
   "files": [
     "dist"
   ],
-  "version": "7.4.2",
+  "version": "7.5.0",
   "description": "Lightweight fuzzy-search",
   "license": "Apache-2.0",
   "repository": {

@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.5.0](https://github.com/krisk/Fuse/compare/v7.4.2...v7.5.0) (2026-07-13)
+
+### ⚠️ Behavior changes
+
+Every change in this release is a bug fix, but each one corrects a **scoring or ranking** bug. Scores and result ordering will shift for some queries. That is why this ships as a minor rather than a patch: the public API is unchanged and upgrading is a drop-in, but the results you get back can differ, and that should not arrive silently in a patch bump.
+
+If you assert on exact `score` values or on a specific result order, expect those assertions to need updating. Re-baseline them against 7.5.0 rather than pinning to 7.4.x, since the 7.4.x behavior was wrong in the cases below.
+
+* **Field-length normalisation now counts words correctly.** Tabs and newlines were not treated as word separators, so a multi-line or tab-delimited field was scored as though it were one long word, making it look far shorter than it is. Fields containing `\t`, `\n`, or `\r` now score differently ([#830](https://github.com/krisk/Fuse/issues/830)).
+* **Key weights are now normalised in object and keyless-logical search.** Weights that did not sum to `1` were applied unnormalised, skewing the relative influence of each key. If your `keys` weights do not already sum to `1`, your relative ranking changes ([#833](https://github.com/krisk/Fuse/issues/833)).
+* **`limit` now returns the correct top-N when scores tie.** A tie at the cutoff boundary could evict a result that should have been kept, so `limit` could return the *wrong* items, not merely the right items in a different order ([#835](https://github.com/krisk/Fuse/issues/835)).
+* **Bitap respects `minMatchCharLength` in the exact-match shortcut.** Matches shorter than `minMatchCharLength` were still reported via the exact-match fast path, so the `matches` array could contain entries it was configured to exclude ([#831](https://github.com/krisk/Fuse/issues/831)).
+
+### Bug Fixes
+
+* **bitap:** respect minMatchCharLength in exact-match shortcut ([dbb98b6](https://github.com/krisk/Fuse/commit/dbb98b6ace1811ed65e1cac28f3e1501d1de3f34)), closes [#831](https://github.com/krisk/Fuse/issues/831)
+* **fieldNorm:** count tabs and newlines as word separators ([6fe85b0](https://github.com/krisk/Fuse/commit/6fe85b087c675edc328b73f1d0088da73c09ab5e)), closes [#830](https://github.com/krisk/Fuse/issues/830)
+* **fieldNorm:** count word-starts instead of space transitions ([2946f97](https://github.com/krisk/Fuse/commit/2946f978881f4bc2f214b6c64fee96450dcceae2))
+* **scoring:** normalise key weights in object and keyless-logical search ([e164b61](https://github.com/krisk/Fuse/commit/e164b61d4d324e0207e1f790e55dd13fe59c74ae)), closes [#833](https://github.com/krisk/Fuse/issues/833)
+* **search:** keep the correct top-N under limit when scores tie ([437f8f3](https://github.com/krisk/Fuse/commit/437f8f32713f6d8647339516dd61b8344847b3ae)), closes [#835](https://github.com/krisk/Fuse/issues/835), thanks [@spokodev](https://github.com/spokodev) for the report and the fix
+
 ### [7.4.2](https://github.com/krisk/Fuse/compare/v7.4.1...v7.4.2) (2026-06-05)
 
 
