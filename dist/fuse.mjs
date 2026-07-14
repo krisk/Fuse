@@ -614,7 +614,7 @@ var BitapSearch = class {
 
 //#endregion
 //#region src/search/extended/matchers.ts
-const MULTI_MATCH_TYPES = new Set(["fuzzy", "include"]);
+const MULTI_MATCH_TYPES = /* @__PURE__ */ new Set(["fuzzy", "include"]);
 function isInverse(type) {
 	return type.startsWith("inverse");
 }

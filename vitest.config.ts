@@ -15,8 +15,5 @@ export default defineConfig({
   },
   test: {
     globals: true
-  },
-  esbuild: {
-    target: 'es2015'
   }
 })
