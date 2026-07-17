@@ -12,6 +12,20 @@ export const INVALID_DOC_INDEX =
 export const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key: string): string =>
   `Invalid value for key ${key}`
 
+// ── Object ("MongoDB-style") query syntax ──────────────────────────
+
+export const UNKNOWN_QUERY_OPERATOR = (op: string): string =>
+  `Unknown query operator '${op}'`
+
+export const EMPTY_QUERY_VALUE = (op: string, key: string): string =>
+  `Empty value for operator '${op}' on key '${key}'`
+
+export const INVALID_FIELD_QUERY = (key: string, reason: string): string =>
+  `Invalid field query for key '${key}': ${reason}`
+
+export const OBJECT_QUERY_UNAVAILABLE =
+  'Object query syntax is not available in this build'
+
 export const PATTERN_LENGTH_TOO_LARGE = (max: number): string =>
   `Pattern length exceeds max of ${max}.`
 

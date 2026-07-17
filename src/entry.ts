@@ -3,8 +3,12 @@ import Config from './core/config'
 import { createIndex, parseIndex } from './tools/FuseIndex'
 import { parse } from './core/queryParser'
 import { ExtendedSearch } from './search'
+import { compileObjectLeaf } from './search/extended/objectQuery'
 import TokenSearch from './search/token'
-import register, { createSearcher } from './core/register'
+import register, {
+  createSearcher,
+  registerObjectCompiler
+} from './core/register'
 import * as ErrorMsg from './core/errorMessages'
 
 Fuse.version = __VERSION__
@@ -31,6 +35,7 @@ if (process.env.NODE_ENV === 'development') {
 
 if (process.env.EXTENDED_SEARCH_ENABLED) {
   register(ExtendedSearch)
+  registerObjectCompiler(compileObjectLeaf)
 }
 
 if (process.env.TOKEN_SEARCH_ENABLED) {

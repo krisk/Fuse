@@ -19,6 +19,16 @@ describe('Initialization errors', () => {
       fuse.search({ title: 'hello' })
     }).toThrowError(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
 
+    // Object ("MongoDB-style") queries also route through logical search, so the
+    // basic build (no LOGICAL) rejects them at the same gate — before the
+    // (absent) object compiler is ever consulted.
+    expect(() => {
+      let fuse = new Fuse(Books, {
+        keys: ['title']
+      })
+      fuse.search({ title: { $startsWith: 'hello' } })
+    }).toThrowError(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
+
     expect(() => {
       new Fuse(Books, {
         useTokenSearch: true,

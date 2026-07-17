@@ -53,6 +53,7 @@ const TOKEN_SEARCH_UNAVAILABLE = "Token search is not available";
 const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
 const INVALID_DOC_INDEX = "Invalid doc index: must be a non-negative integer within the bounds of the docs array";
 const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) => `Invalid value for key ${key}`;
+const OBJECT_QUERY_UNAVAILABLE = "Object query syntax is not available in this build";
 const PATTERN_LENGTH_TOO_LARGE = (max) => `Pattern length exceeds max of ${max}.`;
 const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
 const INVALID_KEY_WEIGHT_VALUE = (key) => `Property 'weight' in key '${key}' must be a positive integer`;
@@ -622,6 +623,10 @@ const registeredSearchers = [];
 function register(...args) {
 	registeredSearchers.push(...args);
 }
+let objectCompiler = null;
+function getObjectCompiler() {
+	return objectCompiler;
+}
 function createSearcher(pattern, options) {
 	for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
 		const searcherClass = registeredSearchers[i];
@@ -659,14 +664,28 @@ function parse(query, options, { auto = true } = {}) {
 		if (!isQueryPath && keys.length > 1 && !isExpression(query)) return next(convertToExplicit(query));
 		if (isLeaf(query)) {
 			const key = isQueryPath ? query[KeyType.PATH] : keys[0];
-			const pattern = isQueryPath ? query[KeyType.PATTERN] : query[key];
-			if (!isString(pattern)) throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
-			const obj = {
-				keyId: createKeyId(key),
-				pattern
-			};
-			if (auto) obj.searcher = createSearcher(pattern, options);
-			return obj;
+			const value = isQueryPath ? query[KeyType.PATTERN] : query[key];
+			if (isString(value)) {
+				const obj = {
+					keyId: createKeyId(key),
+					pattern: value
+				};
+				if (auto) obj.searcher = createSearcher(value, options);
+				return obj;
+			}
+			if (isObjectLike(value) && !isArray(value)) {
+				const obj = {
+					keyId: createKeyId(key),
+					fieldQuery: value
+				};
+				if (auto) {
+					const compile = getObjectCompiler();
+					if (!compile) throw new Error(OBJECT_QUERY_UNAVAILABLE);
+					obj.searcher = compile(value, isArray(key) ? key.join(".") : String(key), options);
+				}
+				return obj;
+			}
+			throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
 		}
 		const node = {
 			children: [],

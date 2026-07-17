@@ -158,6 +158,58 @@ const CASES: TypeCase[] = [
       `// @ts-expect-error RangeTuple is type-only; no runtime value member\n` +
       `const _v = Fuse.RangeTuple\n` +
       `void _ok\nvoid _v\n`
+  },
+  {
+    // Object ("MongoDB-style") query types: the settled grammar is
+    // enforced at compile time, not just at runtime. Negatives use predeclared
+    // variables where the guard must survive without excess-property checking
+    // (structural siblings via `NoOperators`, the root/child `$path` split);
+    // unknown-operator keys are only catchable inline (optional-only interfaces
+    // accept extra props on a widened variable), so that one stays a literal.
+    spec: 'fuse.js (object query grammar is type-enforced)',
+    code:
+      `import Fuse from 'fuse.js'\n` +
+      `const f = new Fuse<{ title: string }>([], { keys: ['title'] })\n` +
+      // ── positives (must compile) ──
+      `void f.search({ title: { $startsWith: 'x' } })\n` +
+      `void f.search({ title: { $startsWith: 'a', $endsWith: 'z' } })\n` +
+      `void f.search({ title: { $and: [{ $fuzzy: 'a' }, { $fuzzy: 'b' }] } })\n` +
+      `void f.search({ title: { $or: [{ $eq: 'a' }, { $and: [{ $contains: 'b' }] }] } })\n` +
+      `void f.search({ $and: [{ title: { $startsWith: 'x' } }] })\n` +
+      `void f.search({ $and: [{ $path: ['a'], $val: { $startsWith: 'x' } }] })\n` +
+      `void f.search({ $path: ['a'], $val: 'literal' })\n` +
+      `void f.search({ title: { $not: { $contains: 'x' } } })\n` +
+      `void f.search({ title: { $eq: 'a', $not: { $endsWith: 'z' } } })\n` +
+      // ── negatives ──
+      `const notMulti = { title: { $not: { $contains: 'a', $endsWith: 'b' } } }\n` +
+      `// @ts-expect-error $not wraps exactly one operator\n` +
+      `void f.search(notMulti)\n` +
+      `const notFuzzy = { title: { $not: { $fuzzy: 'a' } } }\n` +
+      `// @ts-expect-error $fuzzy has no inverse matcher\n` +
+      `void f.search(notFuzzy)\n` +
+      `const notEq = { title: { $not: { $eq: 'a' } } }\n` +
+      `// @ts-expect-error $eq has no inverse matcher\n` +
+      `void f.search(notEq)\n` +
+      `const notNested = { title: { $not: { $not: { $contains: 'a' } } } }\n` +
+      `// @ts-expect-error $not cannot be nested\n` +
+      `void f.search(notNested)\n` +
+      `const retired = { title: { $notContains: 'a' } }\n` +
+      `// @ts-expect-error $notContains was replaced by $not: { $contains }\n` +
+      `void f.search(retired)\n` +
+      `// @ts-expect-error unknown operator key (inline: excess-property check)\n` +
+      `void f.search({ title: { $nope: 'x' } })\n` +
+      `const nonString = { title: { $startsWith: 42 } }\n` +
+      `// @ts-expect-error operator value must be a string\n` +
+      `void f.search(nonString)\n` +
+      `const sibling = { title: { $startsWith: 'a', $or: [{ $eq: 'b' }] } }\n` +
+      `// @ts-expect-error operators cannot be siblings of $and/$or\n` +
+      `void f.search(sibling)\n` +
+      `const nestedAnd = { title: { $and: [{ $and: [{ $eq: 'x' }] }] } }\n` +
+      `// @ts-expect-error $and cannot be nested\n` +
+      `void f.search(nestedAnd)\n` +
+      `const standalonePath = { $path: ['a'], $val: { $startsWith: 'x' } }\n` +
+      `// @ts-expect-error standalone root $path may not carry an object $val\n` +
+      `void f.search(standalonePath)\n`
   }
 ]
 

@@ -47,8 +47,7 @@ export interface KeyObject {
   weight: number
   src: string | string[]
   getFn?:
-    | ((obj: any) => ReadonlyArray<string> | string | null | undefined)
-    | null
+    ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null
 }
 
 // ── Get function ───────────────────────────────────────────────────
@@ -110,8 +109,7 @@ export interface FuseIndexStringRecord {
 }
 
 export type FuseIndexRecords =
-  | ReadonlyArray<FuseIndexObjectRecord>
-  | ReadonlyArray<FuseIndexStringRecord>
+  ReadonlyArray<FuseIndexObjectRecord> | ReadonlyArray<FuseIndexStringRecord>
 
 export interface IndexRecord {
   i: number
@@ -266,14 +264,108 @@ export interface FuseResult<T> {
   matches?: ReadonlyArray<FuseResultMatch>
 }
 
+// ── Object ("MongoDB-style") field query ───────────────────────────
+//
+// A field value in an object query. The type enforces the settled grammar (a
+// 2-level OR-of-ANDs) at compile time, not just at runtime: structural siblings,
+// nested `$and`/`$or`, and `$or`-inside-`$and` are type errors.
+
+type Primitive = string
+
+// Keys that may never appear inside `$not`: `$fuzzy` and `$eq` have no inverse
+// matcher, and structural/nested forms are not negatable.
+type NotForbidden = {
+  $fuzzy?: never
+  $eq?: never
+  $not?: never
+  $and?: never
+  $or?: never
+}
+
+/**
+ * The operand of `$not`: exactly ONE negatable operator. Multiple would be
+ * ambiguous (Mongo reads the inner object as a conjunction, so `NOT(A AND B)`
+ * is `NOT A OR NOT B`, an OR this grammar cannot express inside an AND group).
+ */
+export type NotClause =
+  | ({
+      $contains: Primitive
+      $startsWith?: never
+      $endsWith?: never
+    } & NotForbidden)
+  | ({
+      $startsWith: Primitive
+      $contains?: never
+      $endsWith?: never
+    } & NotForbidden)
+  | ({
+      $endsWith: Primitive
+      $contains?: never
+      $startsWith?: never
+    } & NotForbidden)
+
+/** The object-query operators, all optional. */
+export interface QueryOperators {
+  /** Typo-tolerant (edit-distance) fuzzy match. */
+  $fuzzy?: Primitive
+  /** Whole candidate string equals the value. */
+  $eq?: Primitive
+  /** Candidate contains the value (substring). */
+  $contains?: Primitive
+  /** Candidate starts with the value. */
+  $startsWith?: Primitive
+  /** Candidate ends with the value. */
+  $endsWith?: Primitive
+  /**
+   * Negates exactly one of `$contains` / `$startsWith` / `$endsWith`,
+   * e.g. `{ $not: { $contains: 'draft' } }`.
+   */
+  $not?: NotClause
+}
+
+// Ban every operator key (used to forbid operator siblings on $and/$or objects).
+type NoOperators = { [K in keyof QueryOperators]?: never }
+
+/** Operator-only clause: one or more operators, no `$and`/`$or` siblings. */
+export type OperatorClause = QueryOperators & { $and?: never; $or?: never }
+
+/** Field-local AND: operator-only clauses, no nested `$and`/`$or`, no operator siblings. */
+export type FieldAnd = { $and: OperatorClause[]; $or?: never } & NoOperators
+
+/** Field-local OR of ANDs (2-level max): no nested `$or`, no operator siblings. */
+export type FieldOr = {
+  $or: Array<OperatorClause | FieldAnd>
+  $and?: never
+} & NoOperators
+
+/** A single field's object query. */
+export type FieldQuery = OperatorClause | FieldAnd | FieldOr
+
 // ── Expression (logical search) ────────────────────────────────────
+//
+// A field leaf value is `string` (legacy) or a `FieldQuery` (object form).
+//
+// Root vs. child split: object operators may be the `$val` of a
+// `$path` leaf only when that leaf is nested inside `$and`/`$or`. A standalone
+// top-level `$path` leaf must use a string `$val` (an object `$val` throws at
+// runtime — pre-existing parser limitation), so the root type forbids it.
+
+type KeyedLeaf = { [key: string]: string | FieldQuery }
+
+type PathLeafString = { $path: ReadonlyArray<string>; $val: string }
+type PathLeafQuery = { $path: ReadonlyArray<string>; $val: string | FieldQuery }
+
+/** An expression nested inside `$and`/`$or` (object `$val` on `$path` allowed here). */
+export type ChildExpression =
+  | string
+  | KeyedLeaf
+  | PathLeafQuery
+  | { $and?: ChildExpression[] }
+  | { $or?: ChildExpression[] }
 
 export type Expression =
   | string
-  | { [key: string]: string }
-  | {
-      $path: ReadonlyArray<string>
-      $val: string
-    }
-  | { $and?: Expression[] }
-  | { $or?: Expression[] }
+  | KeyedLeaf
+  | PathLeafString
+  | { $and?: ChildExpression[] }
+  | { $or?: ChildExpression[] }

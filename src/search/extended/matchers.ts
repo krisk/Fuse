@@ -72,6 +72,15 @@ const matchers: MatcherDef[] = [
         const indices: RangeTuple[] = []
         const patternLen = pattern.length
 
+        // Defense in depth: an empty pattern makes indexOf return `location`
+        // forever (patternLen is 0, so `location` never advances) — an infinite
+        // loop. Callers filter empty patterns (parseQuery's truthiness check,
+        // the object compiler's post-normalization guard), but the matcher is a
+        // shared primitive plugin authors can construct directly, so guard here.
+        if (!patternLen) {
+          return { isMatch: false, score: 1, indices }
+        }
+
         while ((index = text.indexOf(pattern, location)) > -1) {
           location = index + patternLen
           indices.push([index, location - 1])
@@ -202,3 +211,64 @@ const matchers: MatcherDef[] = [
 ]
 
 export default matchers
+
+// ── Object-query operator lookup ──────────────────────────────────
+//
+// The object ("MongoDB-style") query syntax maps each `$`-prefixed operator
+// to one of the matcher types above, bypassing the string regexes. The values
+// are the same matcher factories string syntax uses, so scoring, indices, and
+// inverse behavior are identical.
+//
+// Negation is expressed by wrapping an operator in `$not` rather than by
+// separate `$notX` operators, so `NEGATED_TYPE` below maps an operator to the
+// matcher that implements its inverse. Only these three can be negated: the
+// inverse matchers are concrete implementations, not a computed negation, and
+// there is no inverse of `fuzzy` (graded, not boolean) or of `exact`
+// (whole-string inequality has no matcher yet, which is why `$ne` stays
+// reserved).
+//
+// Note `inverse-exact` is a historical misnomer: it is implemented as
+// does-NOT-contain (`indexOf === -1`), so it is the inverse of `$contains`.
+
+const OPERATOR_TO_TYPE: Record<string, string> = {
+  $fuzzy: 'fuzzy',
+  $eq: 'exact',
+  $contains: 'include',
+  $startsWith: 'prefix-exact',
+  $endsWith: 'suffix-exact'
+}
+
+const NEGATED_TYPE: Record<string, string> = {
+  $contains: 'inverse-exact',
+  $startsWith: 'inverse-prefix-exact',
+  $endsWith: 'inverse-suffix-exact'
+}
+
+// Index the matcher definitions by their `type` tag, once.
+const DEF_BY_TYPE: Record<string, MatcherDef> = {}
+for (const def of matchers) {
+  DEF_BY_TYPE[def.type] = def
+}
+
+// Resolve an operator key (e.g. `$startsWith`) to its matcher definition.
+// Returns undefined for unknown operators; the caller decides how to throw so
+// it can attach the offending key/path to the message.
+export function matcherDefForOperator(op: string): MatcherDef | undefined {
+  const type = OPERATOR_TO_TYPE[op]
+  return type ? DEF_BY_TYPE[type] : undefined
+}
+
+// Resolve the INVERSE of an operator, for `$not: { <op>: … }`. Returns
+// undefined when the operator has no inverse matcher (`$fuzzy`, `$eq`), which
+// the caller reports as "cannot be negated" rather than "unknown operator".
+export function negatedMatcherDefForOperator(
+  op: string
+): MatcherDef | undefined {
+  const type = NEGATED_TYPE[op]
+  return type ? DEF_BY_TYPE[type] : undefined
+}
+
+// Whether an operator key is known at all (positive form).
+export function isKnownOperator(op: string): boolean {
+  return op in OPERATOR_TO_TYPE
+}

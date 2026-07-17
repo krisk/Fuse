@@ -204,15 +204,89 @@ interface FuseResult<T> {
   score?: number;
   matches?: ReadonlyArray<FuseResultMatch>;
 }
-type Expression = string | {
-  [key: string]: string;
-} | {
+type Primitive = string;
+type NotForbidden = {
+  $fuzzy?: never;
+  $eq?: never;
+  $not?: never;
+  $and?: never;
+  $or?: never;
+};
+/**
+ * The operand of `$not`: exactly ONE negatable operator. Multiple would be
+ * ambiguous (Mongo reads the inner object as a conjunction, so `NOT(A AND B)`
+ * is `NOT A OR NOT B`, an OR this grammar cannot express inside an AND group).
+ */
+type NotClause = ({
+  $contains: Primitive;
+  $startsWith?: never;
+  $endsWith?: never;
+} & NotForbidden) | ({
+  $startsWith: Primitive;
+  $contains?: never;
+  $endsWith?: never;
+} & NotForbidden) | ({
+  $endsWith: Primitive;
+  $contains?: never;
+  $startsWith?: never;
+} & NotForbidden);
+/** The object-query operators, all optional. */
+interface QueryOperators {
+  /** Typo-tolerant (edit-distance) fuzzy match. */
+  $fuzzy?: Primitive;
+  /** Whole candidate string equals the value. */
+  $eq?: Primitive;
+  /** Candidate contains the value (substring). */
+  $contains?: Primitive;
+  /** Candidate starts with the value. */
+  $startsWith?: Primitive;
+  /** Candidate ends with the value. */
+  $endsWith?: Primitive;
+  /**
+   * Negates exactly one of `$contains` / `$startsWith` / `$endsWith`,
+   * e.g. `{ $not: { $contains: 'draft' } }`.
+   */
+  $not?: NotClause;
+}
+type NoOperators = { [K in keyof QueryOperators]?: never };
+/** Operator-only clause: one or more operators, no `$and`/`$or` siblings. */
+type OperatorClause = QueryOperators & {
+  $and?: never;
+  $or?: never;
+};
+/** Field-local AND: operator-only clauses, no nested `$and`/`$or`, no operator siblings. */
+type FieldAnd = {
+  $and: OperatorClause[];
+  $or?: never;
+} & NoOperators;
+/** Field-local OR of ANDs (2-level max): no nested `$or`, no operator siblings. */
+type FieldOr = {
+  $or: Array<OperatorClause | FieldAnd>;
+  $and?: never;
+} & NoOperators;
+/** A single field's object query. */
+type FieldQuery = OperatorClause | FieldAnd | FieldOr;
+type KeyedLeaf = {
+  [key: string]: string | FieldQuery;
+};
+type PathLeafString = {
   $path: ReadonlyArray<string>;
   $val: string;
+};
+type PathLeafQuery = {
+  $path: ReadonlyArray<string>;
+  $val: string | FieldQuery;
+};
+/** An expression nested inside `$and`/`$or` (object `$val` on `$path` allowed here). */
+type ChildExpression = string | KeyedLeaf | PathLeafQuery | {
+  $and?: ChildExpression[];
 } | {
-  $and?: Expression[];
+  $or?: ChildExpression[];
+};
+type Expression = string | KeyedLeaf | PathLeafString | {
+  $and?: ChildExpression[];
 } | {
-  $or?: Expression[];
+  $or?: ChildExpression[];
 };
 //#endregion
 //#region src/tools/FuseIndex.d.ts
@@ -269,7 +343,8 @@ declare class KeyStore {
 //#region src/core/queryParser.d.ts
 interface ParsedLeaf {
   keyId: string | null;
-  pattern: string;
+  pattern?: string;
+  fieldQuery?: any;
   searcher?: Searcher;
 }
 interface ParsedOperator {

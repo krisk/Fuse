@@ -50,6 +50,10 @@ function getTag(value) {
 const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
 const INVALID_DOC_INDEX = "Invalid doc index: must be a non-negative integer within the bounds of the docs array";
 const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) => `Invalid value for key ${key}`;
+const UNKNOWN_QUERY_OPERATOR = (op) => `Unknown query operator '${op}'`;
+const EMPTY_QUERY_VALUE = (op, key) => `Empty value for operator '${op}' on key '${key}'`;
+const INVALID_FIELD_QUERY = (key, reason) => `Invalid field query for key '${key}': ${reason}`;
+const OBJECT_QUERY_UNAVAILABLE = "Object query syntax is not available in this build";
 const PATTERN_LENGTH_TOO_LARGE = (max) => `Pattern length exceeds max of ${max}.`;
 const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
 const INVALID_KEY_WEIGHT_VALUE = (key) => `Property 'weight' in key '${key}' must be a positive integer`;
@@ -647,6 +651,11 @@ const matchers = [
 				let index;
 				const indices = [];
 				const patternLen = pattern.length;
+				if (!patternLen) return {
+					isMatch: false,
+					score: 1,
+					indices
+				};
 				while ((index = text.indexOf(pattern, location)) > -1) {
 					location = index + patternLen;
 					indices.push([index, location - 1]);
@@ -765,6 +774,31 @@ const matchers = [
 		}
 	}
 ];
+const OPERATOR_TO_TYPE = {
+	$fuzzy: "fuzzy",
+	$eq: "exact",
+	$contains: "include",
+	$startsWith: "prefix-exact",
+	$endsWith: "suffix-exact"
+};
+const NEGATED_TYPE = {
+	$contains: "inverse-exact",
+	$startsWith: "inverse-prefix-exact",
+	$endsWith: "inverse-suffix-exact"
+};
+const DEF_BY_TYPE = {};
+for (const def of matchers) DEF_BY_TYPE[def.type] = def;
+function matcherDefForOperator(op) {
+	const type = OPERATOR_TO_TYPE[op];
+	return type ? DEF_BY_TYPE[type] : void 0;
+}
+function negatedMatcherDefForOperator(op) {
+	const type = NEGATED_TYPE[op];
+	return type ? DEF_BY_TYPE[type] : void 0;
+}
+function isKnownOperator(op) {
+	return op in OPERATOR_TO_TYPE;
+}
 
 //#endregion
 //#region src/search/extended/parseQuery.ts
@@ -843,24 +877,37 @@ function parseQuery(pattern, options = {}) {
 
 //#endregion
 //#region src/search/extended/index.ts
-var ExtendedSearch = class {
-	constructor(pattern, { isCaseSensitive = Config.isCaseSensitive, ignoreDiacritics = Config.ignoreDiacritics, includeMatches = Config.includeMatches, minMatchCharLength = Config.minMatchCharLength, ignoreLocation = Config.ignoreLocation, findAllMatches = Config.findAllMatches, location = Config.location, threshold = Config.threshold, distance = Config.distance } = {}) {
-		this.query = null;
-		this.options = {
-			isCaseSensitive,
-			ignoreDiacritics,
-			includeMatches,
-			minMatchCharLength,
-			findAllMatches,
-			ignoreLocation,
-			location,
-			threshold,
-			distance
-		};
-		pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
-		pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+function resolveOptions(options = {}) {
+	return {
+		isCaseSensitive: options.isCaseSensitive ?? Config.isCaseSensitive,
+		ignoreDiacritics: options.ignoreDiacritics ?? Config.ignoreDiacritics,
+		includeMatches: options.includeMatches ?? Config.includeMatches,
+		minMatchCharLength: options.minMatchCharLength ?? Config.minMatchCharLength,
+		findAllMatches: options.findAllMatches ?? Config.findAllMatches,
+		ignoreLocation: options.ignoreLocation ?? Config.ignoreLocation,
+		location: options.location ?? Config.location,
+		threshold: options.threshold ?? Config.threshold,
+		distance: options.distance ?? Config.distance
+	};
+}
+function normalizeValue(value, options) {
+	value = options.isCaseSensitive ?? Config.isCaseSensitive ? value : value.toLowerCase();
+	return options.ignoreDiacritics ?? Config.ignoreDiacritics ? stripDiacritics(value) : value;
+}
+var ExtendedSearch = class ExtendedSearch {
+	constructor(pattern, options = {}) {
+		this.options = resolveOptions(options);
+		pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase();
+		pattern = this.options.ignoreDiacritics ? stripDiacritics(pattern) : pattern;
 		this.pattern = pattern;
 		this.query = parseQuery(this.pattern, this.options);
+	}
+	static fromMatchers(query, options = {}) {
+		const search = Object.create(ExtendedSearch.prototype);
+		search.options = resolveOptions(options);
+		search.pattern = "";
+		search.query = query;
+		return search;
 	}
 	static condition(_, options) {
 		return options.useExtendedSearch;
@@ -923,6 +970,13 @@ const registeredSearchers = [];
 function register(...args) {
 	registeredSearchers.push(...args);
 }
+let objectCompiler = null;
+function registerObjectCompiler(fn) {
+	objectCompiler = fn;
+}
+function getObjectCompiler() {
+	return objectCompiler;
+}
 function createSearcher(pattern, options) {
 	for (let i = 0, len = registeredSearchers.length; i < len; i += 1) {
 		const searcherClass = registeredSearchers[i];
@@ -960,14 +1014,28 @@ function parse(query, options, { auto = true } = {}) {
 		if (!isQueryPath && keys.length > 1 && !isExpression(query)) return next(convertToExplicit(query));
 		if (isLeaf(query)) {
 			const key = isQueryPath ? query[KeyType.PATH] : keys[0];
-			const pattern = isQueryPath ? query[KeyType.PATTERN] : query[key];
-			if (!isString(pattern)) throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
-			const obj = {
-				keyId: createKeyId(key),
-				pattern
-			};
-			if (auto) obj.searcher = createSearcher(pattern, options);
-			return obj;
+			const value = isQueryPath ? query[KeyType.PATTERN] : query[key];
+			if (isString(value)) {
+				const obj = {
+					keyId: createKeyId(key),
+					pattern: value
+				};
+				if (auto) obj.searcher = createSearcher(value, options);
+				return obj;
+			}
+			if (isObjectLike(value) && !isArray(value)) {
+				const obj = {
+					keyId: createKeyId(key),
+					fieldQuery: value
+				};
+				if (auto) {
+					const compile = getObjectCompiler();
+					if (!compile) throw new Error(OBJECT_QUERY_UNAVAILABLE);
+					obj.searcher = compile(value, isArray(key) ? key.join(".") : String(key), options);
+				}
+				return obj;
+			}
+			throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
 		}
 		const node = {
 			children: [],
@@ -1613,6 +1681,86 @@ var Fuse = class {
 };
 
 //#endregion
+//#region src/search/extended/objectQuery.ts
+const AND = "$and";
+const OR = "$or";
+const NOT = "$not";
+function isPlainObject(value) {
+	return isObjectLike(value) && !isArray(value);
+}
+function compileClause(clause, keyPath, options) {
+	if (!isPlainObject(clause)) throw new Error(INVALID_FIELD_QUERY(keyPath, "each clause must be an operator object"));
+	const ops = Object.keys(clause);
+	if (!ops.length) throw new Error(INVALID_FIELD_QUERY(keyPath, "empty query"));
+	const group = [];
+	for (let i = 0; i < ops.length; i += 1) {
+		const op = ops[i];
+		if (op === AND || op === OR) throw new Error(INVALID_FIELD_QUERY(keyPath, `${op} cannot be nested`));
+		let def;
+		let raw;
+		let valueOp = op;
+		if (op === NOT) {
+			const inner = clause[op];
+			if (!isPlainObject(inner)) throw new Error(INVALID_FIELD_QUERY(keyPath, "$not must wrap an operator object"));
+			const innerOps = Object.keys(inner);
+			if (innerOps.length !== 1) throw new Error(INVALID_FIELD_QUERY(keyPath, "$not must wrap exactly one operator"));
+			const innerOp = innerOps[0];
+			if (innerOp === NOT) throw new Error(INVALID_FIELD_QUERY(keyPath, "$not cannot be nested"));
+			if (innerOp === AND || innerOp === OR) throw new Error(INVALID_FIELD_QUERY(keyPath, `${innerOp} cannot be used inside $not`));
+			if (!isKnownOperator(innerOp)) throw new Error(UNKNOWN_QUERY_OPERATOR(innerOp));
+			def = negatedMatcherDefForOperator(innerOp);
+			if (!def) throw new Error(INVALID_FIELD_QUERY(keyPath, `'${innerOp}' cannot be negated`));
+			raw = inner[innerOp];
+			valueOp = innerOp;
+		} else {
+			def = matcherDefForOperator(op);
+			if (!def) throw new Error(UNKNOWN_QUERY_OPERATOR(op));
+			raw = clause[op];
+		}
+		if (!isString(raw)) throw new Error(INVALID_FIELD_QUERY(keyPath, `value for '${valueOp}' must be a string`));
+		const value = normalizeValue(raw, options);
+		if (!value.length) throw new Error(EMPTY_QUERY_VALUE(valueOp, keyPath));
+		group.push(def.create(value, options));
+	}
+	return group;
+}
+function compileAndGroup(arr, keyPath, options) {
+	if (!isArray(arr) || !arr.length) throw new Error(INVALID_FIELD_QUERY(keyPath, "$and must be a non-empty array"));
+	const group = [];
+	for (let i = 0; i < arr.length; i += 1) {
+		const matchers = compileClause(arr[i], keyPath, options);
+		for (let j = 0; j < matchers.length; j += 1) group.push(matchers[j]);
+	}
+	return group;
+}
+function compileFieldQuery(fieldValue, keyPath, options) {
+	if (!isPlainObject(fieldValue)) throw new Error(INVALID_FIELD_QUERY(keyPath, "field query must be an object"));
+	const keys = Object.keys(fieldValue);
+	if (!keys.length) throw new Error(INVALID_FIELD_QUERY(keyPath, "empty query"));
+	const hasAnd = keys.indexOf(AND) !== -1;
+	const hasOr = keys.indexOf(OR) !== -1;
+	if (hasAnd || hasOr) {
+		if (keys.length > 1) throw new Error(INVALID_FIELD_QUERY(keyPath, "operators cannot be mixed with $and/$or"));
+		if (hasAnd) return [compileAndGroup(fieldValue[AND], keyPath, options)];
+		const arr = fieldValue[OR];
+		if (!isArray(arr) || !arr.length) throw new Error(INVALID_FIELD_QUERY(keyPath, "$or must be a non-empty array"));
+		const groups = [];
+		for (let i = 0; i < arr.length; i += 1) {
+			const member = arr[i];
+			if (isPlainObject(member) && Object.keys(member).indexOf(AND) !== -1) {
+				if (Object.keys(member).length > 1) throw new Error(INVALID_FIELD_QUERY(keyPath, "$and cannot have siblings"));
+				groups.push(compileAndGroup(member[AND], keyPath, options));
+			} else groups.push(compileClause(member, keyPath, options));
+		}
+		return groups;
+	}
+	return [compileClause(fieldValue, keyPath, options)];
+}
+function compileObjectLeaf(fieldValue, keyPath, options) {
+	return ExtendedSearch.fromMatchers(compileFieldQuery(fieldValue, keyPath, options), options);
+}
+
+//#endregion
 //#region src/entry.ts
 Fuse.version = "7.5.0";
 Fuse.createIndex = createIndex;
@@ -1627,6 +1775,7 @@ Fuse.match = function(pattern, text, options) {
 };
 Fuse.parseQuery = parse;
 register(ExtendedSearch);
+registerObjectCompiler(compileObjectLeaf);
 register(TokenSearch);
 Fuse.use = function(...plugins) {
 	plugins.forEach((plugin) => register(plugin));

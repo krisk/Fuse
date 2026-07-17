@@ -132,4 +132,63 @@ describe('Parallel worker search', () => {
       expect(pr.score).toBeCloseTo(sr.score, 10)
     }
   })
+
+  // Drive the REAL built worker script (dist/fuse.worker.mjs) through its actual
+  // init/search message protocol. This is what verifies worker.ts's own
+  // registerObjectCompiler wiring — a mock running dist/fuse.mjs would not.
+  function workerEntrySearch(docs, options, query) {
+    const workerPath = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      'worker-entry-helper.mjs'
+    )
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(workerPath, {
+        workerData: { docs, options, query }
+      })
+      worker.on('message', (msg) => {
+        resolve(msg)
+        worker.terminate()
+      })
+      worker.on('error', reject)
+    })
+  }
+
+  test('object query through the real worker entry equals main-thread', async () => {
+    const query = { 'author.lastName': { $startsWith: 'B' } }
+    const fuse = new Fuse(Books, options)
+    const single = fuse.search(query)
+
+    const viaWorker = await workerEntrySearch(Books, options, query)
+
+    expect(viaWorker.map((r) => r.item.title).sort()).toEqual(
+      single.map((r) => r.item.title).sort()
+    )
+    for (const sr of single) {
+      const wr = viaWorker.find((r) => r.item.title === sr.item.title)
+      expect(wr).toBeDefined()
+      expect(wr.score).toBeCloseTo(sr.score, 10)
+    }
+  })
+
+  // Object ("MongoDB-style") queries cross the postMessage boundary as
+  // structured-clonable objects and shard cleanly (per-record scoring, no corpus
+  // stats). The matches span both chunks, so this also exercises the merge.
+  test('object query shards cleanly (structured-clone + merge)', async () => {
+    const query = { 'author.lastName': { $startsWith: 'F' } } // Filer, Fitzgerald, Flynn, Feynman
+    const fuse = new Fuse(Books, options)
+    const singleResults = fuse.search(query)
+    expect(singleResults.length).toBeGreaterThan(1)
+
+    const parallelResults = await parallelSearch(Books, options, query, 2)
+
+    const singleTitles = singleResults.map((r) => r.item.title).sort()
+    const parallelTitles = parallelResults.map((r) => r.item.title).sort()
+    expect(parallelTitles).toEqual(singleTitles)
+
+    for (const sr of singleResults) {
+      const pr = parallelResults.find((r) => r.item.title === sr.item.title)
+      expect(pr).toBeDefined()
+      expect(pr.score).toBeCloseTo(sr.score, 10)
+    }
+  })
 })

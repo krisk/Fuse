@@ -18,42 +18,63 @@ interface ExtendedSearchOptions {
   distance: number
 }
 
+// Resolve the subset of options ExtendedSearch cares about, applying Config
+// defaults. Shared by the string-pattern constructor and the `fromMatchers`
+// factory so both evaluate under identical option semantics.
+function resolveOptions(options: any = {}): ExtendedSearchOptions {
+  return {
+    isCaseSensitive: options.isCaseSensitive ?? Config.isCaseSensitive,
+    ignoreDiacritics: options.ignoreDiacritics ?? Config.ignoreDiacritics,
+    includeMatches: options.includeMatches ?? Config.includeMatches,
+    minMatchCharLength: options.minMatchCharLength ?? Config.minMatchCharLength,
+    findAllMatches: options.findAllMatches ?? Config.findAllMatches,
+    ignoreLocation: options.ignoreLocation ?? Config.ignoreLocation,
+    location: options.location ?? Config.location,
+    threshold: options.threshold ?? Config.threshold,
+    distance: options.distance ?? Config.distance
+  }
+}
+
+// Normalize a pattern/operator value exactly as the string-pattern constructor
+// normalizes a whole query string (case-fold then strip diacritics). The object
+// compiler applies this per operator value so object and string forms feed
+// identically-normalized patterns to the matchers.
+export function normalizeValue(value: string, options: any): string {
+  value =
+    (options.isCaseSensitive ?? Config.isCaseSensitive)
+      ? value
+      : value.toLowerCase()
+  return (options.ignoreDiacritics ?? Config.ignoreDiacritics)
+    ? stripDiacritics(value)
+    : value
+}
+
 export default class ExtendedSearch {
   query: Matcher[][] | null
   options: ExtendedSearchOptions
   pattern: string
 
-  constructor(
-    pattern: string,
-    {
-      isCaseSensitive = Config.isCaseSensitive,
-      ignoreDiacritics = Config.ignoreDiacritics,
-      includeMatches = Config.includeMatches,
-      minMatchCharLength = Config.minMatchCharLength,
-      ignoreLocation = Config.ignoreLocation,
-      findAllMatches = Config.findAllMatches,
-      location = Config.location,
-      threshold = Config.threshold,
-      distance = Config.distance
-    } = {}
-  ) {
-    this.query = null
-    this.options = {
-      isCaseSensitive,
-      ignoreDiacritics,
-      includeMatches,
-      minMatchCharLength,
-      findAllMatches,
-      ignoreLocation,
-      location,
-      threshold,
-      distance
-    }
+  constructor(pattern: string, options: any = {}) {
+    this.options = resolveOptions(options)
 
-    pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern
+    pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase()
+    pattern = this.options.ignoreDiacritics ? stripDiacritics(pattern) : pattern
     this.pattern = pattern
     this.query = parseQuery(this.pattern, this.options)
+  }
+
+  // Build an ExtendedSearch that evaluates a pre-compiled `Matcher[][]` (an
+  // OR-of-ANDs) instead of parsing a pattern string. The object-query compiler
+  // produces the matcher grid directly, then hands it here so scoring, index
+  // merging, and `hasInverse` aggregation come from the same `searchIn` path as
+  // string syntax — guaranteeing parity. The matcher values are already
+  // normalized by the compiler; `searchIn` still normalizes the candidate text.
+  static fromMatchers(query: Matcher[][], options: any = {}): ExtendedSearch {
+    const search: ExtendedSearch = Object.create(ExtendedSearch.prototype)
+    search.options = resolveOptions(options)
+    search.pattern = '' // unused by searchIn; object leaves have no pattern string
+    search.query = query
+    return search
   }
 
   static condition(_: string, options: any): boolean {

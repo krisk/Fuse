@@ -96,3 +96,14 @@ const result = fuse.search({
   ]
 })
 ```
+
+A leaf value may also be an **[object query](extended-search.md#object-syntax)** (`{ title: { $startsWith: 'lock' } }`) instead of a string. Object and string leaves can be mixed in the same expression, and object leaves do not require `useExtendedSearch`:
+
+```js
+fuse.search({
+  $or: [
+    { title: { $startsWith: 'old' } }, // object leaf — no flag needed
+    { title: '^new' }                  // string leaf — needs useExtendedSearch
+  ]
+})
+```

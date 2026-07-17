@@ -112,10 +112,50 @@ const fuse = new Fuse(list, {
   keys: ['title']
 })
 
-fuse.search('=exact match')   // exact match
-fuse.search('^prefix')        // starts with
-fuse.search('!term')          // does not include
+fuse.search('=exact match') // exact match
+fuse.search('^prefix') // starts with
+fuse.search('!term') // does not include
 ```
+
+### Object Query Syntax
+
+Prefer a structured, self-documenting alternative to the magic characters? Express the same operators as an object. Unlike the string form, this needs **no `useExtendedSearch` flag** (the operators are unambiguous), autocompletes in TypeScript, and needs no quoting or escaping.
+
+```js
+const fuse = new Fuse(list, { keys: ['title', 'author'] })
+
+fuse.search({ title: { $startsWith: 'old' }, author: { $eq: 'Kay' } })
+```
+
+Each operator maps to a string equivalent:
+
+| Object        | String  | Matches when the field        |
+| ------------- | ------- | ----------------------------- |
+| `$fuzzy`      | `term`  | fuzzy-matches (typo tolerant) |
+| `$eq`         | `=term` | equals the value              |
+| `$contains`   | `'term` | contains the value            |
+| `$startsWith` | `^term` | starts with the value         |
+| `$endsWith`   | `term$` | ends with the value           |
+
+Negate with `$not`, which wraps exactly one of `$contains`, `$startsWith`, or `$endsWith`:
+
+```js
+fuse.search({ title: { $not: { $contains: 'draft' } } }) // === '!draft'
+fuse.search({ title: { $not: { $startsWith: 'old' } } }) // === '!^old'
+fuse.search({ title: { $not: { $endsWith: '.go' } } }) // === '!.go$'
+```
+
+Multiple operators on one field are AND-ed; use field-local `$and` / `$or` for more, and compose across fields with [logical search](#logical-search):
+
+```js
+// starts with "old" AND does not contain "draft"
+fuse.search({ title: { $startsWith: 'old', $not: { $contains: 'draft' } } })
+
+// title starts with "old" OR ends with "war"
+fuse.search({ title: { $or: [{ $startsWith: 'old' }, { $endsWith: 'war' }] } })
+```
+
+Object queries return identical results to the equivalent string query, and validate strictly: unknown operators, empty or non-string values, and illegal nesting throw instead of silently degrading to a fuzzy search. Available in the full build. See [the Extended Search docs](https://fusejs.io/extended-search#object-syntax) for the full grammar.
 
 ### Token Search
 
@@ -135,7 +175,7 @@ fuse.search('express midleware rout')
 - **Relevance ranking** — rare terms are weighted higher than common ones
 - **Word order independent** — `"patterns javascript"` and `"javascript patterns"` return identical results
 - **No query length limit** — long multi-word queries work naturally since each term is searched separately
-- **AND or OR** — `tokenMatch: 'all'` returns only records matching *every* word (filtering); the default `'any'` matches any word
+- **AND or OR** — `tokenMatch: 'all'` returns only records matching _every_ word (filtering); the default `'any'` matches any word
 - **Custom tokenizer** — pass a regex or function via `tokenize` for tokens with internal punctuation (`node.js`, `c++`), or use `Intl.Segmenter` for CJK / Thai word segmentation. Unicode-aware by default
 
 Available in the full build. See [the Token Search docs](https://fusejs.io/token-search) for details and performance benchmarks.
@@ -146,10 +186,7 @@ Combine conditions with `$and` and `$or` for complex queries. Available in the f
 
 ```js
 fuse.search({
-  $and: [
-    { title: 'javascript' },
-    { author: 'crockford' }
-  ]
+  $and: [{ title: 'javascript' }, { author: 'crockford' }]
 })
 ```
 
@@ -191,10 +228,10 @@ fuse.remove((doc) => doc.title === 'Old Book')
 
 Fuse.js ships in two variants:
 
-| Build | Includes | Min + gzip |
-|---|---|---|
-| **Full** | Fuzzy + Extended + Logical + Token search | ~8.6 kB |
-| **Basic** | Fuzzy search only | ~6.8 kB |
+| Build     | Includes                                  | Min + gzip |
+| --------- | ----------------------------------------- | ---------- |
+| **Full**  | Fuzzy + Extended + Logical + Token search | ~8.6 kB    |
+| **Basic** | Fuzzy search only                         | ~6.8 kB    |
 
 Use the basic build if you only need fuzzy search and want the smallest bundle size.
 

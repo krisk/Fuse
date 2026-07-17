@@ -4,12 +4,18 @@ import Fuse from '../core'
 import Config from '../core/config'
 import { createIndex } from '../tools/FuseIndex'
 import { ExtendedSearch } from '../search'
+import { compileObjectLeaf } from '../search/extended/objectQuery'
 import TokenSearch from '../search/token'
-import register from '../core/register'
+import register, { registerObjectCompiler } from '../core/register'
+import type { Expression } from '../types'
 
-// Register all search plugins so the worker supports full features
+// Register all search plugins so the worker supports full features. The worker
+// script is a SEPARATE entry from src/entry.ts with its own module graph, so the
+// object-query compiler must be registered here too, or object queries would
+// fail inside the worker even though they work on the main thread.
 if (process.env.EXTENDED_SEARCH_ENABLED) {
   register(ExtendedSearch)
+  registerObjectCompiler(compileObjectLeaf)
 }
 if (process.env.TOKEN_SEARCH_ENABLED) {
   register(TokenSearch)
@@ -20,7 +26,7 @@ Fuse.config = Config
 
 type WorkerMessage =
   | { id: number; method: 'init'; args: [any[], any] }
-  | { id: number; method: 'search'; args: [string, any?] }
+  | { id: number; method: 'search'; args: [string | Expression, any?] }
   | { id: number; method: 'add'; args: [any] }
   | { id: number; method: 'setCollection'; args: [any[]] }
 
