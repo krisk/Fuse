@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["trusted-types"],
     "module": "esnext",
     "lib": ["es2020", "dom"],
     "target": "es2020",

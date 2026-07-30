@@ -197,7 +197,7 @@ const SHARED: ts.CompilerOptions = {
   lib: ['lib.es2022.d.ts', 'lib.dom.d.ts'],
   strict: true,
   noEmit: true,
-  types: [],
+  types: ['trusted-types'],
   skipLibCheck: false
 }
 
