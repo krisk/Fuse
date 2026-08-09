@@ -13,7 +13,7 @@ export interface FuseWorkerOptions {
   /** Number of parallel workers. Defaults to navigator.hardwareConcurrency (max 8). */
   numWorkers?: number
   /** Custom URL to the worker script. If not provided, resolves automatically via import.meta.url. */
-  workerUrl?: string | URL
+  workerUrl?: string | URL | TrustedScriptURL
 }
 
 interface PendingCall {
@@ -27,6 +27,13 @@ interface Shard {
 }
 
 const DEFAULT_MAX_WORKERS = 8
+
+const TRUSTED_TYPES_POLICY = globalThis?.window?.trustedTypes?.createPolicy(
+  'fuse-trusted-worker-url',
+  {
+    createScriptURL: (url) => url
+  }
+)
 
 function getDefaultWorkerCount(): number {
   const hw =
@@ -89,7 +96,7 @@ export default class FuseWorker<T> {
   private _initPromise: Promise<void> | null = null
   private _pending: Map<number, PendingCall> = new Map()
   private _nextId = 0
-  private _workerUrl: string | URL
+  private _workerUrl: string | URL | TrustedScriptURL
 
   constructor(
     docs: ReadonlyArray<T>,
@@ -108,7 +115,17 @@ export default class FuseWorker<T> {
     if (this._options.useTokenSearch) {
       throw new Error(ErrorMsg.FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED)
     }
-    this._workerUrl = this._workerOptions.workerUrl || resolveDefaultWorkerUrl()
+
+    if (this._workerOptions.workerUrl) {
+      // Don't apply the trusted types policy as workerUrl is outside our control
+      this._workerUrl = this._workerOptions.workerUrl
+    } else {
+      const defaultWorkerUrl = resolveDefaultWorkerUrl()
+
+      this._workerUrl = TRUSTED_TYPES_POLICY
+        ? TRUSTED_TYPES_POLICY.createScriptURL(defaultWorkerUrl.toString())
+        : defaultWorkerUrl
+    }
   }
 
   private static _assertNoFunctionOptions<U>(options: IFuseOptions<U>): void {
@@ -152,6 +169,7 @@ export default class FuseWorker<T> {
   }
 
   private _spawnWorker(): Worker {
+    // @ts-expect-error the types for Worker are not updated yet to accept TrustedScriptURL
     const worker = new Worker(this._workerUrl, { type: 'module' })
 
     worker.onmessage = (e: MessageEvent) => {
