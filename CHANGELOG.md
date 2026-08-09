@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.0](https://github.com/krisk/Fuse/compare/v7.5.0...v7.6.0-beta.0) (2026-08-09)
+
+
+### Features
+
+* **search:** add MongoDB-style object query syntax ([08459a9](https://github.com/krisk/Fuse/commit/08459a96198515ac6cf999994c36c00fb69ce865))
+
 ## [7.5.0](https://github.com/krisk/Fuse/compare/v7.4.2...v7.5.0) (2026-07-13)
 
 ### ⚠️ Behavior changes
