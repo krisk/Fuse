@@ -369,3 +369,21 @@ export type Expression =
   | PathLeafString
   | { $and?: ChildExpression[] }
   | { $or?: ChildExpression[] }
+
+/** https://developer.mozilla.org/en-US/docs/Web/API/TrustedScriptURL */
+export type TrustedScriptURL = {
+  toString(): string;
+}
+
+declare global {
+interface Window {
+  trustedTypes: {
+    createPolicy: (name: string, options: {
+      createScriptURL: (url: string) => string,
+    })=> {
+      
+      createScriptURL: (url: string) => TrustedScriptURL,
+    },
+  }
+}
+}

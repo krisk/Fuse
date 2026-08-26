@@ -201,13 +201,28 @@ type Expression = string | KeyedLeaf | PathLeafString | {
 } | {
   $or?: ChildExpression[];
 };
+/** https://developer.mozilla.org/en-US/docs/Web/API/TrustedScriptURL */
+type TrustedScriptURL = {
+  toString(): string;
+};
+declare global {
+  interface Window {
+    trustedTypes: {
+      createPolicy: (name: string, options: {
+        createScriptURL: (url: string) => string;
+      }) => {
+        createScriptURL: (url: string) => TrustedScriptURL;
+      };
+    };
+  }
+}
 //#endregion
 //#region src/workers/FuseWorker.d.ts
 interface FuseWorkerOptions {
   /** Number of parallel workers. Defaults to navigator.hardwareConcurrency (max 8). */
   numWorkers?: number;
   /** Custom URL to the worker script. If not provided, resolves automatically via import.meta.url. */
-  workerUrl?: string | URL;
+  workerUrl?: string | URL | TrustedScriptURL;
 }
 declare class FuseWorker<T> {
   private _options;
