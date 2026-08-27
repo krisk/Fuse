@@ -79,6 +79,7 @@ var FuseWorker = class FuseWorker {
 		};
 		worker.onerror = (e) => {
 			for (const [, handler] of this._pending) handler.reject(new Error(e.message));
+			this._pending.clear();
 		};
 		return worker;
 	}
@@ -117,11 +118,16 @@ var FuseWorker = class FuseWorker {
 				resolve,
 				reject
 			});
-			worker.postMessage({
-				id,
-				method,
-				args
-			});
+			try {
+				worker.postMessage({
+					id,
+					method,
+					args
+				});
+			} catch (error) {
+				this._pending.delete(id);
+				reject(error);
+			}
 		});
 	}
 	async search(query, options) {

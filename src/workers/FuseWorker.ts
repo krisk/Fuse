@@ -170,6 +170,7 @@ export default class FuseWorker<T> {
       for (const [, handler] of this._pending) {
         handler.reject(new Error(e.message))
       }
+      this._pending.clear()
     }
 
     return worker
@@ -212,7 +213,12 @@ export default class FuseWorker<T> {
     const id = this._nextId++
     return new Promise((resolve, reject) => {
       this._pending.set(id, { resolve, reject })
-      worker.postMessage({ id, method, args })
+      try {
+        worker.postMessage({ id, method, args })
+      } catch (error) {
+        this._pending.delete(id)
+        reject(error)
+      }
     })
   }
 
