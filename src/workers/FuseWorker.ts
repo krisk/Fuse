@@ -223,6 +223,9 @@ export default class FuseWorker<T> {
     await this._ensureInit()
 
     const shards = this._shards!
+    const globalIndicesByShard = shards.map((shard) =>
+      shard.globalIndices.slice()
+    )
     const results: FuseResult<T>[][] = await Promise.all(
       shards.map((s) => this._call(s.worker, 'search', [query, options]))
     )
@@ -230,7 +233,7 @@ export default class FuseWorker<T> {
     // Merge results from all shards, rewriting refIndex from shard-local to global
     const merged: FuseResult<T>[] = []
     for (let i = 0, len = results.length; i < len; i += 1) {
-      const { globalIndices } = shards[i]
+      const globalIndices = globalIndicesByShard[i]
       for (const r of results[i]) {
         merged.push({ ...r, refIndex: globalIndices[r.refIndex] })
       }

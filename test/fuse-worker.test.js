@@ -55,6 +55,33 @@ class MockWorker {
 
 MockWorker.instances = []
 
+class DeferredSearchWorker extends MockWorker {
+  _handle({ id, method, args }) {
+    if (method !== 'search') {
+      super._handle({ id, method, args })
+      return
+    }
+
+    try {
+      const result = this._fuse.search(args[0], args[1])
+      DeferredSearchWorker.responses.push(() => {
+        this.onmessage?.({ data: { id, result } })
+      })
+    } catch (err) {
+      DeferredSearchWorker.responses.push(() => {
+        this.onmessage?.({ data: { id, error: err.message } })
+      })
+    }
+  }
+
+  static flush() {
+    const responses = DeferredSearchWorker.responses.splice(0)
+    responses.forEach((respond) => respond())
+  }
+}
+
+DeferredSearchWorker.responses = []
+
 const Books = [
   { title: "Old Man's War", author: 'Scalzi' },
   { title: 'The Lock Artist', author: 'Hamilton' },
@@ -203,6 +230,45 @@ describe('FuseWorker sharding', () => {
     }
 
     fw.terminate()
+  })
+
+  test('an in-flight search keeps its refIndex mapping during setCollection', async () => {
+    MockWorker.instances = []
+    DeferredSearchWorker.responses = []
+    globalThis.Worker = DeferredSearchWorker
+    const fw = new FuseWorker(
+      Books,
+      { keys: ['title', 'author'] },
+      { numWorkers: 2 }
+    )
+
+    try {
+      const searchPromise = fw.search('brown')
+
+      for (
+        let i = 0;
+        i < 10 && DeferredSearchWorker.responses.length < 2;
+        i += 1
+      ) {
+        await Promise.resolve()
+      }
+      expect(DeferredSearchWorker.responses).toHaveLength(2)
+
+      await fw.setCollection([{ title: 'Replacement', author: 'New' }])
+      DeferredSearchWorker.flush()
+
+      const results = await searchPromise
+      expect(results.map((result) => result.item.title).sort()).toEqual([
+        'Angels & Demons',
+        'The DaVinci Code'
+      ])
+      for (const result of results) {
+        expect(Books[result.refIndex]).toBe(result.item)
+      }
+    } finally {
+      fw.terminate()
+      globalThis.Worker = MockWorker
+    }
   })
 })
 
