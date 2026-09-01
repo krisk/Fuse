@@ -1407,6 +1407,44 @@ describe('Searching ignoring non-decomposable diacritics', () => {
     expect(result[0].item.text).toBe('straße')
   })
 
+  test('Match indices map an expanded character back to the source text', () => {
+    const localFuse = new Fuse([{ text: 'aßb' }], {
+      ignoreDiacritics: true,
+      includeMatches: true,
+      ignoreLocation: true,
+      keys: ['text']
+    })
+
+    const result = localFuse.search('ss')
+
+    expect(result[0].matches[0].indices).toEqual([[1, 1]])
+  })
+
+  test('Match indices account for removed combining marks', () => {
+    const localFuse = new Fuse([{ text: 'cafe\u0301 noir' }], {
+      ignoreDiacritics: true,
+      includeMatches: true,
+      ignoreLocation: true,
+      keys: ['text']
+    })
+
+    const result = localFuse.search('noir')
+
+    expect(result[0].matches[0].indices).toEqual([[6, 9]])
+  })
+
+  test('Match indices account for case-folding expansion', () => {
+    const localFuse = new Fuse([{ text: 'AİB' }], {
+      includeMatches: true,
+      ignoreLocation: true,
+      keys: ['text']
+    })
+
+    const result = localFuse.search('i\u0307')
+
+    expect(result[0].matches[0].indices).toEqual([[1, 1]])
+  })
+
   test('Search: ø → o (Danish)', () => {
     const result = fuse.search('orsted')
     expect(result).toHaveLength(1)

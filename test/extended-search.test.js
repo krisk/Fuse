@@ -325,4 +325,30 @@ describe('Searching using extended search ignoring diactrictics', () => {
     expect(result).toHaveLength(1)
     expect(result[0].refIndex).toBe(1)
   })
+
+  test('Match indices map normalized text back to the source text', () => {
+    const localFuse = new Fuse([{ text: 'aßb' }], {
+      useExtendedSearch: true,
+      ignoreDiacritics: true,
+      includeMatches: true,
+      keys: ['text']
+    })
+
+    const result = localFuse.search("'ss")
+
+    expect(result[0].matches[0].indices).toEqual([[1, 1]])
+  })
+
+  test('Match indices stay aligned when expansion and removal cancel out', () => {
+    const localFuse = new Fuse([{ text: 'aß\u0301b' }], {
+      useExtendedSearch: true,
+      ignoreDiacritics: true,
+      includeMatches: true,
+      keys: ['text']
+    })
+
+    const result = localFuse.search("'sb")
+
+    expect(result[0].matches[0].indices).toEqual([[1, 3]])
+  })
 })
