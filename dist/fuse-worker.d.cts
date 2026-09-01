@@ -223,6 +223,7 @@ declare class FuseWorker<T> {
   private static _assertNoFunctionOptions;
   private _getNumWorkers;
   private _ensureInit;
+  private _discardShards;
   private _spawnWorker;
   private _workerInitOptions;
   private _init;

@@ -64,8 +64,22 @@ var FuseWorker = class FuseWorker {
 	}
 	_ensureInit() {
 		if (this._initPromise) return this._initPromise;
-		this._initPromise = this._init();
-		return this._initPromise;
+		const initPromise = this._init();
+		this._initPromise = initPromise;
+		initPromise.catch((error) => {
+			if (this._initPromise !== initPromise) return;
+			this._initPromise = null;
+			this._discardShards(error);
+		});
+		return initPromise;
+	}
+	_discardShards(reason) {
+		if (this._shards) {
+			for (const { worker } of this._shards) worker.terminate();
+			this._shards = null;
+		}
+		for (const [, handler] of this._pending) handler.reject(reason);
+		this._pending.clear();
 	}
 	_spawnWorker() {
 		const worker = new Worker(this._workerUrl, { type: "module" });
@@ -190,13 +204,8 @@ var FuseWorker = class FuseWorker {
 		await Promise.all(tasks);
 	}
 	terminate() {
-		if (this._shards) {
-			for (const { worker } of this._shards) worker.terminate();
-			this._shards = null;
-		}
+		this._discardShards(/* @__PURE__ */ new Error("FuseWorker terminated"));
 		this._initPromise = null;
-		for (const [, handler] of this._pending) handler.reject(/* @__PURE__ */ new Error("FuseWorker terminated"));
-		this._pending.clear();
 	}
 };
 
