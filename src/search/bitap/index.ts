@@ -3,7 +3,11 @@ import createPatternAlphabet from './createPatternAlphabet'
 import { MAX_BITS } from './constants'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import Config from '../../core/config'
-import { stripDiacritics } from '../../helpers/diacritics'
+import {
+  createTextIndexMap,
+  remapTextIndices,
+  transformText
+} from '../../helpers/diacritics'
 import type { SearchResult, RangeTuple } from '../../types'
 
 interface BitapChunk {
@@ -55,8 +59,7 @@ export default class BitapSearch {
       ignoreLocation
     }
 
-    pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
-    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern
+    pattern = transformText(pattern, isCaseSensitive, ignoreDiacritics)
     this.pattern = pattern
 
     this.chunks = []
@@ -96,9 +99,9 @@ export default class BitapSearch {
 
   searchIn(text: string): SearchResult {
     const { isCaseSensitive, ignoreDiacritics, includeMatches } = this.options
+    const originalText = text
 
-    text = isCaseSensitive ? text : text.toLowerCase()
-    text = ignoreDiacritics ? stripDiacritics(text) : text
+    text = transformText(text, isCaseSensitive, ignoreDiacritics)
 
     // Exact match
     if (this.pattern === text) {
@@ -114,11 +117,16 @@ export default class BitapSearch {
       }
 
       if (includeMatches) {
-        result.indices = [[0, text.length - 1]]
+        result.indices = [[0, originalText.length - 1]]
       }
 
       return result
     }
+
+    const indexMap =
+      includeMatches && (!isCaseSensitive || ignoreDiacritics)
+        ? createTextIndexMap(originalText, isCaseSensitive, ignoreDiacritics)
+        : null
 
     // Otherwise, use Bitap algorithm
     const {
@@ -162,7 +170,7 @@ export default class BitapSearch {
     }
 
     if (hasMatches && includeMatches) {
-      result.indices = mergeIndices(allIndices)
+      result.indices = remapTextIndices(mergeIndices(allIndices), indexMap)
     }
 
     return result

@@ -1,3 +1,5 @@
+import type { RangeTuple } from '../types'
+
 // Characters that survive NFD normalization unchanged and need explicit mapping
 const NON_DECOMPOSABLE_MAP: Record<string, string> = {
   '\u0142': 'l', // ł
@@ -30,3 +32,64 @@ export const stripDiacritics: (str: string) => string =
           )
           .replace(NON_DECOMPOSABLE_RE, (ch) => NON_DECOMPOSABLE_MAP[ch])
     : (str: string) => str
+
+export function transformText(
+  text: string,
+  isCaseSensitive: boolean,
+  ignoreDiacritics: boolean
+): string {
+  text = isCaseSensitive ? text : text.toLowerCase()
+  return ignoreDiacritics ? stripDiacritics(text) : text
+}
+
+export function createTextIndexMap(
+  text: string,
+  isCaseSensitive: boolean,
+  ignoreDiacritics: boolean
+): RangeTuple[] {
+  const indexMap: RangeTuple[] = []
+  let originalIndex = 0
+  let leadingRemovedStart: number | null = null
+
+  for (const character of text) {
+    const start = originalIndex
+    const end = start + character.length - 1
+    const transformed = transformText(
+      character,
+      isCaseSensitive,
+      ignoreDiacritics
+    )
+
+    if (!transformed.length) {
+      if (indexMap.length) {
+        indexMap[indexMap.length - 1][1] = end
+      } else if (leadingRemovedStart === null) {
+        leadingRemovedStart = start
+      }
+    } else {
+      const mappedStart = leadingRemovedStart ?? start
+      leadingRemovedStart = null
+      for (let i = 0; i < transformed.length; i += 1) {
+        indexMap.push([mappedStart, end])
+      }
+    }
+
+    originalIndex = end + 1
+  }
+
+  return indexMap
+}
+
+export function remapTextIndices(
+  indices: RangeTuple[],
+  indexMap: RangeTuple[] | null
+): RangeTuple[] {
+  if (!indexMap) {
+    return indices
+  }
+
+  return indices.map(([start, end]) => [
+    indexMap[start]?.[0] ?? start,
+    indexMap[end]?.[1] ?? end
+  ])
+}

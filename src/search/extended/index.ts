@@ -1,7 +1,11 @@
 import parseQuery from './parseQuery'
 import { MULTI_MATCH_TYPES, isInverse } from './matchers'
 import Config from '../../core/config'
-import { stripDiacritics } from '../../helpers/diacritics'
+import {
+  createTextIndexMap,
+  remapTextIndices,
+  transformText
+} from '../../helpers/diacritics'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import type { SearchResult, RangeTuple } from '../../types'
 import type { Matcher } from './matchers'
@@ -40,13 +44,11 @@ function resolveOptions(options: any = {}): ExtendedSearchOptions {
 // compiler applies this per operator value so object and string forms feed
 // identically-normalized patterns to the matchers.
 export function normalizeValue(value: string, options: any): string {
-  value =
-    (options.isCaseSensitive ?? Config.isCaseSensitive)
-      ? value
-      : value.toLowerCase()
-  return (options.ignoreDiacritics ?? Config.ignoreDiacritics)
-    ? stripDiacritics(value)
-    : value
+  return transformText(
+    value,
+    options.isCaseSensitive ?? Config.isCaseSensitive,
+    options.ignoreDiacritics ?? Config.ignoreDiacritics
+  )
 }
 
 export default class ExtendedSearch {
@@ -57,8 +59,11 @@ export default class ExtendedSearch {
   constructor(pattern: string, options: any = {}) {
     this.options = resolveOptions(options)
 
-    pattern = this.options.isCaseSensitive ? pattern : pattern.toLowerCase()
-    pattern = this.options.ignoreDiacritics ? stripDiacritics(pattern) : pattern
+    pattern = transformText(
+      pattern,
+      this.options.isCaseSensitive,
+      this.options.ignoreDiacritics
+    )
     this.pattern = pattern
     this.query = parseQuery(this.pattern, this.options)
   }
@@ -95,9 +100,13 @@ export default class ExtendedSearch {
     }
 
     const { includeMatches, isCaseSensitive, ignoreDiacritics } = this.options
+    const originalText = text
 
-    text = isCaseSensitive ? text : text.toLowerCase()
-    text = ignoreDiacritics ? stripDiacritics(text) : text
+    text = transformText(text, isCaseSensitive, ignoreDiacritics)
+    const indexMap =
+      includeMatches && (!isCaseSensitive || ignoreDiacritics)
+        ? createTextIndexMap(originalText, isCaseSensitive, ignoreDiacritics)
+        : null
 
     let numMatches = 0
     const allIndices: RangeTuple[] = []
@@ -154,7 +163,7 @@ export default class ExtendedSearch {
         }
 
         if (includeMatches) {
-          result.indices = mergeIndices(allIndices)
+          result.indices = remapTextIndices(mergeIndices(allIndices), indexMap)
         }
 
         return result
