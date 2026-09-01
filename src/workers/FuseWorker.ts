@@ -147,8 +147,31 @@ export default class FuseWorker<T> {
   private _ensureInit(): Promise<void> {
     if (this._initPromise) return this._initPromise
 
-    this._initPromise = this._init()
-    return this._initPromise
+    const initPromise = this._init()
+    this._initPromise = initPromise
+
+    void initPromise.catch((error) => {
+      if (this._initPromise !== initPromise) return
+
+      this._initPromise = null
+      this._discardShards(error)
+    })
+
+    return initPromise
+  }
+
+  private _discardShards(reason: unknown): void {
+    if (this._shards) {
+      for (const { worker } of this._shards) {
+        worker.terminate()
+      }
+      this._shards = null
+    }
+
+    for (const [, handler] of this._pending) {
+      handler.reject(reason)
+    }
+    this._pending.clear()
   }
 
   private _spawnWorker(): Worker {
@@ -319,17 +342,7 @@ export default class FuseWorker<T> {
   }
 
   terminate(): void {
-    if (this._shards) {
-      for (const { worker } of this._shards) {
-        worker.terminate()
-      }
-      this._shards = null
-    }
+    this._discardShards(new Error('FuseWorker terminated'))
     this._initPromise = null
-
-    for (const [, handler] of this._pending) {
-      handler.reject(new Error('FuseWorker terminated'))
-    }
-    this._pending.clear()
   }
 }

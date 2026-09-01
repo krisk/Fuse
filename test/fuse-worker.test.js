@@ -55,6 +55,31 @@ class MockWorker {
 
 MockWorker.instances = []
 
+class FailFirstInitWorker extends MockWorker {
+  constructor() {
+    super()
+    this.terminated = false
+  }
+
+  _handle(message) {
+    if (message.method === 'init' && FailFirstInitWorker.failures > 0) {
+      FailFirstInitWorker.failures -= 1
+      this.onmessage?.({
+        data: { id: message.id, error: 'worker initialization failed' }
+      })
+      return
+    }
+
+    super._handle(message)
+  }
+
+  terminate() {
+    this.terminated = true
+  }
+}
+
+FailFirstInitWorker.failures = 0
+
 const Books = [
   { title: "Old Man's War", author: 'Scalzi' },
   { title: 'The Lock Artist', author: 'Hamilton' },
@@ -203,6 +228,38 @@ describe('FuseWorker sharding', () => {
     }
 
     fw.terminate()
+  })
+
+  test('cleans up and retries after worker initialization fails', async () => {
+    MockWorker.instances = []
+    FailFirstInitWorker.failures = 1
+    globalThis.Worker = FailFirstInitWorker
+    const fw = new FuseWorker(
+      Books,
+      { keys: ['title', 'author'] },
+      { numWorkers: 2 }
+    )
+
+    try {
+      await expect(fw.search('brown')).rejects.toThrow(
+        'worker initialization failed'
+      )
+
+      const failedWorkers = MockWorker.instances.slice()
+      expect(failedWorkers).toHaveLength(2)
+      expect(failedWorkers.every((worker) => worker.terminated)).toBe(true)
+
+      const results = await fw.search('brown')
+
+      expect(MockWorker.instances).toHaveLength(4)
+      expect(results.map((result) => result.item.title).sort()).toEqual([
+        'Angels & Demons',
+        'The DaVinci Code'
+      ])
+    } finally {
+      fw.terminate()
+      globalThis.Worker = MockWorker
+    }
   })
 })
 
