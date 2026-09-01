@@ -205,6 +205,15 @@ describe('Object query — logical composition', () => {
     })
     expect(idx(r)).toEqual([0, 2])
   })
+
+  test('supports a key named __proto__', () => {
+    const items = [{ ['__proto__']: 'needle' }, { ['__proto__']: 'different' }]
+    const f = new Fuse(items, { keys: ['__proto__'] })
+
+    const result = f.search({ ['__proto__']: { $eq: 'needle' } })
+
+    expect(result.map((item) => item.refIndex)).toEqual([0])
+  })
 })
 
 describe('Object query — includeMatches / arrays', () => {

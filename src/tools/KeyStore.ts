@@ -10,7 +10,7 @@ export default class KeyStore {
 
   constructor(keys: FuseOptionKey<any>[]) {
     this._keys = []
-    this._keyMap = {}
+    this._keyMap = Object.create(null)
 
     let totalWeight = 0
 
@@ -45,8 +45,8 @@ export function createKey(key: FuseOptionKey<any>): KeyObject {
   let src: string | string[] | null = null
   let weight: number = 1
   let getFn:
-    | ((obj: any) => ReadonlyArray<string> | string | null | undefined)
-    | null = null
+    ((obj: any) => ReadonlyArray<string> | string | null | undefined) | null =
+    null
 
   if (isString(key) || isArray(key)) {
     src = key
