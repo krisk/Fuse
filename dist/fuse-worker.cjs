@@ -127,10 +127,11 @@ var FuseWorker = class FuseWorker {
 	async search(query, options) {
 		await this._ensureInit();
 		const shards = this._shards;
+		const globalIndicesByShard = shards.map((shard) => shard.globalIndices.slice());
 		const results = await Promise.all(shards.map((s) => this._call(s.worker, "search", [query, options])));
 		const merged = [];
 		for (let i = 0, len = results.length; i < len; i += 1) {
-			const { globalIndices } = shards[i];
+			const globalIndices = globalIndicesByShard[i];
 			for (const r of results[i]) merged.push({
 				...r,
 				refIndex: globalIndices[r.refIndex]
