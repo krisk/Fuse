@@ -37,7 +37,7 @@ export default class FuseIndex<T = any> {
     this.isCreated = false
     this.docs = []
     this.keys = []
-    this._keysMap = {}
+    this._keysMap = Object.create(null)
 
     this.setIndexRecords()
   }
@@ -49,7 +49,7 @@ export default class FuseIndex<T = any> {
   }
   setKeys(keys: KeyObject[] = []): void {
     this.keys = keys
-    this._keysMap = {}
+    this._keysMap = Object.create(null)
     keys.forEach((key, idx) => {
       this._keysMap[key.id] = idx
     })

@@ -63,7 +63,7 @@ const hasOwn = Object.prototype.hasOwnProperty;
 var KeyStore = class {
 	constructor(keys) {
 		this._keys = [];
-		this._keyMap = {};
+		this._keyMap = Object.create(null);
 		let totalWeight = 0;
 		keys.forEach((key) => {
 			const obj = createKey(key);
@@ -226,7 +226,7 @@ var FuseIndex = class {
 		this.isCreated = false;
 		this.docs = [];
 		this.keys = [];
-		this._keysMap = {};
+		this._keysMap = Object.create(null);
 		this.setIndexRecords();
 	}
 	setSources(docs = []) {
@@ -237,7 +237,7 @@ var FuseIndex = class {
 	}
 	setKeys(keys = []) {
 		this.keys = keys;
-		this._keysMap = {};
+		this._keysMap = Object.create(null);
 		keys.forEach((key, idx) => {
 			this._keysMap[key.id] = idx;
 		});

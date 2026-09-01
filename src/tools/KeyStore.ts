@@ -10,7 +10,7 @@ export default class KeyStore {
 
   constructor(keys: FuseOptionKey<any>[]) {
     this._keys = []
-    this._keyMap = {}
+    this._keyMap = Object.create(null)
 
     let totalWeight = 0
 
