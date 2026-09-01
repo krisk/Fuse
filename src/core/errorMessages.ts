@@ -46,6 +46,9 @@ export const FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED =
   `so per-shard scores would diverge from single-thread Fuse. Use Fuse on ` +
   `the main thread for token search.`
 
+export const FUSE_WORKER_INVALID_NUM_WORKERS =
+  'FuseWorker numWorkers must be a positive integer.'
+
 export const FUSE_MATCH_TOKEN_SEARCH_UNSUPPORTED =
   `Fuse.match does not support useTokenSearch: token search requires ` +
   `corpus-level statistics (df, fieldCount) that a one-off string ` +

@@ -2,6 +2,7 @@
 // the sharding/refIndex rewrite logic without spawning real workers.
 
 import { describe, test, expect, beforeAll, afterAll } from 'vitest'
+import * as ErrorMsg from '../src/core/errorMessages'
 
 process.env.EXTENDED_SEARCH_ENABLED = 'true'
 process.env.TOKEN_SEARCH_ENABLED = 'true'
@@ -473,4 +474,13 @@ describe('FuseWorker rejects function-valued options', () => {
       () => new FuseWorker(Books, { keys: ['title'], useTokenSearch: true })
     ).toThrowError(/useTokenSearch/)
   })
+
+  test.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    'throws when numWorkers is %s',
+    (numWorkers) => {
+      expect(
+        () => new FuseWorker(Books, { keys: ['title'] }, { numWorkers })
+      ).toThrowError(ErrorMsg.FUSE_WORKER_INVALID_NUM_WORKERS)
+    }
+  )
 })
