@@ -99,6 +99,13 @@ export default class FuseWorker<T> {
     this._docs = docs.slice()
     this._options = options || ({} as IFuseOptions<T>)
     this._workerOptions = workerOptions || {}
+    const { numWorkers } = this._workerOptions
+    if (
+      numWorkers !== undefined &&
+      (!Number.isInteger(numWorkers) || numWorkers < 1)
+    ) {
+      throw new Error(ErrorMsg.FUSE_WORKER_INVALID_NUM_WORKERS)
+    }
     // Reject function-valued options eagerly. Without this check, postMessage
     // throws DataCloneError on first search() rather than at construction.
     FuseWorker._assertNoFunctionOptions(this._options)
@@ -141,7 +148,7 @@ export default class FuseWorker<T> {
   }
 
   private _getNumWorkers(): number {
-    return this._workerOptions.numWorkers || getDefaultWorkerCount()
+    return this._workerOptions.numWorkers ?? getDefaultWorkerCount()
   }
 
   private _ensureInit(): Promise<void> {
