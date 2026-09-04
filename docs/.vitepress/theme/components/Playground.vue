@@ -116,6 +116,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import Fuse from '../../../../dist/fuse'
+import { highlightMatch as renderHighlightMatch } from './playgroundHighlight'
 
 const books = [
   { title: "Old Man's War", author: { firstName: 'John', lastName: 'Scalzi' } },
@@ -206,39 +207,7 @@ function doSearch() {
 }
 
 function highlightMatch(result: any, key: string) {
-  if (!options.includeMatches || !result.matches) {
-    return getNestedValue(result.item, key)
-  }
-
-  const match = result.matches.find((m: any) => m.key === key)
-  const value = getNestedValue(result.item, key)
-
-  if (!match || !match.indices || !value) return value || ''
-
-  let highlighted = ''
-  let lastIndex = 0
-
-  const indices = [...match.indices].sort((a: number[], b: number[]) => a[0] - b[0])
-
-  for (const [start, end] of indices) {
-    highlighted += escapeHtml(value.slice(lastIndex, start))
-    highlighted += `<mark>${escapeHtml(value.slice(start, end + 1))}</mark>`
-    lastIndex = end + 1
-  }
-  highlighted += escapeHtml(value.slice(lastIndex))
-
-  return highlighted
-}
-
-function getNestedValue(obj: any, path: string): string {
-  return path.split('.').reduce((o, k) => o?.[k], obj) ?? ''
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+  return renderHighlightMatch(result, key, options.includeMatches)
 }
 </script>
 
