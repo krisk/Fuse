@@ -17,7 +17,7 @@ jobs:
           node-version: 20
       - run: npm install --prefer-offline --no-audit --no-fund
       - run: npm run docs:build
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/.vitepress/dist
