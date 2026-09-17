@@ -57,6 +57,12 @@ describe('Search with limit', () => {
     }
   })
 
+  test.each([0.5, 1.5, 2.9])('fractional limit=%s matches slice', (limit) => {
+    expect(fuse.search('an', { limit })).toEqual(
+      fuse.search('an').slice(0, limit)
+    )
+  })
+
   test('limit keeps the tie-break winner when scores tie', () => {
     const tied = new Fuse(['matchX', 'matchY', 'matchZ', 'match'], {
       threshold: 0.6
@@ -164,6 +170,12 @@ describe('Search with limit on object list', () => {
     for (let i = 0; i < limited.length; i++) {
       expect(limited[i].score).toBeCloseTo(all[i].score, 10)
     }
+  })
+
+  test.each([0.5, 1.5, 2.9])('fractional limit=%s matches slice', (limit) => {
+    expect(fuse.search('the', { limit })).toEqual(
+      fuse.search('the').slice(0, limit)
+    )
   })
 
   test('limit=5 with includeMatches', () => {
