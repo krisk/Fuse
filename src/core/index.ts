@@ -253,7 +253,7 @@ export default class Fuse<T> {
     // With `shouldSort: false` we must keep the collection-order-then-slice path
     // so `search(query, { limit })` still equals `search(query).slice(0, limit)`.
     const useHeap =
-      shouldSort && isNumber(limit) && limit > 0 && isString(query)
+      shouldSort && Number.isInteger(limit) && limit > 0 && isString(query)
 
     // sortFn is typed for the public FuseSortFunctionArg shape, but at sort and
     // heap time we operate on InternalResult; one assertion bridges the two.

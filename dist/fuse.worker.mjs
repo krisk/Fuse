@@ -1430,7 +1430,7 @@ var Fuse = class {
 			if (isNumber(limit) && limit > -1) docs = docs.slice(0, limit);
 			return docs;
 		}
-		const useHeap = shouldSort && isNumber(limit) && limit > 0 && isString(query);
+		const useHeap = shouldSort && Number.isInteger(limit) && limit > 0 && isString(query);
 		const comparator = sortFn;
 		const stable = (a, b) => comparator(a, b) || a.idx - b.idx;
 		let results;
