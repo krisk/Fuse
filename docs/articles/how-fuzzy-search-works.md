@@ -36,11 +36,11 @@ When you search for "javscript" and Fuse.js returns "JavaScript", it's using **a
 
 The core idea is **edit distance**: the minimum number of single-character operations (insertions, deletions, substitutions) needed to transform one string into another.
 
-For example, turning "javscript" into "javascript" requires:
+For a three-edit example, turning "jovscript" into "javascripts" requires:
 
-- **Substitute** `o` → `a` (at position 2)
-- **Insert** `a` (at position 4)
-- **Insert** `s` (at position 10)
+- **Substitute** `o` with `a`: `jovscript` → `javscript`
+- **Insert** `a` after `v`: `javscript` → `javascript`
+- **Insert** `s` at the end: `javascript` → `javascripts`
 
 That's an edit distance of 3. The lower the distance relative to the string length, the better the match.
 
