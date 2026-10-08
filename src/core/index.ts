@@ -361,7 +361,10 @@ export default class Fuse<T> {
       throw new Error(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
     }
 
-    const expression = parse(query, this.options)
+    const options = this._invertedIndex
+      ? { ...this.options, _invertedIndex: this._invertedIndex }
+      : this.options
+    const expression = parse(query, options)
 
     // Keyless leaves fan out across all keys; normalised weights keep their
     // scores consistent with string and keyed queries.
@@ -397,7 +400,14 @@ export default class Fuse<T> {
           })
         }
 
-        if (matches && matches.length) {
+        // Each token leaf has its own query terms. Check coverage before
+        // combining clauses so OR branches cannot supply each other's words.
+        // Explicit operators do not report token coverage and remain unchanged.
+        if (
+          matches &&
+          matches.length &&
+          (matches[0].termCount === undefined || this._coversAllTokens(matches))
+        ) {
           return [
             {
               idx,
