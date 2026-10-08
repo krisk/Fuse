@@ -1520,7 +1520,10 @@ var Fuse = class {
 		return results;
 	}
 	_searchLogical(query) {
-		const expression = parse(query, this.options);
+		const expression = parse(query, this._invertedIndex ? {
+			...this.options,
+			_invertedIndex: this._invertedIndex
+		} : this.options);
 		const keys = this._normalizedKeys();
 		const evaluate = (node, item, idx) => {
 			if (!("children" in node)) {
@@ -1540,7 +1543,7 @@ var Fuse = class {
 					value: this._myIndex.getValueForItemAtKeyId(item, keyId),
 					searcher
 				});
-				if (matches && matches.length) return [{
+				if (matches && matches.length && (matches[0].termCount === void 0 || this._coversAllTokens(matches))) return [{
 					idx,
 					item,
 					matches
