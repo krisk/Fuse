@@ -1620,28 +1620,33 @@ var Fuse = class {
 	_findMatches({ key, value, searcher }) {
 		if (!isDefined(value)) return [];
 		const matches = [];
-		if (isArray(value)) value.forEach(({ v: text, i: idx, n: norm }) => {
-			if (!isDefined(text)) return;
-			const searchResult = searcher.searchIn(text);
-			if (searchResult.isMatch) {
-				const match = {
-					score: searchResult.score,
-					key,
-					value: text,
-					idx,
-					norm,
-					indices: searchResult.indices,
-					hasInverse: searchResult.hasInverse
-				};
-				if (searchResult.termCount !== void 0) {
-					match.matchedMask = searchResult.matchedMask;
-					match.matchedTerms = searchResult.matchedTerms;
-					match.termCount = searchResult.termCount;
-				}
-				matches.push(match);
-			}
-		});
-		else {
+		if (isArray(value)) {
+			let anyElementFailed = false;
+			let hasInverse = false;
+			value.forEach(({ v: text, i: idx, n: norm }) => {
+				if (!isDefined(text)) return;
+				const searchResult = searcher.searchIn(text);
+				if (searchResult.isMatch) {
+					const match = {
+						score: searchResult.score,
+						key,
+						value: text,
+						idx,
+						norm,
+						indices: searchResult.indices,
+						hasInverse: searchResult.hasInverse
+					};
+					if (searchResult.termCount !== void 0) {
+						match.matchedMask = searchResult.matchedMask;
+						match.matchedTerms = searchResult.matchedTerms;
+						match.termCount = searchResult.termCount;
+					}
+					matches.push(match);
+					hasInverse || (hasInverse = !!searchResult.hasInverse);
+				} else anyElementFailed = true;
+			});
+			if (hasInverse && anyElementFailed) return [];
+		} else {
 			const { v: text, n: norm } = value;
 			const searchResult = searcher.searchIn(text);
 			if (searchResult.isMatch) {

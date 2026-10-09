@@ -536,6 +536,8 @@ export default class Fuse<T> {
     const matches: MatchScore[] = []
 
     if (isArray(value)) {
+      let anyElementFailed = false
+      let hasInverse = false
       value.forEach(({ v: text, i: idx, n: norm }: SubRecord) => {
         if (!isDefined(text)) {
           return
@@ -561,8 +563,16 @@ export default class Fuse<T> {
             match.termCount = searchResult.termCount
           }
           matches.push(match)
+          hasInverse ||= !!searchResult.hasInverse
+        } else {
+          anyElementFailed = true
         }
       })
+      // Mirror cross-key inverse aggregation: a matching sibling must not
+      // hide an excluded array element. Positive searches still match any.
+      if (hasInverse && anyElementFailed) {
+        return []
+      }
     } else {
       const { v: text, n: norm } = value
 
