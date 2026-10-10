@@ -12,6 +12,12 @@ const FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED = "FuseWorker does not support useTok
 const FUSE_WORKER_INVALID_NUM_WORKERS = "FuseWorker numWorkers must be a positive integer.";
 
 //#endregion
+//#region src/helpers/typeGuards.ts
+function isDefined(value) {
+	return value !== void 0 && value !== null;
+}
+
+//#endregion
 //#region src/workers/FuseWorker.ts
 const DEFAULT_MAX_WORKERS = 8;
 function getDefaultWorkerCount() {
@@ -165,6 +171,7 @@ var FuseWorker = class FuseWorker {
 		return merged;
 	}
 	async add(doc) {
+		if (!isDefined(doc)) return;
 		await this._ensureInit();
 		const shards = this._shards;
 		const shard = shards[this._addCursor % shards.length];
