@@ -13,6 +13,12 @@ const FUSE_WORKER_UNSUPPORTED_FN_OPTION = (option) => `FuseWorker does not suppo
 const FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED = "FuseWorker does not support useTokenSearch: token search depends on corpus-level statistics (df, fieldCount) that are computed per shard, so per-shard scores would diverge from single-thread Fuse. Use Fuse on the main thread for token search.";
 
 //#endregion
+//#region src/helpers/typeGuards.ts
+function isDefined(value) {
+	return value !== void 0 && value !== null;
+}
+
+//#endregion
 //#region src/workers/FuseWorker.ts
 const DEFAULT_MAX_WORKERS = 8;
 function getDefaultWorkerCount() {
@@ -159,6 +165,7 @@ var FuseWorker = class FuseWorker {
 		return merged;
 	}
 	async add(doc) {
+		if (!isDefined(doc)) return;
 		await this._ensureInit();
 		const shards = this._shards;
 		const shard = shards[this._addCursor % shards.length];
