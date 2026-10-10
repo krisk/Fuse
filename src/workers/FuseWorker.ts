@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import * as ErrorMsg from '../core/errorMessages'
+import { isDefined } from '../helpers/typeGuards'
 import type {
   IFuseOptions,
   FuseOptionKey,
@@ -278,6 +279,11 @@ export default class FuseWorker<T> {
   }
 
   async add(doc: T): Promise<void> {
+    // Match Fuse.add's no-op before advancing either global or shard indices.
+    if (!isDefined(doc)) {
+      return
+    }
+
     await this._ensureInit()
 
     const shards = this._shards!

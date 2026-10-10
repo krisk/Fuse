@@ -124,6 +124,51 @@ describe('FuseWorker sharding', () => {
     fw.terminate()
   })
 
+  test.each([null, undefined])(
+    'add(%s) before initialization does not spawn workers',
+    async (doc) => {
+      MockWorker.instances = []
+      const fw = new FuseWorker(['alpha'], {}, { numWorkers: 2 })
+      await fw.add(doc)
+      expect(MockWorker.instances).toHaveLength(0)
+      expect(await fw.search('')).toEqual([{ item: 'alpha', refIndex: 0 }])
+      fw.terminate()
+    }
+  )
+
+  test.each([1, 3])(
+    'nullish additions preserve single-thread results with %s workers',
+    async (numWorkers) => {
+      const docs = ['alpha', 'beta', 'gamma']
+      const options = { includeMatches: true, includeScore: true, threshold: 0 }
+      const fw = new FuseWorker(docs, options, { numWorkers })
+      const fuse = new Fuse(docs.slice(), options)
+      await fw.search('alpha')
+      for (const doc of [null, undefined, 'delta', null, 'epsilon']) {
+        await fw.add(doc)
+        fuse.add(doc)
+      }
+      for (const query of ['', 'delta', 'epsilon', 'alpha']) {
+        expect(await fw.search(query)).toEqual(fuse.search(query))
+      }
+      fw.terminate()
+    }
+  )
+
+  test('falsy but defined additions are not skipped', async () => {
+    const docs = [{ name: 'alpha' }]
+    const options = { keys: ['name'], threshold: 0 }
+    const fw = new FuseWorker(docs, options, { numWorkers: 3 })
+    const fuse = new Fuse(docs.slice(), options)
+    for (const doc of [null, '', 0, false, { name: 'beta' }]) {
+      await fw.add(doc)
+      fuse.add(doc)
+    }
+    expect(await fw.search('')).toEqual(fuse.search(''))
+    expect(await fw.search('beta')).toEqual(fuse.search('beta'))
+    fw.terminate()
+  })
+
   test('interleaved search/add/setCollection keeps refIndex consistent', async () => {
     MockWorker.instances = []
     const initial = Books.slice(0, 4)
