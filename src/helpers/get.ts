@@ -21,8 +21,15 @@ export default function get(obj: any, path: string | string[]): any {
       return
     }
     if (!path[index]) {
-      // If there's no path left, we've arrived at the object we care about.
-      list.push(arrayIndex !== undefined ? { v: obj, i: arrayIndex } : obj)
+      // Terminal arrays still contain individual values, not one joined value.
+      if (isArray(obj)) {
+        arr = true
+        for (let i = 0, len = obj.length; i < len; i += 1) {
+          deepGet(obj[i], path, index, i)
+        }
+      } else {
+        list.push(arrayIndex !== undefined ? { v: obj, i: arrayIndex } : obj)
+      }
     } else {
       const key = path[index]
 
