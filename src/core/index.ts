@@ -380,15 +380,26 @@ export default class Fuse<T> {
         if (keyId === null) {
           // Keyless entry: search across all keys
           matches = []
+          let anyKeyFailed = false
+          let hasInverse = false
           keys.forEach((key, keyIndex) => {
-            matches.push(
-              ...this._findMatches({
-                key,
-                value: item[keyIndex],
-                searcher: searcher!
-              })
-            )
+            const keyMatches = this._findMatches({
+              key,
+              value: item[keyIndex],
+              searcher: searcher!
+            })
+            if (keyMatches.length) {
+              matches.push(...keyMatches)
+              hasInverse ||= !!keyMatches[0].hasInverse
+            } else {
+              anyKeyFailed = true
+            }
           })
+          // Match the global string-search aggregation within this leaf,
+          // before the surrounding logical operators combine its result.
+          if (hasInverse && anyKeyFailed) {
+            return []
+          }
         } else {
           matches = this._findMatches({
             key: this._keyStore.get(keyId),
