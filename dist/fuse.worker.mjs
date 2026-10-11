@@ -129,7 +129,10 @@ function get(obj, path) {
 	let arr = false;
 	const deepGet = (obj, path, index, arrayIndex) => {
 		if (!isDefined(obj)) return;
-		if (!path[index]) list.push(arrayIndex !== void 0 ? {
+		if (!path[index]) if (isArray(obj)) {
+			arr = true;
+			for (let i = 0, len = obj.length; i < len; i += 1) deepGet(obj[i], path, index, i);
+		} else list.push(arrayIndex !== void 0 ? {
 			v: obj,
 			i: arrayIndex
 		} : obj);
