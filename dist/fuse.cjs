@@ -1528,13 +1528,20 @@ var Fuse = class {
 				let matches;
 				if (keyId === null) {
 					matches = [];
+					let anyKeyFailed = false;
+					let hasInverse = false;
 					keys.forEach((key, keyIndex) => {
-						matches.push(...this._findMatches({
+						const keyMatches = this._findMatches({
 							key,
 							value: item[keyIndex],
 							searcher
-						}));
+						});
+						if (keyMatches.length) {
+							matches.push(...keyMatches);
+							hasInverse || (hasInverse = !!keyMatches[0].hasInverse);
+						} else anyKeyFailed = true;
 					});
+					if (hasInverse && anyKeyFailed) return [];
 				} else matches = this._findMatches({
 					key: this._keyStore.get(keyId),
 					value: this._myIndex.getValueForItemAtKeyId(item, keyId),
