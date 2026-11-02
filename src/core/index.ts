@@ -361,7 +361,10 @@ export default class Fuse<T> {
       throw new Error(ErrorMsg.LOGICAL_SEARCH_UNAVAILABLE)
     }
 
-    const expression = parse(query, this.options)
+    const opts = this._invertedIndex
+      ? { ...this.options, _invertedIndex: this._invertedIndex }
+      : this.options
+    const expression = parse(query, opts)
 
     // Keyless leaves fan out across all keys; normalised weights keep their
     // scores consistent with string and keyed queries.

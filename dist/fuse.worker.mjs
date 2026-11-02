@@ -1493,7 +1493,10 @@ var Fuse = class {
 		return results;
 	}
 	_searchLogical(query) {
-		const expression = parse(query, this.options);
+		const expression = parse(query, this._invertedIndex ? {
+			...this.options,
+			_invertedIndex: this._invertedIndex
+		} : this.options);
 		const keys = this._normalizedKeys();
 		const evaluate = (node, item, idx) => {
 			if (!("children" in node)) {

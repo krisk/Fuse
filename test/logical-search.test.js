@@ -85,6 +85,19 @@ describe('Searching using logical search', () => {
     expect(idx(result)).toMatchObject([4])
   })
 
+  test('Search: AND with multiple entries + token search', () => {
+    const fuse = new Fuse(Books, {
+      ...options,
+      useTokenSearch: true,
+      useExtendedSearch: false
+    })
+    let result = fuse.search({
+      $and: [{ 'author.lastName': 'Woodhose' }, { title: 'the' }]
+    })
+    expect(result.length).toBe(2)
+    expect(idx(result)).toMatchObject([4, 5])
+  })
+
   test('Search: OR with multiple entries', () => {
     let result = fuse.search({
       $or: [{ title: 'angls' }, { title: 'incmpetnce' }]
