@@ -3,7 +3,7 @@
     <div class="demo-controls">
       <label>
         <span class="control-label">Pattern</span>
-        <input type="text" v-model="pattern" @input="reset" placeholder="javscript" />
+        <input type="text" v-model="pattern" @input="reset" placeholder="jvascrippt" />
       </label>
       <label>
         <span class="control-label">Text</span>
@@ -97,12 +97,12 @@ interface Example {
 }
 
 const examples: Example[] = [
-  { pattern: 'javscript', text: 'JavaScript' },
+  { pattern: 'jvascrippt', text: 'JavaScript' },
   { pattern: 'react', text: 'react' },
   { pattern: 'pythn', text: 'python' },
 ]
 
-const pattern = ref('javscript')
+const pattern = ref('jvascrippt')
 const text = ref('JavaScript')
 const step = ref(0)
 

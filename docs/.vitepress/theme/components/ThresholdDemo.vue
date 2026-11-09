@@ -3,7 +3,7 @@
     <div class="demo-controls">
       <label>
         <span class="control-label">Query</span>
-        <input type="text" v-model="query" placeholder="javscript" />
+        <input type="text" v-model="query" placeholder="jvascrippt" />
       </label>
     </div>
 
@@ -69,7 +69,7 @@ const items = [
   'React',
 ]
 
-const query = ref('javscript')
+const query = ref('jvascrippt')
 const threshold = ref(0.6)
 
 const fuse = new Fuse(items, {

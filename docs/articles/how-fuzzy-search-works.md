@@ -32,17 +32,18 @@ head:
 
 <PublishDate date="2026-04-09" />
 
-When you search for "javscript" and Fuse.js returns "JavaScript", it's using **approximate string matching** — finding strings that are _close_ to your query even when they don't match exactly.
+When you search for "jvascrippt" and Fuse.js returns "JavaScript", it's using **approximate string matching** — finding strings that are _close_ to your query even when they don't match exactly.
 
 The core idea is **edit distance**: the minimum number of single-character operations (insertions, deletions, substitutions) needed to transform one string into another.
 
-For example, turning "javscript" into "javascript" requires:
+For example, turning "jvascrippt" into "javascript" requires:
 
-- **Substitute** `o` → `a` (at position 2)
-- **Insert** `a` (at position 4)
-- **Insert** `s` (at position 10)
+- **Insert** `a` (after "j")
+- **Delete** `p` (the doubled one)
 
-That's an edit distance of 3. The lower the distance relative to the string length, the better the match.
+That's an edit distance of 2. The lower the distance relative to the string length, the better the match.
+
+This is also called the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance), which is fundamental to the [Bitap algorithm](#under-the-hood-bitap) used by Fuse.js.
 
 ## Edit Distance Demo
 
