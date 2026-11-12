@@ -29,4 +29,6 @@ export const stripDiacritics: (str: string) => string =
             ''
           )
           .replace(NON_DECOMPOSABLE_RE, (ch) => NON_DECOMPOSABLE_MAP[ch])
+          // Compose what NFD split but no rule removed, e.g. Hangul syllables
+          .normalize('NFC')
     : (str: string) => str

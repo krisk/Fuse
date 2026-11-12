@@ -1426,6 +1426,34 @@ describe('Searching ignoring non-decomposable diacritics', () => {
   })
 })
 
+// NFD splits every Hangul syllable into two or three jamo, none of which is a
+// diacritic, so they must be composed back into syllables
+describe('Searching Korean text ignoring diacritics', () => {
+  const list = ['감자', '검정', '곰', '김치', '강아지']
+
+  test('Search: a syllable matches the same results as without ignoreDiacritics', () => {
+    const plain = new Fuse(list, { threshold: 0.4 }).search('감')
+    const stripped = new Fuse(list, { threshold: 0.4, ignoreDiacritics: true }).search('감')
+    expect(stripped.map((r) => r.item)).toEqual(['감자'])
+    expect(stripped.map((r) => r.item)).toEqual(plain.map((r) => r.item))
+  })
+
+  test('Search: match indices point at the matched syllables', () => {
+    const fuse = new Fuse([{ text: '한국어 검색 테스트' }], {
+      keys: ['text'],
+      includeMatches: true,
+      ignoreDiacritics: true
+    })
+    const [match] = fuse.search('검색')[0].matches
+    expect(match.indices).toEqual([[4, 5]])
+  })
+
+  test('Search: Latin diacritics next to Hangul are still stripped', () => {
+    const fuse = new Fuse(['café 카페'], { threshold: 0, ignoreDiacritics: true })
+    expect(fuse.search('cafe 카페')).toHaveLength(1)
+  })
+})
+
 // Issue #813: threshold should filter results by score
 describe('Threshold filtering', () => {
   const list = [
