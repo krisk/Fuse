@@ -1,4 +1,6 @@
 import Fuse from '../dist/fuse.mjs'
+import ExtendedSearch from '../src/search/extended'
+import parseQuery from '../src/search/extended/parseQuery'
 
 describe('Searching using extended search', () => {
   const list = [
@@ -324,5 +326,39 @@ describe('Searching using extended search ignoring diactrictics', () => {
     let result = fuse.search('cafe')
     expect(result).toHaveLength(1)
     expect(result[0].refIndex).toBe(1)
+  })
+})
+
+describe('Extended search with line terminators in the query', () => {
+  const texts = ['hello\nworld', 'hello world', 'foo bar', 'line1\r\nline2']
+  const opts = { threshold: 0, ignoreLocation: true }
+  const run = (query) => {
+    const matchers = parseQuery(query, opts)
+    const search = new ExtendedSearch(query, opts)
+    return {
+      matchers,
+      hits: texts.filter((t) => search.searchIn(t).isMatch)
+    }
+  }
+
+  test.each([
+    ['fuzzy', 'hello\nworld', ['hello\nworld']],
+    ['include', "'hello\nworld", ['hello\nworld']],
+    ['quoted include', '\'"hello\nworld"', ['hello\nworld']],
+    ['exact', '=hello\nworld', ['hello\nworld']],
+    ['prefix', '^hello\nwor', ['hello\nworld']],
+    ['suffix', 'o\nworld$', ['hello\nworld']],
+    ['CRLF', "'line1\r\nline2", ['line1\r\nline2']],
+    ['inverse', '!hello\nworld', ['hello world', 'foo bar', 'line1\r\nline2']]
+  ])('%s token keeps the newline instead of being dropped', (_n, q, hits) => {
+    const { matchers, hits: found } = run(q)
+    expect(matchers[0]).toHaveLength(1)
+    expect(found).toEqual(hits)
+  })
+
+  test('a newline token does not vanish from an AND query', () => {
+    const { matchers, hits } = run("'hello\nworld 'foo")
+    expect(matchers[0]).toHaveLength(2)
+    expect(hits).toEqual([])
   })
 })
