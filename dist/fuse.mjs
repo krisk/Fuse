@@ -625,8 +625,8 @@ function isInverse(type) {
 const matchers = [
 	{
 		type: "exact",
-		multiRegex: /^="(.*)"$/,
-		singleRegex: /^=(.*)$/,
+		multiRegex: /^="(.*)"$/s,
+		singleRegex: /^=(.*)$/s,
 		create: (pattern) => ({
 			type: "exact",
 			search(text) {
@@ -641,8 +641,8 @@ const matchers = [
 	},
 	{
 		type: "include",
-		multiRegex: /^'"(.*)"$/,
-		singleRegex: /^'(.*)$/,
+		multiRegex: /^'"(.*)"$/s,
+		singleRegex: /^'(.*)$/s,
 		create: (pattern) => ({
 			type: "include",
 			search(text) {
@@ -670,8 +670,8 @@ const matchers = [
 	},
 	{
 		type: "prefix-exact",
-		multiRegex: /^\^"(.*)"$/,
-		singleRegex: /^\^(.*)$/,
+		multiRegex: /^\^"(.*)"$/s,
+		singleRegex: /^\^(.*)$/s,
 		create: (pattern) => ({
 			type: "prefix-exact",
 			search(text) {
@@ -686,8 +686,8 @@ const matchers = [
 	},
 	{
 		type: "inverse-prefix-exact",
-		multiRegex: /^!\^"(.*)"$/,
-		singleRegex: /^!\^(.*)$/,
+		multiRegex: /^!\^"(.*)"$/s,
+		singleRegex: /^!\^(.*)$/s,
 		create: (pattern) => ({
 			type: "inverse-prefix-exact",
 			search(text) {
@@ -702,8 +702,8 @@ const matchers = [
 	},
 	{
 		type: "inverse-suffix-exact",
-		multiRegex: /^!"(.*)"\$$/,
-		singleRegex: /^!(.*)\$$/,
+		multiRegex: /^!"(.*)"\$$/s,
+		singleRegex: /^!(.*)\$$/s,
 		create: (pattern) => ({
 			type: "inverse-suffix-exact",
 			search(text) {
@@ -718,8 +718,8 @@ const matchers = [
 	},
 	{
 		type: "suffix-exact",
-		multiRegex: /^"(.*)"\$$/,
-		singleRegex: /^(.*)\$$/,
+		multiRegex: /^"(.*)"\$$/s,
+		singleRegex: /^(.*)\$$/s,
 		create: (pattern) => ({
 			type: "suffix-exact",
 			search(text) {
@@ -734,8 +734,8 @@ const matchers = [
 	},
 	{
 		type: "inverse-exact",
-		multiRegex: /^!"(.*)"$/,
-		singleRegex: /^!(.*)$/,
+		multiRegex: /^!"(.*)"$/s,
+		singleRegex: /^!(.*)$/s,
 		create: (pattern) => ({
 			type: "inverse-exact",
 			search(text) {
@@ -750,8 +750,8 @@ const matchers = [
 	},
 	{
 		type: "fuzzy",
-		multiRegex: /^"(.*)"$/,
-		singleRegex: /^(.*)$/,
+		multiRegex: /^"(.*)"$/s,
+		singleRegex: /^(.*)$/s,
 		create: (pattern, options = {}) => {
 			const bitap = new BitapSearch(pattern, {
 				location: options.location ?? Config.location,
