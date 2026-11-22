@@ -1,11 +1,13 @@
+export type PatternAlphabet = Record<number, number>
+
 export default function createPatternAlphabet(
   pattern: string
-): Record<string, number> {
-  const mask: Record<string, number> = {}
+): PatternAlphabet {
+  const mask: PatternAlphabet = {}
 
   for (let i = 0, len = pattern.length; i < len; i += 1) {
-    const char = pattern.charAt(i)
-    mask[char] = (mask[char] || 0) | (1 << (len - i - 1))
+    const code = pattern.charCodeAt(i)
+    mask[code] = (mask[code] || 0) | (1 << (len - i - 1))
   }
 
   return mask
