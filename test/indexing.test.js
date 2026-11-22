@@ -469,3 +469,75 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
     expect(remaining.find((r) => r.v === 'banana')).toBeUndefined()
   })
 })
+
+describe('Fuse.parseIndex owns its records', () => {
+  const options = { keys: ['title'], includeScore: true }
+  const docs = [
+    { title: 'apple pie' },
+    { title: 'banana split' },
+    { title: 'apple tart' },
+    { title: 'cherry' }
+  ]
+  const summarize = (results) =>
+    results.map((r) => [r.refIndex, r.item.title])
+
+  test('mutating one instance does not affect another built from the same data', () => {
+    const data = JSON.parse(JSON.stringify(Fuse.createIndex(options.keys, docs)))
+    const a = new Fuse(docs.slice(), options, Fuse.parseIndex(data))
+    const b = new Fuse(docs.slice(), options, Fuse.parseIndex(data))
+    const before = summarize(b.search('apple'))
+
+    a.add({ title: 'apple crumble' })
+    a.removeAt(0)
+
+    expect(summarize(b.search('apple'))).toEqual(before)
+  })
+
+  test('instances sharing one FuseIndex copy it before mutating', () => {
+    const index = Fuse.parseIndex(
+      JSON.parse(JSON.stringify(Fuse.createIndex(options.keys, docs)))
+    )
+    const recordsBefore = JSON.stringify(index.records)
+    const a = new Fuse(docs.slice(), options, index)
+    const b = new Fuse(docs.slice(), options, index)
+    const before = summarize(b.search('apple'))
+
+    a.add({ title: 'apple crumble' })
+    a.removeAt(0)
+    a.remove((doc) => doc.title === 'cherry')
+
+    expect(summarize(b.search('apple'))).toEqual(before)
+    expect(JSON.stringify(index.records)).toBe(recordsBefore)
+    expect(summarize(a.search('apple'))).toEqual(
+      summarize(new Fuse(a._docs.slice(), options).search('apple'))
+    )
+  })
+
+  test('token search stays correct on a shared index', () => {
+    const tokenOptions = { ...options, useTokenSearch: true }
+    const index = Fuse.createIndex(options.keys, docs)
+    const a = new Fuse(docs.slice(), tokenOptions, index)
+    const b = new Fuse(docs.slice(), tokenOptions, index)
+    const before = JSON.stringify(b.search('apple'))
+
+    a.add({ title: 'apple crumble' })
+    a.removeAt(1)
+
+    expect(JSON.stringify(b.search('apple'))).toBe(before)
+    expect(JSON.stringify(a.search('apple'))).toBe(
+      JSON.stringify(new Fuse(a._docs.slice(), tokenOptions).search('apple'))
+    )
+  })
+
+  test("leaves the caller's data untouched", () => {
+    const data = JSON.parse(JSON.stringify(Fuse.createIndex(options.keys, docs)))
+    const snapshot = JSON.stringify(data)
+    const fuse = new Fuse(docs.slice(), options, Fuse.parseIndex(data))
+
+    fuse.add({ title: 'apple crumble' })
+    fuse.removeAt(0)
+    fuse.remove((doc) => doc.title === 'cherry')
+
+    expect(JSON.stringify(data)).toBe(snapshot)
+  })
+})

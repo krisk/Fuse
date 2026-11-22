@@ -47,6 +47,19 @@ export default class FuseIndex<T = any> {
   setIndexRecords(records: IndexRecord[] = []): void {
     this.records = records
   }
+  // A copy that owns its record list, for callers about to mutate an index
+  // they don't own. add/remove mutate the array and each record's `i`; the
+  // nested fields are read-only after creation, so a shallow copy per record
+  // is enough. Keys, getFn and the norm cache are shared (never mutated).
+  clone(): FuseIndex<T> {
+    const copy = new FuseIndex<T>({ getFn: this.getFn })
+    copy.norm = this.norm
+    copy.isCreated = this.isCreated
+    copy.setSources(this.docs)
+    copy.setKeys(this.keys)
+    copy.setIndexRecords(copyRecords(this.records))
+    return copy
+  }
   setKeys(keys: KeyObject[] = []): void {
     this.keys = keys
     this._keysMap = {}
@@ -289,6 +302,15 @@ export function parseIndex<T>(
   const { keys, records } = data
   const myIndex = new FuseIndex<T>({ getFn, fieldNormWeight })
   myIndex.setKeys(keys as KeyObject[])
-  myIndex.setIndexRecords(records)
+  // Copy so mutating the index never touches the caller's data object.
+  myIndex.setIndexRecords(copyRecords(records))
   return myIndex
+}
+
+function copyRecords(records: IndexRecord[]): IndexRecord[] {
+  const copy: IndexRecord[] = new Array(records.length)
+  for (let i = 0, len = records.length; i < len; i += 1) {
+    copy[i] = { ...records[i] }
+  }
+  return copy
 }

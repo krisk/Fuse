@@ -223,7 +223,7 @@ function norm(weight = 1, mantissa = 3) {
 
 //#endregion
 //#region src/tools/FuseIndex.ts
-var FuseIndex = class {
+var FuseIndex = class FuseIndex {
 	constructor({ getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
 		this.norm = norm(fieldNormWeight, 3);
 		this.getFn = getFn;
@@ -238,6 +238,15 @@ var FuseIndex = class {
 	}
 	setIndexRecords(records = []) {
 		this.records = records;
+	}
+	clone() {
+		const copy = new FuseIndex({ getFn: this.getFn });
+		copy.norm = this.norm;
+		copy.isCreated = this.isCreated;
+		copy.setSources(this.docs);
+		copy.setKeys(this.keys);
+		copy.setIndexRecords(copyRecords(this.records));
+		return copy;
 	}
 	setKeys(keys = []) {
 		this.keys = keys;
@@ -380,8 +389,13 @@ function parseIndex(data, { getFn = Config.getFn, fieldNormWeight = Config.field
 		fieldNormWeight
 	});
 	myIndex.setKeys(keys);
-	myIndex.setIndexRecords(records);
+	myIndex.setIndexRecords(copyRecords(records));
 	return myIndex;
+}
+function copyRecords(records) {
+	const copy = new Array(records.length);
+	for (let i = 0, len = records.length; i < len; i += 1) copy[i] = { ...records[i] };
+	return copy;
 }
 
 //#endregion
@@ -954,6 +968,7 @@ var Fuse = class {
 		this._keyStore = new KeyStore(this.options.keys);
 		this._docs = docs;
 		this._myIndex = null;
+		this._ownsIndex = true;
 		this._invertedIndex = null;
 		this.setCollection(docs, index);
 		this._lastQuery = null;
@@ -972,6 +987,7 @@ var Fuse = class {
 	setCollection(docs, index) {
 		this._docs = docs;
 		if (index && !(index instanceof FuseIndex)) throw new Error(INCORRECT_INDEX_TYPE);
+		this._ownsIndex = !index;
 		this._myIndex = index || createIndex(this.options.keys, this._docs, {
 			getFn: this.options.getFn,
 			fieldNormWeight: this.options.fieldNormWeight
@@ -988,6 +1004,7 @@ var Fuse = class {
 	}
 	add(doc) {
 		if (!isDefined(doc)) return;
+		this._ensureOwnIndex();
 		this._docs.push(doc);
 		const record = this._myIndex.add(doc, this._docs.length - 1);
 		if (this._invertedIndex && record) {
@@ -1008,6 +1025,7 @@ var Fuse = class {
 			indicesToRemove.push(i);
 		}
 		if (indicesToRemove.length) {
+			this._ensureOwnIndex();
 			if (this._invertedIndex) removeAndShiftInvertedIndex(this._invertedIndex, indicesToRemove);
 			const toRemove = new Set(indicesToRemove);
 			this._docs = this._docs.filter((_, i) => !toRemove.has(i));
@@ -1019,10 +1037,17 @@ var Fuse = class {
 	removeAt(idx) {
 		if (!Number.isInteger(idx) || idx < 0 || idx >= this._docs.length) throw new Error(INVALID_DOC_INDEX);
 		if (this._invertedIndex) removeAndShiftInvertedIndex(this._invertedIndex, [idx]);
+		this._ensureOwnIndex();
 		const doc = this._docs.splice(idx, 1)[0];
 		this._myIndex.removeAt(idx);
 		this._invalidateSearcherCache();
 		return doc;
+	}
+	_ensureOwnIndex() {
+		if (!this._ownsIndex) {
+			this._myIndex = this._myIndex.clone();
+			this._ownsIndex = true;
+		}
 	}
 	_invalidateSearcherCache() {
 		this._lastQuery = null;

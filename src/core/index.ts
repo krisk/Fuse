@@ -45,6 +45,10 @@ export default class Fuse<T> {
   _keyStore: KeyStore
   _docs: T[]
   _myIndex: FuseIndex<T>
+  // False when the index was passed in (new Fuse(docs, opts, index) or
+  // setCollection(docs, index)). Such an index may be shared with other Fuse
+  // instances, so it's cloned before the first add/remove (copy-on-write).
+  _ownsIndex: boolean
   _invertedIndex: InvertedIndexData | null
   _lastQuery: string | null
   _lastSearcher: Searcher | null
@@ -84,6 +88,7 @@ export default class Fuse<T> {
 
     this._docs = docs as T[]
     this._myIndex = null as any
+    this._ownsIndex = true
     this._invertedIndex = null
 
     this.setCollection(docs, index)
@@ -112,6 +117,7 @@ export default class Fuse<T> {
       throw new Error(ErrorMsg.INCORRECT_INDEX_TYPE)
     }
 
+    this._ownsIndex = !index
     this._myIndex =
       index ||
       createIndex(this.options.keys, this._docs, {
@@ -140,6 +146,7 @@ export default class Fuse<T> {
       return
     }
 
+    this._ensureOwnIndex()
     this._docs.push(doc)
     const record = this._myIndex.add(doc, this._docs.length - 1)
 
@@ -175,6 +182,7 @@ export default class Fuse<T> {
     }
 
     if (indicesToRemove.length) {
+      this._ensureOwnIndex()
       if (this._invertedIndex) {
         removeAndShiftInvertedIndex(this._invertedIndex, indicesToRemove)
       }
@@ -201,10 +209,18 @@ export default class Fuse<T> {
     if (this._invertedIndex) {
       removeAndShiftInvertedIndex(this._invertedIndex, [idx])
     }
+    this._ensureOwnIndex()
     const doc = this._docs.splice(idx, 1)[0]
     this._myIndex.removeAt(idx)
     this._invalidateSearcherCache()
     return doc
+  }
+
+  _ensureOwnIndex(): void {
+    if (!this._ownsIndex) {
+      this._myIndex = this._myIndex.clone()
+      this._ownsIndex = true
+    }
   }
 
   _invalidateSearcherCache(): void {

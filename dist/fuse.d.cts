@@ -304,6 +304,7 @@ declare class FuseIndex<T = any> {
   }?: FuseIndexOptions<T>);
   setSources(docs?: ReadonlyArray<T>): void;
   setIndexRecords(records?: IndexRecord[]): void;
+  clone(): FuseIndex<T>;
   setKeys(keys?: KeyObject[]): void;
   create(): void;
   add(doc: T, docIndex: number): IndexRecord | null;
@@ -393,6 +394,7 @@ declare class Fuse<T> {
   _keyStore: KeyStore;
   _docs: T[];
   _myIndex: FuseIndex<T>;
+  _ownsIndex: boolean;
   _invertedIndex: InvertedIndexData | null;
   _lastQuery: string | null;
   _lastSearcher: Searcher | null;
@@ -409,6 +411,7 @@ declare class Fuse<T> {
   add(doc: T): void;
   remove(predicate?: (doc: T, idx: number) => boolean): T[];
   removeAt(idx: number): T;
+  _ensureOwnIndex(): void;
   _invalidateSearcherCache(): void;
   getIndex(): FuseIndex<T>;
   _normalizedKeys(): KeyObject[];
