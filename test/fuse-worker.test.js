@@ -360,6 +360,13 @@ describe('FuseWorker sharding', () => {
       const failedWorkers = MockWorker.instances.slice()
       expect(failedWorkers).toHaveLength(2)
       expect(failedWorkers.every((worker) => worker.terminated)).toBe(true)
+      // Discarded workers are detached, so a late event can't settle calls
+      // that belong to the next set of workers.
+      expect(
+        failedWorkers.every(
+          (worker) => worker.onerror === null && worker.onmessage === null
+        )
+      ).toBe(true)
 
       const results = await fw.search('brown')
 

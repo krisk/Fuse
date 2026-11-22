@@ -171,6 +171,10 @@ export default class FuseWorker<T> {
   private _discardShards(reason: unknown): void {
     if (this._shards) {
       for (const { worker } of this._shards) {
+        // Detach first so a late event from a discarded worker can't settle
+        // calls that belong to the next set of workers.
+        worker.onmessage = null
+        worker.onerror = null
         worker.terminate()
       }
       this._shards = null

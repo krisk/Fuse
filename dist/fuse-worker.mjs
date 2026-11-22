@@ -81,7 +81,11 @@ var FuseWorker = class FuseWorker {
 	}
 	_discardShards(reason) {
 		if (this._shards) {
-			for (const { worker } of this._shards) worker.terminate();
+			for (const { worker } of this._shards) {
+				worker.onmessage = null;
+				worker.onerror = null;
+				worker.terminate();
+			}
 			this._shards = null;
 		}
 		for (const [, handler] of this._pending) handler.reject(reason);
