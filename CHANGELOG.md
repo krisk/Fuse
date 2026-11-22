@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.2](https://github.com/krisk/Fuse/compare/v7.6.0-beta.1...v7.6.0-beta.2) (2026-11-22)
+
+
+### Performance Improvements
+
+* **bitap:** reuse bit arrays and look up the alphabet by char code, 1.5–2x faster fuzzy search and up to 2.4x faster token search ([0d691dc](https://github.com/krisk/Fuse/commit/0d691dcc), [830626a](https://github.com/krisk/Fuse/commit/830626a6)), closes [#865](https://github.com/krisk/Fuse/issues/865)
+
+### Bug Fixes
+
+* **index:** stop Fuse instances from sharing a mutable index ([fe90da8](https://github.com/krisk/Fuse/commit/fe90da8d0ea390c4792f7b1f8a6e2303f8d28833))
+
 ## [7.6.0-beta.1](https://github.com/krisk/Fuse/compare/v7.6.0-beta.0...v7.6.0-beta.1) (2026-11-22)
 
 
