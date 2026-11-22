@@ -3,7 +3,7 @@
   "author": {
     "name": "Kiro Risk",
     "email": "kirollos@gmail.com",
-    "url": "http://kiro.me"
+    "url": "https://www.fusejs.io"
   },
   "funding": {
     "type": "github",
@@ -82,7 +82,7 @@
     "type": "git",
     "url": "https://github.com/krisk/Fuse.git"
   },
-  "homepage": "http://fusejs.io",
+  "homepage": "https://www.fusejs.io",
   "keywords": [
     "fuzzy",
     "search",

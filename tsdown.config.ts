@@ -16,7 +16,7 @@ const VERSION = process.env.VERSION || pkg.version
 const banner = `/**
  * Fuse.js v${VERSION} - ${pkg.description} (${pkg.homepage})
  *
- * Copyright (c) ${new Date().getFullYear()} ${pkg.author.name} (${pkg.author.url})
+ * Copyright (c) ${new Date().getFullYear()} ${pkg.author.name}
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
