@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 import { createRequire } from 'node:module'
 
 // Tests that import `../src/entry` directly (e.g. fuse-worker, cache-invalidation)
@@ -14,6 +14,8 @@ export default defineConfig({
     __WORKER_IS_CJS__: 'false'
   },
   test: {
-    globals: true
+    globals: true,
+    // Agent worktrees under .claude/ hold full repo copies; don't run their tests.
+    exclude: [...configDefaults.exclude, '.claude/**']
   }
 })
