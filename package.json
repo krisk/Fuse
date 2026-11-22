@@ -124,8 +124,8 @@
   "overrides": {
     "serialize-javascript": "^7.0.5",
     "esbuild": "^0.25.0",
-    "fast-uri": "^3.1.2",
-    "vite": "^6.4.3"
+    "fast-uri": "^3.1.9",
+    "vite": "^6.4.6"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.4.2",
