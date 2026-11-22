@@ -20,6 +20,18 @@ describe('Bitap search reuses its bit arrays between texts', () => {
     expect(result.indices).toEqual([[5000, 5005]])
   })
 
+  test('texts past the shared-buffer cap use one-off arrays and still match', () => {
+    const short = 'chiar'
+    const fresh = Fuse.match('chair', short, { includeMatches: true })
+    const text = 'b'.repeat(100000) + 'needle'
+    const result = Fuse.match('needle', text, {
+      ignoreLocation: true,
+      includeMatches: true
+    })
+    expect(result.indices).toEqual([[100000, 100005]])
+    expect(Fuse.match('chair', short, { includeMatches: true })).toEqual(fresh)
+  })
+
   test('characters outside the Basic Latin range match', () => {
     const fuse = new Fuse(['東京タワー', 'Zürich', 'São Paulo', '😀 smile'])
     expect(fuse.search('東京')[0].item).toBe('東京タワー')

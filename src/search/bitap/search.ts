@@ -5,15 +5,26 @@ import type { PatternAlphabet } from './createPatternAlphabet'
 import * as ErrorMsg from '../../core/errorMessages'
 import type { SearchResult } from '../../types'
 
+// Shared rows, reused across calls so the hot path doesn't allocate per error
+// level. They only grow up to MAX_SHARED_ROW_LENGTH: longer texts get one-off
+// rows instead, so a single huge document can't pin memory for the life of the
+// process (2 rows × 64k × 4 bytes = 512 KB max retained).
+const MAX_SHARED_ROW_LENGTH = 1 << 16
+
 let bitArr = new Int32Array(256)
 let lastBitArr = new Int32Array(256)
 
-function ensureBitArrCapacity(size: number): void {
-  if (bitArr.length >= size) return
-  let capacity = bitArr.length
-  while (capacity < size) capacity *= 2
-  bitArr = new Int32Array(capacity)
-  lastBitArr = new Int32Array(capacity)
+function getBitArrs(size: number): [Int32Array, Int32Array] {
+  if (size > MAX_SHARED_ROW_LENGTH) {
+    return [new Int32Array(size), new Int32Array(size)]
+  }
+  if (bitArr.length < size) {
+    let capacity = bitArr.length
+    while (capacity < size) capacity *= 2
+    bitArr = new Int32Array(capacity)
+    lastBitArr = new Int32Array(capacity)
+  }
+  return [bitArr, lastBitArr]
 }
 
 export default function search(
@@ -81,9 +92,7 @@ export default function search(
   // Reset the best location
   bestLocation = -1
 
-  ensureBitArrCapacity(textLen + patternLen + 2)
-  let row = bitArr
-  let lastRow = lastBitArr
+  let [row, lastRow] = getBitArrs(textLen + patternLen + 2)
   let finalScore = 1
   let bestErrors = 0
   let binMax = patternLen + textLen

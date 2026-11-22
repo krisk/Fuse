@@ -407,14 +407,18 @@ function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMat
 
 //#endregion
 //#region src/search/bitap/search.ts
+const MAX_SHARED_ROW_LENGTH = 65536;
 let bitArr = /* @__PURE__ */ new Int32Array(256);
 let lastBitArr = /* @__PURE__ */ new Int32Array(256);
-function ensureBitArrCapacity(size) {
-	if (bitArr.length >= size) return;
-	let capacity = bitArr.length;
-	while (capacity < size) capacity *= 2;
-	bitArr = new Int32Array(capacity);
-	lastBitArr = new Int32Array(capacity);
+function getBitArrs(size) {
+	if (size > MAX_SHARED_ROW_LENGTH) return [new Int32Array(size), new Int32Array(size)];
+	if (bitArr.length < size) {
+		let capacity = bitArr.length;
+		while (capacity < size) capacity *= 2;
+		bitArr = new Int32Array(capacity);
+		lastBitArr = new Int32Array(capacity);
+	}
+	return [bitArr, lastBitArr];
 }
 function search(text, pattern, patternAlphabet, { location = Config.location, distance = Config.distance, threshold = Config.threshold, findAllMatches = Config.findAllMatches, minMatchCharLength = Config.minMatchCharLength, includeMatches = Config.includeMatches, ignoreLocation = Config.ignoreLocation } = {}) {
 	if (pattern.length > 32) throw new Error(PATTERN_LENGTH_TOO_LARGE(32));
@@ -446,9 +450,7 @@ function search(text, pattern, patternAlphabet, { location = Config.location, di
 		}
 	}
 	bestLocation = -1;
-	ensureBitArrCapacity(textLen + patternLen + 2);
-	let row = bitArr;
-	let lastRow = lastBitArr;
+	let [row, lastRow] = getBitArrs(textLen + patternLen + 2);
 	let finalScore = 1;
 	let bestErrors = 0;
 	let binMax = patternLen + textLen;
