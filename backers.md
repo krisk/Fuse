@@ -10,9 +10,7 @@ You can join these backers by [sponsoring on GitHub](https://github.com/sponsors
 
 ## 🥈 Silver Sponsor
 
-- [Worksome](https://www.worksome.com/)
 - [BairesDev](https://www.bairesdev.com/sponsoring-open-source-projects/)
-- [LITSLINK](https://litslink.com/)
 
 ## 🥉 Bronze Sponsor
 
@@ -21,6 +19,5 @@ You can join these backers by [sponsoring on GitHub](https://github.com/sponsors
 ## ☕ Standard
 
 - [roboflow](https://roboflow.com/)
-- [getsentry](https://sentry.io/welcome/)
 - [freispace](https://freispace.com)
 - [ted-at-change](https://github.com/ted-at-change)
