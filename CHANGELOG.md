@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.1](https://github.com/krisk/Fuse/compare/v7.6.0-beta.0...v7.6.0-beta.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* **diacritics:** compose Hangul back after stripping, so Korean search keeps working ([96813ad](https://github.com/krisk/Fuse/commit/96813ad0e443fb54f114fc38cb67114f7171cbbb)), closes [#861](https://github.com/krisk/Fuse/issues/861)
+* **extended-search:** keep query terms that contain a line break ([ce1df04](https://github.com/krisk/Fuse/commit/ce1df047a7651530316f54ba73bf632b933807bb)), closes [#862](https://github.com/krisk/Fuse/issues/862) [#863](https://github.com/krisk/Fuse/issues/863)
+* **index:** collect terminal nested array values individually ([ff8a19e](https://github.com/krisk/Fuse/commit/ff8a19e8819038a4b6b9608c512c5c1016848ed9)), closes [#856](https://github.com/krisk/Fuse/issues/856)
+* preserve in-flight worker search indices ([171a4ce](https://github.com/krisk/Fuse/commit/171a4cef76dc30232895304d07ab4265beeab3f9)), closes [#843](https://github.com/krisk/Fuse/issues/843)
+* **search:** exclude inverse matches across array elements ([de29276](https://github.com/krisk/Fuse/commit/de2927697fe83d4509204add08f6b12d3d607446)), closes [#854](https://github.com/krisk/Fuse/issues/854)
+* **search:** preserve fractional limit behavior ([d9ab5a9](https://github.com/krisk/Fuse/commit/d9ab5a9b37cc31c9cbe175135977f236f26132a8)), closes [#849](https://github.com/krisk/Fuse/issues/849)
+* **search:** preserve keyless inverse exclusions ([0f76d02](https://github.com/krisk/Fuse/commit/0f76d02d95fb1bec63ef1a03c2eb29d3fea62a0a)), closes [#857](https://github.com/krisk/Fuse/issues/857)
+* **search:** support token search in logical queries ([fd17a49](https://github.com/krisk/Fuse/commit/fd17a49bcb579b666ea06d6ee13ab409a62e8172)), closes [#853](https://github.com/krisk/Fuse/issues/853)
+* validate FuseWorker count ([98e1dd0](https://github.com/krisk/Fuse/commit/98e1dd035121ac1d4a31f84e6b079e6ef2c10ae5)), closes [#841](https://github.com/krisk/Fuse/issues/841)
+* **worker:** detach handlers from discarded workers ([8f6a948](https://github.com/krisk/Fuse/commit/8f6a9487aebc36061a981bfd0a18c6b6de2a3f48))
+* **worker:** recover after failed worker initialization ([909743c](https://github.com/krisk/Fuse/commit/909743c6587e86e1aec13af493a4ee56a3cc6889)), closes [#842](https://github.com/krisk/Fuse/issues/842)
+* **worker:** release pending handlers after errors ([3df986d](https://github.com/krisk/Fuse/commit/3df986d3052c7958b3bbfd555b6df5763161a694)), closes [#838](https://github.com/krisk/Fuse/issues/838)
+* **workers:** ignore nullish document additions ([d5ce7f4](https://github.com/krisk/Fuse/commit/d5ce7f40215f0b9df5f8539b731cedef9c0ada73)), closes [#855](https://github.com/krisk/Fuse/issues/855)
+
 ## [7.6.0-beta.0](https://github.com/krisk/Fuse/compare/v7.5.0...v7.6.0-beta.0) (2026-08-09)
 
 
