@@ -4,7 +4,7 @@ Fuse.js is built and maintained by a solo developer. Your sponsorship directly f
 
 ### By the numbers
 
-- **~8M npm downloads/week**
+- **20M+ npm downloads/week**
 - **20k+ GitHub stars**
 - **3,700+ npm dependents**
 

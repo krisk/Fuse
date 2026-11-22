@@ -22,3 +22,5 @@ You can join these backers by [sponsoring on GitHub](https://github.com/sponsors
 
 - [roboflow](https://roboflow.com/)
 - [getsentry](https://sentry.io/welcome/)
+- [freispace](https://freispace.com)
+- [ted-at-change](https://github.com/ted-at-change)
