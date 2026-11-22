@@ -1,5 +1,7 @@
 import search from './search'
-import createPatternAlphabet from './createPatternAlphabet'
+import createPatternAlphabet, {
+  type PatternAlphabet
+} from './createPatternAlphabet'
 import { MAX_BITS } from './constants'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import Config from '../../core/config'
@@ -8,7 +10,7 @@ import type { SearchResult, RangeTuple } from '../../types'
 
 interface BitapChunk {
   pattern: string
-  alphabet: Record<string, number>
+  alphabet: PatternAlphabet
   startIndex: number
 }
 

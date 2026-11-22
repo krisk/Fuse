@@ -1,13 +1,25 @@
 import convertMaskToIndices from './convertMaskToIndices'
 import Config from '../../core/config'
 import { MAX_BITS } from './constants'
+import type { PatternAlphabet } from './createPatternAlphabet'
 import * as ErrorMsg from '../../core/errorMessages'
 import type { SearchResult } from '../../types'
+
+let bitArr = new Int32Array(256)
+let lastBitArr = new Int32Array(256)
+
+function ensureBitArrCapacity(size: number): void {
+  if (bitArr.length >= size) return
+  let capacity = bitArr.length
+  while (capacity < size) capacity *= 2
+  bitArr = new Int32Array(capacity)
+  lastBitArr = new Int32Array(capacity)
+}
 
 export default function search(
   text: string,
   pattern: string,
-  patternAlphabet: Record<string, number>,
+  patternAlphabet: PatternAlphabet,
   {
     location = Config.location,
     distance = Config.distance,
@@ -69,7 +81,9 @@ export default function search(
   // Reset the best location
   bestLocation = -1
 
-  let lastBitArr: number[] = []
+  ensureBitArrCapacity(textLen + patternLen + 2)
+  let row = bitArr
+  let lastRow = lastBitArr
   let finalScore = 1
   let bestErrors = 0
   let binMax = patternLen + textLen
@@ -103,25 +117,27 @@ export default function search(
       ? textLen
       : Math.min(expectedLocation + binMid, textLen) + patternLen
 
-    // Initialize the bit array
-    const bitArr: number[] = Array(finish + 2)
-
-    bitArr[finish + 1] = (1 << i) - 1
+    row.fill(0, 0, finish + 2)
+    row[finish + 1] = (1 << i) - 1
 
     for (let j = finish; j >= start; j -= 1) {
       const currentLocation = j - 1
-      const charMatch = patternAlphabet[text[currentLocation]]
+      const charMatch =
+        currentLocation < textLen
+          ? patternAlphabet[text.charCodeAt(currentLocation)]
+          : 0
 
       // First pass: exact match
-      bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch
+      let bits = ((row[j + 1] << 1) | 1) & charMatch
 
       // Subsequent passes: fuzzy match
       if (i) {
-        bitArr[j] |=
-          ((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1 | lastBitArr[j + 1]
+        bits |= ((lastRow[j + 1] | lastRow[j]) << 1) | 1 | lastRow[j + 1]
       }
 
-      if (bitArr[j] & mask) {
+      row[j] = bits
+
+      if (bits & mask) {
         finalScore = calcScore(i, currentLocation)
 
         // This match will almost certainly be better than any existing match.
@@ -150,7 +166,9 @@ export default function search(
       break
     }
 
-    lastBitArr = bitArr
+    const swap = lastRow
+    lastRow = row
+    row = swap
   }
 
   // Fill matchMask across the matched window only. Bitap anchors a match at
@@ -165,7 +183,7 @@ export default function search(
       bestLocation + patternLen - 1 + bestErrors
     )
     for (let k = bestLocation; k <= matchEnd; k += 1) {
-      if (patternAlphabet[text[k]]) {
+      if (patternAlphabet[text.charCodeAt(k)]) {
         matchMask[k] = 1
       }
     }

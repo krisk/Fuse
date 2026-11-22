@@ -407,6 +407,15 @@ function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMat
 
 //#endregion
 //#region src/search/bitap/search.ts
+let bitArr = /* @__PURE__ */ new Int32Array(256);
+let lastBitArr = /* @__PURE__ */ new Int32Array(256);
+function ensureBitArrCapacity(size) {
+	if (bitArr.length >= size) return;
+	let capacity = bitArr.length;
+	while (capacity < size) capacity *= 2;
+	bitArr = new Int32Array(capacity);
+	lastBitArr = new Int32Array(capacity);
+}
 function search(text, pattern, patternAlphabet, { location = Config.location, distance = Config.distance, threshold = Config.threshold, findAllMatches = Config.findAllMatches, minMatchCharLength = Config.minMatchCharLength, includeMatches = Config.includeMatches, ignoreLocation = Config.ignoreLocation } = {}) {
 	if (pattern.length > 32) throw new Error(PATTERN_LENGTH_TOO_LARGE(32));
 	const patternLen = pattern.length;
@@ -437,7 +446,9 @@ function search(text, pattern, patternAlphabet, { location = Config.location, di
 		}
 	}
 	bestLocation = -1;
-	let lastBitArr = [];
+	ensureBitArrCapacity(textLen + patternLen + 2);
+	let row = bitArr;
+	let lastRow = lastBitArr;
 	let finalScore = 1;
 	let bestErrors = 0;
 	let binMax = patternLen + textLen;
@@ -453,14 +464,15 @@ function search(text, pattern, patternAlphabet, { location = Config.location, di
 		binMax = binMid;
 		let start = Math.max(1, expectedLocation - binMid + 1);
 		const finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
-		const bitArr = Array(finish + 2);
-		bitArr[finish + 1] = (1 << i) - 1;
+		row.fill(0, 0, finish + 2);
+		row[finish + 1] = (1 << i) - 1;
 		for (let j = finish; j >= start; j -= 1) {
 			const currentLocation = j - 1;
-			const charMatch = patternAlphabet[text[currentLocation]];
-			bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch;
-			if (i) bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
-			if (bitArr[j] & mask) {
+			const charMatch = currentLocation < textLen ? patternAlphabet[text.charCodeAt(currentLocation)] : 0;
+			let bits = (row[j + 1] << 1 | 1) & charMatch;
+			if (i) bits |= (lastRow[j + 1] | lastRow[j]) << 1 | 1 | lastRow[j + 1];
+			row[j] = bits;
+			if (bits & mask) {
 				finalScore = calcScore(i, currentLocation);
 				if (finalScore <= currentThreshold) {
 					currentThreshold = finalScore;
@@ -472,11 +484,13 @@ function search(text, pattern, patternAlphabet, { location = Config.location, di
 			}
 		}
 		if (calcScore(i + 1, expectedLocation) > currentThreshold) break;
-		lastBitArr = bitArr;
+		const swap = lastRow;
+		lastRow = row;
+		row = swap;
 	}
 	if (computeMatches && bestLocation >= 0) {
 		const matchEnd = Math.min(textLen - 1, bestLocation + patternLen - 1 + bestErrors);
-		for (let k = bestLocation; k <= matchEnd; k += 1) if (patternAlphabet[text[k]]) matchMask[k] = 1;
+		for (let k = bestLocation; k <= matchEnd; k += 1) if (patternAlphabet[text.charCodeAt(k)]) matchMask[k] = 1;
 	}
 	const result = {
 		isMatch: bestLocation >= 0,
@@ -495,8 +509,8 @@ function search(text, pattern, patternAlphabet, { location = Config.location, di
 function createPatternAlphabet(pattern) {
 	const mask = {};
 	for (let i = 0, len = pattern.length; i < len; i += 1) {
-		const char = pattern.charAt(i);
-		mask[char] = (mask[char] || 0) | 1 << len - i - 1;
+		const code = pattern.charCodeAt(i);
+		mask[code] = (mask[code] || 0) | 1 << len - i - 1;
 	}
 	return mask;
 }
