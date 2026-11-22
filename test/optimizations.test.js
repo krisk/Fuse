@@ -320,3 +320,56 @@ describe('Searcher cache', () => {
     expect(r2.length).toBeGreaterThan(r1.length)
   })
 })
+
+// ----------------------------
+// Myers prefilter & ignoreLocation fast path
+// ----------------------------
+describe('Myers prefilter fast paths', () => {
+  test('ignoreLocation direct score matches includeMatches across >32-char queries', () => {
+    const longBooks = [
+      {
+        title:
+          'Twenty Thousand Leagues Under the Seas by Jules Verne (Illustrated Edition)'
+      },
+      {
+        title:
+          'Twenty Thousnd Leagues Undr the Seas by Jules Verne (Illustrated Edition)'
+      },
+      { title: 'The Old Man and the Sea' }
+    ]
+    const query = 'Twenty Thousand Leagues Under the Seas'
+
+    const fast = new Fuse(longBooks, {
+      keys: ['title'],
+      includeScore: true,
+      ignoreLocation: true
+    }).search(query)
+
+    const withMatches = new Fuse(longBooks, {
+      keys: ['title'],
+      includeScore: true,
+      ignoreLocation: true,
+      includeMatches: true
+    }).search(query)
+
+    expect(fast.map((r) => r.refIndex)).toEqual(
+      withMatches.map((r) => r.refIndex)
+    )
+    fast.forEach((r, i) => {
+      expect(r.score).toBeCloseTo(withMatches[i].score, 12)
+    })
+  })
+
+  test('wide distance window preserves exact score on a lone hit', () => {
+    const text = 'gatsby' + ' chapter '.repeat(300)
+    const fuse = new Fuse([text], {
+      includeScore: true,
+      ignoreFieldNorm: true,
+      distance: 2000,
+      threshold: 0.4
+    })
+    const res = fuse.search('gatsby')
+    expect(res).toHaveLength(1)
+    expect(res[0].score).toBeCloseTo(0.001, 10)
+  })
+})

@@ -1,18 +1,11 @@
-import search from './search'
-import createPatternAlphabet, {
-  type PatternAlphabet
-} from './createPatternAlphabet'
+import search, { type BitapChunk } from './search'
+import canMatch from './canMatch'
+import createPatternAlphabet from './createPatternAlphabet'
 import { MAX_BITS } from './constants'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import Config from '../../core/config'
 import { stripDiacritics } from '../../helpers/diacritics'
 import type { SearchResult, RangeTuple } from '../../types'
-
-interface BitapChunk {
-  pattern: string
-  alphabet: PatternAlphabet
-  startIndex: number
-}
 
 interface BitapOptions {
   location: number
@@ -67,10 +60,16 @@ export default class BitapSearch {
       return
     }
 
-    const addChunk = (pattern: string, startIndex: number): void => {
+    const addChunk = (chunkPattern: string, startIndex: number): void => {
+      const alphabet = createPatternAlphabet(chunkPattern)
+      const table = new Int32Array(256)
+      for (let c = 0; c < 256; c += 1) {
+        table[c] = alphabet[c] | 0
+      }
       this.chunks.push({
-        pattern,
-        alphabet: createPatternAlphabet(pattern),
+        pattern: chunkPattern,
+        alphabet,
+        table,
         startIndex
       })
     }
@@ -97,7 +96,17 @@ export default class BitapSearch {
   }
 
   searchIn(text: string): SearchResult {
-    const { isCaseSensitive, ignoreDiacritics, includeMatches } = this.options
+    const {
+      isCaseSensitive,
+      ignoreDiacritics,
+      includeMatches,
+      location,
+      distance,
+      threshold,
+      findAllMatches,
+      minMatchCharLength,
+      ignoreLocation
+    } = this.options
 
     text = isCaseSensitive ? text : text.toLowerCase()
     text = ignoreDiacritics ? stripDiacritics(text) : text
@@ -106,7 +115,7 @@ export default class BitapSearch {
     if (this.pattern === text) {
       // The whole string is the match, so enforce minMatchCharLength here too,
       // mirroring convertMaskToIndices on the fuzzy path.
-      if (text.length < this.options.minMatchCharLength) {
+      if (text.length < minMatchCharLength) {
         return { isMatch: false, score: 1 }
       }
 
@@ -122,41 +131,58 @@ export default class BitapSearch {
       return result
     }
 
-    // Otherwise, use Bitap algorithm
-    const {
-      location,
-      distance,
-      threshold,
-      findAllMatches,
-      minMatchCharLength,
-      ignoreLocation
-    } = this.options
+    // One Myers pass per chunk (./canMatch.ts). If no chunk can match, skip the
+    // multi-level Bitap kernel. When ignoreLocation is set and match indices
+    // are not needed, Myers' minimum edit count directly gives each chunk's
+    // exact score without entering the kernel.
+    const direct =
+      ignoreLocation && !includeMatches && !(minMatchCharLength > 1)
+    let hasMatches = false
+    let totalScore = 0
+    for (let i = 0, len = this.chunks.length; i < len; i += 1) {
+      const chunk = this.chunks[i]
+      const r = canMatch(text, chunk, this.options, !direct)
+      if (r) {
+        hasMatches = true
+        if (!direct) break
+      }
+      totalScore += r ? Math.max(0.001, ~r / chunk.pattern.length) : 1
+    }
 
     const allIndices: RangeTuple[] = []
-    let totalScore = 0
-    let hasMatches = false
 
-    this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
-      const { isMatch, score, indices } = search(text, pattern, alphabet, {
-        location: location + startIndex,
-        distance,
-        threshold,
-        findAllMatches,
-        minMatchCharLength,
-        includeMatches,
-        ignoreLocation
-      })
+    if (hasMatches && !direct) {
+      hasMatches = false
+      totalScore = 0
+      for (let i = 0, len = this.chunks.length; i < len; i += 1) {
+        const { pattern, alphabet, table, startIndex } = this.chunks[i]
+        const { isMatch, score, indices } = search(
+          text,
+          pattern,
+          alphabet,
+          {
+            location: location + startIndex,
+            distance,
+            threshold,
+            findAllMatches,
+            minMatchCharLength,
+            includeMatches,
+            ignoreLocation
+          },
+          table
+        )
 
-      if (isMatch) {
-        hasMatches = true
+        if (isMatch) {
+          hasMatches = true
+        }
+
+        totalScore += score
+
+        if (isMatch && indices) {
+          allIndices.push(...indices)
+        }
       }
-
-      totalScore += score
-
-      if (isMatch && indices) {
-        allIndices.push(...indices)
-      }
-    })
+    }
 
     const result: SearchResult = {
       isMatch: hasMatches,

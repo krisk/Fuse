@@ -1,4 +1,7 @@
 import norm from '../src/tools/fieldNorm'
+import BitapSearch from '../src/search/bitap'
+import canMatch from '../src/search/bitap/canMatch'
+import search from '../src/search/bitap/search'
 import {
   buildInvertedIndex,
   addToInvertedIndex,
@@ -392,5 +395,58 @@ describe('InvertedIndex', () => {
       ])
     )
     expect(index.df.get('fresh')).toBe(1)
+  })
+})
+
+describe('canMatch prefilter', () => {
+  test('never rejects a chunk accepted by Bitap search and matches ignoreLocation score', () => {
+    const patterns = ['apple', 'gatby', 'café', '東京', '🚀', 'a']
+    const texts = [
+      '',
+      'apple',
+      'applx',
+      'the great gatsby by fitzgerald',
+      '東京スカイツリーと京都の寺院',
+      'Emoji 🚀👨‍👩‍👧‍👦 test',
+      'x'.repeat(200) + 'apple' + 'y'.repeat(200),
+      'unrelated words'
+    ]
+    const configs = [
+      { location: 0, distance: 100, threshold: 0.6, ignoreLocation: false },
+      { location: 0, distance: 100, threshold: 0.2, ignoreLocation: false },
+      { location: 30, distance: 10, threshold: 0.4, ignoreLocation: false },
+      { location: 0, distance: 100, threshold: 0.6, ignoreLocation: true }
+    ]
+
+    for (const pattern of patterns) {
+      const chunk = new BitapSearch(pattern, { isCaseSensitive: true })
+        .chunks[0]
+      for (const opts of configs) {
+        for (const text of texts) {
+          const pre = canMatch(text, chunk, opts)
+          const full = search(
+            text,
+            chunk.pattern,
+            chunk.alphabet,
+            {
+              ...opts,
+              location: opts.location + chunk.startIndex,
+              findAllMatches: false,
+              minMatchCharLength: 1,
+              includeMatches: false
+            },
+            chunk.table
+          )
+          if (pre === 0) expect(full.isMatch).toBe(false)
+          if (opts.ignoreLocation && pre !== 0) {
+            expect(full.isMatch).toBe(true)
+            expect(Math.max(0.001, ~pre / chunk.pattern.length)).toBeCloseTo(
+              full.score,
+              12
+            )
+          }
+        }
+      }
+    }
   })
 })

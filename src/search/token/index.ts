@@ -1,6 +1,8 @@
 import BitapSearch from '../bitap'
 import { createAnalyzer } from './analyzer'
 import { mergeIndices } from '../../helpers/mergeIndices'
+import { stripDiacritics } from '../../helpers/diacritics'
+import Config from '../../core/config'
 import type { Analyzer } from './analyzer'
 import type { InvertedIndexData } from './InvertedIndex'
 import type { SearchResult, RangeTuple } from '../../types'
@@ -22,6 +24,9 @@ export default class TokenSearch {
   private combineAll: boolean
   private numTerms: number
   private useMask: boolean
+  // Case folding and diacritic stripping, applied once per text in searchIn
+  // instead of once inside every term searcher.
+  private normalize: (text: string) => string
 
   static condition(_: string, options: any): boolean {
     return options.useTokenSearch
@@ -39,20 +44,29 @@ export default class TokenSearch {
     const invertedIndex: InvertedIndexData = options._invertedIndex
     const { df, fieldCount } = invertedIndex
 
+    const {
+      isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics
+    } = options
+    const normalize = (this.normalize = (text: string) => {
+      text = isCaseSensitive ? text : text.toLowerCase()
+      return ignoreDiacritics ? stripDiacritics(text) : text
+    })
+
     this.termSearchers = []
     this.idfWeights = []
 
     for (const term of queryTerms) {
       this.termSearchers.push(
-        new BitapSearch(term, {
+        new BitapSearch(normalize(term), {
           location: options.location,
           threshold: options.threshold,
           distance: options.distance,
           includeMatches: options.includeMatches,
           findAllMatches: options.findAllMatches,
           minMatchCharLength: options.minMatchCharLength,
-          isCaseSensitive: options.isCaseSensitive,
-          ignoreDiacritics: options.ignoreDiacritics,
+          isCaseSensitive: true,
+          ignoreDiacritics: false,
           ignoreLocation: true
         })
       )
@@ -71,6 +85,8 @@ export default class TokenSearch {
     if (!this.termSearchers.length) {
       return { isMatch: false, score: 1 }
     }
+
+    text = this.normalize(text)
 
     const allIndices: RangeTuple[] = []
     let weightedScore = 0
