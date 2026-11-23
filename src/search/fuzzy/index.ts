@@ -1,4 +1,4 @@
-import search from './search'
+import bitapSearch from './bitap'
 import myersSearch from './myers'
 import createPatternAlphabet, {
   type PatternAlphabet
@@ -28,12 +28,12 @@ interface BitapOptions {
   matchAlgorithm: FuseMatchAlgorithm
 }
 
-export default class BitapSearch {
+export default class FuzzySearch {
   options: BitapOptions
   pattern: string
   chunks: BitapChunk[]
   // The per-chunk scan, chosen once at construction from matchAlgorithm.
-  private _scan: typeof search
+  private _scan: typeof bitapSearch
 
   constructor(
     pattern: string,
@@ -69,7 +69,7 @@ export default class BitapSearch {
     this._scan =
       matchAlgorithm === 'myers' && (ignoreLocation || !(distance < 0))
         ? myersSearch
-        : search
+        : bitapSearch
 
     pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
     pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern

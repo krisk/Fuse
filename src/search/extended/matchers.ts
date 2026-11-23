@@ -1,4 +1,4 @@
-import BitapSearch from '../bitap'
+import FuzzySearch from '../fuzzy'
 import Config from '../../core/config'
 import type { SearchResult, RangeTuple } from '../../types'
 
@@ -188,7 +188,7 @@ const matchers: MatcherDef[] = [
     multiRegex: /^"(.*)"$/s,
     singleRegex: /^(.*)$/s,
     create: (pattern, options = {}) => {
-      const bitap = new BitapSearch(pattern, {
+      const searcher = new FuzzySearch(pattern, {
         location: options.location ?? Config.location,
         threshold: options.threshold ?? Config.threshold,
         distance: options.distance ?? Config.distance,
@@ -204,7 +204,7 @@ const matchers: MatcherDef[] = [
       return {
         type: 'fuzzy',
         search(text) {
-          return bitap.searchIn(text)
+          return searcher.searchIn(text)
         }
       }
     }

@@ -1,4 +1,4 @@
-import BitapSearch from './bitap'
+import FuzzySearch from './fuzzy'
 import ExtendedSearch from './extended'
 
-export { BitapSearch, ExtendedSearch }
+export { FuzzySearch, ExtendedSearch }

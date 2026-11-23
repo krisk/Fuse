@@ -1,4 +1,4 @@
-import BitapSearch from '../bitap'
+import FuzzySearch from '../fuzzy'
 import { createAnalyzer } from './analyzer'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import type { Analyzer } from './analyzer'
@@ -11,7 +11,7 @@ import type { SearchResult, RangeTuple } from '../../types'
 export const MAX_MASK_TERMS = 31
 
 export default class TokenSearch {
-  private termSearchers: BitapSearch[]
+  private termSearchers: FuzzySearch[]
   private idfWeights: number[]
   private options: any
   private analyzer: Analyzer
@@ -44,7 +44,7 @@ export default class TokenSearch {
 
     for (const term of queryTerms) {
       this.termSearchers.push(
-        new BitapSearch(term, {
+        new FuzzySearch(term, {
           location: options.location,
           threshold: options.threshold,
           distance: options.distance,

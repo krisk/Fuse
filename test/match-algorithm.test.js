@@ -250,7 +250,7 @@ describe('matchAlgorithm option', () => {
 
 describe('convertMaskToIndices', async () => {
   const { default: convertMaskToIndices } =
-    await import('../src/search/bitap/convertMaskToIndices')
+    await import('../src/search/fuzzy/convertMaskToIndices')
 
   test('default path over a plain array is unchanged', () => {
     expect(convertMaskToIndices([0, 1, 1, 0, 1], 1)).toEqual([

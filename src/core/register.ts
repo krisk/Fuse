@@ -1,4 +1,4 @@
-import { BitapSearch } from '../search'
+import { FuzzySearch } from '../search'
 import type { Searcher } from '../types'
 
 const registeredSearchers: any[] = []
@@ -39,5 +39,5 @@ export function createSearcher(pattern: string, options: any): Searcher {
     }
   }
 
-  return new BitapSearch(pattern, options)
+  return new FuzzySearch(pattern, options)
 }

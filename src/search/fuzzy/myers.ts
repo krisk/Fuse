@@ -5,7 +5,7 @@ import type { PatternAlphabet } from './createPatternAlphabet'
 import * as ErrorMsg from '../../core/errorMessages'
 import type { SearchResult } from '../../types'
 
-// Single-pass alternative to ./search.ts.
+// Single-pass alternative to ./bitap.ts.
 //
 // Bitap answers "does the pattern match starting at s with at most i errors?"
 // by rescanning the text once per error level i. Myers' bit-vector algorithm

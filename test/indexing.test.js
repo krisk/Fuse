@@ -317,7 +317,7 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
   })
 
   test('token-search parity: records and inverted-index keys shift after removeAt', () => {
-    // Asserts the bookkeeping shift, not BitapSearch's fuzzy result (Bitap with
+    // Asserts the bookkeeping shift, not FuzzySearch's fuzzy result (Bitap with
     // default threshold can still fuzzy-match across token boundaries; that's
     // pre-existing token-search behavior and orthogonal to this fix).
     const fuse = new Fuse(['', 'apple pie', 'banana bread'], {

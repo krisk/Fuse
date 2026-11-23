@@ -2,7 +2,7 @@
  * Direction A1 parity check (Plan 008)
  *
  * Plan 008's Direction A1 narrows candidate docs by expanding the query term
- * over the analyzer-tokenized term dictionary, then restricting BitapSearch to
+ * over the analyzer-tokenized term dictionary, then restricting FuzzySearch to
  * docs whose postings include any expanded token. The plan's recall gate
  * requires bit-identical results vs. baseline on these fixtures.
  *
@@ -56,7 +56,7 @@ showHits('default fuzzy ', fuseDefault, 'foobar')
 showHits('useTokenSearch', fuseToken,   'foobar')
 
 console.log('\nStructural argument for A1 failure:')
-console.log('  Baseline `useTokenSearch` runs `BitapSearch("foobar").searchIn(text)`')
+console.log('  Baseline `useTokenSearch` runs `FuzzySearch("foobar").searchIn(text)`')
 console.log('  on EVERY record\'s field text. For doc [1] with text "foo bar", Bitap')
 console.log('  matches "foobar" within distance budget (substituting one char to bridge')
 console.log('  the separator).')

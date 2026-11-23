@@ -167,7 +167,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import createPatternAlphabet from '../../../../src/search/bitap/createPatternAlphabet'
+import createPatternAlphabet from '../../../../src/search/fuzzy/createPatternAlphabet'
 
 interface Step {
   textChar: string

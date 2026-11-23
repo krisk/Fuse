@@ -346,7 +346,7 @@ describe('Token search — edge cases', () => {
       [{ text: `the ${longWord} fox` }, { text: 'quick brown fox' }],
       options
     )
-    // Should not throw despite term > MAX_BITS, BitapSearch chunks internally
+    // Should not throw despite term > MAX_BITS, FuzzySearch chunks internally
     const result = fuse.search(longWord)
     expect(result.length).toBeGreaterThanOrEqual(1)
     expect(result[0].item.text).toContain(longWord)
