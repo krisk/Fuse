@@ -9,7 +9,8 @@
 // bench/ scripts against both builds so the harness and the seeded corpora
 // (bench/rng.mjs) are identical on both sides. Runs alternate A/B per round
 // to spread out thermal and background noise, and the table reports medians
-// across rounds. Rows more than 5% slower than the baseline are flagged.
+// across rounds. Timings and sizes are both lower-is-better; the "better"
+// column is baseline / HEAD, and rows more than 5% worse are flagged.
 //
 // Local only: shared CI runners vary too much for a pass/fail gate.
 
@@ -19,8 +20,16 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
-// Flag rows where HEAD takes more than 5% longer than the baseline.
+// Flag rows where HEAD is more than 5% worse (slower or larger) than baseline.
 const SLOWER_RATIO = 1.05
+
+// Timings normalize to ms, sizes to bytes. Both are lower-is-better.
+const UNITS = {
+  ms: ['time', 1],
+  µs: ['time', 1e-3],
+  KB: ['size', 1e3],
+  MB: ['size', 1e6]
+}
 
 const args = process.argv.slice(2)
 const flag = (name, fallback) => {
@@ -37,7 +46,7 @@ if (!Number.isInteger(rounds) || rounds < 1) {
 }
 const scripts = flag(
   'scripts',
-  'search,extended,token-search,index-creation'
+  'search,extended,token-search,index-creation,index-memory'
 ).split(',')
 
 const run = (cmd, cmdArgs, cwd) =>
@@ -96,8 +105,18 @@ try {
           const parsed = parseLine(line)
           if (!parsed) continue
           const rows = (samples[script] ??= [])
-          rows[row] ??= { label: parsed.label, base: [], head: [] }
-          rows[row][side].push(parsed.ms)
+          rows[row] ??= {
+            label: parsed.label,
+            kind: parsed.kind,
+            base: [],
+            head: []
+          }
+          if (rows[row].label !== parsed.label) {
+            throw new Error(
+              `${script}: row ${row} is "${rows[row].label}" on one side and "${parsed.label}" on the other; outputs don't line up`
+            )
+          }
+          rows[row][side].push(parsed.value)
           row += 1
         }
       }
@@ -110,12 +129,13 @@ try {
 }
 
 // "label: median=12.04ms ..." or "Label:   61µs"
+
 function parseLine(line) {
-  let m = line.match(/^\s*(.+?):\s+median=([\d.]+)(ms|µs)/)
-  if (!m) m = line.match(/^\s*(.+?):\s+([\d.]+)(ms|µs)\s*$/)
+  let m = line.match(/^\s*(.+?):\s+median=(-?[\d.]+)(ms|µs|KB|MB)/)
+  if (!m) m = line.match(/^\s*(.+?):\s+(-?[\d.]+)(ms|µs|KB|MB)\s*$/)
   if (!m) return null
-  const value = Number(m[2])
-  return { label: m[1].trim(), ms: m[3] === 'µs' ? value / 1000 : value }
+  const [kind, scale] = UNITS[m[3]]
+  return { label: m[1].trim(), kind, value: Number(m[2]) * scale }
 }
 
 function median(values) {
@@ -124,14 +144,25 @@ function median(values) {
 }
 
 function printTable(samples) {
-  const fmt = (ms) =>
-    ms < 1 ? `${(ms * 1000).toFixed(0)}µs` : `${ms.toFixed(2)}ms`
+  const fmt = (value, kind) =>
+    kind === 'size'
+      ? value >= 1e6
+        ? `${(value / 1e6).toFixed(2)}MB`
+        : `${(value / 1e3).toFixed(1)}KB`
+      : value < 1
+        ? `${(value * 1000).toFixed(0)}µs`
+        : `${value.toFixed(2)}ms`
   console.log(
-    `\n${'benchmark'.padEnd(52)}${ref.padStart(11)}${'HEAD'.padStart(11)}${'speedup'.padStart(9)}`
+    `\n${'benchmark'.padEnd(52)}${ref.padStart(11)}${'HEAD'.padStart(11)}${'better'.padStart(9)}`
   )
   let flagged = 0
   for (const [script, rows] of Object.entries(samples)) {
-    for (const { label, base, head } of rows) {
+    for (const { label, kind, base, head } of rows) {
+      if (!base.length || base.length !== head.length) {
+        throw new Error(
+          `${script}: "${label}" has ${base.length} baseline and ${head.length} HEAD samples; one side is missing output`
+        )
+      }
       const b = median(base)
       const h = median(head)
       const speedup = b / h
@@ -139,11 +170,11 @@ function printTable(samples) {
       if (slow) flagged += 1
       const name = `${script}: ${label}`.slice(0, 51)
       console.log(
-        `${name.padEnd(52)}${fmt(b).padStart(11)}${fmt(h).padStart(11)}${`${speedup.toFixed(2)}x`.padStart(9)}${slow ? '  <-- >5% slower' : ''}`
+        `${name.padEnd(52)}${fmt(b, kind).padStart(11)}${fmt(h, kind).padStart(11)}${`${speedup.toFixed(2)}x`.padStart(9)}${slow ? '  <-- >5% worse' : ''}`
       )
     }
   }
   console.log(
-    `\n${rounds} alternating round(s), medians. ${flagged ? `${flagged} row(s) more than 5% slower than ${ref}; rerun with --rounds 5 to confirm.` : `No row more than 5% slower than ${ref}.`}`
+    `\n${rounds} alternating round(s), medians. ${flagged ? `${flagged} row(s) more than 5% worse than ${ref}; rerun with --rounds 5 to confirm.` : `No row more than 5% worse than ${ref}.`}`
   )
 }
