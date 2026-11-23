@@ -53,7 +53,8 @@ export default class TokenSearch {
           minMatchCharLength: options.minMatchCharLength,
           isCaseSensitive: options.isCaseSensitive,
           ignoreDiacritics: options.ignoreDiacritics,
-          ignoreLocation: true
+          ignoreLocation: true,
+          matchAlgorithm: options.matchAlgorithm
         })
       )
 

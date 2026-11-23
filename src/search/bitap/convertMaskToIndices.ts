@@ -1,16 +1,25 @@
 import Config from '../../core/config'
 import type { RangeTuple } from '../../types'
 
+// Collects runs of set cells in matchmask[from, to) that are at least
+// minMatchCharLength long. Cells outside [from, to) must be unset.
 export default function convertMaskToIndices(
-  matchmask: number[] = [],
-  minMatchCharLength: number = Config.minMatchCharLength
+  matchmask: ArrayLike<number> = [],
+  minMatchCharLength: number = Config.minMatchCharLength,
+  from: number = 0,
+  to: number = matchmask.length
 ): RangeTuple[] {
   const indices: RangeTuple[] = []
+
+  if (to <= from) {
+    return indices
+  }
+
   let start = -1
   let end = -1
-  let i = 0
+  let i = from
 
-  for (let len = matchmask.length; i < len; i += 1) {
+  for (; i < to; i += 1) {
     const match = matchmask[i]
     if (match && start === -1) {
       start = i

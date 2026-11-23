@@ -146,6 +146,14 @@ interface IFuseOptions<T> {
   ignoreFieldNorm?: boolean;
   /** Determines how much the field-length norm affects scoring. */
   fieldNormWeight?: number;
+  /**
+   * The fuzzy matching algorithm. `'myers'` (default) finds the best match in a
+   * single pass over the text and applies the scoring formula exactly.
+   * `'bitap'` is the previous algorithm, which rescans the text once per
+   * allowed typo; use it to keep pre-7.6 behavior. Results are the same at
+   * normal settings; see the fuzzy search docs for the narrow differences.
+   */
+  matchAlgorithm?: FuseMatchAlgorithm;
   /** Whether the matches should be included in the result set. */
   includeMatches?: boolean;
   /** Whether the score should be included in the result set. */
@@ -185,6 +193,8 @@ interface IFuseOptions<T> {
    */
   tokenMatch?: 'all' | 'any';
 }
+/** Fuzzy matching algorithm used by `IFuseOptions.matchAlgorithm`. */
+type FuseMatchAlgorithm = 'myers' | 'bitap';
 interface FuseIndexOptions<T> {
   getFn?: FuseGetFunction<T>;
   fieldNormWeight?: number;
@@ -438,6 +448,6 @@ declare class Fuse<T> {
 }
 //#endregion
 declare namespace Fuse {
-  export { type Expression, type FuseGetFunction, type FuseIndex, type FuseIndexObjectRecord, type FuseIndexOptions, type FuseIndexRecords, type FuseIndexStringRecord, type FuseOptionKey, type FuseOptionKeyObject, type FuseResult, type FuseResultMatch, type FuseSearchOptions, type FuseSortFunction, type FuseSortFunctionArg, type FuseSortFunctionItem, type FuseSortFunctionMatch, type FuseSortFunctionMatchList, type FuseTokenizeFunction, type IFuseOptions, type RangeTuple, type RecordEntry, type RecordEntryArrayItem, type RecordEntryObject, type SearchResult };
+  export { type Expression, type FuseGetFunction, type FuseIndex, type FuseIndexObjectRecord, type FuseIndexOptions, type FuseIndexRecords, type FuseIndexStringRecord, type FuseMatchAlgorithm, type FuseOptionKey, type FuseOptionKeyObject, type FuseResult, type FuseResultMatch, type FuseSearchOptions, type FuseSortFunction, type FuseSortFunctionArg, type FuseSortFunctionItem, type FuseSortFunctionMatch, type FuseSortFunctionMatchList, type FuseTokenizeFunction, type IFuseOptions, type RangeTuple, type RecordEntry, type RecordEntryArrayItem, type RecordEntryObject, type SearchResult };
 }
 export = Fuse;

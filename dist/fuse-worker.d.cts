@@ -63,6 +63,14 @@ interface IFuseOptions<T> {
   ignoreFieldNorm?: boolean;
   /** Determines how much the field-length norm affects scoring. */
   fieldNormWeight?: number;
+  /**
+   * The fuzzy matching algorithm. `'myers'` (default) finds the best match in a
+   * single pass over the text and applies the scoring formula exactly.
+   * `'bitap'` is the previous algorithm, which rescans the text once per
+   * allowed typo; use it to keep pre-7.6 behavior. Results are the same at
+   * normal settings; see the fuzzy search docs for the narrow differences.
+   */
+  matchAlgorithm?: FuseMatchAlgorithm;
   /** Whether the matches should be included in the result set. */
   includeMatches?: boolean;
   /** Whether the score should be included in the result set. */
@@ -102,6 +110,8 @@ interface IFuseOptions<T> {
    */
   tokenMatch?: 'all' | 'any';
 }
+/** Fuzzy matching algorithm used by `IFuseOptions.matchAlgorithm`. */
+type FuseMatchAlgorithm = 'myers' | 'bitap';
 interface FuseSearchOptions {
   limit?: number;
 }

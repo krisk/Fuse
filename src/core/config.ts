@@ -34,7 +34,8 @@ export const AdvancedOptions = {
   getFn: get as any,
   ignoreLocation: false,
   ignoreFieldNorm: false,
-  fieldNormWeight: 1
+  fieldNormWeight: 1,
+  matchAlgorithm: 'myers' as 'myers' | 'bitap'
 }
 
 const Config: Required<IFuseOptions<any>> = Object.freeze({

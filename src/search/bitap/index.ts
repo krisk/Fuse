@@ -1,4 +1,5 @@
 import search from './search'
+import myersSearch from './myers'
 import createPatternAlphabet, {
   type PatternAlphabet
 } from './createPatternAlphabet'
@@ -6,7 +7,7 @@ import { MAX_BITS } from './constants'
 import { mergeIndices } from '../../helpers/mergeIndices'
 import Config from '../../core/config'
 import { stripDiacritics } from '../../helpers/diacritics'
-import type { SearchResult, RangeTuple } from '../../types'
+import type { SearchResult, RangeTuple, FuseMatchAlgorithm } from '../../types'
 
 interface BitapChunk {
   pattern: string
@@ -24,12 +25,15 @@ interface BitapOptions {
   isCaseSensitive: boolean
   ignoreDiacritics: boolean
   ignoreLocation: boolean
+  matchAlgorithm: FuseMatchAlgorithm
 }
 
 export default class BitapSearch {
   options: BitapOptions
   pattern: string
   chunks: BitapChunk[]
+  // The per-chunk scan, chosen once at construction from matchAlgorithm.
+  private _scan: typeof search
 
   constructor(
     pattern: string,
@@ -42,8 +46,9 @@ export default class BitapSearch {
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive,
       ignoreDiacritics = Config.ignoreDiacritics,
-      ignoreLocation = Config.ignoreLocation
-    } = {}
+      ignoreLocation = Config.ignoreLocation,
+      matchAlgorithm = Config.matchAlgorithm
+    }: Partial<BitapOptions> = {}
   ) {
     this.options = {
       location,
@@ -54,8 +59,17 @@ export default class BitapSearch {
       minMatchCharLength,
       isCaseSensitive,
       ignoreDiacritics,
-      ignoreLocation
+      ignoreLocation,
+      matchAlgorithm
     }
+
+    // Myers finds every match Bitap's levels test in a single pass. A negative
+    // distance rewards matches for being far away, which breaks the bounds the
+    // single pass prunes with, so that (invalid) setting stays on Bitap.
+    this._scan =
+      matchAlgorithm === 'myers' && (ignoreLocation || !(distance < 0))
+        ? myersSearch
+        : search
 
     pattern = isCaseSensitive ? pattern : pattern.toLowerCase()
     pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern
@@ -122,7 +136,7 @@ export default class BitapSearch {
       return result
     }
 
-    // Otherwise, use Bitap algorithm
+    // Otherwise, run the fuzzy scan (Myers or Bitap) per chunk
     const {
       location,
       distance,
@@ -137,7 +151,7 @@ export default class BitapSearch {
     let hasMatches = false
 
     this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
-      const { isMatch, score, indices } = search(text, pattern, alphabet, {
+      const { isMatch, score, indices } = this._scan(text, pattern, alphabet, {
         location: location + startIndex,
         distance,
         threshold,

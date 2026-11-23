@@ -197,7 +197,8 @@ const matchers: MatcherDef[] = [
         minMatchCharLength: options.minMatchCharLength ?? Config.minMatchCharLength,
         isCaseSensitive: options.isCaseSensitive ?? Config.isCaseSensitive,
         ignoreDiacritics: options.ignoreDiacritics ?? Config.ignoreDiacritics,
-        ignoreLocation: options.ignoreLocation ?? Config.ignoreLocation
+        ignoreLocation: options.ignoreLocation ?? Config.ignoreLocation,
+        matchAlgorithm: options.matchAlgorithm ?? Config.matchAlgorithm
       })
 
       return {

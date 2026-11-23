@@ -3,7 +3,7 @@ import { MULTI_MATCH_TYPES, isInverse } from './matchers'
 import Config from '../../core/config'
 import { stripDiacritics } from '../../helpers/diacritics'
 import { mergeIndices } from '../../helpers/mergeIndices'
-import type { SearchResult, RangeTuple } from '../../types'
+import type { SearchResult, RangeTuple, FuseMatchAlgorithm } from '../../types'
 import type { Matcher } from './matchers'
 
 interface ExtendedSearchOptions {
@@ -16,6 +16,7 @@ interface ExtendedSearchOptions {
   location: number
   threshold: number
   distance: number
+  matchAlgorithm: FuseMatchAlgorithm
 }
 
 // Resolve the subset of options ExtendedSearch cares about, applying Config
@@ -31,7 +32,8 @@ function resolveOptions(options: any = {}): ExtendedSearchOptions {
     ignoreLocation: options.ignoreLocation ?? Config.ignoreLocation,
     location: options.location ?? Config.location,
     threshold: options.threshold ?? Config.threshold,
-    distance: options.distance ?? Config.distance
+    distance: options.distance ?? Config.distance,
+    matchAlgorithm: options.matchAlgorithm ?? Config.matchAlgorithm
   }
 }
 

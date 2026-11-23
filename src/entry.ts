@@ -63,6 +63,7 @@ export type {
   FuseSortFunctionMatch,
   FuseSortFunctionMatchList,
   FuseTokenizeFunction,
+  FuseMatchAlgorithm,
   FuseIndexOptions,
   FuseIndexRecords,
   FuseIndexObjectRecord,

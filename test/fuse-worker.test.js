@@ -154,6 +154,24 @@ describe('FuseWorker sharding', () => {
     fw.terminate()
   })
 
+  test('forwards matchAlgorithm to the workers', async () => {
+    // With distance 5, 'javascript' at index 4 only matches under myers.
+    const docs = [{ title: 'the javascript handbook' }, { title: 'other' }]
+    const run = async (matchAlgorithm) => {
+      MockWorker.instances = []
+      const fw = new FuseWorker(
+        docs,
+        { keys: ['title'], distance: 5, matchAlgorithm },
+        { numWorkers: 2 }
+      )
+      const results = await fw.search('javascript')
+      fw.terminate()
+      return results.length
+    }
+    expect(await run('myers')).toBe(1)
+    expect(await run('bitap')).toBe(0)
+  })
+
   test('add() appends globally and subsequent search returns correct refIndex', async () => {
     MockWorker.instances = []
     const fw = new FuseWorker(
