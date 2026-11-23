@@ -82,7 +82,7 @@ fuse.search('javscript')
 
 ### Fuzzy Search
 
-The core of Fuse.js. Uses the [Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm) for approximate string matching — handles typos, misspellings, and partial matches out of the box.
+The core of Fuse.js. Uses a single-pass bit-parallel algorithm (Myers) for approximate string matching. It handles typos, misspellings, and partial matches out of the box.
 
 ```js
 fuse.search('javscript')

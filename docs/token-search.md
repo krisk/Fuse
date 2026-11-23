@@ -1,15 +1,15 @@
 ---
 title: Token Search
-description: Split multi-word queries into terms, fuzzy-match each with the Bitap algorithm, and rank results using BM25-style IDF weighting. Handles typos per word independently.
+description: Split multi-word queries into terms, fuzzy-match each one, and rank results using BM25-style IDF weighting. Handles typos per word independently.
 ---
 
 # Token Search <Badge type="tip" text="New" />
 
-Token search splits multi-word queries into individual terms, fuzzy-matches each term independently using the Bitap algorithm, and ranks results using BM25-style IDF weighting.
+Token search splits multi-word queries into individual terms, fuzzy-matches each term independently, and ranks results using BM25-style IDF weighting.
 
 ## When to Use It
 
-The default fuzzy search treats the entire query as a single pattern. That works well for short, single-word lookups like `"javscript"` → `"JavaScript"`. But for multi-word queries like `"javascript design patterns"`, a single Bitap search hits the 32-character limit and can't match each word independently.
+The default fuzzy search treats the entire query as a single pattern. That works well for short, single-word lookups like `"javscript"` → `"JavaScript"`. But for multi-word queries like `"javascript design patterns"`, a single fuzzy search splits the pattern into 32-character chunks and can't match each word independently.
 
 Token search is designed for these cases:
 
@@ -35,7 +35,7 @@ All standard options work as before: `includeScore`, `includeMatches`, `keys` wi
 
 1. **Tokenization** — The query is split into individual words using a unicode-aware regex (`/[\p{L}\p{M}\p{N}_]+/gu`) by default. Each word becomes a separate fuzzy search. The default handles CJK, Cyrillic, Greek, Arabic, Hebrew, Devanagari, etc. out of the box. You can override it with the [`tokenize`](#custom-tokenizer) option.
 
-2. **Per-term fuzzy matching** — Each term is matched against each field using the Bitap algorithm with `ignoreLocation: true`, so terms can appear anywhere in the field. This means multi-word queries are no longer limited by the 32-character Bitap pattern cap.
+2. **Per-term fuzzy matching** — Each term is matched against each field using the fuzzy matcher with `ignoreLocation: true`, so terms can appear anywhere in the field. This means multi-word queries are not limited by the 32-character pattern chunk size.
 
 3. **IDF weighting** — An inverted index is built at construction time. The IDF weight for each term uses the BM25 formula:
 
@@ -52,7 +52,7 @@ All standard options work as before: `includeScore`, `includeMatches`, `keys` wi
 - **Partial matching** — A document matching 2 of 3 query terms still returns, but ranks lower than one matching all 3.
 - **Word order independence** — `"patterns javascript"` and `"javascript patterns"` produce identical results.
 - **Typo tolerance per term** — Each term is fuzzy-matched independently, so typos in any word are tolerated.
-- **Long queries work** — A 6-word query runs 6 independent Bitap searches, each within the 32-char limit.
+- **Long queries work** — A 6-word query runs 6 independent fuzzy searches, one per word.
 
 ## Matching Mode: `tokenMatch`
 
@@ -168,7 +168,7 @@ Benchmarked on randomly generated documents with 2 keys (title + body):
 | Single-term search | 1.8x | 1.8x | 1.7x |
 | Multi-term search | 1.3x | 1.3x | 1.2x |
 
-Index creation is a one-time cost (46ms for 5,000 docs). Search overhead is 1.2–1.8x depending on query complexity, primarily because each query term runs its own Bitap search. The inverted index lookup itself is O(1) per term.
+Index creation is a one-time cost (46ms for 5,000 docs). Search overhead is 1.2–1.8x depending on query complexity, primarily because each query term runs its own fuzzy search. The inverted index lookup itself is O(1) per term.
 
 ## Availability
 

@@ -1,11 +1,11 @@
 ---
 title: Fuzzy Search
-description: How Fuse.js uses the Bitap algorithm for approximate string matching. Configure threshold, distance, location, and scoring to control fuzzy search behavior.
+description: How Fuse.js does approximate string matching with a single-pass bit-parallel algorithm. Configure threshold, distance, location, and scoring to control fuzzy search behavior.
 ---
 
 # Fuzzy Search
 
-Fuse.js uses a modified [Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm) for approximate string matching. It finds strings that are _approximately_ equal to a given pattern — tolerating typos, transpositions, and missing characters.
+Fuse.js uses a bit-parallel approximate string matching algorithm (Myers' algorithm by default, with [Bitap](https://en.wikipedia.org/wiki/Bitap_algorithm) available as an alternative). It finds strings that are _approximately_ equal to a given pattern — tolerating typos, transpositions, and missing characters.
 
 ```js
 const fuse = new Fuse(['apple', 'banana', 'orange'], {
@@ -18,7 +18,7 @@ fuse.search('aple')
 
 ## How It Works
 
-The Bitap algorithm computes the edit distance between the search pattern and each position in the text. The implementation uses bitwise operations for speed, with a pattern length limit of 32 characters per search term.
+For every position in the text, the matcher finds the fewest edits (insertions, deletions, substitutions) needed to match the pattern starting there, then picks the best-scoring position. The default algorithm (Myers) does this in a single pass over the text, using bitwise operations for speed. Patterns longer than 32 characters are matched in 32-character chunks whose scores are averaged.
 
 The algorithm produces a **fuzziness score** between 0 and 1:
 
@@ -73,6 +73,26 @@ Try adjusting `threshold`, `location`, and `distance` below to see how they inte
 
 <SearchWindowDemo />
 
+## Match Algorithm
+
+#### `matchAlgorithm`
+
+- Default: `'myers'`
+- Values: `'myers'`, `'bitap'`
+
+The algorithm used for fuzzy matching. `'myers'` finds the best match in a single pass over each text and applies the scoring formula exactly. `'bitap'` is the algorithm Fuse.js used before 7.6. It rescans the text once for each typo it allows, so it gets slower as `threshold` gets more lenient.
+
+The two return the same results, scores and match indices at normal settings. They can differ in two narrow cases:
+
+- **`distance` smaller than the query length** (per 32-character chunk). The scoring formula then lets a match count leading text characters as typos to start closer to `location`. Myers applies that consistently; Bitap only partly, depending on its scan window. For example, with `distance: 5`, `'javascript'` matches `'the javascript handbook'` under Myers (score 0.4) but not under Bitap.
+- **A non-integer `location`.** Bitap can miss a match; Myers evaluates the formula at every position.
+
+Set `matchAlgorithm: 'bitap'` if you need results identical to earlier versions in those cases.
+
+```js
+const fuse = new Fuse(list, { matchAlgorithm: 'bitap' })
+```
+
 ## Other Options
 
 #### `isCaseSensitive`
@@ -103,7 +123,7 @@ Only return matches whose length exceeds this value. Set to `2` to ignore single
 
 The final relevance score for a result combines three factors:
 
-- **Fuzziness score** — the raw Bitap score described above
+- **Fuzziness score** — the raw score described above
 - **Key weight** — optional per-key `weight` (defaults to `1`). Higher weight = more influence on ranking. Weights are normalized internally.
 - **Field-length norm** — shorter fields rank higher. A match in a title is more significant than the same match in a long description.
 

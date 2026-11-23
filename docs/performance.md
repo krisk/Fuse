@@ -27,9 +27,9 @@ const fuse = new Fuse(list, options, index)
 Search speed depends on:
 
 - **List size** — search is linear in the number of indexed entries.
-- **Query length** — the Bitap algorithm is O(n × m) where n is the text length and m is the pattern length. The default 32-character pattern limit keeps this bounded.
-- **Threshold** — a lower `threshold` (stricter matching) prunes more candidates early, which can be faster.
-- **Token search** — `useTokenSearch: true` runs a separate Bitap pass for each query term, so multi-word queries scale with the number of terms.
+- **Query length** — the default matcher (Myers) makes a single pass over each text, so its cost grows with text length, not with how many typos the threshold allows. Patterns longer than 32 characters are matched in 32-character chunks, one pass per chunk.
+- **Threshold** — with the default matcher, a more lenient `threshold` widens the part of each text that can match, but the text is still scanned once. With `matchAlgorithm: 'bitap'`, a more lenient threshold costs much more, because Bitap rescans the text once per allowed typo.
+- **Token search** — `useTokenSearch: true` runs a separate fuzzy pass for each query term, so multi-word queries scale with the number of terms.
 - **Extended search** — operators like prefix match (`^term`) and inverse match (`!term`) add per-operator cost.
 
 #### Memory

@@ -38,7 +38,7 @@ Need Fuse.js search without the client-side overhead? **Fuse Cloud** is a hosted
 
 ## Features
 
-- **[Fuzzy search](fuzzy-search.md)** — typo-tolerant matching powered by the Bitap algorithm
+- **[Fuzzy search](fuzzy-search.md)** — typo-tolerant matching powered by a fast bit-parallel matcher
 - **[Token search](token-search.md)** — split multi-word queries into terms, fuzzy-match each, rank with IDF
 - **[Extended search](extended-search.md)** — operators for exact, prefix, suffix, inverse, and include matching
 - **[Logical search](logical-search.md)** — `$and` / `$or` expressions for structured queries

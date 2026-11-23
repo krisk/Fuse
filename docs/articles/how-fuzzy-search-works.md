@@ -1,6 +1,6 @@
 ---
 title: How Fuzzy Search Works
-description: An interactive visual explanation of edit distance and the Bitap algorithm — how Fuse.js finds approximate string matches with typo tolerance.
+description: An interactive visual explanation of edit distance, the Bitap algorithm, and the single-pass matcher behind it — how Fuse.js finds approximate string matches with typo tolerance.
 sidebarDepth: 0
 head:
   - - link
@@ -13,7 +13,7 @@ head:
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": "How Fuzzy Search Works",
-        "description": "An interactive visual explanation of edit distance and the Bitap algorithm — how Fuse.js finds approximate string matches with typo tolerance.",
+        "description": "An interactive visual explanation of edit distance, the Bitap algorithm, and the single-pass matcher behind it — how Fuse.js finds approximate string matches with typo tolerance.",
         "url": "https://www.fusejs.io/articles/how-fuzzy-search-works.html",
         "datePublished": "2026-04-09",
         "author": {
@@ -66,6 +66,10 @@ The `threshold` option (default `0.6`) controls the cutoff — results with a sc
 See [Fuzzy Search](/fuzzy-search) for details on configuring threshold, distance, location, and scoring.
 
 ## Under the Hood: Bitap
+
+::: info
+This section explains Bitap, the algorithm Fuse.js used before 7.6 and still offers via `matchAlgorithm: 'bitap'`. It's the clearest way to see the bit-parallel idea. [One Pass Instead of Many](#one-pass-instead-of-many) below covers how the default algorithm builds on it.
+:::
 
 Fuse.js doesn't use a traditional dynamic programming table to compute edit distance. Instead, it uses the [Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm), which encodes the pattern as bitmasks and uses bitwise operations to check all character positions in parallel. This makes it fast — especially for short patterns.
 
@@ -136,3 +140,13 @@ R2 (2 errors):     1  1  1  1   ← another mismatch, 2 errors — still matches
 ```
 
 The algorithm stops adding error levels when the score exceeds the `threshold`. This is how `threshold` controls fuzziness — a lower threshold means fewer error levels are tried, requiring closer matches.
+
+## One Pass Instead of Many
+
+Bitap's weak spot is that last step. Each error level is another full scan of the text, so a lenient threshold that allows four typos scans the text five times, and most of that work is redone for every level.
+
+Since 7.6, Fuse.js matches with [Myers' bit-vector algorithm](https://doi.org/10.1145/316542.316550) by default. It uses the same pattern bitmasks, but instead of one state vector per error level it tracks the whole edit-distance column in two machine words. After reading each character of the text, it knows the fewest edits needed for a match at that position, for every error count at once. So one scan replaces all of Bitap's levels.
+
+Fuse.js runs that scan from right to left against the reversed pattern, so each position's edit count describes a match *starting* there, which is what the `location` and `distance` scoring needs. The score is computed during the same pass, and the best position wins.
+
+The results are the same as Bitap's at normal settings, and the search is typically 2 to 7 times faster, with the biggest gains on typos and long queries. `matchAlgorithm: 'bitap'` switches back if you need to.
