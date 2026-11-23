@@ -5,7 +5,8 @@
 //
 // For each shape (objects with 3 keys, plain strings) and mode (fuzzy, token
 // search), reports:
-//   - heap retained by the index (documents excluded), after a full GC
+//   - memory retained by the index (documents excluded), after a full GC:
+//     JS heap plus ArrayBuffer storage, which lives outside heapUsed
 //   - build time: new Fuse(docs, options)
 //   - build + first search: construction plus the first query on it
 //   - serialized index size: JSON.stringify(fuse.getIndex().toJSON())
@@ -56,6 +57,12 @@ const time = (fn, runs = RUNS) => {
   return median(samples)
 }
 
+// Typed arrays keep their data in ArrayBuffers, which heapUsed doesn't count.
+const retained = () => {
+  const { heapUsed, arrayBuffers } = process.memoryUsage()
+  return heapUsed + arrayBuffers
+}
+
 // Median of several samples: heapUsed deltas are noisy even after a full GC.
 // The previous sample's instance is released explicitly before each baseline;
 // otherwise V8 can keep it alive in the loop and the deltas cancel out.
@@ -66,11 +73,11 @@ const heapRetained = (build, samples = 3) => {
     kept = null
     gc()
     gc()
-    const before = process.memoryUsage().heapUsed
+    const before = retained()
     kept = build()
     gc()
     gc()
-    deltas.push(process.memoryUsage().heapUsed - before)
+    deltas.push(retained() - before)
   }
   if (!kept) throw new Error('unreachable')
   return median(deltas)
