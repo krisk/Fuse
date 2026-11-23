@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.4](https://github.com/krisk/Fuse/compare/v7.6.0-beta.3...v7.6.0-beta.4) (2026-11-23)
+
+
+### Features
+
+* **search:** match with a single-pass Myers algorithm by default ([806afd2](https://github.com/krisk/Fuse/commit/806afd26e501eaf2159ccce6caca916726d356d6))
+
+### Performance
+
+Fuzzy search now uses Myers' bit-vector algorithm, which finds the best match in a single pass over each text instead of Bitap's one scan per allowed typo. Measured against 7.6.0-beta.3 on the repository benchmarks (seeded data, alternating runs, medians):
+
+| Workload | Speedup |
+|---|---|
+| Fuzzy search | 2.1–5.7x |
+| Fuzzy search with `includeMatches` | 2.1–4.9x |
+| Token search | 3.1–7.7x |
+| Logical `$and` / `$or` queries | 1.4–1.6x |
+| First search after building the index | 5.1x |
+
+No benchmark got slower. The bundle grows by about 1 KB gzipped, since Bitap stays available.
+
+### New option: `matchAlgorithm`
+
+`matchAlgorithm: 'myers' | 'bitap'` (default `'myers'`). Set `'bitap'` to keep the previous algorithm. Results, scores and match indices are the same at normal settings; Myers can differ only when `distance` is smaller than the query length (per 32-character chunk) or `location` is not an integer. See the [fuzzy search docs](https://www.fusejs.io/fuzzy-search.html#match-algorithm).
+
 ## [7.6.0-beta.3](https://github.com/krisk/Fuse/compare/v7.6.0-beta.2...v7.6.0-beta.3) (2026-11-23)
 
 
