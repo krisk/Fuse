@@ -73,6 +73,16 @@ const result = fuse.search({
 })
 ```
 
+A single `$path` condition can also be passed directly, with either a string or an [object query](extended-search.md#object-syntax):
+
+```js
+fuse.search({ $path: ['author', 'first.name'], $val: 'jon' })
+fuse.search({
+  $path: ['author', 'first.name'],
+  $val: { $startsWith: 'Jo' }
+})
+```
+
 ## With Extended Search
 
 Logical queries pair well with [extended search operators](extended-search.md). When `useExtendedSearch` is enabled, the string values in logical expressions are parsed as extended search patterns:

@@ -192,21 +192,17 @@ type FieldQuery = OperatorClause | FieldAnd | FieldOr;
 type KeyedLeaf = {
   [key: string]: string | FieldQuery;
 };
-type PathLeafString = {
-  $path: ReadonlyArray<string>;
-  $val: string;
-};
 type PathLeafQuery = {
   $path: ReadonlyArray<string>;
   $val: string | FieldQuery;
 };
-/** An expression nested inside `$and`/`$or` (object `$val` on `$path` allowed here). */
+/** An expression nested inside `$and`/`$or`. */
 type ChildExpression = string | KeyedLeaf | PathLeafQuery | {
   $and?: ChildExpression[];
 } | {
   $or?: ChildExpression[];
 };
-type Expression = string | KeyedLeaf | PathLeafString | {
+type Expression = string | KeyedLeaf | PathLeafQuery | {
   $and?: ChildExpression[];
 } | {
   $or?: ChildExpression[];
