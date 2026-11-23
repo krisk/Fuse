@@ -319,4 +319,35 @@ describe('Searcher cache', () => {
     const r2 = fuse.search('watermelon')
     expect(r2.length).toBeGreaterThan(r1.length)
   })
+
+  test('MaxHeap hole-sift matches full sort + slice across forward, reverse, ties, and custom sortFn', () => {
+    const forward = Array.from({ length: 120 }, (_, i) => ({
+      title:
+        i % 4 === 0
+          ? 'apple'
+          : i % 4 === 1
+            ? 'apple pie'
+            : i % 4 === 2
+              ? 'applesauce'
+              : `note_${i} apple`
+    }))
+    const reverse = [...forward].reverse()
+
+    for (const items of [forward, reverse]) {
+      for (const sortFn of [
+        undefined,
+        (a, b) => b.score - a.score || b.idx - a.idx
+      ]) {
+        const fuse = new Fuse(items, {
+          keys: ['title'],
+          includeScore: true,
+          ...(sortFn ? { sortFn } : {})
+        })
+        const full = fuse.search('apple')
+        for (const limit of [1, 2, 3, 10, 25]) {
+          expect(fuse.search('apple', { limit })).toEqual(full.slice(0, limit))
+        }
+      }
+    }
+  })
 })

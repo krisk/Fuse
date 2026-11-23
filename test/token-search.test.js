@@ -374,4 +374,46 @@ describe('Token search — edge cases', () => {
     expect(result[0].score).toBeGreaterThanOrEqual(0)
     expect(result[0].score).toBeLessThanOrEqual(1)
   })
+
+  test('Single-pass field normalization respects case, diacritics, Hangul, and custom tokenize', () => {
+    const docs = [
+      { title: 'Café Crème Brûlée & Łódź', notes: '서울특별시 검색' },
+      { title: 'Plain Toast', notes: 'Other' }
+    ]
+    for (const matchAlgorithm of ['myers', 'bitap']) {
+      const folded = new Fuse(docs, {
+        useTokenSearch: true,
+        ignoreDiacritics: true,
+        includeScore: true,
+        includeMatches: true,
+        matchAlgorithm,
+        keys: ['title', 'notes']
+      })
+      const r1 = folded.search('cafe creme lodz')
+      expect(r1[0].item.title).toBe('Café Crème Brûlée & Łódź')
+      expect(r1[0].matches.length).toBeGreaterThan(0)
+      expect(folded.search('서울특별시 검색')[0].item.notes).toBe(
+        '서울특별시 검색'
+      )
+
+      // Negative guards: preserve case and diacritics when disabled
+      const strict = new Fuse(docs, {
+        useTokenSearch: true,
+        isCaseSensitive: true,
+        ignoreDiacritics: false,
+        threshold: 0,
+        matchAlgorithm,
+        keys: ['title']
+      })
+      expect(strict.search('cafe')).toHaveLength(0)
+      expect(strict.search('Café')).toHaveLength(1)
+    }
+
+    const custom = new Fuse([{ text: 'Alpha-Beta' }], {
+      keys: ['text'],
+      useTokenSearch: true,
+      tokenize: (s) => s.split('-')
+    })
+    expect(custom.search('ALPHA-BETA')).toHaveLength(1)
+  })
 })
