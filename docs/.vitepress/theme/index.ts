@@ -6,7 +6,6 @@ import './style.css'
 
 import ArchitectureDiagram from './components/ArchitectureDiagram.vue'
 import BitapDemo from './components/BitapDemo.vue'
-import CommercialCTA from './components/CommercialCTA.vue'
 import FuzzyMatchDemo from './components/FuzzyMatchDemo.vue'
 import PerfDemo from './components/PerfDemo.vue'
 import Playground from './components/Playground.vue'
@@ -24,7 +23,6 @@ export default {
   enhanceApp({ app }) {
     app.component('ArchitectureDiagram', ArchitectureDiagram)
     app.component('BitapDemo', BitapDemo)
-    app.component('CommercialCTA', CommercialCTA)
     app.component('FuzzyMatchDemo', FuzzyMatchDemo)
     app.component('PerfDemo', PerfDemo)
     app.component('Playground', Playground)

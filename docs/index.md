@@ -32,8 +32,8 @@ fuse.search('patterns')
 // [{ item: { title: "JavaScript Patterns", ... }, refIndex: 2, score: 0.0 }]
 ```
 
-::: warning Fuse Cloud — Coming Soon
-Need Fuse.js search without the client-side overhead? **Fuse Cloud** is a hosted search API — upload JSON, get an endpoint. Same fuzzy search, zero infrastructure. [Learn more →](/cloud)
+::: tip Try the 7.6 beta: fuzzy search is 3–10x faster
+`npm install fuse.js@beta`. Fuzzy and token search are much faster, with the same results in almost every case. If your rankings change or anything looks off, [tell me in the beta feedback discussion](https://github.com/krisk/Fuse/discussions/869). It helps decide what ships in 7.6.0.
 :::
 
 ## Features
@@ -61,6 +61,5 @@ See [Getting Started](getting-started.md) for installation options, builds, and 
 **[fuse-swift](https://github.com/krisk/fuse-swift)** is the official Swift port for iOS, macOS, tvOS, watchOS, visionOS, and Linux. Byte-equivalent results, idiomatic Swift API. Currently in release candidate.
 :::
 
-<!-- <CommercialCTA /> -->
 
 <!-- <Sponsor /> -->
