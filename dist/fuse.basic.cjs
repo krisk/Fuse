@@ -899,7 +899,7 @@ function parse(query, options, { auto = true } = {}) {
 		});
 		return node;
 	};
-	if (!isExpression(query)) query = convertToExplicit(query);
+	if (!isExpression(query) && !isPath(query)) query = convertToExplicit(query);
 	return next(query);
 }
 

@@ -145,7 +145,7 @@ export function parse(
     return node
   }
 
-  if (!isExpression(query)) {
+  if (!isExpression(query) && !isPath(query)) {
     query = convertToExplicit(query)
   }
 

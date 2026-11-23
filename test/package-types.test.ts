@@ -163,7 +163,7 @@ const CASES: TypeCase[] = [
     // Object ("MongoDB-style") query types: the settled grammar is
     // enforced at compile time, not just at runtime. Negatives use predeclared
     // variables where the guard must survive without excess-property checking
-    // (structural siblings via `NoOperators`, the root/child `$path` split);
+    // (e.g. structural siblings via `NoOperators`);
     // unknown-operator keys are only catchable inline (optional-only interfaces
     // accept extra props on a widened variable), so that one stays a literal.
     spec: 'fuse.js (object query grammar is type-enforced)',
@@ -178,6 +178,9 @@ const CASES: TypeCase[] = [
       `void f.search({ $and: [{ title: { $startsWith: 'x' } }] })\n` +
       `void f.search({ $and: [{ $path: ['a'], $val: { $startsWith: 'x' } }] })\n` +
       `void f.search({ $path: ['a'], $val: 'literal' })\n` +
+      `void f.search({ $path: ['a'], $val: { $startsWith: 'x' } })\n` +
+      `const standalonePath = { $path: ['a'] as const, $val: { $startsWith: 'x' } }\n` +
+      `void f.search(standalonePath)\n` +
       `void f.search({ title: { $not: { $contains: 'x' } } })\n` +
       `void f.search({ title: { $eq: 'a', $not: { $endsWith: 'z' } } })\n` +
       // ── negatives ──
@@ -207,9 +210,9 @@ const CASES: TypeCase[] = [
       `const nestedAnd = { title: { $and: [{ $and: [{ $eq: 'x' }] }] } }\n` +
       `// @ts-expect-error $and cannot be nested\n` +
       `void f.search(nestedAnd)\n` +
-      `const standalonePath = { $path: ['a'], $val: { $startsWith: 'x' } }\n` +
-      `// @ts-expect-error standalone root $path may not carry an object $val\n` +
-      `void f.search(standalonePath)\n`
+      `const nonStringPath = { $path: ['a'], $val: { $startsWith: 42 } }\n` +
+      `// @ts-expect-error operator value in $val must be a string\n` +
+      `void f.search(nonStringPath)\n`
   }
 ]
 

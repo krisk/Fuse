@@ -355,18 +355,12 @@ export type FieldQuery = OperatorClause | FieldAnd | FieldOr
 // ── Expression (logical search) ────────────────────────────────────
 //
 // A field leaf value is `string` (legacy) or a `FieldQuery` (object form).
-//
-// Root vs. child split: object operators may be the `$val` of a
-// `$path` leaf only when that leaf is nested inside `$and`/`$or`. A standalone
-// top-level `$path` leaf must use a string `$val` (an object `$val` throws at
-// runtime — pre-existing parser limitation), so the root type forbids it.
 
 type KeyedLeaf = { [key: string]: string | FieldQuery }
 
-type PathLeafString = { $path: ReadonlyArray<string>; $val: string }
 type PathLeafQuery = { $path: ReadonlyArray<string>; $val: string | FieldQuery }
 
-/** An expression nested inside `$and`/`$or` (object `$val` on `$path` allowed here). */
+/** An expression nested inside `$and`/`$or`. */
 export type ChildExpression =
   | string
   | KeyedLeaf
@@ -377,6 +371,6 @@ export type ChildExpression =
 export type Expression =
   | string
   | KeyedLeaf
-  | PathLeafString
+  | PathLeafQuery
   | { $and?: ChildExpression[] }
   | { $or?: ChildExpression[] }

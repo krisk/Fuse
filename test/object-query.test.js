@@ -207,6 +207,40 @@ describe('Object query — logical composition', () => {
   })
 })
 
+describe.each(['firstName', 'first.name'])(
+  'Standalone $path queries — %s',
+  (name) => {
+    const books = [
+      { title: 'Another book', author: { [name]: 'John' } },
+      { title: 'John', author: { [name]: 'Jane' } }
+    ]
+    const path = ['author', name]
+    const options = {
+      keys: ['title', path],
+      threshold: 0,
+      includeScore: true,
+      includeMatches: true
+    }
+
+    test.each([
+      { kind: 'string', value: 'John', indices: [0] },
+      { kind: 'operator', value: { $startsWith: 'Jo' }, indices: [0] },
+      {
+        kind: 'field-local $or',
+        value: { $or: [{ $eq: 'John' }, { $eq: 'Jane' }] },
+        indices: [0, 1]
+      }
+    ])('$kind value matches the wrapped query', ({ value, indices }) => {
+      const fuse = new Fuse(books, options)
+      const query = { $path: path, $val: value }
+      const result = fuse.search(query)
+
+      expect(result.map((item) => item.refIndex)).toEqual(indices)
+      expect(result).toEqual(fuse.search({ $and: [query] }))
+    })
+  }
+)
+
 describe('Object query — includeMatches / arrays', () => {
   test('includeMatches indices match the string form', () => {
     parity({ text: "'ello" }, { text: { $contains: 'ello' } })
@@ -285,6 +319,22 @@ describe('Object query — grammar & error handling', () => {
 })
 
 describe('Object query — parseQuery auto:false', () => {
+  test.each([
+    { value: 'hello', leaf: { pattern: 'hello' } },
+    {
+      value: { $startsWith: 'hello' },
+      leaf: { fieldQuery: { $startsWith: 'hello' } }
+    }
+  ])('standalone path retains $value without a searcher', ({ value, leaf }) => {
+    const query = Fuse.parseQuery(
+      { $path: ['text'], $val: value },
+      { keys: ['text'] },
+      { auto: false }
+    )
+
+    expect(query).toEqual({ keyId: 'text', ...leaf })
+  })
+
   test('object leaves retain fieldQuery, omit searcher; stay distinguishable', () => {
     const opts = { keys: ['text'], useExtendedSearch: true }
     const a = Fuse.parseQuery({ text: { $startsWith: 'a' } }, opts, {
@@ -382,15 +432,6 @@ describe('Object query — remaining grammar/regression cases', () => {
     ).toThrowError(
       /cannot be mixed with \$and\/\$or|\$and cannot have siblings/
     )
-  })
-
-  test('standalone top-level $path with object $val throws (pre-existing)', () => {
-    // Scoped out: the outer convertToExplicit splits $path/$val before
-    // the isPath check, so a standalone $path leaf throws — for string $val too.
-    const fx = new Fuse(list, { keys: ['text'], useExtendedSearch: true })
-    expect(() =>
-      fx.search({ $path: ['text'], $val: { $startsWith: 'hello' } })
-    ).toThrow()
   })
 
   test('$not with multiple operators throws (De Morgan ambiguity)', () => {
