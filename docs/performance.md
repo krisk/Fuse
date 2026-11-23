@@ -34,24 +34,26 @@ Search speed depends on:
 
 #### Memory
 
-The index stores processed string values and metadata for each key of each item. For typical use cases (under 100k items), memory overhead is modest — a few MB at most. If memory is a concern, index fewer keys.
+The index stores processed string values and metadata for each key of each item, so it grows with your data. With 3 keys and about 30 words per item, expect roughly 7 MB per 10,000 items (about 70 MB at 100k). Token search adds an inverted index on top, roughly 3x the base index (about 225 MB at 100k). If memory is a concern, index fewer keys, and only enable `useTokenSearch` when you need multi-word queries.
 
 ## Guidelines
 
-::: tip New in v7.4.0
-Index creation is now **~30% faster** for object collections and **~60% faster** for string lists, thanks to zero-allocation word counting, pre-allocated record arrays, and tighter loops during index construction.
+::: tip New in v7.6.0
+Fuzzy search is **2 to 7 times faster**, thanks to a single-pass matching algorithm (Myers) that replaces Bitap's one-scan-per-typo approach. The biggest gains are on queries with typos and on multi-word token search. See [Match Algorithm](/fuzzy-search#match-algorithm).
 :::
 
-Measured on a modern machine with 3 searchable keys (`title`, `body`, `tags`):
+Measured on an Apple M5 Max with Node 24, 3 searchable keys (`title`, `body`, `tags`), and about 30 words per item. Search times are for a one-typo query (`"javascrpt"`); token search is a two-word query with a typo.
 
-| List size | Index creation | With token search | Notes |
-|-----------|---------------|-------------------|-------|
-| 1,000 | ~3ms | ~17ms | No concerns |
-| 10,000 | ~28ms | ~182ms | Fine for interactive use |
-| 50,000 | ~147ms | ~963ms | Consider pre-built index |
-| 100,000 | ~299ms | ~2,061ms | Use a Web Worker or pre-built index |
+| List size | Index creation | With token search | Fuzzy search | Token search |
+|-----------|---------------|-------------------|--------------|--------------|
+| 1,000 | ~1ms | ~5ms | ~0.8ms | ~2.6ms |
+| 10,000 | ~7ms | ~44ms | ~7ms | ~19ms |
+| 50,000 | ~40ms | ~220ms | ~37ms | ~96ms |
+| 100,000 | ~77ms | ~444ms | ~74ms | ~193ms |
 
-String-only lists (no keys) are significantly faster — around 25ms for 100k items.
+For comparison, the same fuzzy search with `matchAlgorithm: 'bitap'` takes about 4x as long (~28ms at 10k items, ~282ms at 100k). String-only lists (no keys) index around 6ms for 100k items.
+
+At 50k+ items, consider running search in a [Web Worker](/web-workers) so typing stays smooth on slower devices.
 
 *Your results will vary based on hardware, key count, and value length. Use the benchmark below to measure with your own data.*
 
