@@ -488,9 +488,10 @@ function search(text, pattern, patternAlphabet, { location = Config.location, di
 			if (i) bits |= (lastRow[j + 1] | lastRow[j]) << 1 | 1 | lastRow[j + 1];
 			row[j] = bits;
 			if (bits & mask) {
-				finalScore = calcScore(i, currentLocation);
-				if (finalScore <= currentThreshold) {
-					currentThreshold = finalScore;
+				const score = calcScore(i, currentLocation);
+				if (score <= currentThreshold) {
+					finalScore = score;
+					currentThreshold = score;
 					bestLocation = currentLocation;
 					bestErrors = i;
 					if (bestLocation <= expectedLocation) break;

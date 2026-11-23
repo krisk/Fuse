@@ -1433,7 +1433,10 @@ describe('Searching Korean text ignoring diacritics', () => {
 
   test('Search: a syllable matches the same results as without ignoreDiacritics', () => {
     const plain = new Fuse(list, { threshold: 0.4 }).search('감')
-    const stripped = new Fuse(list, { threshold: 0.4, ignoreDiacritics: true }).search('감')
+    const stripped = new Fuse(list, {
+      threshold: 0.4,
+      ignoreDiacritics: true
+    }).search('감')
     expect(stripped.map((r) => r.item)).toEqual(['감자'])
     expect(stripped.map((r) => r.item)).toEqual(plain.map((r) => r.item))
   })
@@ -1449,7 +1452,10 @@ describe('Searching Korean text ignoring diacritics', () => {
   })
 
   test('Search: Latin diacritics next to Hangul are still stripped', () => {
-    const fuse = new Fuse(['café 카페'], { threshold: 0, ignoreDiacritics: true })
+    const fuse = new Fuse(['café 카페'], {
+      threshold: 0,
+      ignoreDiacritics: true
+    })
     expect(fuse.search('cafe 카페')).toHaveLength(1)
   })
 })
@@ -1602,5 +1608,56 @@ describe('Match indices restricted to bitap-matched window (#792)', () => {
       [0, 1],
       [3, 3]
     ])
+  })
+})
+
+describe('Bitap reports the score of its best match', () => {
+  test('an exact hit is not overwritten by a later, worse candidate', () => {
+    // The exact hit is at index 11: 0 errors + 11/100 proximity = 0.11.
+    // A one-error candidate checked afterwards scores 0.183 and must not
+    // replace it.
+    const result = Fuse.match('optimization', 'Apple they optimization')
+    expect(result.isMatch).toBe(true)
+    expect(result.score).toBeCloseTo(0.11, 10)
+  })
+
+  test('the score describes the same match as the highlight', () => {
+    const result = Fuse.match('optimization', 'Apple they optimization', {
+      includeMatches: true
+    })
+    expect(result.indices).toEqual([[11, 22]])
+    expect(result.score).toBeCloseTo(0.11, 10)
+  })
+
+  test('long patterns average the best score of each 32-char chunk', () => {
+    const head = 'abcdefghijklmnopqrstuvwxyzabcdef'
+    const tail = 'qrstuvwxqrstuvwxqrstuvwxqrstuvwx'
+    // Chunk 1: exact at its expected location (0, floored to 0.001).
+    // Chunk 2: exact 4 chars from its expected location (4/100 = 0.04).
+    const result = Fuse.match(head + tail, head + '    ' + tail)
+    expect(result.isMatch).toBe(true)
+    expect(result.score).toBeCloseTo((0.001 + 0.04) / 2, 10)
+  })
+
+  test('a chunk with no acceptable match contributes 1 without changing isMatch', () => {
+    const head = 'abcdefghijklmnopqrstuvwxyzabcdef'
+    const result = Fuse.match(head + 'q'.repeat(32), head + ' and more text')
+    expect(result.isMatch).toBe(true)
+    expect(result.score).toBeCloseTo((0.001 + 1) / 2, 10)
+  })
+
+  test('a full-word match is no longer under-ranked by an overwritten score', () => {
+    // With the score bug, 'assert.async in beforeEach' reported the score of
+    // a worse candidate and ranked below 'before', a partial-word match.
+    const list = [
+      'before',
+      'assert.async in beforeEach',
+      'async beforeEach test'
+    ]
+    const fuse = new Fuse(list, { includeScore: true })
+    const items = fuse.search('beforeEach').map((r) => r.item)
+    expect(items.indexOf('assert.async in beforeEach')).toBeLessThan(
+      items.indexOf('before')
+    )
   })
 })

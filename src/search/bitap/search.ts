@@ -147,13 +147,15 @@ export default function search(
       row[j] = bits
 
       if (bits & mask) {
-        finalScore = calcScore(i, currentLocation)
+        const score = calcScore(i, currentLocation)
 
-        // This match will almost certainly be better than any existing match.
-        // But check anyway.
-        if (finalScore <= currentThreshold) {
-          // Indeed it is
-          currentThreshold = finalScore
+        // Only an improving candidate may set the reported score. Assigning
+        // before this check let a later, worse candidate overwrite the score
+        // of the best match, so the score described a different match than
+        // bestLocation (and the highlight) did.
+        if (score <= currentThreshold) {
+          finalScore = score
+          currentThreshold = score
           bestLocation = currentLocation
           bestErrors = i
 

@@ -48,14 +48,19 @@ exports[`Ignore location and field length norm > Check order of entries when loc
     "score": 0.1972392177586917,
   },
   {
+    "item": "assert.async in beforeEach",
+    "refIndex": 2,
+    "score": 0.347357939560163,
+  },
+  {
     "item": "before",
     "refIndex": 6,
     "score": 0.4,
   },
   {
-    "item": "assert.async in beforeEach",
-    "refIndex": 2,
-    "score": 0.4493775633055149,
+    "item": "Module with Promise-aware beforeEach",
+    "refIndex": 3,
+    "score": 0.5099019513592785,
   },
   {
     "item": "before (skip)",
@@ -63,14 +68,9 @@ exports[`Ignore location and field length norm > Check order of entries when loc
     "score": 0.5231863610884103,
   },
   {
-    "item": "Module with Promise-aware beforeEach",
-    "refIndex": 3,
-    "score": 0.5916079783099616,
-  },
-  {
     "item": "Promise-aware return values without beforeEach/afterEach",
     "refIndex": 4,
-    "score": 0.699819425905295,
+    "score": 0.6333841887793367,
   },
 ]
 `;
