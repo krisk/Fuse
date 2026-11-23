@@ -1,13 +1,14 @@
 import Fuse from '../dist/fuse.mjs'
+import { random } from './rng.mjs'
 
 // --- Data generation ---
 const books = []
 for (let i = 0; i < 10000; i++) {
   books.push({
-    title: `Book Title ${i} ${Math.random().toString(36).slice(2)}`,
+    title: `Book Title ${i} ${random().toString(36).slice(2)}`,
     author: {
       firstName: `Author${i}`,
-      lastName: `Last${Math.random().toString(36).slice(2)}`
+      lastName: `Last${random().toString(36).slice(2)}`
     },
     tags: [`tag${i % 50}`, `category${i % 20}`, `genre${i % 10}`]
   })

@@ -9,6 +9,7 @@
  */
 
 import Fuse from '../dist/fuse.mjs'
+import { random } from './rng.mjs'
 
 // --- Helpers ---
 
@@ -34,9 +35,9 @@ function generateDocs(n) {
 
   const docs = []
   for (let i = 0; i < n; i++) {
-    const titleLen = 2 + Math.floor(Math.random() * 3)
-    const bodyLen = 8 + Math.floor(Math.random() * 15)
-    const pick = (len) => Array.from({ length: len }, () => words[Math.floor(Math.random() * words.length)]).join(' ')
+    const titleLen = 2 + Math.floor(random() * 3)
+    const bodyLen = 8 + Math.floor(random() * 15)
+    const pick = (len) => Array.from({ length: len }, () => words[Math.floor(random() * words.length)]).join(' ')
     docs.push({ title: pick(titleLen), body: pick(bodyLen) })
   }
   return docs

@@ -1,4 +1,5 @@
 import Fuse from '../dist/fuse.mjs'
+import { random } from './rng.mjs'
 
 // --- Data generation ---
 const words = [
@@ -10,11 +11,11 @@ const words = [
 ]
 
 function randomWords(min, max) {
-  const len = min + Math.floor(Math.random() * (max - min + 1))
+  const len = min + Math.floor(random() * (max - min + 1))
   let result = ''
   for (let i = 0; i < len; i++) {
     if (i > 0) result += ' '
-    result += words[Math.floor(Math.random() * words.length)]
+    result += words[Math.floor(random() * words.length)]
   }
   return result
 }
@@ -35,11 +36,11 @@ function generateStrings(count) {
   const w = ['hello', 'world', 'foo', 'bar', 'baz', 'quick', 'brown', 'fox', 'lazy', 'dog']
   const strings = new Array(count)
   for (let i = 0; i < count; i++) {
-    const len = 3 + Math.floor(Math.random() * 8)
+    const len = 3 + Math.floor(random() * 8)
     let s = ''
     for (let j = 0; j < len; j++) {
       if (j > 0) s += ' '
-      s += w[Math.floor(Math.random() * w.length)]
+      s += w[Math.floor(random() * w.length)]
     }
     strings[i] = s
   }
