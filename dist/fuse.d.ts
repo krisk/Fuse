@@ -305,13 +305,33 @@ declare class FuseIndex<T = any> {
   getFn: GetFunction;
   isCreated: boolean;
   docs: ReadonlyArray<T>;
-  records: IndexRecord[];
   keys: KeyObject[];
   _keysMap: Record<string, number>;
+  _recCount: number;
+  _recDoc: Int32Array<ArrayBuffer>;
+  _recKind: Uint8Array<ArrayBuffer>;
+  _recStart: Uint32Array<ArrayBuffer>;
+  _recLen: Uint32Array<ArrayBuffer>;
+  _entCount: number;
+  _entDead: number;
+  _entKey: Uint32Array<ArrayBuffer>;
+  _entIdx: Int32Array<ArrayBuffer>;
+  _entNormId: Uint32Array<ArrayBuffer>;
+  _normValues: number[];
+  _normIds: Map<string | number, number>;
+  _normCache: Int32Array<ArrayBuffer>;
+  _entValue: string[];
   constructor({
     getFn,
     fieldNormWeight
   }?: FuseIndexOptions<T>);
+  /**
+   * @deprecated Will be removed in v8. Returns a detached snapshot of the
+   * index in the record format: a fresh copy on each access, so changes to it
+   * don't affect search. Use `toJSON()` to serialize an index.
+   */
+  get records(): IndexRecord[];
+  set records(records: IndexRecord[]);
   setSources(docs?: ReadonlyArray<T>): void;
   setIndexRecords(records?: IndexRecord[]): void;
   clone(): FuseIndex<T>;
@@ -322,12 +342,28 @@ declare class FuseIndex<T = any> {
   removeAll(indices: number[]): void;
   getValueForItemAtKeyId(item: any, keyId: string): any;
   size(): number;
-  _createStringRecord(doc: string, docIndex: number): IndexRecord | null;
-  _createObjectRecord(doc: any, docIndex: number): IndexRecord;
+  _keyRange(r: number, keyIdx: number): [number, number];
+  _forEachText(r: number, fn: (text: string) => void): void;
   toJSON(): {
     keys: ReadonlyArray<Omit<KeyObject, 'getFn'>>;
     records: IndexRecord[];
   };
+  _materializeAll(): IndexRecord[];
+  _materialize(r: number): IndexRecord;
+  _materializeFields(r: number): Record<number, SubRecord | SubRecord[]>;
+  _addString(doc: string, docIndex: number): boolean;
+  _addObject(doc: any, docIndex: number): void;
+  _appendRecord(record: IndexRecord): void;
+  _reset(expectedRecords: number, expectedEntries?: number): void;
+  _beginRecord(docIndex: number, kind: number): void;
+  _growRecords(): void;
+  _growEntries(): void;
+  _endRecord(): void;
+  _pushEntry(key: number, pos: number, norm: number, value: string): void;
+  _normIdOf(norm: number): number;
+  _removeRecordAt(r: number): void;
+  _compact(): void;
+  _trim(): void;
 }
 declare function createIndex<T>(keys: FuseOptionKey<T>[], docs: ReadonlyArray<T>, {
   getFn,
@@ -446,15 +482,7 @@ declare class Fuse<T> {
     heap,
     ignoreFieldNorm
   }?: HeapSearchOptions): InternalResult[] | null;
-  _findMatches({
-    key,
-    value,
-    searcher
-  }: {
-    key: KeyObject | null;
-    value: SubRecord | SubRecord[] | undefined;
-    searcher: Searcher;
-  }): MatchScore[];
+  _findMatches(key: KeyObject | null, start: number, end: number, searcher: Searcher): MatchScore[];
   _coversAllTokens(matches: MatchScore[]): boolean;
 }
 //#endregion

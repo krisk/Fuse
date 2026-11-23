@@ -39,6 +39,18 @@ const CASES: TypeCase[] = [
     code: `import Fuse from 'fuse.js'\nconst f = new Fuse<{ t: string }>([], { keys: ['t'] })\nvoid f.search('x')\n`
   },
   {
+    // FuseIndex.records is a deprecated getter/setter pair in 7.x (columnar
+    // storage); it must still type-check for readers and for assignment.
+    spec: 'fuse.js (FuseIndex.records stays readable and assignable)',
+    code:
+      `import Fuse from 'fuse.js'\n` +
+      `const index = Fuse.createIndex<{ t: string }>(['t'], [{ t: 'x' }])\n` +
+      `const records = index.records\n` +
+      `index.records = records\n` +
+      `index.setIndexRecords(records)\n` +
+      `void records\n`
+  },
+  {
     spec: 'fuse.js/min',
     code: `import Fuse from 'fuse.js/min'\nvoid new Fuse([])\n`
   },
@@ -91,7 +103,7 @@ const CASES: TypeCase[] = [
       `  FuseSortFunctionMatchList, FuseTokenizeFunction, FuseIndexOptions,\n` +
       `  FuseIndexRecords, FuseIndexObjectRecord, FuseIndexStringRecord,\n` +
       `  RecordEntry, RecordEntryObject, RecordEntryArrayItem, RangeTuple,\n` +
-      `  Expression, SearchResult, FuseIndex\n` +
+      `  Expression, SearchResult, FuseIndex, FuseMatchAlgorithm\n` +
       `} from 'fuse.js'\n` +
       `export {}\n`
   },

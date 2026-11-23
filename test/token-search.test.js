@@ -425,12 +425,13 @@ describe('token index removal is exact', () => {
   })
   const fresh = (docs, options) => stats(new Fuse(docs.slice(), options))
 
-  test('removal subtracts what was ingested, even after the record text changed', () => {
+  test('editing a records snapshot changes neither the index nor removal', () => {
     const options = { useTokenSearch: true }
     const docs = ['apple pie', 'banana bread', 'cherry tart']
     const fuse = new Fuse(docs.slice(), options)
-    // Records are public and writable; edit one after ingestion.
+    // `records` is a detached snapshot; editing it must not reach the index.
     fuse.getIndex().records[1].v = 'completely different words'
+    expect(fuse.search('banana').map((r) => r.item)).toEqual(['banana bread'])
     fuse.removeAt(1)
     expect(stats(fuse)).toEqual(fresh(['apple pie', 'cherry tart'], options))
   })

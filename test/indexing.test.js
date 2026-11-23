@@ -456,9 +456,11 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
     // Build an index with records deliberately out of source order, mimicking
     // a hand-rolled parseIndex input where records aren't guaranteed sorted by .i.
     const idx = Fuse.createIndex([], ['apple', 'banana', 'cherry'])
-    // Swap two records to break the sort invariant.
+    // Swap two records to break the sort invariant. `records` is a detached
+    // snapshot, so load the reordered records back with setIndexRecords().
     const records = idx.records
     ;[records[0], records[2]] = [records[2], records[0]]
+    idx.setIndexRecords(records)
     // Records are now: [{v:cherry, i:2}, {v:banana, i:1}, {v:apple, i:0}]
 
     idx.removeAt(1)

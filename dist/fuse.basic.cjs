@@ -51,6 +51,7 @@ const EXTENDED_SEARCH_UNAVAILABLE = "Extended search is not available";
 const LOGICAL_SEARCH_UNAVAILABLE = "Logical search is not available";
 const TOKEN_SEARCH_UNAVAILABLE = "Token search is not available";
 const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
+const INVALID_INDEX_RECORD = "Invalid index record: document indexes, field keys and array positions must be non-negative integers below 2^31";
 const INVALID_DOC_INDEX = "Invalid doc index: must be a non-negative integer within the bounds of the docs array";
 const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) => `Invalid value for key ${key}`;
 const OBJECT_QUERY_UNAVAILABLE = "Object query syntax is not available in this build";
@@ -225,21 +226,74 @@ function norm(weight = 1, mantissa = 3) {
 
 //#endregion
 //#region src/tools/FuseIndex.ts
+const STRING_RECORD = 0;
+const OBJECT_RECORD = 1;
+const SCALAR = -1;
+const EMPTY_ARRAY = -2;
+let warnedRecordsDeprecated = false;
 var FuseIndex = class FuseIndex {
 	constructor({ getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+		this._recCount = 0;
+		this._recDoc = /* @__PURE__ */ new Int32Array(16);
+		this._recKind = /* @__PURE__ */ new Uint8Array(16);
+		this._recStart = /* @__PURE__ */ new Uint32Array(16);
+		this._recLen = /* @__PURE__ */ new Uint32Array(16);
+		this._entCount = 0;
+		this._entDead = 0;
+		this._entKey = /* @__PURE__ */ new Uint32Array(64);
+		this._entIdx = /* @__PURE__ */ new Int32Array(64);
+		this._entNormId = /* @__PURE__ */ new Uint32Array(64);
+		this._normValues = [];
+		this._normIds = /* @__PURE__ */ new Map();
+		this._normCache = (/* @__PURE__ */ new Int32Array(1024)).fill(-1);
+		this._entValue = [];
 		this.norm = norm(fieldNormWeight, 3);
 		this.getFn = getFn;
 		this.isCreated = false;
 		this.docs = [];
 		this.keys = [];
 		this._keysMap = {};
-		this.setIndexRecords();
+	}
+	/**
+	* @deprecated Will be removed in v8. Returns a detached snapshot of the
+	* index in the record format: a fresh copy on each access, so changes to it
+	* don't affect search. Use `toJSON()` to serialize an index.
+	*/
+	get records() {
+		if (!warnedRecordsDeprecated) {
+			warnedRecordsDeprecated = true;
+			console.warn("[Fuse] FuseIndex.records is deprecated and will be removed in v8; use toJSON() to serialize an index.");
+		}
+		return this._materializeAll();
+	}
+	set records(records) {
+		this.setIndexRecords(records);
 	}
 	setSources(docs = []) {
 		this.docs = docs;
 	}
 	setIndexRecords(records = []) {
-		this.records = records;
+		this._reset(records.length, estimateEntries(records));
+		for (let i = 0, len = records.length; i < len; i += 1) {
+			const record = records[i];
+			if (record.v !== void 0) {
+				if (this._recCount === this._recDoc.length) this._growRecords();
+				if (this._entCount === this._entKey.length) this._growEntries();
+				const r = this._recCount;
+				const e = this._entCount;
+				this._recDoc[r] = checkPosition(record.i);
+				this._recKind[r] = 0;
+				this._recStart[r] = e;
+				this._recLen[r] = 1;
+				this._entKey[e] = 0;
+				this._entIdx[e] = -1;
+				this._entNormId[e] = this._normIdOf(record.n);
+				this._entValue[e] = record.v;
+				this._recCount = r + 1;
+				this._entCount = e + 1;
+			} else this._appendRecord(record);
+		}
+		this._trim();
 	}
 	clone() {
 		const copy = new FuseIndex({ getFn: this.getFn });
@@ -247,7 +301,20 @@ var FuseIndex = class FuseIndex {
 		copy.isCreated = this.isCreated;
 		copy.setSources(this.docs);
 		copy.setKeys(this.keys);
-		copy.setIndexRecords(copyRecords(this.records));
+		copy._recCount = this._recCount;
+		copy._recDoc = this._recDoc.slice(0, this._recCount);
+		copy._recKind = this._recKind.slice(0, this._recCount);
+		copy._recStart = this._recStart.slice(0, this._recCount);
+		copy._recLen = this._recLen.slice(0, this._recCount);
+		copy._entCount = this._entCount;
+		copy._entDead = this._entDead;
+		copy._entKey = this._entKey.slice(0, this._entCount);
+		copy._entIdx = this._entIdx.slice(0, this._entCount);
+		copy._entNormId = this._entNormId.slice(0, this._entCount);
+		copy._normValues = this._normValues.slice();
+		copy._normIds = new Map(this._normIds);
+		copy._normCache = this._normCache.slice();
+		copy._entValue = this._entValue.slice(0, this._entCount);
 		return copy;
 	}
 	setKeys(keys = []) {
@@ -261,119 +328,345 @@ var FuseIndex = class FuseIndex {
 		if (this.isCreated || !this.docs.length) return;
 		this.isCreated = true;
 		const len = this.docs.length;
-		this.records = new Array(len);
-		let recordCount = 0;
-		if (isString(this.docs[0])) for (let i = 0; i < len; i++) {
-			const record = this._createStringRecord(this.docs[i], i);
-			if (record) this.records[recordCount++] = record;
-		}
-		else for (let i = 0; i < len; i++) this.records[recordCount++] = this._createObjectRecord(this.docs[i], i);
-		this.records.length = recordCount;
+		const isStringList = isString(this.docs[0]);
+		this._reset(len, isStringList ? len : len * 4);
+		if (isStringList) {
+			const docs = this.docs;
+			const recDoc = this._recDoc;
+			const recKind = this._recKind;
+			const recStart = this._recStart;
+			const recLen = this._recLen;
+			const entKey = this._entKey;
+			const entIdx = this._entIdx;
+			const entNormId = this._entNormId;
+			const entValue = this._entValue;
+			let n = 0;
+			for (let i = 0; i < len; i++) {
+				const doc = docs[i];
+				if (!isDefined(doc) || isBlank(doc)) continue;
+				recDoc[n] = i;
+				recKind[n] = 0;
+				recStart[n] = n;
+				recLen[n] = 1;
+				entKey[n] = 0;
+				entIdx[n] = -1;
+				entNormId[n] = this._normIdOf(this.norm.get(doc));
+				entValue[n] = doc;
+				n += 1;
+			}
+			this._recCount = n;
+			this._entCount = n;
+		} else for (let i = 0; i < len; i++) this._addObject(this.docs[i], i);
+		this._trim();
 		this.norm.clear();
 	}
 	add(doc, docIndex) {
 		if (!Number.isInteger(docIndex) || docIndex < 0) throw new Error(INVALID_DOC_INDEX);
-		if (isString(doc)) {
-			const record = this._createStringRecord(doc, docIndex);
-			if (record) this.records.push(record);
-			return record;
-		}
-		const record = this._createObjectRecord(doc, docIndex);
-		this.records.push(record);
-		return record;
+		return (isString(doc) ? this._addString(doc, docIndex) : (this._addObject(doc, docIndex), true)) ? this._materialize(this._recCount - 1) : null;
 	}
 	removeAt(idx) {
 		if (!Number.isInteger(idx) || idx < 0) throw new Error(INVALID_DOC_INDEX);
-		for (let i = 0, len = this.records.length; i < len; i += 1) if (this.records[i].i === idx) {
-			this.records.splice(i, 1);
+		for (let r = 0; r < this._recCount; r += 1) if (this._recDoc[r] === idx) {
+			this._removeRecordAt(r);
 			break;
 		}
-		for (let i = 0, len = this.records.length; i < len; i += 1) if (this.records[i].i > idx) this.records[i].i -= 1;
+		for (let r = 0; r < this._recCount; r += 1) if (this._recDoc[r] > idx) this._recDoc[r] -= 1;
 	}
 	removeAll(indices) {
 		const toRemove = /* @__PURE__ */ new Set();
 		for (const v of indices) if (Number.isInteger(v) && v >= 0) toRemove.add(v);
 		if (toRemove.size === 0) return;
-		this.records = this.records.filter((r) => !toRemove.has(r.i));
 		const sorted = Array.from(toRemove).sort((a, b) => a - b);
-		for (const record of this.records) {
+		const recDoc = this._recDoc;
+		const recKind = this._recKind;
+		const recStart = this._recStart;
+		const recLen = this._recLen;
+		let w = 0;
+		for (let r = 0, n = this._recCount; r < n; r += 1) {
+			const docIdx = recDoc[r];
+			if (toRemove.has(docIdx)) {
+				this._entDead += recLen[r];
+				continue;
+			}
 			let lo = 0;
 			let hi = sorted.length;
 			while (lo < hi) {
 				const mid = lo + hi >>> 1;
-				if (sorted[mid] < record.i) lo = mid + 1;
+				if (sorted[mid] < docIdx) lo = mid + 1;
 				else hi = mid;
 			}
-			record.i -= lo;
+			recDoc[w] = docIdx - lo;
+			if (w !== r) {
+				recKind[w] = recKind[r];
+				recStart[w] = recStart[r];
+				recLen[w] = recLen[r];
+			}
+			w += 1;
 		}
+		this._recCount = w;
+		if (this._entDead > this._entCount - this._entDead) this._compact();
 	}
 	getValueForItemAtKeyId(item, keyId) {
 		return item[this._keysMap[keyId]];
 	}
 	size() {
-		return this.records.length;
+		return this._recCount;
 	}
-	_createStringRecord(doc, docIndex) {
-		if (!isDefined(doc) || isBlank(doc)) return null;
+	_keyRange(r, keyIdx) {
+		let start = this._recStart[r];
+		const end = start + this._recLen[r];
+		while (start < end && this._entKey[start] < keyIdx) start += 1;
+		let stop = start;
+		while (stop < end && this._entKey[stop] === keyIdx) stop += 1;
+		return [start, stop];
+	}
+	_forEachText(r, fn) {
+		const start = this._recStart[r];
+		const end = start + this._recLen[r];
+		for (let e = start; e < end; e += 1) if (this._entIdx[e] !== -2) fn(this._entValue[e]);
+	}
+	toJSON() {
 		return {
-			v: doc,
-			i: docIndex,
-			n: this.norm.get(doc)
+			keys: this.keys.map(({ getFn, ...key }) => key),
+			records: this._materializeAll()
 		};
 	}
-	_createObjectRecord(doc, docIndex) {
-		const record = {
-			i: docIndex,
-			$: {}
+	_materializeAll() {
+		const records = new Array(this._recCount);
+		for (let r = 0; r < this._recCount; r += 1) records[r] = this._materialize(r);
+		return records;
+	}
+	_materialize(r) {
+		const start = this._recStart[r];
+		if (this._recKind[r] === 0) return {
+			v: this._entValue[start],
+			i: this._recDoc[r],
+			n: this._normValues[this._entNormId[start]]
 		};
+		return {
+			i: this._recDoc[r],
+			$: this._materializeFields(r)
+		};
+	}
+	_materializeFields(r) {
+		const fields = {};
+		const start = this._recStart[r];
+		const end = start + this._recLen[r];
+		for (let e = start; e < end; e += 1) {
+			const key = this._entKey[e];
+			const pos = this._entIdx[e];
+			if (pos === -1) fields[key] = {
+				v: this._entValue[e],
+				n: this._normValues[this._entNormId[e]]
+			};
+			else {
+				let list = fields[key];
+				if (!list) {
+					list = [];
+					fields[key] = list;
+				}
+				if (pos !== -2) list.push({
+					v: this._entValue[e],
+					i: pos,
+					n: this._normValues[this._entNormId[e]]
+				});
+			}
+		}
+		return fields;
+	}
+	_addString(doc, docIndex) {
+		if (!isDefined(doc) || isBlank(doc)) return false;
+		this._beginRecord(docIndex, 0);
+		this._pushEntry(0, -1, this.norm.get(doc), doc);
+		this._endRecord();
+		return true;
+	}
+	_addObject(doc, docIndex) {
+		this._beginRecord(docIndex, 1);
 		for (let keyIndex = 0, keyLen = this.keys.length; keyIndex < keyLen; keyIndex++) {
 			const key = this.keys[keyIndex];
 			const value = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
 			if (!isDefined(value)) continue;
 			if (isArray(value)) {
-				const subRecords = [];
+				const before = this._entCount;
 				for (let i = 0, len = value.length; i < len; i += 1) {
 					const item = value[i];
 					if (!isDefined(item)) continue;
 					if (isString(item)) {
-						if (!isBlank(item)) {
-							const subRecord = {
-								v: item,
-								i,
-								n: this.norm.get(item)
-							};
-							subRecords.push(subRecord);
-						}
+						if (!isBlank(item)) this._pushEntry(keyIndex, i, this.norm.get(item), item);
 					} else if (isDefined(item.v)) {
 						const text = isString(item.v) ? item.v : toString(item.v);
-						if (!isBlank(text)) {
-							const subRecord = {
-								v: text,
-								i: item.i,
-								n: this.norm.get(text)
-							};
-							subRecords.push(subRecord);
-						}
+						if (!isBlank(text)) this._pushEntry(keyIndex, item.i, this.norm.get(text), text);
 					}
 				}
-				record.$[keyIndex] = subRecords;
-			} else if (isString(value) && !isBlank(value)) {
-				const subRecord = {
-					v: value,
-					n: this.norm.get(value)
-				};
-				record.$[keyIndex] = subRecord;
-			}
+				if (this._entCount === before) this._pushEntry(keyIndex, -2, 0, "");
+			} else if (isString(value) && !isBlank(value)) this._pushEntry(keyIndex, -1, this.norm.get(value), value);
 		}
-		return record;
+		this._endRecord();
 	}
-	toJSON() {
-		return {
-			keys: this.keys.map(({ getFn, ...key }) => key),
-			records: this.records
-		};
+	_appendRecord(record) {
+		if (record.v !== void 0) {
+			this._beginRecord(checkPosition(record.i), 0);
+			this._pushEntry(0, -1, record.n, record.v);
+			this._endRecord();
+			return;
+		}
+		this._beginRecord(checkPosition(record.i), 1);
+		const fields = record.$ || {};
+		for (const k in fields) {
+			const key = checkPosition(+k);
+			const value = fields[key];
+			if (!isDefined(value)) continue;
+			if (isArray(value)) {
+				if (!value.length) this._pushEntry(key, -2, 0, "");
+				for (const sub of value) this._pushEntry(key, checkPosition(sub.i), sub.n, sub.v);
+			} else this._pushEntry(key, -1, value.n, value.v);
+		}
+		this._endRecord();
+	}
+	_reset(expectedRecords, expectedEntries = expectedRecords * 2) {
+		const recCap = Math.max(16, expectedRecords);
+		this._recCount = 0;
+		this._recDoc = new Int32Array(recCap);
+		this._recKind = new Uint8Array(recCap);
+		this._recStart = new Uint32Array(recCap);
+		this._recLen = new Uint32Array(recCap);
+		this._entCount = 0;
+		this._entDead = 0;
+		this._entKey = new Uint32Array(Math.max(64, expectedEntries));
+		this._entIdx = new Int32Array(this._entKey.length);
+		this._entNormId = new Uint32Array(this._entKey.length);
+		this._normValues = [];
+		this._normIds = /* @__PURE__ */ new Map();
+		this._normCache.fill(-1);
+		this._entValue = [];
+	}
+	_beginRecord(docIndex, kind) {
+		if (docIndex > 2147483647) throw new Error(INVALID_DOC_INDEX);
+		if (this._recCount === this._recDoc.length) this._growRecords();
+		const r = this._recCount;
+		this._recDoc[r] = docIndex;
+		this._recKind[r] = kind;
+		this._recStart[r] = this._entCount;
+		this._recLen[r] = 0;
+	}
+	_growRecords() {
+		const cap = Math.max(16, this._recDoc.length * 2);
+		this._recDoc = grow(this._recDoc, new Int32Array(cap));
+		this._recKind = grow(this._recKind, new Uint8Array(cap));
+		this._recStart = grow(this._recStart, new Uint32Array(cap));
+		this._recLen = grow(this._recLen, new Uint32Array(cap));
+	}
+	_growEntries() {
+		const cap = Math.max(64, this._entKey.length * 2);
+		this._entKey = grow(this._entKey, new Uint32Array(cap));
+		this._entIdx = grow(this._entIdx, new Int32Array(cap));
+		this._entNormId = grow(this._entNormId, new Uint32Array(cap));
+	}
+	_endRecord() {
+		const r = this._recCount;
+		this._recLen[r] = this._entCount - this._recStart[r];
+		this._recCount += 1;
+	}
+	_pushEntry(key, pos, norm, value) {
+		if (this._entCount === this._entKey.length) this._growEntries();
+		const e = this._entCount;
+		this._entKey[e] = key;
+		this._entIdx[e] = pos;
+		this._entNormId[e] = this._normIdOf(norm);
+		this._entValue[e] = value;
+		this._entCount += 1;
+	}
+	_normIdOf(norm) {
+		const slot = norm * 1048576 & 1023;
+		let normId = this._normCache[slot];
+		if (normId < 0 || !Object.is(this._normValues[normId], norm)) {
+			const key = Object.is(norm, -0) ? NEGATIVE_ZERO_KEY : norm;
+			let id = this._normIds.get(key);
+			if (id === void 0) {
+				id = this._normValues.length;
+				this._normValues.push(norm);
+				this._normIds.set(key, id);
+			}
+			normId = id;
+			this._normCache[slot] = normId;
+		}
+		return normId;
+	}
+	_removeRecordAt(r) {
+		const n = this._recCount;
+		this._entDead += this._recLen[r];
+		this._recDoc.copyWithin(r, r + 1, n);
+		this._recKind.copyWithin(r, r + 1, n);
+		this._recStart.copyWithin(r, r + 1, n);
+		this._recLen.copyWithin(r, r + 1, n);
+		this._recCount = n - 1;
+		if (this._entDead > this._entCount - this._entDead) this._compact();
+	}
+	_compact() {
+		const live = this._entCount - this._entDead;
+		const cap = Math.max(64, live);
+		const key = new Uint32Array(cap);
+		const idx = new Int32Array(cap);
+		const normId = new Uint32Array(cap);
+		const value = new Array(live);
+		let p = 0;
+		for (let r = 0; r < this._recCount; r += 1) {
+			const start = this._recStart[r];
+			const len = this._recLen[r];
+			key.set(this._entKey.subarray(start, start + len), p);
+			idx.set(this._entIdx.subarray(start, start + len), p);
+			normId.set(this._entNormId.subarray(start, start + len), p);
+			for (let k = 0; k < len; k += 1) value[p + k] = this._entValue[start + k];
+			this._recStart[r] = p;
+			p += len;
+		}
+		this._entKey = key;
+		this._entIdx = idx;
+		this._entNormId = normId;
+		this._entValue = value;
+		this._entCount = p;
+		this._entDead = 0;
+	}
+	_trim() {
+		const rc = Math.max(16, this._recCount);
+		if (this._recDoc.length > rc * 1.25) {
+			this._recDoc = this._recDoc.slice(0, rc);
+			this._recKind = this._recKind.slice(0, rc);
+			this._recStart = this._recStart.slice(0, rc);
+			this._recLen = this._recLen.slice(0, rc);
+		}
+		const ec = Math.max(64, this._entCount);
+		if (this._entKey.length > ec * 1.25) {
+			this._entKey = this._entKey.slice(0, ec);
+			this._entIdx = this._entIdx.slice(0, ec);
+			this._entNormId = this._entNormId.slice(0, ec);
+		}
 	}
 };
+const NEGATIVE_ZERO_KEY = "-0";
+function checkPosition(value) {
+	const n = value;
+	if ((n | 0) !== n || n < 0) throw new Error(INVALID_INDEX_RECORD);
+	return n;
+}
+function estimateEntries(records) {
+	if (!records.length) return 0;
+	const first = records[0];
+	let perRecord = 1;
+	if (first.v === void 0 && first.$) {
+		perRecord = 0;
+		for (const k in first.$) {
+			const value = first.$[+k];
+			perRecord += isArray(value) ? Math.max(1, value.length) : 1;
+		}
+	}
+	return Math.ceil(records.length * Math.max(1, perRecord) * 1.25);
+}
+function grow(from, to) {
+	to.set(from);
+	return to;
+}
 function createIndex$1(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
 	const myIndex = new FuseIndex({
 		getFn,
@@ -391,13 +684,8 @@ function parseIndex(data, { getFn = Config.getFn, fieldNormWeight = Config.field
 		fieldNormWeight
 	});
 	myIndex.setKeys(keys);
-	myIndex.setIndexRecords(copyRecords(records));
+	myIndex.setIndexRecords(records);
 	return myIndex;
-}
-function copyRecords(records) {
-	const copy = new Array(records.length);
-	for (let i = 0, len = records.length; i < len; i += 1) copy[i] = { ...records[i] };
-	return copy;
 }
 
 //#endregion
@@ -1094,32 +1382,40 @@ function ensureDoc(index, docIdx) {
 		index.docFields.push(0);
 	}
 }
-function collectRecord(record, keyCount, analyzer) {
+function collectTexts(forEachText, analyzer) {
 	const hits = /* @__PURE__ */ new Map();
 	let fields = 0;
-	const addField = (text) => {
+	forEachText((text) => {
 		const tokens = analyzer.tokenize(text);
 		if (!tokens.length) return;
 		fields += 1;
 		for (const term of new Set(tokens)) hits.set(term, (hits.get(term) || 0) + 1);
-	};
-	const { v, $: values } = record;
-	if (v !== void 0) addField(v);
-	else if (values) for (let keyIdx = 0; keyIdx < keyCount; keyIdx += 1) {
-		const value = values[keyIdx];
-		if (!value) continue;
-		if (Array.isArray(value)) for (const sub of value) addField(sub.v);
-		else addField(value.v);
-	}
+	});
 	return {
 		fields,
 		hits
 	};
 }
+function recordTexts(record, keyCount) {
+	return (fn) => {
+		const { v, $: values } = record;
+		if (v !== void 0) fn(v);
+		else if (values) for (let keyIdx = 0; keyIdx < keyCount; keyIdx += 1) {
+			const value = values[keyIdx];
+			if (!value) continue;
+			if (Array.isArray(value)) for (const sub of value) fn(sub.v);
+			else fn(value.v);
+		}
+	};
+}
 function ingestRecord(index, record, keyCount, analyzer) {
-	const { fields, hits } = collectRecord(record, keyCount, analyzer);
-	if (!fields) return;
-	const docIdx = record.i;
+	ingest(index, record.i, recordTexts(record, keyCount), analyzer);
+}
+function ingest(index, docIdx, forEachText, analyzer) {
+	const { fields, hits } = collectTexts(forEachText, analyzer);
+	if (fields) record(index, docIdx, fields, hits);
+}
+function record(index, docIdx, fields, hits) {
 	ensureDoc(index, docIdx);
 	index.fieldCount += fields;
 	reservePool(index, hits.size * 2);
@@ -1192,9 +1488,25 @@ function compactPool(index) {
 	index.poolLen = p;
 	index.deadSlots = 0;
 }
-function buildInvertedIndex(records, keyCount, analyzer) {
+function buildInvertedIndexFromColumns(source, keyCount, analyzer) {
 	const index = createIndex();
-	for (const record of records) ingestRecord(index, record, keyCount, analyzer);
+	const hits = /* @__PURE__ */ new Map();
+	for (let r = 0, n = source.size(); r < n; r += 1) {
+		hits.clear();
+		let fields = 0;
+		const start = source._recStart[r];
+		const end = start + source._recLen[r];
+		const isString = source._recKind[r] === 0;
+		for (let e = start; e < end; e += 1) {
+			if (source._entIdx[e] === -2) continue;
+			if (!isString && source._entKey[e] >= keyCount) continue;
+			const tokens = analyzer.tokenize(source._entValue[e]);
+			if (!tokens.length) continue;
+			fields += 1;
+			for (const term of new Set(tokens)) hits.set(term, (hits.get(term) || 0) + 1);
+		}
+		if (fields) record(index, source._recDoc[r], fields, hits);
+	}
 	if (index.pool.length > index.poolLen + 1024) index.pool = index.pool.slice(0, index.poolLen + 1024);
 	return index;
 }
@@ -1262,7 +1574,7 @@ var Fuse = class {
 				ignoreDiacritics: this.options.ignoreDiacritics,
 				tokenize: this.options.tokenize
 			});
-			this._invertedIndex = buildInvertedIndex(this._myIndex.records, this._myIndex.keys.length, analyzer);
+			this._invertedIndex = buildInvertedIndexFromColumns(this._myIndex, this._myIndex.keys.length, analyzer);
 		}
 		this._invalidateSearcherCache();
 	}
@@ -1363,16 +1675,26 @@ var Fuse = class {
 	_searchStringList(query, { heap, ignoreFieldNorm } = {}) {
 		const searcher = this._getSearcher(query);
 		const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === "all";
-		const { records } = this._myIndex;
+		const index = this._myIndex;
+		const recCount = index.size();
+		const recKind = index._recKind;
+		const recDoc = index._recDoc;
+		const recStart = index._recStart;
+		const entValue = index._entValue;
+		const normValues = index._normValues;
+		const entNormId = index._entNormId;
 		const results = heap ? null : [];
-		records.forEach(({ v: text, i: idx, n: norm }) => {
-			if (!isDefined(text)) return;
+		for (let r = 0; r < recCount; r += 1) {
+			if (recKind[r] !== 0) continue;
+			const e = recStart[r];
+			const text = entValue[e];
+			const idx = recDoc[r];
 			const searchResult = searcher.searchIn(text);
 			if (searchResult.isMatch) {
 				const match = {
 					score: searchResult.score,
 					value: text,
-					norm,
+					norm: normValues[entNormId[e]],
 					indices: searchResult.indices
 				};
 				if (requireAllTokens) {
@@ -1393,7 +1715,7 @@ var Fuse = class {
 					} else results.push(result);
 				}
 			}
-		});
+		}
 		return results;
 	}
 	_searchLogical(query) {
@@ -1402,30 +1724,40 @@ var Fuse = class {
 	_searchObjectList(query, { heap, ignoreFieldNorm } = {}) {
 		const searcher = this._getSearcher(query);
 		const requireAllTokens = this.options.useTokenSearch && this.options.tokenMatch === "all";
-		const { records } = this._myIndex;
+		const index = this._myIndex;
+		const recCount = index.size();
+		const recKind = index._recKind;
+		const recDoc = index._recDoc;
+		const recStart = index._recStart;
+		const recLen = index._recLen;
+		const entKey = index._entKey;
 		const keys = this._normalizedKeys();
+		const keyCount = keys.length;
+		const needItem = this.options.sortFn !== Config.sortFn;
 		const results = heap ? null : [];
-		records.forEach(({ $: item, i: idx }) => {
-			if (!isDefined(item)) return;
+		for (let r = 0; r < recCount; r += 1) {
+			if (recKind[r] !== 1) continue;
 			const matches = [];
 			let anyKeyFailed = false;
 			let hasInverse = false;
-			keys.forEach((key, keyIndex) => {
-				const keyMatches = this._findMatches({
-					key,
-					value: item[keyIndex],
-					searcher
-				});
+			let cursor = recStart[r];
+			const end = cursor + recLen[r];
+			for (let keyIndex = 0; keyIndex < keyCount; keyIndex += 1) {
+				while (cursor < end && entKey[cursor] < keyIndex) cursor += 1;
+				let stop = cursor;
+				while (stop < end && entKey[stop] === keyIndex) stop += 1;
+				const keyMatches = this._findMatches(keys[keyIndex], cursor, stop, searcher);
+				cursor = stop;
 				if (keyMatches.length) {
 					matches.push(...keyMatches);
 					if (keyMatches[0].hasInverse) hasInverse = true;
 				} else anyKeyFailed = true;
-			});
-			if (hasInverse && anyKeyFailed) return;
+			}
+			if (hasInverse && anyKeyFailed) continue;
 			if (matches.length && (!requireAllTokens || this._coversAllTokens(matches))) {
 				const result = {
-					idx,
-					item,
+					idx: recDoc[r],
+					item: needItem ? index._materializeFields(r) : void 0,
 					matches
 				};
 				if (heap) {
@@ -1433,25 +1765,32 @@ var Fuse = class {
 					heap.insert(result);
 				} else results.push(result);
 			}
-		});
+		}
 		return results;
 	}
-	_findMatches({ key, value, searcher }) {
-		if (!isDefined(value)) return [];
+	_findMatches(key, start, end, searcher) {
+		if (start === end) return [];
+		const index = this._myIndex;
+		const entIdx = index._entIdx;
+		const pos = entIdx[start];
+		if (pos === -2) return [];
+		const entValue = index._entValue;
+		const normValues = index._normValues;
+		const entNormId = index._entNormId;
 		const matches = [];
-		if (isArray(value)) {
+		if (pos !== -1) {
 			let anyElementFailed = false;
 			let hasInverse = false;
-			value.forEach(({ v: text, i: idx, n: norm }) => {
-				if (!isDefined(text)) return;
+			for (let e = start; e < end; e += 1) {
+				const text = entValue[e];
 				const searchResult = searcher.searchIn(text);
 				if (searchResult.isMatch) {
 					const match = {
 						score: searchResult.score,
 						key,
 						value: text,
-						idx,
-						norm,
+						idx: entIdx[e],
+						norm: normValues[entNormId[e]],
 						indices: searchResult.indices,
 						hasInverse: searchResult.hasInverse
 					};
@@ -1463,17 +1802,17 @@ var Fuse = class {
 					matches.push(match);
 					hasInverse || (hasInverse = !!searchResult.hasInverse);
 				} else anyElementFailed = true;
-			});
+			}
 			if (hasInverse && anyElementFailed) return [];
 		} else {
-			const { v: text, n: norm } = value;
+			const text = entValue[start];
 			const searchResult = searcher.searchIn(text);
 			if (searchResult.isMatch) {
 				const match = {
 					score: searchResult.score,
 					key,
 					value: text,
-					norm,
+					norm: normValues[entNormId[start]],
 					indices: searchResult.indices,
 					hasInverse: searchResult.hasInverse
 				};

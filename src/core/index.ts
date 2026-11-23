@@ -1,6 +1,12 @@
-import { isArray, isDefined, isString, isNumber } from '../helpers/typeGuards'
+import { isDefined, isString, isNumber } from '../helpers/typeGuards'
 import KeyStore from '../tools/KeyStore'
-import FuseIndex, { createIndex } from '../tools/FuseIndex'
+import FuseIndex, {
+  createIndex,
+  STRING_RECORD,
+  OBJECT_RECORD,
+  SCALAR,
+  EMPTY_ARRAY
+} from '../tools/FuseIndex'
 import {
   LogicalOperator,
   parse,
@@ -17,7 +23,7 @@ import * as ErrorMsg from './errorMessages'
 import { createAnalyzer } from '../search/token/analyzer'
 import { MAX_MASK_TERMS } from '../search/token'
 import {
-  buildInvertedIndex,
+  buildInvertedIndexFromColumns,
   addToInvertedIndex,
   removeAndShiftInvertedIndex
 } from '../search/token/InvertedIndex'
@@ -31,8 +37,7 @@ import type {
   FuseSearchOptions,
   FuseResult,
   Expression,
-  KeyObject,
-  SubRecord
+  KeyObject
 } from '../types'
 
 interface HeapSearchOptions {
@@ -131,8 +136,8 @@ export default class Fuse<T> {
         ignoreDiacritics: this.options.ignoreDiacritics,
         tokenize: this.options.tokenize
       })
-      this._invertedIndex = buildInvertedIndex(
-        this._myIndex.records,
+      this._invertedIndex = buildInvertedIndexFromColumns(
+        this._myIndex,
         this._myIndex.keys.length,
         analyzer
       )
@@ -327,22 +332,33 @@ export default class Fuse<T> {
     const searcher = this._getSearcher(query)
     const requireAllTokens =
       this.options.useTokenSearch && this.options.tokenMatch === 'all'
-    const { records } = this._myIndex
+    const index = this._myIndex
+    const recCount = index.size()
+    const recKind = index._recKind
+    const recDoc = index._recDoc
+    const recStart = index._recStart
+    const entValue = index._entValue
+    const normValues = index._normValues
+    const entNormId = index._entNormId
     const results: InternalResult[] | null = heap ? null : []
 
     // Iterate over every string in the index
-    records.forEach(({ v: text, i: idx, n: norm }) => {
-      if (!isDefined(text)) {
-        return
+    for (let r = 0; r < recCount; r += 1) {
+      // Object records have no text of their own (only in parsed indexes).
+      if (recKind[r] !== STRING_RECORD) {
+        continue
       }
 
+      const e = recStart[r]
+      const text = entValue[e]
+      const idx = recDoc[r]
       const searchResult = searcher.searchIn(text)
 
       if (searchResult.isMatch) {
         const match: MatchScore = {
           score: searchResult.score,
           value: text,
-          norm: norm!,
+          norm: normValues[entNormId[e]],
           indices: searchResult.indices
         }
         if (requireAllTokens) {
@@ -367,7 +383,7 @@ export default class Fuse<T> {
           }
         }
       }
-    })
+    }
 
     return results
   }
@@ -386,9 +402,14 @@ export default class Fuse<T> {
     // scores consistent with string and keyed queries.
     const keys = this._normalizedKeys()
 
+    const index = this._myIndex
+    // A custom sortFn sees each result's `item` (the record's fields in the
+    // record format), so build it only when one is set.
+    const needItem = this.options.sortFn !== Config.sortFn
+
     const evaluate = (
       node: ParsedNode,
-      item: any,
+      r: number,
       idx: number
     ): InternalResult[] => {
       if (!('children' in node)) {
@@ -402,11 +423,8 @@ export default class Fuse<T> {
           let anyKeyFailed = false
           let hasInverse = false
           keys.forEach((key, keyIndex) => {
-            const keyMatches = this._findMatches({
-              key,
-              value: item[keyIndex],
-              searcher: searcher!
-            })
+            const [start, end] = index._keyRange(r, keyIndex)
+            const keyMatches = this._findMatches(key, start, end, searcher!)
             if (keyMatches.length) {
               matches.push(...keyMatches)
               hasInverse ||= !!keyMatches[0].hasInverse
@@ -420,11 +438,15 @@ export default class Fuse<T> {
             return []
           }
         } else {
-          matches = this._findMatches({
-            key: this._keyStore.get(keyId),
-            value: this._myIndex.getValueForItemAtKeyId(item, keyId),
-            searcher: searcher!
-          })
+          const keyIndex = index._keysMap[keyId]
+          const [start, end] =
+            keyIndex === undefined ? [0, 0] : index._keyRange(r, keyIndex)
+          matches = this._findMatches(
+            this._keyStore.get(keyId),
+            start,
+            end,
+            searcher!
+          )
         }
 
         // Each token leaf has its own query terms. Check coverage before
@@ -438,7 +460,7 @@ export default class Fuse<T> {
           return [
             {
               idx,
-              item,
+              item: undefined,
               matches
             }
           ]
@@ -451,7 +473,7 @@ export default class Fuse<T> {
       const res: InternalResult[] = []
       for (let i = 0, len = children.length; i < len; i += 1) {
         const child = children[i]
-        const result = evaluate(child, item, idx)
+        const result = evaluate(child, r, idx)
         if (result.length) {
           res.push(...result)
         } else if (operator === LogicalOperator.AND) {
@@ -461,26 +483,32 @@ export default class Fuse<T> {
       return res
     }
 
-    const records = this._myIndex.records
     const resultMap = new Map<number, InternalResult>()
     const results: InternalResult[] = []
 
-    records.forEach(({ $: item, i: idx }) => {
-      if (isDefined(item)) {
-        const expResults = evaluate(expression, item, idx)
-
-        if (expResults.length) {
-          // Dedupe when adding
-          if (!resultMap.has(idx)) {
-            resultMap.set(idx, { idx, item, matches: [] })
-            results.push(resultMap.get(idx)!)
-          }
-          expResults.forEach(({ matches }) => {
-            resultMap.get(idx)!.matches.push(...matches)
-          })
-        }
+    for (let r = 0, n = index.size(); r < n; r += 1) {
+      // String records have no fields (only in parsed indexes).
+      if (index._recKind[r] !== OBJECT_RECORD) {
+        continue
       }
-    })
+      const idx = index._recDoc[r]
+      const expResults = evaluate(expression, r, idx)
+
+      if (expResults.length) {
+        // Dedupe when adding
+        if (!resultMap.has(idx)) {
+          resultMap.set(idx, {
+            idx,
+            item: needItem ? index._materializeFields(r) : undefined,
+            matches: []
+          })
+          results.push(resultMap.get(idx)!)
+        }
+        expResults.forEach(({ matches }) => {
+          resultMap.get(idx)!.matches.push(...matches)
+        })
+      }
+    }
 
     return results
   }
@@ -500,27 +528,48 @@ export default class Fuse<T> {
     const searcher = this._getSearcher(query)
     const requireAllTokens =
       this.options.useTokenSearch && this.options.tokenMatch === 'all'
-    const { records } = this._myIndex
+    const index = this._myIndex
+    const recCount = index.size()
+    const recKind = index._recKind
+    const recDoc = index._recDoc
+    const recStart = index._recStart
+    const recLen = index._recLen
+    const entKey = index._entKey
     const keys = this._normalizedKeys()
+    const keyCount = keys.length
+    // A custom sortFn sees each result's `item` (the record's fields in the
+    // record format), so build it only when one is set.
+    const needItem = this.options.sortFn !== Config.sortFn
     const results: InternalResult[] | null = heap ? null : []
 
     // List is Array<Object>
-    records.forEach(({ $: item, i: idx }) => {
-      if (!isDefined(item)) {
-        return
+    for (let r = 0; r < recCount; r += 1) {
+      // String records have no fields (only in parsed indexes).
+      if (recKind[r] !== OBJECT_RECORD) {
+        continue
       }
 
       const matches: MatchScore[] = []
       let anyKeyFailed = false
       let hasInverse = false
 
-      // Iterate over every key (i.e, path), and fetch the value at that key
-      keys.forEach((key, keyIndex) => {
-        const keyMatches = this._findMatches({
-          key,
-          value: item[keyIndex],
+      // Visit every key (i.e, path), including keys with no entries, which
+      // count as failed keys for inverse aggregation. Entries are in key
+      // order, so one cursor walks them.
+      let cursor = recStart[r]
+      const end = cursor + recLen[r]
+      for (let keyIndex = 0; keyIndex < keyCount; keyIndex += 1) {
+        while (cursor < end && entKey[cursor] < keyIndex) cursor += 1
+        let stop = cursor
+        while (stop < end && entKey[stop] === keyIndex) stop += 1
+
+        const keyMatches = this._findMatches(
+          keys[keyIndex],
+          cursor,
+          stop,
           searcher
-        })
+        )
+        cursor = stop
 
         if (keyMatches.length) {
           matches.push(...keyMatches)
@@ -530,11 +579,11 @@ export default class Fuse<T> {
         } else {
           anyKeyFailed = true
         }
-      })
+      }
 
       // If the search involves inverse patterns, ALL keys must match
       if (hasInverse && anyKeyFailed) {
-        return
+        continue
       }
 
       // Record-level AND gate (token search `tokenMatch: 'all'`): every query
@@ -544,7 +593,11 @@ export default class Fuse<T> {
         matches.length &&
         (!requireAllTokens || this._coversAllTokens(matches))
       ) {
-        const result: InternalResult = { idx, item, matches }
+        const result: InternalResult = {
+          idx: recDoc[r],
+          item: needItem ? index._materializeFields(r) : undefined,
+          matches
+        }
 
         if (heap) {
           result.score = computeScoreSingle(result.matches, { ignoreFieldNorm })
@@ -553,33 +606,41 @@ export default class Fuse<T> {
           results!.push(result)
         }
       }
-    })
+    }
 
     return results
   }
-  _findMatches({
-    key,
-    value,
-    searcher
-  }: {
-    key: KeyObject | null
-    value: SubRecord | SubRecord[] | undefined
+  // Matches for one key of a record: the entries [start, end) of that key.
+  // No entries means the key is absent; the EMPTY_ARRAY sentinel is a present
+  // array with no items. Both produce no matches, as before.
+  _findMatches(
+    key: KeyObject | null,
+    start: number,
+    end: number,
     searcher: Searcher
-  }): MatchScore[] {
-    if (!isDefined(value)) {
+  ): MatchScore[] {
+    if (start === end) {
       return []
     }
 
+    const index = this._myIndex
+    const entIdx = index._entIdx
+    const pos = entIdx[start]
+
+    if (pos === EMPTY_ARRAY) {
+      return []
+    }
+
+    const entValue = index._entValue
+    const normValues = index._normValues
+    const entNormId = index._entNormId
     const matches: MatchScore[] = []
 
-    if (isArray(value)) {
+    if (pos !== SCALAR) {
       let anyElementFailed = false
       let hasInverse = false
-      value.forEach(({ v: text, i: idx, n: norm }: SubRecord) => {
-        if (!isDefined(text)) {
-          return
-        }
-
+      for (let e = start; e < end; e += 1) {
+        const text = entValue[e]
         const searchResult = searcher.searchIn(text)
 
         if (searchResult.isMatch) {
@@ -587,8 +648,8 @@ export default class Fuse<T> {
             score: searchResult.score,
             key,
             value: text,
-            idx,
-            norm,
+            idx: entIdx[e],
+            norm: normValues[entNormId[e]],
             indices: searchResult.indices,
             hasInverse: searchResult.hasInverse
           }
@@ -604,15 +665,14 @@ export default class Fuse<T> {
         } else {
           anyElementFailed = true
         }
-      })
+      }
       // Mirror cross-key inverse aggregation: a matching sibling must not
       // hide an excluded array element. Positive searches still match any.
       if (hasInverse && anyElementFailed) {
         return []
       }
     } else {
-      const { v: text, n: norm } = value
-
+      const text = entValue[start]
       const searchResult = searcher.searchIn(text)
 
       if (searchResult.isMatch) {
@@ -620,7 +680,7 @@ export default class Fuse<T> {
           score: searchResult.score,
           key,
           value: text,
-          norm,
+          norm: normValues[entNormId[start]],
           indices: searchResult.indices,
           hasInverse: searchResult.hasInverse
         }

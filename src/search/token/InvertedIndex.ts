@@ -1,5 +1,7 @@
 import type { Analyzer } from './analyzer'
 import type { IndexRecord, SubRecord } from '../../types'
+import type FuseIndex from '../../tools/FuseIndex'
+import { STRING_RECORD, EMPTY_ARRAY } from '../../tools/FuseIndex'
 
 // Stats-only inverted index for token search.
 //
@@ -112,15 +114,17 @@ function ensureDoc(index: InvertedIndexData, docIdx: number): void {
 
 // Tokenize every field of a record and return its contribution: the number
 // of non-empty fields, and per term the number of fields containing it.
-function collectRecord(
-  record: IndexRecord,
-  keyCount: number,
+// Tokenizes each text a record contributes (supplied by `forEachText`) and
+// returns its contribution: the number of non-empty fields, and per term the
+// number of fields containing it.
+function collectTexts(
+  forEachText: (fn: (text: string) => void) => void,
   analyzer: Analyzer
 ): { fields: number; hits: Map<string, number> } {
   const hits = new Map<string, number>()
   let fields = 0
 
-  const addField = (text: string): void => {
+  forEachText((text: string): void => {
     const tokens = analyzer.tokenize(text)
     if (!tokens.length) return
     fields += 1
@@ -128,24 +132,32 @@ function collectRecord(
     for (const term of new Set(tokens)) {
       hits.set(term, (hits.get(term) || 0) + 1)
     }
-  }
+  })
 
-  const { v, $: values } = record
-  if (v !== undefined) {
-    addField(v)
-  } else if (values) {
-    for (let keyIdx = 0; keyIdx < keyCount; keyIdx += 1) {
-      const value = values[keyIdx] as SubRecord | SubRecord[] | undefined
-      if (!value) continue
-      if (Array.isArray(value)) {
-        for (const sub of value) addField(sub.v)
-      } else {
-        addField(value.v)
+  return { fields, hits }
+}
+
+// The texts of a record in the record format, for keys below keyCount.
+function recordTexts(
+  record: IndexRecord,
+  keyCount: number
+): (fn: (text: string) => void) => void {
+  return (fn) => {
+    const { v, $: values } = record
+    if (v !== undefined) {
+      fn(v)
+    } else if (values) {
+      for (let keyIdx = 0; keyIdx < keyCount; keyIdx += 1) {
+        const value = values[keyIdx] as SubRecord | SubRecord[] | undefined
+        if (!value) continue
+        if (Array.isArray(value)) {
+          for (const sub of value) fn(sub.v)
+        } else {
+          fn(value.v)
+        }
       }
     }
   }
-
-  return { fields, hits }
 }
 
 function ingestRecord(
@@ -154,10 +166,27 @@ function ingestRecord(
   keyCount: number,
   analyzer: Analyzer
 ): void {
-  const { fields, hits } = collectRecord(record, keyCount, analyzer)
-  if (!fields) return
+  ingest(index, record.i, recordTexts(record, keyCount), analyzer)
+}
 
-  const docIdx = record.i
+function ingest(
+  index: InvertedIndexData,
+  docIdx: number,
+  forEachText: (fn: (text: string) => void) => void,
+  analyzer: Analyzer
+): void {
+  const { fields, hits } = collectTexts(forEachText, analyzer)
+  if (fields) record(index, docIdx, fields, hits)
+}
+
+// Stores one document's contribution (fields and per-term hit counts) in the
+// ledger and adds it to the statistics.
+function record(
+  index: InvertedIndexData,
+  docIdx: number,
+  fields: number,
+  hits: Map<string, number>
+): void {
   ensureDoc(index, docIdx)
   index.fieldCount += fields
 
@@ -252,6 +281,43 @@ function compactPool(index: InvertedIndexData): void {
   index.pool = next
   index.poolLen = p
   index.deadSlots = 0
+}
+
+// Builds the index straight from a columnar FuseIndex, without going
+// through the record format or allocating per-record closures. Skips the
+// empty-array sentinel (it carries no text and must never reach the
+// tokenizer, which may legally return tokens for '') and, as for records,
+// fields of keys at or beyond keyCount.
+export function buildInvertedIndexFromColumns(
+  source: FuseIndex,
+  keyCount: number,
+  analyzer: Analyzer
+): InvertedIndexData {
+  const index = createIndex()
+  const hits = new Map<string, number>()
+  for (let r = 0, n = source.size(); r < n; r += 1) {
+    hits.clear()
+    let fields = 0
+    const start = source._recStart[r]
+    const end = start + source._recLen[r]
+    const isString = source._recKind[r] === STRING_RECORD
+    for (let e = start; e < end; e += 1) {
+      if (source._entIdx[e] === EMPTY_ARRAY) continue
+      if (!isString && source._entKey[e] >= keyCount) continue
+      const tokens = analyzer.tokenize(source._entValue[e])
+      if (!tokens.length) continue
+      fields += 1
+      // Each (doc, term, field) counts once; repeats within a field don't.
+      for (const term of new Set(tokens)) {
+        hits.set(term, (hits.get(term) || 0) + 1)
+      }
+    }
+    if (fields) record(index, source._recDoc[r], fields, hits)
+  }
+  if (index.pool.length > index.poolLen + 1024) {
+    index.pool = index.pool.slice(0, index.poolLen + 1024)
+  }
+  return index
 }
 
 export function buildInvertedIndex(

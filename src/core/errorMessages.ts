@@ -6,6 +6,9 @@ export const TOKEN_SEARCH_UNAVAILABLE = 'Token search is not available'
 
 export const INCORRECT_INDEX_TYPE = "Incorrect 'index' type"
 
+export const INVALID_INDEX_RECORD =
+  'Invalid index record: document indexes, field keys and array positions must be non-negative integers below 2^31'
+
 export const INVALID_DOC_INDEX =
   'Invalid doc index: must be a non-negative integer within the bounds of the docs array'
 
