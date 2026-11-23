@@ -9,6 +9,8 @@
 
 Fuse.js is a lightweight, zero-dependency fuzzy-search library written in TypeScript. It works in the browser and on the server, and is designed for searching small-to-medium datasets on the client side where you can't rely on a dedicated search backend.
 
+> **Try the 7.6 beta.** Fuzzy search is 3.5 to 11 times faster and indexes use up to 10 times less memory, with the same results. `npm install fuse.js@beta`, and tell me how it goes in [#869](https://github.com/krisk/Fuse/discussions/869).
+
 ## ✨ What's New: Token Search
 
 Multi-word fuzzy search with relevance ranking. Type `"javascrpt paterns"` and find `"JavaScript Patterns"` — typo tolerance, multiple words, and smart ranking all at once.

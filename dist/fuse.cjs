@@ -1,5 +1,5 @@
 /**
- * Fuse.js v7.6.0-beta.4 - Lightweight fuzzy-search (https://www.fusejs.io)
+ * Fuse.js v7.6.0-beta.5 - Lightweight fuzzy-search (https://www.fusejs.io)
  *
  * Copyright (c) 2026 Kiro Risk
  * All Rights Reserved. Apache Software License 2.0
@@ -2435,7 +2435,7 @@ function compileObjectLeaf(fieldValue, keyPath, options) {
 
 //#endregion
 //#region src/entry.ts
-Fuse.version = "7.6.0-beta.4";
+Fuse.version = "7.6.0-beta.5";
 Fuse.createIndex = createIndex$1;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;

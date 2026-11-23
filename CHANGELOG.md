@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.5](https://github.com/krisk/Fuse/compare/v7.6.0-beta.4...v7.6.0-beta.5) (2026-11-23)
+
+
+### Performance Improvements
+
+* **index:** store index records in columns ([3a38d56](https://github.com/krisk/Fuse/commit/3a38d56f))
+* **token:** store the inverted index's removal ledger compactly ([e587382](https://github.com/krisk/Fuse/commit/e5873820))
+* normalize text once in TokenSearch and hole-sift MaxHeap ([3b9d9ea](https://github.com/krisk/Fuse/commit/3b9d9eae)), closes [#868](https://github.com/krisk/Fuse/issues/868), thanks to @maccarlton25
+
+### Performance
+
+The index now stores records in typed-array columns instead of one object per record and per field value, and token search keeps its per-document bookkeeping in packed integers. Measured against 7.6.0-beta.4 on the repository benchmarks (seeded data, alternating runs, medians), index memory at 100k items:
+
+| Index | 7.6.0-beta.4 | 7.6.0-beta.5 | Change |
+|---|---|---|---|
+| Objects | 69.6 MB | 12.0 MB | 5.8x smaller |
+| Objects with token search | 225 MB | 23.8 MB | 9.5x smaller |
+| Strings | 7.2 MB | 3.4 MB | 2.1x smaller |
+| Strings with token search | 52.8 MB | 8.3 MB | 6.4x smaller |
+
+Building a token-search index is 13-18% faster. Search speed is unchanged, and results, scores and `toJSON()` output are identical.
+
+Two paths got slower: loading a saved index with `Fuse.parseIndex` (about 14 ms more per 100k objects, since records are converted into columns) and building an index over plain strings (about 0.7 ms more at 100k). The saved index format didn't change, so indexes saved by any 7.x version still load.
+
+### Behavior changes
+
+* **`FuseIndex.records` is deprecated** and will be removed in v8. It now returns a fresh, detached copy of the records on each access, so writing to it no longer affects search. Development builds warn once. Use `toJSON()` to serialize an index.
+* `toJSON()` and `add()` return new objects instead of the index's own records, and records passed to `setIndexRecords()` or assigned to `records` are copied in. Mutating them afterwards doesn't change the index.
+* `Fuse.parseIndex()` and `setIndexRecords()` reject records whose document indexes, field keys or array positions aren't integers from 0 to 2^31 - 1, instead of storing corrupted values.
+
 ## [7.6.0-beta.4](https://github.com/krisk/Fuse/compare/v7.6.0-beta.3...v7.6.0-beta.4) (2026-11-23)
 
 
