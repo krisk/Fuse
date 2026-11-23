@@ -387,11 +387,22 @@ declare class MaxHeap {
 }
 //#endregion
 //#region src/search/token/InvertedIndex.d.ts
+interface TermInfo {
+  id: number;
+  term: string;
+  df: number;
+}
 interface InvertedIndexData {
   fieldCount: number;
-  df: Map<string, number>;
-  docFieldCount: Map<number, number>;
-  docTermFieldHits: Map<number, Map<string, number>>;
+  termInfo: Map<string, TermInfo>;
+  termsById: TermInfo[];
+  readonly df: Map<string, number>;
+  pool: Uint32Array;
+  poolLen: number;
+  deadSlots: number;
+  docStart: number[];
+  docLen: number[];
+  docFields: number[];
 }
 //#endregion
 //#region src/core/index.d.ts

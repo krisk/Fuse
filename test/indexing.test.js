@@ -1,6 +1,16 @@
 import Fuse from '../dist/fuse.mjs'
 import Books from './fixtures/books.json' assert { type: 'json' }
 
+// The removal ledger's per-doc state, independent of pool layout.
+const ledgerOf = (index) =>
+  index.docFields.map((fields, d) => [
+    fields,
+    Array.from(
+      { length: index.docLen[d] },
+      (_, k) => index.pool[index.docStart[d] + k]
+    )
+  ])
+
 const idx = (result) => result.map((obj) => obj.refIndex)
 const idxMap = (fuse) => fuse.getIndex().records.map((item) => [item.v, item.i])
 
@@ -335,10 +345,8 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
 
     // Inverted-index per-doc maps must have shifted from old doc-index 2 to new doc-index 1.
     const inverted = fuse._invertedIndex
-    expect(inverted.docFieldCount.has(2)).toBe(false)
-    expect(inverted.docFieldCount.has(1)).toBe(true)
-    expect(inverted.docTermFieldHits.has(2)).toBe(false)
-    expect(inverted.docTermFieldHits.has(1)).toBe(true)
+    expect(inverted.docFields[2] || 0).toBe(0)
+    expect(inverted.docFields[1]).toBeGreaterThan(0)
 
     // df for "apple" / "pie" was decremented to 0 and removed.
     expect(inverted.df.has('apple')).toBe(false)
@@ -408,16 +416,14 @@ describe('Fuse<string> blank-doc alignment (Plan 013)', () => {
 
     const fieldCountBefore = fuse._invertedIndex.fieldCount
     const dfBefore = new Map(fuse._invertedIndex.df)
-    const docFieldCountBefore = new Map(fuse._invertedIndex.docFieldCount)
-    const docTermFieldHitsBefore = new Map(fuse._invertedIndex.docTermFieldHits)
+    const ledgerBefore = JSON.stringify(ledgerOf(fuse._invertedIndex))
 
     expect(() => fuse.removeAt(-1)).toThrow()
 
     // The guard must fire before removeAndShiftInvertedIndex is called.
     expect(fuse._invertedIndex.fieldCount).toBe(fieldCountBefore)
     expect(fuse._invertedIndex.df).toEqual(dfBefore)
-    expect(fuse._invertedIndex.docFieldCount).toEqual(docFieldCountBefore)
-    expect(fuse._invertedIndex.docTermFieldHits).toEqual(docTermFieldHitsBefore)
+    expect(JSON.stringify(ledgerOf(fuse._invertedIndex))).toBe(ledgerBefore)
   })
 
   test('FuseIndex.removeAt (direct call) rejects invalid indices', () => {

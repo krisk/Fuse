@@ -374,7 +374,7 @@ var FuseIndex = class FuseIndex {
 		};
 	}
 };
-function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+function createIndex$1(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
 	const myIndex = new FuseIndex({
 		getFn,
 		fieldNormWeight
@@ -1042,84 +1042,181 @@ function createAnalyzer({ isCaseSensitive = false, ignoreDiacritics = false, tok
 
 //#endregion
 //#region src/search/token/InvertedIndex.ts
-function addField(index, text, docIdx, analyzer) {
-	const tokens = analyzer.tokenize(text);
-	if (!tokens.length) return;
-	index.fieldCount++;
-	index.docFieldCount.set(docIdx, (index.docFieldCount.get(docIdx) || 0) + 1);
-	const distinctTerms = new Set(tokens);
-	let perDocTerms = index.docTermFieldHits.get(docIdx);
-	if (!perDocTerms) {
-		perDocTerms = /* @__PURE__ */ new Map();
-		index.docTermFieldHits.set(docIdx, perDocTerms);
+const HITS_BITS = 4;
+const HITS_ESCAPE = (1 << HITS_BITS) - 1;
+const MAX_TERM_ID = 2 ** (32 - HITS_BITS) - 1;
+function createIndex() {
+	return {
+		fieldCount: 0,
+		termInfo: /* @__PURE__ */ new Map(),
+		termsById: [],
+		get df() {
+			const snapshot = /* @__PURE__ */ new Map();
+			for (const info of this.termsById) if (info.df > 0) snapshot.set(info.term, info.df);
+			return snapshot;
+		},
+		pool: /* @__PURE__ */ new Uint32Array(1024),
+		poolLen: 0,
+		deadSlots: 0,
+		docStart: [],
+		docLen: [],
+		docFields: []
+	};
+}
+function internTerm(index, term) {
+	let info = index.termInfo.get(term);
+	if (info === void 0) {
+		const id = index.termsById.length;
+		if (id > MAX_TERM_ID) throw new Error("Token search vocabulary exceeds the supported size");
+		info = {
+			id,
+			term,
+			df: 0
+		};
+		index.termInfo.set(term, info);
+		index.termsById.push(info);
 	}
-	for (const term of distinctTerms) {
-		perDocTerms.set(term, (perDocTerms.get(term) || 0) + 1);
-		index.df.set(term, (index.df.get(term) || 0) + 1);
+	return info;
+}
+function reservePool(index, slots) {
+	const needed = index.poolLen + slots;
+	if (needed <= index.pool.length) return;
+	let capacity = index.pool.length;
+	while (capacity < needed) capacity *= 2;
+	const next = new Uint32Array(capacity);
+	next.set(index.pool.subarray(0, index.poolLen));
+	index.pool = next;
+}
+function ensureDoc(index, docIdx) {
+	for (let d = index.docLen.length; d <= docIdx; d += 1) {
+		index.docStart.push(0);
+		index.docLen.push(0);
+		index.docFields.push(0);
 	}
+}
+function collectRecord(record, keyCount, analyzer) {
+	const hits = /* @__PURE__ */ new Map();
+	let fields = 0;
+	const addField = (text) => {
+		const tokens = analyzer.tokenize(text);
+		if (!tokens.length) return;
+		fields += 1;
+		for (const term of new Set(tokens)) hits.set(term, (hits.get(term) || 0) + 1);
+	};
+	const { v, $: values } = record;
+	if (v !== void 0) addField(v);
+	else if (values) for (let keyIdx = 0; keyIdx < keyCount; keyIdx += 1) {
+		const value = values[keyIdx];
+		if (!value) continue;
+		if (Array.isArray(value)) for (const sub of value) addField(sub.v);
+		else addField(value.v);
+	}
+	return {
+		fields,
+		hits
+	};
 }
 function ingestRecord(index, record, keyCount, analyzer) {
-	const { i: docIdx, v, $: fields } = record;
-	if (v !== void 0) {
-		addField(index, v, docIdx, analyzer);
-		return;
-	}
+	const { fields, hits } = collectRecord(record, keyCount, analyzer);
 	if (!fields) return;
-	for (let keyIdx = 0; keyIdx < keyCount; keyIdx++) {
-		const value = fields[keyIdx];
-		if (!value) continue;
-		if (Array.isArray(value)) for (const sub of value) addField(index, sub.v, docIdx, analyzer);
-		else addField(index, value.v, docIdx, analyzer);
+	const docIdx = record.i;
+	ensureDoc(index, docIdx);
+	index.fieldCount += fields;
+	reservePool(index, hits.size * 2);
+	const start = index.poolLen;
+	const pool = index.pool;
+	let p = start;
+	for (const [term, count] of hits) {
+		const info = internTerm(index, term);
+		info.df += count;
+		const id = info.id;
+		if (count < HITS_ESCAPE) pool[p++] = id << HITS_BITS | count;
+		else {
+			pool[p++] = id << HITS_BITS | HITS_ESCAPE;
+			pool[p++] = count;
+		}
+	}
+	index.poolLen = p;
+	index.docStart[docIdx] = start;
+	index.docLen[docIdx] = p - start;
+	index.docFields[docIdx] = fields;
+}
+function forEachEntry(index, docIdx, fn) {
+	const { pool } = index;
+	const end = index.docStart[docIdx] + index.docLen[docIdx];
+	let p = index.docStart[docIdx];
+	while (p < end) {
+		const entry = pool[p++];
+		const id = entry >>> HITS_BITS;
+		let count = entry & HITS_ESCAPE;
+		if (count === HITS_ESCAPE) count = pool[p++];
+		fn(id, count);
 	}
 }
+function subtractDoc(index, docIdx) {
+	if (docIdx >= index.docLen.length || !index.docFields[docIdx]) return;
+	index.fieldCount -= index.docFields[docIdx];
+	forEachEntry(index, docIdx, (id, count) => {
+		const info = index.termsById[id];
+		info.df = Math.max(0, info.df - count);
+	});
+	index.deadSlots += index.docLen[docIdx];
+}
+function compactPool(index) {
+	const remap = new Int32Array(index.termsById.length).fill(-1);
+	const liveTerms = [];
+	for (const info of index.termsById) if (info.df > 0) {
+		remap[info.id] = liveTerms.length;
+		info.id = liveTerms.length;
+		liveTerms.push(info);
+	} else index.termInfo.delete(info.term);
+	index.termsById = liveTerms;
+	const live = index.poolLen - index.deadSlots;
+	const next = new Uint32Array(Math.max(1024, live * 2));
+	const { pool } = index;
+	let p = 0;
+	for (let d = 0; d < index.docLen.length; d += 1) {
+		const len = index.docLen[d];
+		if (!len) continue;
+		const end = index.docStart[d] + len;
+		let q = index.docStart[d];
+		index.docStart[d] = p;
+		while (q < end) {
+			const entry = pool[q++];
+			const hits = entry & HITS_ESCAPE;
+			next[p++] = remap[entry >>> HITS_BITS] << HITS_BITS | hits;
+			if (hits === HITS_ESCAPE) next[p++] = pool[q++];
+		}
+	}
+	index.pool = next;
+	index.poolLen = p;
+	index.deadSlots = 0;
+}
 function buildInvertedIndex(records, keyCount, analyzer) {
-	const index = {
-		fieldCount: 0,
-		df: /* @__PURE__ */ new Map(),
-		docFieldCount: /* @__PURE__ */ new Map(),
-		docTermFieldHits: /* @__PURE__ */ new Map()
-	};
+	const index = createIndex();
 	for (const record of records) ingestRecord(index, record, keyCount, analyzer);
+	if (index.pool.length > index.poolLen + 1024) index.pool = index.pool.slice(0, index.poolLen + 1024);
 	return index;
 }
 function addToInvertedIndex(index, record, keyCount, analyzer) {
 	ingestRecord(index, record, keyCount, analyzer);
 }
-function removeFromInvertedIndex(index, docIdx) {
-	const fieldCount = index.docFieldCount.get(docIdx);
-	if (fieldCount === void 0) return;
-	index.fieldCount -= fieldCount;
-	index.docFieldCount.delete(docIdx);
-	const perDocTerms = index.docTermFieldHits.get(docIdx);
-	if (!perDocTerms) return;
-	for (const [term, hits] of perDocTerms) {
-		const next = (index.df.get(term) || 0) - hits;
-		if (next <= 0) index.df.delete(term);
-		else index.df.set(term, next);
-	}
-	index.docTermFieldHits.delete(docIdx);
-}
 function removeAndShiftInvertedIndex(index, removedIndices) {
 	if (removedIndices.length === 0) return;
-	const sorted = Array.from(new Set(removedIndices)).sort((a, b) => a - b);
-	for (const idx of sorted) removeFromInvertedIndex(index, idx);
-	const shift = (oldIdx) => {
-		let lo = 0;
-		let hi = sorted.length;
-		while (lo < hi) {
-			const mid = lo + hi >>> 1;
-			if (sorted[mid] < oldIdx) lo = mid + 1;
-			else hi = mid;
-		}
-		return oldIdx - lo;
-	};
-	const firstRemoved = sorted[0];
-	const shiftedDocFieldCount = /* @__PURE__ */ new Map();
-	for (const [oldKey, count] of index.docFieldCount) shiftedDocFieldCount.set(oldKey > firstRemoved ? shift(oldKey) : oldKey, count);
-	index.docFieldCount = shiftedDocFieldCount;
-	const shiftedDocTermFieldHits = /* @__PURE__ */ new Map();
-	for (const [oldKey, terms] of index.docTermFieldHits) shiftedDocTermFieldHits.set(oldKey > firstRemoved ? shift(oldKey) : oldKey, terms);
-	index.docTermFieldHits = shiftedDocTermFieldHits;
+	const removed = new Set(removedIndices);
+	for (const idx of removed) subtractDoc(index, idx);
+	let w = 0;
+	for (let r = 0; r < index.docLen.length; r += 1) {
+		if (removed.has(r)) continue;
+		index.docStart[w] = index.docStart[r];
+		index.docLen[w] = index.docLen[r];
+		index.docFields[w] = index.docFields[r];
+		w += 1;
+	}
+	index.docStart.length = w;
+	index.docLen.length = w;
+	index.docFields.length = w;
+	if (index.deadSlots > index.poolLen - index.deadSlots) compactPool(index);
 }
 
 //#endregion
@@ -1155,7 +1252,7 @@ var Fuse = class {
 		this._docs = docs;
 		if (index && !(index instanceof FuseIndex)) throw new Error(INCORRECT_INDEX_TYPE);
 		this._ownsIndex = !index;
-		this._myIndex = index || createIndex(this.options.keys, this._docs, {
+		this._myIndex = index || createIndex$1(this.options.keys, this._docs, {
 			getFn: this.options.getFn,
 			fieldNormWeight: this.options.fieldNormWeight
 		});
@@ -1410,7 +1507,7 @@ var Fuse = class {
 //#endregion
 //#region src/entry.ts
 Fuse.version = "7.6.0-beta.4";
-Fuse.createIndex = createIndex;
+Fuse.createIndex = createIndex$1;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
 Fuse.match = function(pattern, text, options) {

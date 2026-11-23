@@ -4,7 +4,7 @@ import { mergeIndices } from '../../helpers/mergeIndices'
 import { stripDiacritics } from '../../helpers/diacritics'
 import Config from '../../core/config'
 import type { Analyzer } from './analyzer'
-import type { InvertedIndexData } from './InvertedIndex'
+import { docFrequency, type InvertedIndexData } from './InvertedIndex'
 import type { SearchResult, RangeTuple } from '../../types'
 
 // `tokenMatch: 'all'` packs per-term coverage into a bitmask. JS bitwise ops
@@ -42,7 +42,7 @@ export default class TokenSearch {
 
     const queryTerms = this.analyzer.tokenize(pattern)
     const invertedIndex: InvertedIndexData = options._invertedIndex
-    const { df, fieldCount } = invertedIndex
+    const { fieldCount } = invertedIndex
 
     const {
       isCaseSensitive = Config.isCaseSensitive,
@@ -72,7 +72,7 @@ export default class TokenSearch {
         })
       )
 
-      const docFreq = df.get(term) || 0
+      const docFreq = docFrequency(invertedIndex, term)
       const idf = Math.log(1 + (fieldCount - docFreq + 0.5) / (docFreq + 0.5))
       this.idfWeights.push(idf)
     }

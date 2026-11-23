@@ -417,3 +417,114 @@ describe('Token search — edge cases', () => {
     expect(custom.search('ALPHA-BETA')).toHaveLength(1)
   })
 })
+
+describe('token index removal is exact', () => {
+  const stats = (fuse) => ({
+    fieldCount: fuse._invertedIndex.fieldCount,
+    df: [...fuse._invertedIndex.df].sort()
+  })
+  const fresh = (docs, options) => stats(new Fuse(docs.slice(), options))
+
+  test('removal subtracts what was ingested, even after the record text changed', () => {
+    const options = { useTokenSearch: true }
+    const docs = ['apple pie', 'banana bread', 'cherry tart']
+    const fuse = new Fuse(docs.slice(), options)
+    // Records are public and writable; edit one after ingestion.
+    fuse.getIndex().records[1].v = 'completely different words'
+    fuse.removeAt(1)
+    expect(stats(fuse)).toEqual(fresh(['apple pie', 'cherry tart'], options))
+  })
+
+  test('removal is exact after the tokenizer option changed', () => {
+    const options = { useTokenSearch: true }
+    const fuse = new Fuse(['apple pie', 'banana bread'], options)
+    fuse.add('cherry-tart crumble')
+    fuse.options.tokenize = /[a-z]/g
+    fuse.removeAt(2)
+    expect(stats(fuse)).toEqual(
+      fresh(['apple pie', 'banana bread'], { useTokenSearch: true })
+    )
+  })
+
+  test('blank documents at the start, middle and end stay aligned', () => {
+    const options = { useTokenSearch: true }
+    const docs = ['', 'apple pie', '', 'banana bread', 'cherry tart', '']
+    const fuse = new Fuse(docs.slice(), options)
+    fuse.add('')
+    fuse.add('date loaf')
+    fuse.removeAt(0)
+    fuse.remove((doc, i) => doc === '' && i > 2)
+    fuse.removeAt(1)
+    expect(fuse._docs).toEqual([
+      'apple pie',
+      'banana bread',
+      'cherry tart',
+      'date loaf'
+    ])
+    expect(stats(fuse)).toEqual(fresh(fuse._docs, options))
+    expect(fuse.search('bread').map((r) => r.item)).toEqual(['banana bread'])
+  })
+
+  test('object records with arrays stay exact across add and batch remove', () => {
+    const options = { keys: ['title', 'tags'], useTokenSearch: true }
+    const docs = [
+      { title: 'rust systems', tags: ['rust', 'fast'] },
+      { title: 'go services', tags: [] },
+      { title: '', tags: ['rust'] }
+    ]
+    const fuse = new Fuse(docs.slice(), options)
+    fuse.add({ title: 'rust again', tags: ['rust', 'rust'] })
+    fuse.remove((doc) => doc.title.startsWith('rust'))
+    expect(stats(fuse)).toEqual(fresh(fuse._docs, options))
+  })
+})
+
+describe('token index ledger: hit-count escapes and compaction', () => {
+  const options = { keys: ['tags'], useTokenSearch: true }
+  const tagsDoc = (count, term = 'rust') => ({
+    tags: Array.from({ length: count }, () => term)
+  })
+
+  test('per-doc hit counts around the escape boundary (14, 15, 16) are exact', () => {
+    const fuse = new Fuse([tagsDoc(14), tagsDoc(15), tagsDoc(16)], options)
+    expect(fuse._invertedIndex.df.get('rust')).toBe(14 + 15 + 16)
+    fuse.removeAt(1)
+    expect(fuse._invertedIndex.df.get('rust')).toBe(14 + 16)
+    fuse.removeAt(1)
+    expect(fuse._invertedIndex.df.get('rust')).toBe(14)
+    fuse.removeAt(0)
+    expect(fuse._invertedIndex.df.has('rust')).toBe(false)
+    expect(fuse._invertedIndex.fieldCount).toBe(0)
+  })
+
+  test('compaction keeps escaped entries and renumbered docs exact', () => {
+    const docs = Array.from({ length: 40 }, (_, i) =>
+      tagsDoc(i % 20, `t${i % 7}`)
+    )
+    const fuse = new Fuse(docs.slice(), options)
+    // Remove most docs so dead pool slots outnumber live ones (compaction).
+    fuse.remove((_, i) => i % 5 !== 0)
+    const fresh = new Fuse(fuse._docs.slice(), options)
+    expect([...fuse._invertedIndex.df].sort()).toEqual(
+      [...fresh._invertedIndex.df].sort()
+    )
+    expect(fuse._invertedIndex.fieldCount).toBe(fresh._invertedIndex.fieldCount)
+    expect(fuse._invertedIndex.deadSlots).toBe(0)
+  })
+
+  test('terms no live document uses are reclaimed on compaction', () => {
+    const fuse = new Fuse([tagsDoc(1, 'keep')], {
+      keys: ['tags'],
+      useTokenSearch: true
+    })
+    for (let i = 0; i < 50; i += 1) {
+      fuse.add(tagsDoc(2, `churn${i}`))
+      fuse.removeAt(1)
+    }
+    const { termsById, termInfo } = fuse._invertedIndex
+    expect(termInfo.size).toBeLessThan(10)
+    expect(termsById.length).toBe(termInfo.size)
+    expect(termInfo.has('keep')).toBe(true)
+    expect(fuse.search('keep').length).toBe(1)
+  })
+})
