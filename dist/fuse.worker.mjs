@@ -1271,9 +1271,10 @@ var MaxHeap = class {
 		return this.heap.length;
 	}
 	insert(item) {
-		if (this.size < this.limit) {
+		const len = this.heap.length;
+		if (len < this.limit) {
 			this.heap.push(item);
-			this._bubbleUp(this.size - 1);
+			this._bubbleUp(len);
 		} else if (this.comparator(item, this.heap[0]) < 0) {
 			this.heap[0] = item;
 			this._sinkDown(0);
@@ -1283,32 +1284,30 @@ var MaxHeap = class {
 		return this.heap.sort(this.comparator);
 	}
 	_bubbleUp(i) {
-		const heap = this.heap;
+		const { heap, comparator } = this;
+		const item = heap[i];
 		while (i > 0) {
 			const parent = i - 1 >> 1;
-			if (this.comparator(heap[i], heap[parent]) <= 0) break;
-			const tmp = heap[i];
+			if (comparator(item, heap[parent]) <= 0) break;
 			heap[i] = heap[parent];
-			heap[parent] = tmp;
 			i = parent;
 		}
+		heap[i] = item;
 	}
 	_sinkDown(i) {
-		const heap = this.heap;
+		const { heap, comparator } = this;
 		const len = heap.length;
-		let largest = i;
-		do {
-			i = largest;
+		const item = heap[i];
+		for (;;) {
 			const left = 2 * i + 1;
-			const right = 2 * i + 2;
-			if (left < len && this.comparator(heap[left], heap[largest]) > 0) largest = left;
-			if (right < len && this.comparator(heap[right], heap[largest]) > 0) largest = right;
-			if (largest !== i) {
-				const tmp = heap[i];
-				heap[i] = heap[largest];
-				heap[largest] = tmp;
-			}
-		} while (largest !== i);
+			if (left >= len) break;
+			let next = comparator(heap[left], item) > 0 ? left : -1;
+			if (left + 1 < len && comparator(heap[left + 1], next < 0 ? item : heap[left]) > 0) next = left + 1;
+			if (next < 0) break;
+			heap[i] = heap[next];
+			i = next;
+		}
+		heap[i] = item;
 	}
 };
 
@@ -1382,18 +1381,23 @@ var TokenSearch = class {
 		});
 		const queryTerms = this.analyzer.tokenize(pattern);
 		const { df, fieldCount } = options._invertedIndex;
+		const { isCaseSensitive = Config.isCaseSensitive, ignoreDiacritics = Config.ignoreDiacritics } = options;
+		const normalize = this.normalize = (text) => {
+			text = isCaseSensitive ? text : text.toLowerCase();
+			return ignoreDiacritics ? stripDiacritics(text) : text;
+		};
 		this.termSearchers = [];
 		this.idfWeights = [];
 		for (const term of queryTerms) {
-			this.termSearchers.push(new FuzzySearch(term, {
+			this.termSearchers.push(new FuzzySearch(normalize(term), {
 				location: options.location,
 				threshold: options.threshold,
 				distance: options.distance,
 				includeMatches: options.includeMatches,
 				findAllMatches: options.findAllMatches,
 				minMatchCharLength: options.minMatchCharLength,
-				isCaseSensitive: options.isCaseSensitive,
-				ignoreDiacritics: options.ignoreDiacritics,
+				isCaseSensitive: true,
+				ignoreDiacritics: false,
 				ignoreLocation: true,
 				matchAlgorithm: options.matchAlgorithm
 			}));
@@ -1410,6 +1414,7 @@ var TokenSearch = class {
 			isMatch: false,
 			score: 1
 		};
+		text = this.normalize(text);
 		const allIndices = [];
 		let weightedScore = 0;
 		let maxPossibleScore = 0;

@@ -16,54 +16,59 @@ export default class MaxHeap {
     this.heap = []
     this.comparator = comparator
   }
+
   get size(): number {
     return this.heap.length
   }
+
   // Insert while keeping at most `limit` items: fill until full, then replace
   // the root only when the incoming item sorts ahead of it. The guard makes a
   // separate shouldInsert() check redundant.
   insert(item: InternalResult): void {
-    if (this.size < this.limit) {
+    const len = this.heap.length
+    if (len < this.limit) {
       this.heap.push(item)
-      this._bubbleUp(this.size - 1)
+      this._bubbleUp(len)
     } else if (this.comparator(item, this.heap[0]) < 0) {
       this.heap[0] = item
       this._sinkDown(0)
     }
   }
+
   extractSorted(): InternalResult[] {
     return this.heap.sort(this.comparator)
   }
+
   _bubbleUp(i: number): void {
-    const heap = this.heap
+    const { heap, comparator } = this
+    const item = heap[i]
     while (i > 0) {
       const parent = (i - 1) >> 1
-      if (this.comparator(heap[i], heap[parent]) <= 0) break
-      const tmp = heap[i]
+      if (comparator(item, heap[parent]) <= 0) break
       heap[i] = heap[parent]
-      heap[parent] = tmp
       i = parent
     }
+    heap[i] = item
   }
+
   _sinkDown(i: number): void {
-    const heap = this.heap
+    const { heap, comparator } = this
     const len = heap.length
-    let largest = i
-    do {
-      i = largest
+    const item = heap[i]
+    for (;;) {
       const left = 2 * i + 1
-      const right = 2 * i + 2
-      if (left < len && this.comparator(heap[left], heap[largest]) > 0) {
-        largest = left
+      if (left >= len) break
+      let next = comparator(heap[left], item) > 0 ? left : -1
+      if (
+        left + 1 < len &&
+        comparator(heap[left + 1], next < 0 ? item : heap[left]) > 0
+      ) {
+        next = left + 1
       }
-      if (right < len && this.comparator(heap[right], heap[largest]) > 0) {
-        largest = right
-      }
-      if (largest !== i) {
-        const tmp = heap[i]
-        heap[i] = heap[largest]
-        heap[largest] = tmp
-      }
-    } while (largest !== i)
+      if (next < 0) break
+      heap[i] = heap[next]
+      i = next
+    }
+    heap[i] = item
   }
 }
