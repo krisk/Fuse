@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.3](https://github.com/krisk/Fuse/compare/v7.6.0-beta.2...v7.6.0-beta.3) (2026-11-23)
+
+
+### Bug Fixes
+
+* **bitap:** report the score of the best match ([f83fa61](https://github.com/krisk/Fuse/commit/f83fa61f12d0e8cf0514e4b723b3340392695c66))
+
+### Behavior change
+
+Fuzzy match scores now always describe the best match found. Previously, a later and worse candidate could overwrite the reported score, so many results scored worse than their actual match (for example, `Fuse.match('optimization', 'Apple they optimization')` returned 0.183 for an exact hit that scores 0.11). Scores can only go down, and with default options the set of matching results is unchanged, but **result order can change** where the best match was under-reported, typically moving full-word matches above partial ones. If you snapshot exact scores or result order in tests, expect updates.
+
 ## [7.6.0-beta.2](https://github.com/krisk/Fuse/compare/v7.6.0-beta.1...v7.6.0-beta.2) (2026-11-22)
 
 
