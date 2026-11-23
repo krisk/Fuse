@@ -9,6 +9,10 @@ description: Powerful, lightweight fuzzy-search library for JavaScript with zero
 
 <UsedBy />
 
+::: tip Try the 7.6 beta: fuzzy search is 3–10x faster
+`npm install fuse.js@beta`. Fuzzy and token search are much faster, with the same results in almost every case. If your rankings change or anything looks off, [tell me in the beta feedback discussion](https://github.com/krisk/Fuse/discussions/869). It helps decide what ships in 7.6.0.
+:::
+
 ## Quick Example
 
 ```js
@@ -31,10 +35,6 @@ fuse.search('jon')
 fuse.search('patterns')
 // [{ item: { title: "JavaScript Patterns", ... }, refIndex: 2, score: 0.0 }]
 ```
-
-::: tip Try the 7.6 beta: fuzzy search is 3–10x faster
-`npm install fuse.js@beta`. Fuzzy and token search are much faster, with the same results in almost every case. If your rankings change or anything looks off, [tell me in the beta feedback discussion](https://github.com/krisk/Fuse/discussions/869). It helps decide what ships in 7.6.0.
-:::
 
 ## Features
 
