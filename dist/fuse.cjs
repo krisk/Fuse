@@ -196,30 +196,38 @@ const Config = Object.freeze({
 
 //#endregion
 //#region src/tools/fieldNorm.ts
-function isWordSeparator(code) {
-	return code >= 9 && code <= 13 || code === 32 || code === 160;
+function countWords(value) {
+	let numTokens = 0;
+	let inWord = false;
+	for (let i = 0, len = value.length; i < len; i++) {
+		const code = value.charCodeAt(i);
+		if (code > 32 ? code !== 160 : code !== 32 && (code < 9 || code > 13)) {
+			if (!inWord) {
+				numTokens++;
+				inWord = true;
+			}
+		} else inWord = false;
+	}
+	if (numTokens === 0) numTokens = 1;
+	return numTokens;
 }
 function norm(weight = 1, mantissa = 3) {
-	const cache = /* @__PURE__ */ new Map();
+	let cache = [];
 	const m = Math.pow(10, mantissa);
+	const fromCount = (numTokens) => {
+		const cached = cache[numTokens];
+		if (cached !== void 0) return cached;
+		const n = Math.round(m / Math.pow(numTokens, .5 * weight)) / m;
+		cache[numTokens] = n;
+		return n;
+	};
 	return {
 		get(value) {
-			let numTokens = 0;
-			let inWord = false;
-			for (let i = 0; i < value.length; i++) if (!isWordSeparator(value.charCodeAt(i))) {
-				if (!inWord) {
-					numTokens++;
-					inWord = true;
-				}
-			} else inWord = false;
-			if (numTokens === 0) numTokens = 1;
-			if (cache.has(numTokens)) return cache.get(numTokens);
-			const n = Math.round(m / Math.pow(numTokens, .5 * weight)) / m;
-			cache.set(numTokens, n);
-			return n;
+			return fromCount(countWords(value));
 		},
+		fromCount,
 		clear() {
-			cache.clear();
+			cache = [];
 		}
 	};
 }
@@ -246,6 +254,8 @@ var FuseIndex = class FuseIndex {
 		this._normValues = [];
 		this._normIds = /* @__PURE__ */ new Map();
 		this._normCache = (/* @__PURE__ */ new Int32Array(1024)).fill(-1);
+		this._idByCount = [];
+		this._idByCountNorm = null;
 		this._entValue = [];
 		this.norm = norm(fieldNormWeight, 3);
 		this.getFn = getFn;
@@ -314,6 +324,8 @@ var FuseIndex = class FuseIndex {
 		copy._normValues = this._normValues.slice();
 		copy._normIds = new Map(this._normIds);
 		copy._normCache = this._normCache.slice();
+		copy._idByCount = this._idByCount.slice();
+		copy._idByCountNorm = this._idByCountNorm;
 		copy._entValue = this._entValue.slice(0, this._entCount);
 		return copy;
 	}
@@ -350,7 +362,7 @@ var FuseIndex = class FuseIndex {
 				recLen[n] = 1;
 				entKey[n] = 0;
 				entIdx[n] = -1;
-				entNormId[n] = this._normIdOf(this.norm.get(doc));
+				entNormId[n] = this._textNormId(doc);
 				entValue[n] = doc;
 				n += 1;
 			}
@@ -477,7 +489,7 @@ var FuseIndex = class FuseIndex {
 	_addString(doc, docIndex) {
 		if (!isDefined(doc) || isBlank(doc)) return false;
 		this._beginRecord(docIndex, 0);
-		this._pushEntry(0, -1, this.norm.get(doc), doc);
+		this._pushEntry(0, -1, this._textNormId(doc), doc);
 		this._endRecord();
 		return true;
 	}
@@ -493,21 +505,21 @@ var FuseIndex = class FuseIndex {
 					const item = value[i];
 					if (!isDefined(item)) continue;
 					if (isString(item)) {
-						if (!isBlank(item)) this._pushEntry(keyIndex, i, this.norm.get(item), item);
+						if (!isBlank(item)) this._pushEntry(keyIndex, i, this._textNormId(item), item);
 					} else if (isDefined(item.v)) {
 						const text = isString(item.v) ? item.v : toString(item.v);
-						if (!isBlank(text)) this._pushEntry(keyIndex, item.i, this.norm.get(text), text);
+						if (!isBlank(text)) this._pushEntry(keyIndex, item.i, this._textNormId(text), text);
 					}
 				}
-				if (this._entCount === before) this._pushEntry(keyIndex, -2, 0, "");
-			} else if (isString(value) && !isBlank(value)) this._pushEntry(keyIndex, -1, this.norm.get(value), value);
+				if (this._entCount === before) this._pushEntry(keyIndex, -2, this._normIdOf(0), "");
+			} else if (isString(value) && !isBlank(value)) this._pushEntry(keyIndex, -1, this._textNormId(value), value);
 		}
 		this._endRecord();
 	}
 	_appendRecord(record) {
 		if (record.v !== void 0) {
 			this._beginRecord(checkPosition(record.i), 0);
-			this._pushEntry(0, -1, record.n, record.v);
+			this._pushEntry(0, -1, this._normIdOf(record.n), record.v);
 			this._endRecord();
 			return;
 		}
@@ -518,9 +530,9 @@ var FuseIndex = class FuseIndex {
 			const value = fields[key];
 			if (!isDefined(value)) continue;
 			if (isArray(value)) {
-				if (!value.length) this._pushEntry(key, -2, 0, "");
-				for (const sub of value) this._pushEntry(key, checkPosition(sub.i), sub.n, sub.v);
-			} else this._pushEntry(key, -1, value.n, value.v);
+				if (!value.length) this._pushEntry(key, -2, this._normIdOf(0), "");
+				for (const sub of value) this._pushEntry(key, checkPosition(sub.i), this._normIdOf(sub.n), sub.v);
+			} else this._pushEntry(key, -1, this._normIdOf(value.n), value.v);
 		}
 		this._endRecord();
 	}
@@ -537,6 +549,7 @@ var FuseIndex = class FuseIndex {
 		this._entIdx = new Int32Array(this._entKey.length);
 		this._entNormId = new Uint32Array(this._entKey.length);
 		this._normValues = [];
+		this._idByCount = [];
 		this._normIds = /* @__PURE__ */ new Map();
 		this._normCache.fill(-1);
 		this._entValue = [];
@@ -568,19 +581,35 @@ var FuseIndex = class FuseIndex {
 		this._recLen[r] = this._entCount - this._recStart[r];
 		this._recCount += 1;
 	}
-	_pushEntry(key, pos, norm, value) {
+	_pushEntry(key, pos, normId, value) {
 		if (this._entCount === this._entKey.length) this._growEntries();
 		const e = this._entCount;
 		this._entKey[e] = key;
 		this._entIdx[e] = pos;
-		this._entNormId[e] = this._normIdOf(norm);
+		this._entNormId[e] = normId;
 		this._entValue[e] = value;
 		this._entCount += 1;
+	}
+	_textNormId(text) {
+		const { norm } = this;
+		if (!norm.fromCount) return this._normIdOf(norm.get(text));
+		if (norm !== this._idByCountNorm) {
+			this._idByCount = [];
+			this._idByCountNorm = norm;
+		}
+		const count = countWords(text);
+		let id = this._idByCount[count];
+		if (id === void 0) {
+			id = this._normIdOf(norm.fromCount(count));
+			this._idByCount[count] = id;
+		}
+		return id;
 	}
 	_normIdOf(norm) {
 		const slot = norm * 1048576 & 1023;
 		let normId = this._normCache[slot];
-		if (normId < 0 || !Object.is(this._normValues[normId], norm)) {
+		const hit = normId >= 0 ? this._normValues[normId] : void 0;
+		if (hit !== norm || norm === 0 && 1 / hit !== 1 / norm) {
 			const key = Object.is(norm, -0) ? NEGATIVE_ZERO_KEY : norm;
 			let id = this._normIds.get(key);
 			if (id === void 0) {

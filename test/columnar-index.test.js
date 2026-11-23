@@ -229,3 +229,27 @@ describe('norms', () => {
     expect(norms[2]).toBe(0.1 + 0.2)
   })
 })
+
+describe('custom norm objects', () => {
+  test('a norm with only get() and clear() is still used', () => {
+    const index = Fuse.createIndex([], ['x'])
+    index.norm = { get: (text) => (text.length > 5 ? 0.25 : 0.75), clear() {} }
+    index.add('apple', 1)
+    index.add('banana split', 2)
+    expect(
+      index
+        .toJSON()
+        .records.slice(1)
+        .map((r) => r.n)
+    ).toEqual([0.75, 0.25])
+  })
+})
+
+test('replacing the norm after building does not reuse cached norm ids', () => {
+  const index = Fuse.createIndex([], ['apple pie'])
+  index.norm = Fuse.createIndex([], [], { fieldNormWeight: 2 }).norm
+  index.add('cherry tart', 1)
+  const [built, added] = index.toJSON().records.map((r) => r.n)
+  expect(added).not.toBe(built)
+  expect(added).toBe(0.5)
+})

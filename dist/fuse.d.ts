@@ -45,6 +45,7 @@ type GetFunction = (obj: any, path: string | string[]) => any;
 type FuseTokenizeFunction = (text: string) => string[];
 interface NormInterface {
   get(value: string): number;
+  fromCount?(count: number): number;
   clear(): void;
 }
 interface RecordEntryObject {
@@ -320,6 +321,8 @@ declare class FuseIndex<T = any> {
   _normValues: number[];
   _normIds: Map<string | number, number>;
   _normCache: Int32Array<ArrayBuffer>;
+  _idByCount: number[];
+  _idByCountNorm: NormInterface | null;
   _entValue: string[];
   constructor({
     getFn,
@@ -359,7 +362,8 @@ declare class FuseIndex<T = any> {
   _growRecords(): void;
   _growEntries(): void;
   _endRecord(): void;
-  _pushEntry(key: number, pos: number, norm: number, value: string): void;
+  _pushEntry(key: number, pos: number, normId: number, value: string): void;
+  _textNormId(text: string): number;
   _normIdOf(norm: number): number;
   _removeRecordAt(r: number): void;
   _compact(): void;

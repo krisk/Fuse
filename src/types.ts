@@ -73,6 +73,9 @@ export type FuseTokenizeFunction = (text: string) => string[]
 
 export interface NormInterface {
   get(value: string): number
+  // The norm for a word count (see countWords), so the index can cache by
+  // count. Optional: a norm without it is called through get() for each text.
+  fromCount?(count: number): number
   clear(): void
 }
 

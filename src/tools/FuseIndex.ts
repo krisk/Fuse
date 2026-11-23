@@ -7,7 +7,7 @@ import {
 } from '../helpers/typeGuards'
 import Config from '../core/config'
 import * as ErrorMsg from '../core/errorMessages'
-import normGenerator from './fieldNorm'
+import normGenerator, { countWords } from './fieldNorm'
 import { createKey } from './KeyStore'
 import type {
   KeyObject,
@@ -75,6 +75,10 @@ export default class FuseIndex<T = any> {
   // values, so almost every lookup hits. A slot is trusted only when the
   // value at its id matches exactly.
   _normCache = new Int32Array(1024).fill(-1)
+  // Norm ids of indexed text by word count: text norms depend only on the
+  // word count, so this skips the exact-value lookup when building.
+  _idByCount: number[] = []
+  _idByCountNorm: NormInterface | null = null
   _entValue: string[] = []
 
   constructor({
@@ -160,6 +164,8 @@ export default class FuseIndex<T = any> {
     copy._normValues = this._normValues.slice()
     copy._normIds = new Map(this._normIds)
     copy._normCache = this._normCache.slice()
+    copy._idByCount = this._idByCount.slice()
+    copy._idByCountNorm = this._idByCountNorm
     copy._entValue = this._entValue.slice(0, this._entCount)
     return copy
   }
@@ -207,7 +213,7 @@ export default class FuseIndex<T = any> {
         recLen[n] = 1
         entKey[n] = 0
         entIdx[n] = SCALAR
-        entNormId[n] = this._normIdOf(this.norm.get(doc))
+        entNormId[n] = this._textNormId(doc)
         entValue[n] = doc
         n += 1
       }
@@ -409,7 +415,7 @@ export default class FuseIndex<T = any> {
       return false
     }
     this._beginRecord(docIndex, STRING_RECORD)
-    this._pushEntry(0, SCALAR, this.norm.get(doc), doc)
+    this._pushEntry(0, SCALAR, this._textNormId(doc), doc)
     this._endRecord()
     return true
   }
@@ -442,23 +448,23 @@ export default class FuseIndex<T = any> {
           if (isString(item)) {
             // Custom getFn returning plain string array (backward compat)
             if (!isBlank(item)) {
-              this._pushEntry(keyIndex, i, this.norm.get(item), item)
+              this._pushEntry(keyIndex, i, this._textNormId(item), item)
             }
           } else if (isDefined(item.v)) {
             // Default get() returns {v, i} objects with original array indices
             const text = isString(item.v) ? item.v : toString(item.v)
             if (!isBlank(text)) {
-              this._pushEntry(keyIndex, item.i, this.norm.get(text), text)
+              this._pushEntry(keyIndex, item.i, this._textNormId(text), text)
             }
           }
         }
 
         // A defined array with no recorded items is still recorded (as `[]`).
         if (this._entCount === before) {
-          this._pushEntry(keyIndex, EMPTY_ARRAY, 0, '')
+          this._pushEntry(keyIndex, EMPTY_ARRAY, this._normIdOf(0), '')
         }
       } else if (isString(value) && !isBlank(value)) {
-        this._pushEntry(keyIndex, SCALAR, this.norm.get(value), value)
+        this._pushEntry(keyIndex, SCALAR, this._textNormId(value), value)
       }
     }
 
@@ -468,7 +474,7 @@ export default class FuseIndex<T = any> {
   _appendRecord(record: IndexRecord): void {
     if (record.v !== undefined) {
       this._beginRecord(checkPosition(record.i), STRING_RECORD)
-      this._pushEntry(0, SCALAR, record.n as number, record.v)
+      this._pushEntry(0, SCALAR, this._normIdOf(record.n as number), record.v)
       this._endRecord()
       return
     }
@@ -483,13 +489,18 @@ export default class FuseIndex<T = any> {
       if (!isDefined(value)) continue
       if (isArray(value)) {
         if (!value.length) {
-          this._pushEntry(key, EMPTY_ARRAY, 0, '')
+          this._pushEntry(key, EMPTY_ARRAY, this._normIdOf(0), '')
         }
         for (const sub of value) {
-          this._pushEntry(key, checkPosition(sub.i), sub.n, sub.v)
+          this._pushEntry(
+            key,
+            checkPosition(sub.i),
+            this._normIdOf(sub.n),
+            sub.v
+          )
         }
       } else {
-        this._pushEntry(key, SCALAR, value.n, value.v)
+        this._pushEntry(key, SCALAR, this._normIdOf(value.n), value.v)
       }
     }
     this._endRecord()
@@ -510,6 +521,7 @@ export default class FuseIndex<T = any> {
     this._entIdx = new Int32Array(this._entKey.length)
     this._entNormId = new Uint32Array(this._entKey.length)
     this._normValues = []
+    this._idByCount = []
     this._normIds = new Map()
     this._normCache.fill(-1)
     this._entValue = []
@@ -545,22 +557,44 @@ export default class FuseIndex<T = any> {
     this._recLen[r] = this._entCount - this._recStart[r]
     this._recCount += 1
   }
-  _pushEntry(key: number, pos: number, norm: number, value: string): void {
+  _pushEntry(key: number, pos: number, normId: number, value: string): void {
     if (this._entCount === this._entKey.length) {
       this._growEntries()
     }
     const e = this._entCount
     this._entKey[e] = key
     this._entIdx[e] = pos
-    this._entNormId[e] = this._normIdOf(norm)
+    this._entNormId[e] = normId
     this._entValue[e] = value
     this._entCount += 1
+  }
+  // The norm id of a text being indexed.
+  _textNormId(text: string): number {
+    const { norm } = this
+    if (!norm.fromCount) {
+      return this._normIdOf(norm.get(text))
+    }
+    if (norm !== this._idByCountNorm) {
+      // The norm was replaced: ids cached for the old one don't apply.
+      this._idByCount = []
+      this._idByCountNorm = norm
+    }
+    const count = countWords(text)
+    let id = this._idByCount[count]
+    if (id === undefined) {
+      id = this._normIdOf(norm.fromCount(count))
+      this._idByCount[count] = id
+    }
+    return id
   }
   // The id of a norm value in _normValues, adding it if new.
   _normIdOf(norm: number): number {
     const slot = (norm * 1048576) & 1023
     let normId = this._normCache[slot]
-    if (normId < 0 || !Object.is(this._normValues[normId], norm)) {
+    const hit = normId >= 0 ? this._normValues[normId] : undefined
+    // Cache hit only on an exact match: === alone treats 0 and -0 as equal
+    // (NaN never matches and takes the Map path below).
+    if (hit !== norm || (norm === 0 && 1 / hit !== 1 / norm)) {
       // Map keys treat -0 as 0; keep -0 apart so values stay exact.
       const key = Object.is(norm, -0) ? NEGATIVE_ZERO_KEY : norm
       let id = this._normIds.get(key)
