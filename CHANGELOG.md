@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.6.0-beta.6](https://github.com/krisk/Fuse/compare/v7.6.0-beta.5...v7.6.0-beta.6) (2026-11-24)
+
+
+### Features
+
+* **index:** add a compact saved index format ([7a5db23](https://github.com/krisk/Fuse/commit/7a5db23250cd11b55d18b9765350525cb131ac7a))
+
+### Performance Improvements
+
+* **index:** count words once per text and cache norm ids by word count ([db9d161](https://github.com/krisk/Fuse/commit/db9d1614))
+
+### Saved indexes load about 3x faster
+
+`index.serialize()` saves an index in a new compact format, and `Fuse.parseIndex()` reads it as well as the existing `toJSON()` format, which is unchanged:
+
+```js
+// Ahead of time
+const saved = JSON.stringify(Fuse.createIndex(keys, list).serialize())
+
+// At startup
+const fuse = new Fuse(list, options, Fuse.parseIndex(JSON.parse(saved)))
+```
+
+At 100k objects with 3 keys, loading a saved index takes 30 ms instead of 87 ms, and the file is 32 MB instead of 39 MB. Before this, loading a saved object index was slower than rebuilding it (54 ms); now it's about twice as fast. For plain string lists, loading saves little (6.5 ms against an 8 ms rebuild). Load the index with the same list, in the same order, as when it was saved. See [saved indexes](https://www.fusejs.io/performance.html#saved-indexes).
+
+### Faster index builds
+
+Building an index is faster: 1.2x to 1.7x for string lists and 1.1x to 1.2x for objects, measured against 7.6.0-beta.5. Search speed and results are unchanged.
+
 ## [7.6.0-beta.5](https://github.com/krisk/Fuse/compare/v7.6.0-beta.4...v7.6.0-beta.5) (2026-11-23)
 
 
