@@ -1,9 +1,38 @@
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { defineConfig, type HeadConfig } from 'vitepress'
 import { version } from '../../package.json'
 
 const SITE_URL = 'https://www.fusejs.io'
 const GA_MEASUREMENT_ID = 'G-78VK1PFWH1'
 const GOOGLE_SITE_VERIFICATION = '4nm40QLVcDJmEJSAbrMfZ7fpBJZIXL1oSngBAYrZopY'
+
+// Old URLs that still get traffic from external links. GitHub Pages can't do
+// server-side redirects, so each one gets a stub page that forwards to its
+// replacement. An anchor on the incoming URL is kept, since most old anchors
+// (#threshold, #installation, ...) still exist on the new pages.
+const REDIRECTS: Record<string, string> = {
+  // Pre-April 2026 VuePress layout
+  'api/index.html': '/getting-started.html',
+  'api/options.html': '/fuzzy-search.html',
+  'api/methods.html': '/getting-started.html',
+  'api/config.html': '/fuzzy-search.html',
+  'api/query.html': '/logical-search.html',
+  'api/indexing.html': '/performance.html#saved-indexes',
+  'examples.html': '/getting-started.html#quick-start',
+  'getting-started/index.html': '/getting-started.html',
+  'getting-started/installation.html': '/getting-started.html#installation',
+  'getting-started/different-builds.html': '/getting-started.html#builds',
+  'concepts/scoring-theory.html': '/fuzzy-search.html#scoring',
+  'scoring-theory.html': '/fuzzy-search.html#scoring',
+  'jobs.html': '/',
+  'stories.html': '/',
+  'team.html': '/',
+  // Renamed or retired pages
+  'donate.html': '/sponsor.html',
+  'cloud.html': '/',
+  'team-plans.html': '/'
+}
 
 export default defineConfig({
   lang: 'en-US',
@@ -17,6 +46,14 @@ export default defineConfig({
   },
 
   head: getHead(),
+
+  buildEnd({ outDir }) {
+    for (const [from, to] of Object.entries(REDIRECTS)) {
+      const file = join(outDir, from)
+      mkdirSync(dirname(file), { recursive: true })
+      writeFileSync(file, redirectPage(to))
+    }
+  },
 
   themeConfig: {
     logo: '/assets/img/logo.png',
@@ -147,4 +184,24 @@ gtag('config', '${GA_MEASUREMENT_ID}');`
     ['link', { rel: 'manifest', href: '/manifest.webmanifest' }],
     ...ga
   ]
+}
+
+
+function redirectPage(to: string): string {
+  const [path, hash = ''] = to.split('#')
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Moved | Fuse.js</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="${SITE_URL}${path}">
+  <script>location.replace(${JSON.stringify(path)} + (location.hash || ${JSON.stringify(hash ? '#' + hash : '')}))</script>
+  <meta http-equiv="refresh" content="0; url=${to}">
+</head>
+<body>
+  <p>This page has moved to <a href="${to}">${to}</a>.</p>
+</body>
+</html>
+`
 }
