@@ -9,6 +9,12 @@ export const INCORRECT_INDEX_TYPE = "Incorrect 'index' type"
 export const INVALID_INDEX_RECORD =
   'Invalid index record: document indexes, field keys and array positions must be non-negative integers below 2^31'
 
+export const INVALID_SERIALIZED_INDEX = (detail: string): string =>
+  `Invalid serialized index: ${detail}`
+
+export const UNSUPPORTED_INDEX_VERSION = (version: unknown): string =>
+  `Unsupported serialized index version: ${String(version)} (this version of Fuse.js reads version 1)`
+
 export const INVALID_DOC_INDEX =
   'Invalid doc index: must be a non-negative integer within the bounds of the docs array'
 

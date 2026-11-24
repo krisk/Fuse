@@ -48,6 +48,7 @@ function getTag(value) {
 //#region src/core/errorMessages.ts
 const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
 const INVALID_INDEX_RECORD = "Invalid index record: document indexes, field keys and array positions must be non-negative integers below 2^31";
+const INVALID_SERIALIZED_INDEX = (detail) => `Invalid serialized index: ${detail}`;
 const INVALID_DOC_INDEX = "Invalid doc index: must be a non-negative integer within the bounds of the docs array";
 const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) => `Invalid value for key ${key}`;
 const UNKNOWN_QUERY_OPERATOR = (op) => `Unknown query operator '${op}'`;
@@ -255,6 +256,7 @@ var FuseIndex = class FuseIndex {
 		this._idByCountNorm = null;
 		this._entValue = [];
 		this.norm = norm(fieldNormWeight, 3);
+		this._fieldNormWeight = fieldNormWeight;
 		this.getFn = getFn;
 		this.isCreated = false;
 		this.docs = [];
@@ -264,7 +266,7 @@ var FuseIndex = class FuseIndex {
 	/**
 	* @deprecated Will be removed in v8. Returns a detached snapshot of the
 	* index in the record format: a fresh copy on each access, so changes to it
-	* don't affect search. Use `toJSON()` to serialize an index.
+	* don't affect search. Use `serialize()` to save an index.
 	*/
 	get records() {
 		return this._materializeAll();
@@ -299,7 +301,10 @@ var FuseIndex = class FuseIndex {
 		this._trim();
 	}
 	clone() {
-		const copy = new FuseIndex({ getFn: this.getFn });
+		const copy = new FuseIndex({
+			getFn: this.getFn,
+			fieldNormWeight: this._fieldNormWeight
+		});
 		copy.norm = this.norm;
 		copy.isCreated = this.isCreated;
 		copy.setSources(this.docs);
@@ -435,6 +440,136 @@ var FuseIndex = class FuseIndex {
 			keys: this.keys.map(({ getFn, ...key }) => key),
 			records: this._materializeAll()
 		};
+	}
+	/**
+	* The index in the compact saved format: a JSON-compatible object that
+	* `Fuse.parseIndex()` loads much faster than the `toJSON()` format. Store
+	* it with `JSON.stringify`. Load it with the same documents, in the same
+	* order, as when it was saved: results return items from that list.
+	*/
+	serialize() {
+		const rc = this._recCount;
+		let ec = 0;
+		for (let r = 0; r < rc; r += 1) ec += this._recLen[r];
+		const doc = new Array(rc);
+		const kind = new Array(rc);
+		const len = new Array(rc);
+		const key = new Array(ec);
+		const pos = new Array(ec);
+		const norm = new Array(ec);
+		const values = new Array(ec);
+		const usedNorms = [];
+		const fileIds = /* @__PURE__ */ new Map();
+		let p = 0;
+		for (let r = 0; r < rc; r += 1) {
+			const start = this._recStart[r];
+			const n = this._recLen[r];
+			doc[r] = this._recDoc[r];
+			kind[r] = this._recKind[r];
+			len[r] = n;
+			for (let e = start; e < start + n; e += 1, p += 1) {
+				key[p] = this._entKey[e];
+				pos[p] = this._entIdx[e];
+				const id = this._entNormId[e];
+				let fileId = fileIds.get(id);
+				if (fileId === void 0) {
+					fileId = usedNorms.length;
+					usedNorms.push(encodeNorm(this._normValues[id]));
+					fileIds.set(id, fileId);
+				}
+				norm[p] = fileId;
+				values[p] = this._entValue[e];
+			}
+		}
+		return {
+			format: "fuse-index",
+			version: 1,
+			keys: this.keys.map(({ path, id, weight, src }) => ({
+				path: path.slice(),
+				id,
+				weight,
+				src: isArray(src) ? src.slice() : src
+			})),
+			fieldNormWeight: this._fieldNormWeight,
+			records: {
+				doc,
+				kind,
+				len
+			},
+			entries: {
+				key,
+				pos,
+				norm
+			},
+			norms: usedNorms,
+			values
+		};
+	}
+	_loadSerialized(data) {
+		const invalid = (detail) => {
+			throw new Error(INVALID_SERIALIZED_INDEX(detail));
+		};
+		const { records, entries, norms, values } = data;
+		if (!records || typeof records !== "object") invalid("records is missing");
+		if (!entries || typeof entries !== "object") invalid("entries is missing");
+		const { doc, kind, len } = records;
+		const { key, pos, norm } = entries;
+		for (const [name, column] of [
+			["records.doc", doc],
+			["records.kind", kind],
+			["records.len", len],
+			["entries.key", key],
+			["entries.pos", pos],
+			["entries.norm", norm],
+			["norms", norms],
+			["values", values]
+		]) if (!Array.isArray(column)) invalid(`${name} is not an array`);
+		const rc = doc.length;
+		const ec = key.length;
+		if (kind.length !== rc || len.length !== rc) invalid("record columns differ in length");
+		if (pos.length !== ec || norm.length !== ec || values.length !== ec) invalid("entry columns differ in length");
+		this._reset(Math.min(rc, LOAD_PRESIZE), Math.min(ec, LOAD_PRESIZE));
+		const normCount = norms.length;
+		if (normCount > ec + 1) invalid("more norms than entries");
+		const normIds = new Array(normCount);
+		for (let i = 0; i < normCount; i += 1) normIds[i] = this._normIdOf(decodeNorm(norms[i]));
+		const keyCount = this.keys.length;
+		let e = 0;
+		for (let r = 0; r < rc; r += 1) {
+			const d = doc[r];
+			const k = kind[r];
+			const n = len[r];
+			if (!isIndex(d)) invalid(`records.doc[${r}] is out of range`);
+			if (k !== 0 && k !== 1) invalid(`records.kind[${r}] must be 0 or 1`);
+			if (!isIndex(n) || n > ec - e) invalid(`records.len[${r}] is out of range`);
+			if (k === 0 && n !== 1) invalid(`record ${r} is not a single scalar string entry`);
+			this._beginRecord(d, k);
+			let prevKey = -1;
+			let prevPos = 0;
+			for (const end = e + n; e < end; e += 1) {
+				const ek = key[e];
+				const ep = pos[e];
+				const en = norm[e];
+				const ev = values[e];
+				if (!isIndex(ek)) invalid(`entries.key[${e}] is out of range`);
+				if (ep !== -1 && ep !== -2 && !isIndex(ep)) invalid(`entries.pos[${e}] is out of range`);
+				if (!isIndex(en) || en >= normCount) invalid(`entries.norm[${e}] is out of range`);
+				if (typeof ev !== "string") invalid(`values[${e}] is not a string`);
+				if (k === 0) {
+					if (ek !== 0 || ep !== -1) invalid(`record ${r} is not a single scalar string entry`);
+				} else {
+					if (ek >= keyCount) invalid(`entries.key[${e}] is out of range`);
+					if (ek < prevKey) invalid(`record ${r} entries are not in key order`);
+					if (ek === prevKey && (prevPos < 0 || ep < 0)) invalid(`record ${r} has an invalid entry group for key ${ek}`);
+				}
+				prevKey = ek;
+				prevPos = ep;
+				this._pushEntry(ek, ep, normIds[en], ev);
+			}
+			this._endRecord();
+		}
+		if (e !== ec) invalid("entries left over after the last record");
+		this._trim();
 	}
 	_materializeAll() {
 		const records = new Array(this._recCount);
@@ -667,6 +802,26 @@ var FuseIndex = class FuseIndex {
 	}
 };
 const NEGATIVE_ZERO_KEY = "-0";
+const LOAD_PRESIZE = 65536;
+function isIndex(value) {
+	const n = value;
+	return (n | 0) === n && n >= 0;
+}
+function encodeNorm(value) {
+	if (Number.isFinite(value)) return Object.is(value, -0) ? "-0" : value;
+	if (Number.isNaN(value)) return "NaN";
+	return value > 0 ? "Infinity" : "-Infinity";
+}
+function decodeNorm(value) {
+	if (typeof value === "number" && Number.isFinite(value)) return value;
+	switch (value) {
+		case "-0": return -0;
+		case "NaN": return NaN;
+		case "Infinity": return Infinity;
+		case "-Infinity": return -Infinity;
+	}
+	throw new Error(INVALID_SERIALIZED_INDEX("invalid norm value"));
+}
 function checkPosition(value) {
 	const n = value;
 	if ((n | 0) !== n || n < 0) throw new Error(INVALID_INDEX_RECORD);

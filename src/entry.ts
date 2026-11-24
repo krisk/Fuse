@@ -68,6 +68,8 @@ export type {
   FuseIndexRecords,
   FuseIndexObjectRecord,
   FuseIndexStringRecord,
+  FuseSerializedIndex,
+  FuseSerializedNorm,
   RecordEntry,
   RecordEntryObject,
   RecordEntryArrayItem,

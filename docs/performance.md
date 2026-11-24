@@ -22,6 +22,26 @@ const index = Fuse.createIndex(keys, list)
 const fuse = new Fuse(list, options, index)
 ```
 
+#### Saved indexes
+
+To skip indexing at startup, build the index ahead of time (at build time or on a server), save it with `serialize()`, and load it with `Fuse.parseIndex()`:
+
+```js
+// Ahead of time
+const index = Fuse.createIndex(keys, list)
+fs.writeFileSync('index.json', JSON.stringify(index.serialize()))
+
+// At startup
+const saved = await fetch('/index.json').then((res) => res.json())
+const fuse = new Fuse(list, options, Fuse.parseIndex(saved))
+```
+
+Load the index with the same list, in the same order, as when it was saved. Search runs on the texts stored in the index, but results return items from the list you pass, so a different list returns the wrong items.
+
+Loading a saved index pays off most for objects with several keys: at 100k items with 3 keys, it takes about 30 ms against about 60 ms to rebuild. For lists of plain strings, rebuilding is already fast, and loading saves little (about 6 ms against 8 ms at 100k).
+
+`serialize()` writes a compact format that loads about 3x faster than the older `toJSON()` format, which `Fuse.parseIndex()` still reads. Functions aren't saved. Custom `getFn` functions are lost: if you add documents to a loaded index whose keys use them, pass a global `getFn` to `Fuse.parseIndex()`. A custom norm assigned to `index.norm` is lost too: the saved norm values are kept, but documents added after loading get norms from the saved `fieldNormWeight`.
+
 #### Search
 
 Search speed depends on:
@@ -34,7 +54,7 @@ Search speed depends on:
 
 #### Memory
 
-The index stores processed string values and metadata for each key of each item, so it grows with your data. With 3 keys and about 30 words per item, expect roughly 7 MB per 10,000 items (about 70 MB at 100k). Token search adds an inverted index on top, roughly 3x the base index (about 225 MB at 100k). If memory is a concern, index fewer keys, and only enable `useTokenSearch` when you need multi-word queries.
+The index stores a reference to each indexed text plus a few numbers per value, so it grows with your data. With 3 keys and about 30 words per item, expect roughly 1.2 MB per 10,000 items (about 12 MB at 100k), not counting the documents themselves. Token search adds an inverted index on top (about 24 MB in total at 100k). If memory is a concern, index fewer keys, and only enable `useTokenSearch` when you need multi-word queries.
 
 ## Guidelines
 

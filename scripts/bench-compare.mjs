@@ -88,7 +88,10 @@ try {
     })
   }
 
-  // samples[script][rowIndex] = { label, base: [], head: [] }
+  // samples[script] maps "label#n" (the nth row with that label; some
+  // scripts repeat labels across sizes) to { label, kind, base: [], head: [] }.
+  // Matching by label, not position, lets one side have rows the other lacks
+  // (e.g. a benchmark for a feature the baseline doesn't have).
   const samples = {}
   for (let r = 1; r <= rounds; r += 1) {
     console.log(`Round ${r}/${rounds}`)
@@ -100,24 +103,23 @@ try {
         if (!existsSync(file))
           throw new Error(`No such bench script: ${script}`)
         const out = run('node', [file], sides[side])
-        let row = 0
+        const seen = new Map()
         for (const line of out.split('\n')) {
           const parsed = parseLine(line)
           if (!parsed) continue
-          const rows = (samples[script] ??= [])
-          rows[row] ??= {
-            label: parsed.label,
-            kind: parsed.kind,
-            base: [],
-            head: []
+          const n = seen.get(parsed.label) ?? 0
+          seen.set(parsed.label, n + 1)
+          const rows = (samples[script] ??= new Map())
+          const key = `${parsed.label}#${n}`
+          if (!rows.has(key)) {
+            rows.set(key, {
+              label: parsed.label,
+              kind: parsed.kind,
+              base: [],
+              head: []
+            })
           }
-          if (rows[row].label !== parsed.label) {
-            throw new Error(
-              `${script}: row ${row} is "${rows[row].label}" on one side and "${parsed.label}" on the other; outputs don't line up`
-            )
-          }
-          rows[row][side].push(parsed.value)
-          row += 1
+          rows.get(key)[side].push(parsed.value)
         }
       }
     }
@@ -157,8 +159,18 @@ function printTable(samples) {
   )
   let flagged = 0
   for (const [script, rows] of Object.entries(samples)) {
-    for (const { label, kind, base, head } of rows) {
-      if (!base.length || base.length !== head.length) {
+    for (const { label, kind, base, head } of rows.values()) {
+      const name = `${script}: ${label}`.slice(0, 51)
+      if (!base.length || !head.length) {
+        // Only one side reports this row: show it, nothing to compare.
+        const value = base.length ? median(base) : median(head)
+        const shown = fmt(value, kind).padStart(11)
+        console.log(
+          `${name.padEnd(52)}${base.length ? shown : '-'.padStart(11)}${head.length ? shown : '-'.padStart(11)}${(head.length ? 'new' : 'gone').padStart(9)}`
+        )
+        continue
+      }
+      if (base.length !== head.length) {
         throw new Error(
           `${script}: "${label}" has ${base.length} baseline and ${head.length} HEAD samples; one side is missing output`
         )
@@ -168,7 +180,6 @@ function printTable(samples) {
       const speedup = b / h
       const slow = h / b > SLOWER_RATIO
       if (slow) flagged += 1
-      const name = `${script}: ${label}`.slice(0, 51)
       console.log(
         `${name.padEnd(52)}${fmt(b, kind).padStart(11)}${fmt(h, kind).padStart(11)}${`${speedup.toFixed(2)}x`.padStart(9)}${slow ? '  <-- >5% worse' : ''}`
       )

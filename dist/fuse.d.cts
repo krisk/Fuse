@@ -74,6 +74,35 @@ interface FuseIndexStringRecord {
   n: number;
 }
 type FuseIndexRecords = ReadonlyArray<FuseIndexObjectRecord> | ReadonlyArray<FuseIndexStringRecord>;
+type FuseSerializedNorm = number | '-0' | 'NaN' | 'Infinity' | '-Infinity';
+/**
+ * A compact, JSON-compatible saved index, returned by `FuseIndex.serialize()`
+ * and read by `Fuse.parseIndex()`. Columns are parallel arrays: record `r`'s
+ * entries are the next `records.len[r]` entries.
+ */
+interface FuseSerializedIndex {
+  format: 'fuse-index';
+  version: 1;
+  keys: ReadonlyArray<{
+    path: string[];
+    id: string;
+    weight: number;
+    src: string | string[];
+  }>;
+  fieldNormWeight: number;
+  records: {
+    doc: number[];
+    kind: number[];
+    len: number[];
+  };
+  entries: {
+    key: number[];
+    pos: number[];
+    norm: number[];
+  };
+  norms: FuseSerializedNorm[];
+  values: string[];
+}
 interface IndexRecord {
   i: number;
   v?: string;
@@ -324,6 +353,7 @@ declare class FuseIndex<T = any> {
   _idByCount: number[];
   _idByCountNorm: NormInterface | null;
   _entValue: string[];
+  _fieldNormWeight: number;
   constructor({
     getFn,
     fieldNormWeight
@@ -331,7 +361,7 @@ declare class FuseIndex<T = any> {
   /**
    * @deprecated Will be removed in v8. Returns a detached snapshot of the
    * index in the record format: a fresh copy on each access, so changes to it
-   * don't affect search. Use `toJSON()` to serialize an index.
+   * don't affect search. Use `serialize()` to save an index.
    */
   get records(): IndexRecord[];
   set records(records: IndexRecord[]);
@@ -351,6 +381,14 @@ declare class FuseIndex<T = any> {
     keys: ReadonlyArray<Omit<KeyObject, 'getFn'>>;
     records: IndexRecord[];
   };
+  /**
+   * The index in the compact saved format: a JSON-compatible object that
+   * `Fuse.parseIndex()` loads much faster than the `toJSON()` format. Store
+   * it with `JSON.stringify`. Load it with the same documents, in the same
+   * order, as when it was saved: results return items from that list.
+   */
+  serialize(): FuseSerializedIndex;
+  _loadSerialized(data: FuseSerializedIndex): void;
   _materializeAll(): IndexRecord[];
   _materialize(r: number): IndexRecord;
   _materializeFields(r: number): Record<number, SubRecord | SubRecord[]>;
@@ -376,7 +414,7 @@ declare function createIndex<T>(keys: FuseOptionKey<T>[], docs: ReadonlyArray<T>
 declare function parseIndex<T>(data: {
   keys: ReadonlyArray<KeyObject>;
   records: IndexRecord[];
-}, {
+} | FuseSerializedIndex, {
   getFn,
   fieldNormWeight
 }?: FuseIndexOptions<T>): FuseIndex<T>;
@@ -491,6 +529,6 @@ declare class Fuse<T> {
 }
 //#endregion
 declare namespace Fuse {
-  export { type Expression, type FuseGetFunction, type FuseIndex, type FuseIndexObjectRecord, type FuseIndexOptions, type FuseIndexRecords, type FuseIndexStringRecord, type FuseMatchAlgorithm, type FuseOptionKey, type FuseOptionKeyObject, type FuseResult, type FuseResultMatch, type FuseSearchOptions, type FuseSortFunction, type FuseSortFunctionArg, type FuseSortFunctionItem, type FuseSortFunctionMatch, type FuseSortFunctionMatchList, type FuseTokenizeFunction, type IFuseOptions, type RangeTuple, type RecordEntry, type RecordEntryArrayItem, type RecordEntryObject, type SearchResult };
+  export { type Expression, type FuseGetFunction, type FuseIndex, type FuseIndexObjectRecord, type FuseIndexOptions, type FuseIndexRecords, type FuseIndexStringRecord, type FuseMatchAlgorithm, type FuseOptionKey, type FuseOptionKeyObject, type FuseResult, type FuseResultMatch, type FuseSearchOptions, type FuseSerializedIndex, type FuseSerializedNorm, type FuseSortFunction, type FuseSortFunctionArg, type FuseSortFunctionItem, type FuseSortFunctionMatch, type FuseSortFunctionMatchList, type FuseTokenizeFunction, type IFuseOptions, type RangeTuple, type RecordEntry, type RecordEntryArrayItem, type RecordEntryObject, type SearchResult };
 }
 export = Fuse;

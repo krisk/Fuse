@@ -51,6 +51,20 @@ const CASES: TypeCase[] = [
       `void records\n`
   },
   {
+    // Compact saved index: serialize() returns FuseSerializedIndex, and
+    // parseIndex() accepts it as well as the legacy toJSON() object.
+    spec: 'fuse.js (serialize and parseIndex)',
+    code:
+      `import Fuse from 'fuse.js'\n` +
+      `import type { FuseSerializedIndex } from 'fuse.js'\n` +
+      `const index = Fuse.createIndex<{ t: string }>(['t'], [{ t: 'x' }])\n` +
+      `const saved: FuseSerializedIndex = index.serialize()\n` +
+      `const loaded = Fuse.parseIndex<{ t: string }>(saved)\n` +
+      `const legacy = Fuse.parseIndex<{ t: string }>(index.toJSON())\n` +
+      `void new Fuse([{ t: 'x' }], { keys: ['t'] }, loaded)\n` +
+      `void legacy\n`
+  },
+  {
     spec: 'fuse.js/min',
     code: `import Fuse from 'fuse.js/min'\nvoid new Fuse([])\n`
   },
@@ -103,7 +117,8 @@ const CASES: TypeCase[] = [
       `  FuseSortFunctionMatchList, FuseTokenizeFunction, FuseIndexOptions,\n` +
       `  FuseIndexRecords, FuseIndexObjectRecord, FuseIndexStringRecord,\n` +
       `  RecordEntry, RecordEntryObject, RecordEntryArrayItem, RangeTuple,\n` +
-      `  Expression, SearchResult, FuseIndex, FuseMatchAlgorithm\n` +
+      `  Expression, SearchResult, FuseIndex, FuseMatchAlgorithm,\n` +
+      `  FuseSerializedIndex, FuseSerializedNorm\n` +
       `} from 'fuse.js'\n` +
       `export {}\n`
   },

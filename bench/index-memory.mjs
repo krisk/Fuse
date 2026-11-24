@@ -11,6 +11,8 @@
 //   - build + first search: construction plus the first query on it
 //   - serialized index size: JSON.stringify(fuse.getIndex().toJSON())
 //   - parse time: JSON.parse + Fuse.parseIndex + new Fuse(docs, options, index)
+//   - the same two for the compact format (FuseIndex.serialize()), when the
+//     build under test has it
 //
 // Lines use `label: median=<value><unit>` so `npm run bench:compare` can diff
 // them. Every metric is lower-is-better. Data comes from the seeded PRNG in
@@ -128,6 +130,19 @@ for (const [shape, make, keys] of [
           `${tag} parse+construct`,
           `${time(() => new Fuse(docs, options, Fuse.parseIndex(JSON.parse(json))), runs).toFixed(2)}ms`
         )
+        // Compact format (serialize()), when this build has it.
+        const index = new Fuse(docs, options).getIndex()
+        if (typeof index.serialize === 'function') {
+          const compact = JSON.stringify(index.serialize())
+          report(
+            `${tag} serialized compact`,
+            fmtBytes(Buffer.byteLength(compact))
+          )
+          report(
+            `${tag} parse+construct compact`,
+            `${time(() => new Fuse(docs, options, Fuse.parseIndex(JSON.parse(compact))), runs).toFixed(2)}ms`
+          )
+        }
       }
     }
   }

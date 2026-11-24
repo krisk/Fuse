@@ -114,6 +114,32 @@ export interface FuseIndexStringRecord {
 export type FuseIndexRecords =
   ReadonlyArray<FuseIndexObjectRecord> | ReadonlyArray<FuseIndexStringRecord>
 
+// A norm value in a serialized index: a finite number, or one of the values
+// JSON can't represent, written as a string.
+export type FuseSerializedNorm =
+  number | '-0' | 'NaN' | 'Infinity' | '-Infinity'
+
+/**
+ * A compact, JSON-compatible saved index, returned by `FuseIndex.serialize()`
+ * and read by `Fuse.parseIndex()`. Columns are parallel arrays: record `r`'s
+ * entries are the next `records.len[r]` entries.
+ */
+export interface FuseSerializedIndex {
+  format: 'fuse-index'
+  version: 1
+  keys: ReadonlyArray<{
+    path: string[]
+    id: string
+    weight: number
+    src: string | string[]
+  }>
+  fieldNormWeight: number
+  records: { doc: number[]; kind: number[]; len: number[] }
+  entries: { key: number[]; pos: number[]; norm: number[] }
+  norms: FuseSerializedNorm[]
+  values: string[]
+}
+
 export interface IndexRecord {
   i: number
   v?: string

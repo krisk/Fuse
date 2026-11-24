@@ -16,7 +16,9 @@ import type {
   GetFunction,
   IndexRecord,
   SubRecord,
-  FuseIndexOptions
+  FuseIndexOptions,
+  FuseSerializedIndex,
+  FuseSerializedNorm
 } from '../types'
 
 // Record kinds.
@@ -80,12 +82,15 @@ export default class FuseIndex<T = any> {
   _idByCount: number[] = []
   _idByCountNorm: NormInterface | null = null
   _entValue: string[] = []
+  // The weight the norm was created with, written by serialize().
+  _fieldNormWeight: number
 
   constructor({
     getFn = Config.getFn,
     fieldNormWeight = Config.fieldNormWeight
   }: FuseIndexOptions<T> = {}) {
     this.norm = normGenerator(fieldNormWeight, 3)
+    this._fieldNormWeight = fieldNormWeight
     this.getFn = getFn as GetFunction
     this.isCreated = false
     this.docs = []
@@ -96,14 +101,14 @@ export default class FuseIndex<T = any> {
   /**
    * @deprecated Will be removed in v8. Returns a detached snapshot of the
    * index in the record format: a fresh copy on each access, so changes to it
-   * don't affect search. Use `toJSON()` to serialize an index.
+   * don't affect search. Use `serialize()` to save an index.
    */
   get records(): IndexRecord[] {
     if (process.env.NODE_ENV === 'development' && !warnedRecordsDeprecated) {
       warnedRecordsDeprecated = true
       console.warn(
         '[Fuse] FuseIndex.records is deprecated and will be removed in v8; ' +
-          'use toJSON() to serialize an index.'
+          'use serialize() to save an index (toJSON() for the legacy format).'
       )
     }
     return this._materializeAll()
@@ -146,7 +151,10 @@ export default class FuseIndex<T = any> {
   // A copy that owns its storage, for callers about to mutate an index they
   // don't own. Keys, getFn and the norm cache are shared (never mutated).
   clone(): FuseIndex<T> {
-    const copy = new FuseIndex<T>({ getFn: this.getFn })
+    const copy = new FuseIndex<T>({
+      getFn: this.getFn,
+      fieldNormWeight: this._fieldNormWeight
+    })
     copy.norm = this.norm
     copy.isCreated = this.isCreated
     copy.setSources(this.docs)
@@ -355,6 +363,169 @@ export default class FuseIndex<T = any> {
       keys: this.keys.map(({ getFn, ...key }) => key),
       records: this._materializeAll()
     }
+  }
+
+  /**
+   * The index in the compact saved format: a JSON-compatible object that
+   * `Fuse.parseIndex()` loads much faster than the `toJSON()` format. Store
+   * it with `JSON.stringify`. Load it with the same documents, in the same
+   * order, as when it was saved: results return items from that list.
+   */
+  serialize(): FuseSerializedIndex {
+    const rc = this._recCount
+    let ec = 0
+    for (let r = 0; r < rc; r += 1) ec += this._recLen[r]
+    const doc: number[] = new Array(rc)
+    const kind: number[] = new Array(rc)
+    const len: number[] = new Array(rc)
+    const key: number[] = new Array(ec)
+    const pos: number[] = new Array(ec)
+    const norm: number[] = new Array(ec)
+    const values: string[] = new Array(ec)
+    // Only the norms live entries use, renumbered in first-use order:
+    // removals can leave unused values in the in-memory table.
+    const usedNorms: FuseSerializedNorm[] = []
+    const fileIds = new Map<number, number>()
+    let p = 0
+    for (let r = 0; r < rc; r += 1) {
+      const start = this._recStart[r]
+      const n = this._recLen[r]
+      doc[r] = this._recDoc[r]
+      kind[r] = this._recKind[r]
+      len[r] = n
+      // Live entries only: ranges in the file are implicit and contiguous.
+      for (let e = start; e < start + n; e += 1, p += 1) {
+        key[p] = this._entKey[e]
+        pos[p] = this._entIdx[e]
+        const id = this._entNormId[e]
+        let fileId = fileIds.get(id)
+        if (fileId === undefined) {
+          fileId = usedNorms.length
+          usedNorms.push(encodeNorm(this._normValues[id]))
+          fileIds.set(id, fileId)
+        }
+        norm[p] = fileId
+        values[p] = this._entValue[e]
+      }
+    }
+    return {
+      format: 'fuse-index',
+      version: 1,
+      // Copies, so changing the output can't reach this index's keys.
+      keys: this.keys.map(({ path, id, weight, src }) => ({
+        path: path.slice(),
+        id,
+        weight,
+        src: isArray(src) ? src.slice() : src
+      })),
+      fieldNormWeight: this._fieldNormWeight,
+      records: { doc, kind, len },
+      entries: { key, pos, norm },
+      norms: usedNorms,
+      values
+    }
+  }
+
+  // Loads the columns of a compact saved index (keys already set), in one
+  // pass: each value is read exactly once into a local, fully validated, and
+  // that same local is written. (Reading twice would let an object with
+  // getters, or a Proxy, pass validation with one value and store another.)
+  // Storage starts small and grows as validated records arrive, so the
+  // input's array lengths never size an allocation up front, and holes in
+  // sparse arrays read as undefined and fail. Nothing may wrap in a typed
+  // array or break the entry layout search relies on.
+  _loadSerialized(data: FuseSerializedIndex): void {
+    const invalid = (detail: string): never => {
+      throw new Error(ErrorMsg.INVALID_SERIALIZED_INDEX(detail))
+    }
+    const { records, entries, norms, values } = data
+    if (!records || typeof records !== 'object') invalid('records is missing')
+    if (!entries || typeof entries !== 'object') invalid('entries is missing')
+    const { doc, kind, len } = records
+    const { key, pos, norm } = entries
+    for (const [name, column] of [
+      ['records.doc', doc],
+      ['records.kind', kind],
+      ['records.len', len],
+      ['entries.key', key],
+      ['entries.pos', pos],
+      ['entries.norm', norm],
+      ['norms', norms],
+      ['values', values]
+    ] as const) {
+      if (!Array.isArray(column)) invalid(`${name} is not an array`)
+    }
+    const rc = doc.length
+    const ec = key.length
+    if (kind.length !== rc || len.length !== rc) {
+      invalid('record columns differ in length')
+    }
+    if (pos.length !== ec || norm.length !== ec || values.length !== ec) {
+      invalid('entry columns differ in length')
+    }
+
+    this._reset(Math.min(rc, LOAD_PRESIZE), Math.min(ec, LOAD_PRESIZE))
+    // File norm ids -> ids in this index's norm table (each norm read once).
+    const normCount = norms.length
+    if (normCount > ec + 1) invalid('more norms than entries')
+    const normIds: number[] = new Array(normCount)
+    for (let i = 0; i < normCount; i += 1) {
+      normIds[i] = this._normIdOf(decodeNorm(norms[i]))
+    }
+    const keyCount = this.keys.length
+
+    let e = 0
+    for (let r = 0; r < rc; r += 1) {
+      const d = doc[r]
+      const k = kind[r]
+      const n = len[r]
+      if (!isIndex(d)) invalid(`records.doc[${r}] is out of range`)
+      if (k !== STRING_RECORD && k !== OBJECT_RECORD) {
+        invalid(`records.kind[${r}] must be 0 or 1`)
+      }
+      if (!isIndex(n) || n > ec - e)
+        invalid(`records.len[${r}] is out of range`)
+      if (k === STRING_RECORD && n !== 1) {
+        invalid(`record ${r} is not a single scalar string entry`)
+      }
+
+      this._beginRecord(d, k)
+      let prevKey = -1
+      let prevPos = 0
+      for (const end = e + n; e < end; e += 1) {
+        const ek = key[e]
+        const ep = pos[e]
+        const en = norm[e]
+        const ev = values[e]
+        if (!isIndex(ek)) invalid(`entries.key[${e}] is out of range`)
+        if (ep !== SCALAR && ep !== EMPTY_ARRAY && !isIndex(ep)) {
+          invalid(`entries.pos[${e}] is out of range`)
+        }
+        if (!isIndex(en) || en >= normCount) {
+          invalid(`entries.norm[${e}] is out of range`)
+        }
+        if (typeof ev !== 'string') invalid(`values[${e}] is not a string`)
+
+        if (k === STRING_RECORD) {
+          if (ek !== 0 || ep !== SCALAR) {
+            invalid(`record ${r} is not a single scalar string entry`)
+          }
+        } else {
+          if (ek >= keyCount) invalid(`entries.key[${e}] is out of range`)
+          if (ek < prevKey) invalid(`record ${r} entries are not in key order`)
+          // Within a key: one scalar, one empty-array marker, or array items.
+          if (ek === prevKey && (prevPos < 0 || ep < 0)) {
+            invalid(`record ${r} has an invalid entry group for key ${ek}`)
+          }
+        }
+        prevKey = ek
+        prevPos = ep
+        this._pushEntry(ek, ep, normIds[en], ev)
+      }
+      this._endRecord()
+    }
+    if (e !== ec) invalid('entries left over after the last record')
+    this._trim()
   }
 
   // ── Record format (for toJSON, the deprecated getter, add() and sortFn) ──
@@ -670,6 +841,80 @@ export default class FuseIndex<T = any> {
 
 const NEGATIVE_ZERO_KEY = '-0'
 
+// Initial storage when loading a saved index; it grows from there, so a
+// claimed array length never sizes an allocation on its own.
+const LOAD_PRESIZE = 1 << 16
+
+// A non-negative integer that fits the Int32/Uint32 columns.
+function isIndex(value: unknown): boolean {
+  const n = value as number
+  return (n | 0) === n && n >= 0
+}
+
+// Norms that JSON can't represent are written as strings.
+function encodeNorm(value: number): FuseSerializedNorm {
+  if (Number.isFinite(value)) return Object.is(value, -0) ? '-0' : value
+  if (Number.isNaN(value)) return 'NaN'
+  return value > 0 ? 'Infinity' : '-Infinity'
+}
+
+function decodeNorm(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  switch (value) {
+    case '-0':
+      return -0
+    case 'NaN':
+      return NaN
+    case 'Infinity':
+      return Infinity
+    case '-Infinity':
+      return -Infinity
+  }
+  throw new Error(ErrorMsg.INVALID_SERIALIZED_INDEX('invalid norm value'))
+}
+
+// Validates and copies the keys of a compact saved index. Indexed reads, so
+// holes in sparse arrays fail. Paths may be empty: createKey accepts them.
+function readSerializedKeys(keys: unknown): KeyObject[] {
+  const invalid = (detail: string): never => {
+    throw new Error(ErrorMsg.INVALID_SERIALIZED_INDEX(detail))
+  }
+  // A copy of an array of strings, reading each cell once (null if it isn't
+  // one): validating the copy means a getter can't change what's stored.
+  const copyStrings = (value: unknown): string[] | null => {
+    if (!Array.isArray(value)) return null
+    const copy: string[] = new Array(value.length)
+    for (let i = 0; i < copy.length; i += 1) {
+      const part = value[i]
+      if (typeof part !== 'string') return null
+      copy[i] = part
+    }
+    return copy
+  }
+  if (!Array.isArray(keys)) invalid('keys is not an array')
+  const list = keys as any[]
+  const result: KeyObject[] = new Array(list.length)
+  for (let i = 0; i < result.length; i += 1) {
+    const key = list[i]
+    if (!key || typeof key !== 'object') invalid(`keys[${i}] is not an object`)
+    const { path: rawPath, id, src: rawSrc, weight } = key
+    const path = copyStrings(rawPath)
+    if (!path) invalid(`keys[${i}].path must be an array of strings`)
+    if (typeof id !== 'string' || id !== path!.join('.')) {
+      invalid(`keys[${i}].id must be its path joined with '.'`)
+    }
+    const src = typeof rawSrc === 'string' ? rawSrc : copyStrings(rawSrc)
+    if (src === null)
+      invalid(`keys[${i}].src must be a string or array of strings`)
+    if (typeof weight !== 'number' || !Number.isFinite(weight) || weight <= 0) {
+      invalid(`keys[${i}].weight must be a finite number greater than 0`)
+    }
+    // Same property order as createKey(), so toJSON() output is unchanged.
+    result[i] = { path: path!, id, weight, src: src! }
+  }
+  return result
+}
+
 // Validates a document index, field key or array position read from records
 // (the typed columns would silently wrap anything outside 0..2^31-1).
 function checkPosition(value: unknown): number {
@@ -719,16 +964,64 @@ export function createIndex<T>(
 }
 
 export function parseIndex<T>(
-  data: {
-    keys: ReadonlyArray<KeyObject>
-    records: IndexRecord[]
-  },
+  data:
+    | {
+        keys: ReadonlyArray<KeyObject>
+        records: IndexRecord[]
+      }
+    | FuseSerializedIndex,
   {
     getFn = Config.getFn,
     fieldNormWeight = Config.fieldNormWeight
   }: FuseIndexOptions<T> = {}
 ): FuseIndex<T> {
-  const { keys, records } = data
+  if (!data || typeof data !== 'object') {
+    throw new Error(ErrorMsg.INCORRECT_INDEX_TYPE)
+  }
+  // Legacy toJSON() output has no format marker and an array of records.
+  // Anything else must be a compact index: a missing or wrong marker is an
+  // error, never a silently empty legacy load.
+  const { format, records: legacyRecords, entries, norms, values } = data as any
+  const isLegacy =
+    format === undefined &&
+    (Array.isArray(legacyRecords) ||
+      (legacyRecords === undefined &&
+        entries === undefined &&
+        norms === undefined &&
+        values === undefined))
+  if (!isLegacy) {
+    if (format !== 'fuse-index') {
+      throw new Error(
+        ErrorMsg.INVALID_SERIALIZED_INDEX(
+          "not a saved index (format must be 'fuse-index')"
+        )
+      )
+    }
+    const serialized = data as FuseSerializedIndex
+    if (serialized.version !== 1) {
+      throw new Error(ErrorMsg.UNSUPPORTED_INDEX_VERSION(serialized.version))
+    }
+    const keys = readSerializedKeys(serialized.keys)
+    const weight = serialized.fieldNormWeight
+    if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0) {
+      throw new Error(
+        ErrorMsg.INVALID_SERIALIZED_INDEX(
+          'fieldNormWeight must be a finite number of at least 0'
+        )
+      )
+    }
+    // The saved weight wins: the norms were computed with it, and documents
+    // added later must get matching norms.
+    const myIndex = new FuseIndex<T>({ getFn, fieldNormWeight: weight })
+    myIndex.setKeys(keys)
+    myIndex._loadSerialized(serialized)
+    return myIndex
+  }
+
+  const { keys, records } = data as {
+    keys: ReadonlyArray<KeyObject>
+    records: IndexRecord[]
+  }
   const myIndex = new FuseIndex<T>({ getFn, fieldNormWeight })
   myIndex.setKeys(keys as KeyObject[])
   // Records are copied into columns, so the caller's data is never touched.

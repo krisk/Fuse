@@ -284,7 +284,7 @@ function useSearch(items, keys, query) {
 }
 ```
 
-`Fuse.createIndex()` builds the index separately, which is useful if you need to serialize it or reuse it across multiple Fuse instances.
+`Fuse.createIndex()` builds the index separately, which is useful if you need to reuse it across multiple Fuse instances, or to save it with `index.serialize()` and load it later with `Fuse.parseIndex()` (see [saved indexes](/performance.html#saved-indexes)).
 
 ### 3. Virtualized Rendering
 
