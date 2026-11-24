@@ -109,7 +109,8 @@
     "docs:build": "vitepress build docs",
     "docs:release": "./scripts/deploy-docs.sh",
     "prepare": "husky install",
-    "bench:compare": "node scripts/bench-compare.mjs"
+    "bench:compare": "node scripts/bench-compare.mjs",
+    "release:approve": "node scripts/release-approve.mjs"
   },
   "standard-version": {
     "scripts": {

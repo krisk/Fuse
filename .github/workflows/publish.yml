@@ -1,0 +1,112 @@
+name: Publish
+
+# Publishes to npm with trusted publishing (OIDC): no npm token is stored
+# anywhere. A version tag (v*) starts it; the publish job then waits for
+# approval on the `npm` environment (`npm run release:approve`, the run page,
+# or the GitHub app).
+#
+# Running it by hand (workflow_dispatch) does a dry run: verification and the
+# approval gate, then `npm publish --dry-run` in a job that has no OIDC
+# permission, so a manual run can't publish whatever its command says.
+#
+# npm side: fuse.js -> Settings -> Trusted Publisher -> GitHub Actions with
+# krisk / Fuse / publish.yml / environment npm, "Allow npm publish". This file
+# name must not change without updating that setting.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24.15.0'
+  # Trusted publishing needs npm 11.5.1 or later; pinned so the job that holds
+  # publishing credentials runs a known npm.
+  NPM_VERSION: '11.21.3'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci --no-audit --no-fund
+        env:
+          HUSKY: 0
+      - name: Version and dist-tag
+        run: node scripts/release-meta.mjs
+      # The committed dist is what gets published, so a rebuild must leave it
+      # exactly as committed: no changed, new, untracked or ignored files.
+      - run: npm run build
+      - name: Committed dist matches the source
+        run: |
+          changes=$(git status --porcelain=v1 --untracked-files=all --ignored=matching -- dist)
+          if [ -n "$changes" ]; then
+            echo "dist differs from a clean build:"
+            echo "$changes"
+            exit 1
+          fi
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  # Real releases: tag pushes only. The only job with id-token: write.
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # trusted publishing
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g "npm@$NPM_VERSION"
+      # Re-checked after approval, which can come much later: the version must
+      # still be newer than what its dist-tag points to on npm.
+      - name: Version and dist-tag
+        id: meta
+        run: node scripts/release-meta.mjs
+      # --ignore-scripts: publish the committed, verified dist as is (no
+      # prepare hook, no rebuild). Provenance is added automatically.
+      - name: Publish
+        run: npm publish --ignore-scripts --tag "$DIST_TAG"
+        env:
+          DIST_TAG: ${{ steps.meta.outputs.dist-tag }}
+
+  # Manual runs: the same gate, but no OIDC permission, so nothing can publish.
+  dry-run:
+    if: github.event_name == 'workflow_dispatch'
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g "npm@$NPM_VERSION"
+      - name: Version and dist-tag
+        id: meta
+        run: node scripts/release-meta.mjs
+      - name: Publish (dry run)
+        run: npm publish --dry-run --ignore-scripts --tag "$DIST_TAG"
+        env:
+          DIST_TAG: ${{ steps.meta.outputs.dist-tag }}
