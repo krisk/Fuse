@@ -20,6 +20,7 @@ function isDefined(value) {
 //#endregion
 //#region src/workers/FuseWorker.ts
 const DEFAULT_MAX_WORKERS = 8;
+const TRUSTED_TYPES_POLICY = globalThis?.window?.trustedTypes?.createPolicy("fuse-trusted-worker-url", { createScriptURL: (url) => url });
 function getDefaultWorkerCount() {
 	const hw = typeof navigator !== "undefined" ? navigator.hardwareConcurrency || 4 : 4;
 	return Math.min(hw, DEFAULT_MAX_WORKERS);
@@ -47,7 +48,11 @@ var FuseWorker = class FuseWorker {
 		if (numWorkers !== void 0 && (!Number.isInteger(numWorkers) || numWorkers < 1)) throw new Error(FUSE_WORKER_INVALID_NUM_WORKERS);
 		FuseWorker._assertNoFunctionOptions(this._options);
 		if (this._options.useTokenSearch) throw new Error(FUSE_WORKER_TOKEN_SEARCH_UNSUPPORTED);
-		this._workerUrl = this._workerOptions.workerUrl || resolveDefaultWorkerUrl();
+		if (this._workerOptions.workerUrl) this._workerUrl = this._workerOptions.workerUrl;
+		else {
+			const defaultWorkerUrl = resolveDefaultWorkerUrl();
+			this._workerUrl = TRUSTED_TYPES_POLICY ? TRUSTED_TYPES_POLICY.createScriptURL(defaultWorkerUrl.toString()) : defaultWorkerUrl;
+		}
 	}
 	static _assertNoFunctionOptions(options) {
 		if (typeof options.sortFn === "function") throw new Error(FUSE_WORKER_UNSUPPORTED_FN_OPTION("sortFn"));
